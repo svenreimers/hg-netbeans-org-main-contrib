@@ -1,0 +1,67 @@
+--------------------------------------------------------------------------------
+  This file contains release and changes log for CORBA Module 
+--------------------------------------------------------------------------------
+
+  module JAR:       corba.jar
+  module code name: org.netbeans.modules.corba/1
+  dependencies:     org.netbeans.modules.java/1
+  lib/ext:          NONE
+  modules/ext:      NONE
+  
+  packages: 
+    org.netbeans.modules.corba.*
+
+  maintained by: Karel Gardas
+
+--------------------------------------------------------------------------------
+
+-- Release --------------------------------------
+
+  Released version:          FCS + RC4
+  Released build number:     501
+  Release type:              FCS, RC4, EAP Pro/Enterprise modules
+  StarTeam Label:            Gandalf-Build501
+  Label Date:                20.3.2000 7:30:18
+  Release Date:              20.3.2000
+  
+  Specification-Version:     1.0
+  Implementation-Version:    1.0  
+
+-------------------------------------------------
+
+
+
+-------------------------------------------------
+
+Aug/31 USER CHANGE: Correctly provides FileSystemAction on its data objects
+
+-- Release --------------------------------------
+
+  Released version:          AutoUpdate
+  Released build number:     385
+  Release type:              EAP module update
+  StarTeam Label:            Gandalf-Build385
+  Label Date:                3.9.1999 1:28:03
+  Release Date:              3.9.1999
+  
+  Specification-Version:     0.9.1
+  Implementation-Version:    0.9.1
+
+  Details: SW is the same as in 0.9
+           documentation updated only
+
+-------------------------------------------------
+
+-- Release --------------------------------------
+
+  Released version:          Beta 4 Public
+  Released build number:     382
+  Release type:              Public Entry, EAP Pro/Enterprise modules
+  StarTeam Label:            Gandalf-Build382c
+  Label Date:                26.8.1999 17:55:52
+  Release Date:              26.8.1999
+  
+  Specification-Version:     0.9
+  Implementation-Version:    0.9
+
+-------------------------------------------------

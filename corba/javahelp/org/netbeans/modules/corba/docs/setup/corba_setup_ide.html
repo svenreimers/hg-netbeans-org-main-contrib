@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>Specifying an ORB</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>Specifying an ORB</h2>
+
+<p>
+For the CORBA module to generate stub and skeleton files that 
+work with a particular object request broker (ORB) product, you need
+to set properties that identify that ORB product.
+</p>
+<p>
+<b>To examine and modify CORBA property settings:</b>
+<ol>
+<li>Choose Tools <img src="../images/arrow.gif" alt="and choose">&nbsp;Options.</li> 
+
+<li>Expand Distributed Application Support and select CORBA Support Settings. 
+The CORBA properties appear
+on the right of the dialog box.</li> 
+
+<li>Make sure that the ORB Version property is set to the ORB that you
+want to use.</li> 
+
+<li>Expand the CORBA Settings node to display its subnodes.</li> 
+
+<li>Click the subnode for the ORB you are using. The properties for that
+ORB appear in the right of the dialog box.
+<p>
+When you develop CORBA programs, the IDL compiler generates stub,
+skeleton, and other supporting files and puts them in the package with
+the file you actually write. You do not reference these files directly
+in the code you write, they are hidden by default. If you want to
+see them, set the Hide Generated Files property to False.</p></li>
+
+<li>Make sure the other properties, such as the Generated Skeletons property,
+are set to values that are appropriate for your project.</li>
+</ol>
+</p>
+
+<p>
+<b>To specify the external IDL compiler executable as a property:</b>
+<ol>
+<li>Choose Tools 
+<img src="../images/arrow.gif" alt="and choose">&nbsp;Options.</li> 
+<li>Expand Distributed Application Support <img src="../images/expand.gif" alt="and
+expand">&nbsp; CORBA Support Settings.</li> 
+<li>Select the node for your ORB. Then select the Expert tab on the property
+sheet.</li>
+<li>Click External IDL Compiler, then click the ellipsis ("...") button.</li>
+<li>Type in the full path to the IDL compiler.</li>
+</ol>
+
+<p>
+Any changes that you make to these settings apply to the current development project. Different
+projects can be configured differently depending on the properties
+available for the selected ORB.
+
+<table>
+<tr valign="top">
+<th colspan=2 align=left>See also</th>
+</tr>
+<tr valign="top">
+<td width="23"></td>
+<td><a href="corba_setup_supportedorbs.html">Supported ORB
+Products</a><br>
+<a href="../settings/corba_settings.html">CORBA Settings</a><br>
+<a href="../settings/corba_/corba_settings_orbnodes.html">ORB Product Subnode Settings</a><br>
+<a href="corba_setup_idl.html">Setting Up the IDL Compiler</a><br>
+<a href="corba_setup_runtime.html">Accessing the ORB Runtime Classes</a><br>
+</td>
+</tr>
+</table>
+
+<hr><small><a href="../credits.html">Legal Notices</a></small></body>
+</html>
