@@ -1,0 +1,260 @@
+<?xml version = "1.0"?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.0//EN" "http://www.netbeans.org/dtds/filesystem-1_0.dtd">
+
+<filesystem>
+  <folder name="Templates">
+    <attr name="Classes/CORBA" boolvalue="true" />
+    <folder name="CORBA">
+      <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+      <attr name="CallBackClientMain.java/ClientMain.java" boolvalue="true"/>
+      <attr name="ClientMain.java/Empty.idl" boolvalue="true"/>
+      <attr name="Empty.idl/POA" boolvalue="true"/>
+      <attr name="POA/ServerMain.java" boolvalue="true"/>
+      <attr name="ServerMain.java/Simple.idl" boolvalue="true"/>
+      <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/CORBA.html"/>
+      <file name="Empty.idl" url="templates/Empty.itemplate">
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	<attr name="template" boolvalue="true"/>
+	<attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/Empty.html"/>
+        <attr name="templateWizardIterator" newvalue="org.netbeans.modules.corba.wizard.IDLWizard" />
+      </file>
+      <file name="Simple.idl" url="templates/Simple.itemplate">
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	<attr name="template" boolvalue="true"/>
+	<attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/Simple.html"/>
+      </file>
+      <file name="ServerMain.java" url="templates/ServerMain.jtemplate">
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	<attr name="template" boolvalue="true"/>
+	<attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/ServerMain.html"/>
+      </file>
+      <file name="ClientMain.java" url="templates/ClientMain.jtemplate">
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	<attr name="template" boolvalue="true"/>
+	<attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/ClientMain.html"/>
+      </file>
+      <file name="CallBackClientMain.java" url="templates/CallBackClientMain.jtemplate">
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	<attr name="template" boolvalue="true"/>
+	<attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/CallBackClientMain.html"/>
+      </file>
+      <folder name="POA">
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+        <attr name="AdapterActivator.java/ServantActivator.java" boolvalue="true"/>
+	<attr name="ServantActivator.java/ServantLocator.java" boolvalue="true"/>
+        <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/POA.html"/>
+	<file name="AdapterActivator.java" url="templates/AdapterActivator.jtemplate">
+          <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	  <attr name="template" boolvalue="true"/>
+	  <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/AdapterActivator.html"/>
+	</file>
+	<file name="ServantActivator.java" url="templates/ServantActivator.jtemplate">
+          <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	  <attr name="template" boolvalue="true"/>
+	  <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/ServantActivator.html"/>
+	</file>
+	<file name="ServantLocator.java" url="templates/ServantLocator.jtemplate">
+          <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.resources.Bundle"/>
+	  <attr name="template" boolvalue="true"/>
+	  <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/ServantLocator.html"/>
+	</file>
+      </folder>
+    </folder>
+  </folder>
+  <folder name="NodeFactories">
+    <folder name="java">
+      <folder name="explorer">
+        <file name="org-netbeans-modules-corba-poasupport-POAExplorerFactory.instance"/>
+      </folder>
+    </folder>
+  </folder> 
+  <folder name="CORBA">
+<!--
+    <file name="j2ee-orb.properties" url="impls/j2ee-orb.properties">
+    </file>
+    <file name="jacorb.properties" url="impls/jacorb.properties">
+    </file>
+    <file name="javaorb.properties" url="impls/javaorb.properties">
+    </file>
+    <file name="jdk1.2-orb.properties" url="impls/jdk1.2-orb.properties">
+    </file>
+    <file name="jdk1.3-orb.properties" url="impls/jdk1.3-orb.properties">
+    </file>
+    <file name="orbacus-for-windows.properties" url="impls/orbacus-for-windows.properties">
+    </file>
+    <file name="orbacus.properties" url="impls/orbacus.properties">
+    </file>
+    <file name="orbacus4-for-windows.properties" url="impls/orbacus4-for-windows.properties">
+    </file>
+    <file name="orbacus4.properties" url="impls/orbacus4.properties">
+    </file>
+    <file name="orbix2000.properties" url="impls/orbix2000.properties">
+    </file>
+    <file name="orbixweb.properties" url="impls/orbixweb.properties">
+    </file>
+    <file name="visibroker.properties" url="impls/visibroker.properties">
+    </file>
+    <file name="visibroker4.properties" url="impls/visibroker4.properties">
+    </file>
+-->
+<!-- Bundles -->
+    <file name="Bundle.properties" url="impls/Bundle.properties">
+    </file>
+<!--
+    <file name="Bundle_cs.properties" url="impls/Bundle_cs.properties">
+    </file>
+-->
+<!-- Various entities -->
+    <file name="corba20-generic-impl.ent" url="impls/corba20-generic-impl.ent">
+    </file>
+    <file name="corba23-poa.ent" url="impls/corba23-poa.ent">
+    </file>
+    <file name="corba23-generic-impl.ent" url="impls/corba23-generic-impl.ent">
+    </file>
+    <file name="corba24-poa.ent" url="impls/corba24-poa.ent">
+    </file>
+    <file name="orbacus4-generic.ent" url="impls/orbacus4-generic.ent">
+    </file>
+    <file name="orbacus3-generic.ent" url="impls/orbacus3-generic.ent">
+    </file>
+<!-- Settings -->
+    <file name="jdk1.2-orb.xml" url="impls/jdk1.2-orb.xml">
+    </file>
+    <file name="jdk1.3-orb.xml" url="impls/jdk1.3-orb.xml">
+    </file>
+    <file name="jdk1.4-orb.xml" url="impls/jdk1.4-orb.xml">
+    </file> 
+    <file name="j2ee-orb.xml" url="impls/j2ee-orb.xml">
+    </file>
+    <file name="orbacus4.xml" url="impls/orbacus4.xml">
+    </file>
+    <file name="orbacus4-for-windows.xml" url="impls/orbacus4-for-windows.xml">
+    </file>
+    <file name="orbacus.xml" url="impls/orbacus.xml">
+    </file>
+    <file name="orbacus-for-windows.xml" url="impls/orbacus-for-windows.xml">
+    </file>
+    <file name="orbix2000.xml" url="impls/orbix2000.xml">
+    </file>
+    <file name="orbixweb.xml" url="impls/orbixweb.xml">
+    </file>
+    <file name="visibroker4.xml" url="impls/visibroker4.xml">
+    </file>
+    <file name="visibroker.xml" url="impls/visibroker.xml">
+    </file>
+    <file name="jacorb.xml" url="impls/jacorb.xml">
+    </file>
+    <file name="javaorb.xml" url="impls/javaorb.xml">
+    </file>
+    <file name="eorb.xml" url="impls/eorb.xml">
+    </file>
+    <file name="openorb.xml" url="impls/openorb.xml">
+    </file>
+    <file name="ORBSettings.dtd" url="impls/ORBSettings.dtd">
+    </file>
+    </folder>
+
+
+    <folder name="Services">
+        <!-- Settings -->
+        <file name="org-netbeans-modules-corba-settings-CORBASupportSettings.settings" url="CORBASupportSettings.settings">
+            <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.settings.Bundle"/>
+            <attr name="SystemFileSystem.icon" urlvalue="nbres:/org/netbeans/modules/corba/settings/orb.gif"/>
+            <attr name="SystemFileSystem.layer" stringvalue="project"/>
+        </file>
+
+
+        <folder name="JavaHelp">
+            <attr name="org-netbeans-modules-usersguide-above-regular.txt/org-netbeans-modules-corba-helpset.xml" boolvalue="true"/>
+            <file name="org-netbeans-modules-corba-helpset.xml" url="helpset.xml">            
+            </file>
+            <attr name="org-netbeans-modules-corba-helpset.xml/org-netbeans-modules-usersguide-below-regular.txt" boolvalue="true"/>
+        </folder>
+    </folder>
+
+    <folder name="UI">
+        <folder name="Runtime">
+            <file name="ContextNode.instance">
+            <attr name="instanceClass" stringvalue="org.netbeans.modules.corba.browser.ns.ContextNode"/>
+            <attr name="instanceCreate" methodvalue="org.netbeans.modules.corba.browser.ns.ContextNode.getDefault"/>
+            </file>
+            <file name="IRRootNode.instance">
+            <attr name="instanceClass" stringvalue="org.netbeans.modules.corba.browser.ir.IRRootNode"/>
+            <attr name="instanceCreate" methodvalue="org.netbeans.modules.corba.browser.ir.IRRootNode.getDefault"/>
+            </file>
+          </folder> <!-- Runtime -->
+          <folder name="Services">
+            <folder name="DistributedApplicationSupport">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.Bundle"/>
+
+                <file name="org-netbeans-modules-corba-settings-CORBASupportSettings.shadow" url="css.settings">
+                </file>
+            </folder>
+        </folder>
+    </folder>
+
+  <folder name="Menu">
+    <folder name="Tools">
+      <file name="CORBA Wizard[org-netbeans-modules-corba-wizard-CorbaWizardAction].instance" />
+    </folder>
+    <folder name="Help">
+        <folder name="HelpShortcuts">
+            <attr name="org-netbeans-modules-usersguide-sep.instance/org-netbeans-modules-corba-mainpage.xml" boolvalue="true"/>
+            <file name="org-netbeans-modules-corba-mainpage.xml" url="mainpage.xml">           
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.corba.Bundle"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/corba/resources/blank.gif"/>
+            </file>
+            <attr name="org-netbeans-modules-corba-mainpage.xml/org-netbeans-modules-usersguide-lower-sep.instance" boolvalue="true"/>
+        </folder>
+    </folder>
+  </folder>
+  <folder name="xml">
+	<folder name="entities">
+		<folder name="Forte_for_Java">
+			<file name="DTD_ORBSettings_1_0" url="nbres:/org/netbeans/modules/corba/resources/impls/ORBSettings.dtd"/>
+		</folder>
+	</folder>
+  </folder>
+</filesystem>

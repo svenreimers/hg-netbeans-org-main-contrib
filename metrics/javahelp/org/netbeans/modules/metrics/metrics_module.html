@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+   <!--
+   - DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+   -
+   - Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+   -
+   - The contents of this file are subject to the terms of either the GNU
+   - General Public License Version 2 only ("GPL") or the Common
+   - Development and Distribution License("CDDL") (collectively, the
+   - "License"). You may not use this file except in compliance with the
+   - License. You can obtain a copy of the License at
+   - http://www.netbeans.org/cddl-gplv2.html
+   - or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+   - specific language governing permissions and limitations under the
+   - License.  When distributing the software, include this License Header
+   - Notice in each file and include the License file at
+   - nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+   - particular file as subject to the "Classpath" exception as provided
+   - by Sun in the GPL Version 2 section of the License file that
+   - accompanied this code. If applicable, add the following below the
+   - License Header, with the fields enclosed by brackets [] replaced by
+   - your own identifying information:
+   - "Portions Copyrighted [year] [name of copyright owner]"
+   -
+   - Contributor(s):
+   -
+   - The Original Software is NetBeans. The Initial Developer of the Original
+   - Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+   - Microsystems, Inc. All Rights Reserved.
+   -
+   - If you wish your version of this file to be governed by only the CDDL
+   - or only the GPL Version 2, indicate your decision by adding
+   - "[Contributor] elects to include this software in this distribution
+   - under the [CDDL or GPL Version 2] license." If you do not indicate a
+   - single choice of license, a recipient has the option to distribute
+   - your version of this file under either the CDDL, the GPL Version 2 or
+   - to extend the choice of license to its licensees as provided above.
+   - However, if you add GPL Version 2 code and therefore, elected the GPL
+   - Version 2 license, then the option applies only if the new code is
+   - made subject to such option by the copyright holder.
+  -->
+  <title>NetBeans Metrics Module</title>
+  <link rel="StyleSheet" href="nbdocs:/org/netbeans/modules/usersguide/ide.css" type="text/css">
+</head>
+<body>
+<h1>NetBeans Metrics Module</h1>
+<p><small><a href="#seealso">See Also</a></small></p>
+<p>The NetBeans Metrics module is a plug-in for NetBeans
+which adds object-oriented metrics capabilities.  Once installed, a developer
+may view metrics on a per-class or project basis, and be able to "drill
+down"  to find out how the metric was calculated.  Unlike traditional metrics
+tools which provide sophisticated reporting of lots of different metrics,
+the metrics module instead focuses on bringing a small number of metrics
+into the developer's edit/compile loop.</p>
+<p>Metrics are not indications of bugs or poor design, but high metric numbers
+  often indicate how complex, fragile, or sensitive to  regressions a class
+  may be.  Classes or methods with high metric values may be good candidates 
+ for <a href="http://refactoring.netbeans.org">refactoring</a>.  It is therefore useful for a developer to monitor project metrics 
+and investigate those metrics which seem out of line.</p>
+<p>Like a car's dashboard warning lights, the metrics module flags classes 
+ and methods which cross various metric thresholds with a yellow (warning) 
+ or red (error) light next to their icons in the Explorer.  A developer 
+has the choice of refactoring the class or method, or approving the current
+ metric value; in either case, the warning light goes out.  The metrics 
+module is therefore useful as a guide during class creation and maintenance
+ to encourage the development of lighter weight classes which are loosely
+coupled.</p>
+<table>
+  <tr> 
+    <th colspan=2 align=left><a name="seealso">See Also</a></th>
+  </tr>
+  <tr> 
+    <td width="23"></td>
+    <td> <a href="metrics_definitions.html">Metrics Definitions</a> <br>
+</table>
+</body>
+</html>

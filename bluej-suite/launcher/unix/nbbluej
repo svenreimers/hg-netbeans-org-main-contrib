@@ -1,0 +1,147 @@
+#!/bin/sh
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+#
+# Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+#
+# The contents of this file are subject to the terms of either the GNU
+# General Public License Version 2 only ("GPL") or the Common
+# Development and Distribution License("CDDL") (collectively, the
+# "License"). You may not use this file except in compliance with the
+# License. You can obtain a copy of the License at
+# http://www.netbeans.org/cddl-gplv2.html
+# or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+# specific language governing permissions and limitations under the
+# License.  When distributing the software, include this License Header
+# Notice in each file and include the License file at
+# nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+# particular file as subject to the "Classpath" exception as provided
+# by Sun in the GPL Version 2 section of the License file that
+# accompanied this code. If applicable, add the following below the
+# License Header, with the fields enclosed by brackets [] replaced by
+# your own identifying information:
+# "Portions Copyrighted [year] [name of copyright owner]"
+#
+# Contributor(s):
+#
+# The Original Software is NetBeans. The Initial Developer of the Original
+# Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+# Microsystems, Inc. All Rights Reserved.
+#
+# If you wish your version of this file to be governed by only the CDDL
+# or only the GPL Version 2, indicate your decision by adding
+# "[Contributor] elects to include this software in this distribution
+# under the [CDDL or GPL Version 2] license." If you do not indicate a
+# single choice of license, a recipient has the option to distribute
+# your version of this file under either the CDDL, the GPL Version 2 or
+# to extend the choice of license to its licensees as provided above.
+# However, if you add GPL Version 2 code and therefore, elected the GPL
+# Version 2 license, then the option applies only if the new code is
+# made subject to such option by the copyright holder.
+
+#
+# resolve symlinks
+#
+
+PRG=$0
+
+while [ -h "$PRG" ]; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '^.*-> \(.*\)$' 2>/dev/null`
+    if expr "$link" : '^/' 2> /dev/null >/dev/null; then
+	PRG="$link"
+    else
+	PRG="`dirname "$PRG"`/$link"
+    fi
+done
+
+progdir=`dirname "$PRG"`
+
+if [ -f "$progdir"/../etc/nbbluej.conf ] ; then
+    . "$progdir"/../etc/nbbluej.conf
+fi
+
+# following should be done just in RPM or Solaris Launcher
+# if [ -f /etc/nbbluej.conf ] ; then
+#     . /etc/nbbluej.conf
+# fi
+
+
+# #68373: look for userdir, but do not modify "$@"
+userdir="${netbeans_default_userdir}"
+founduserdir=""
+for opt in "$@"; do
+    if [ "${founduserdir}" = "yes" ]; then
+        userdir="$opt"
+        break
+    elif [ "$opt" = "--userdir" ]; then
+        founduserdir="yes"
+    fi
+done
+
+if [ -f "${userdir}"/etc/nbbluej.conf ] ; then
+    . "${userdir}"/etc/nbbluej.conf
+fi
+
+
+if [ ! -f "$progdir"/../etc/nbbluej.clusters ]; then
+    echo Cannot read cluster file: "$progdir"/../etc/nbbluej.clusters 1>&2
+    exit 1
+fi
+
+readClusters() {
+    grep -v "^#" "$progdir"/../etc/nbbluej.clusters | grep -v "^$" | grep -v platform | while read X; do
+        if [ -d "$progdir"/../$X ]; then
+            echo $progdir/../$X
+        elif [ -d "$X" ]; then
+            echo $X
+        fi
+    done
+}
+
+
+netbeans_clusters=`readClusters | tr '\n' ':'`
+
+if [ ! -z "$netbeans_extraclusters" ] ; then
+    netbeans_clusters="$netbeans_clusters:$netbeans_extraclusters"
+fi
+
+launchNbexec() {
+    nbexec=`grep -v "^#" "$progdir"/../etc/nbbluej.clusters | grep -v "^$" | grep platform | while read X; do
+        if [ -f "$progdir"/../$X/lib/nbexec ]; then
+            echo "$progdir"/../$X/lib/nbexec
+        fi
+    done | head -n 1`
+    if [ "${founduserdir}" = "yes" ]; then
+        sh "$nbexec" "$@"
+    else
+        sh "$nbexec" --userdir "${userdir}" "$@"
+    fi
+}
+
+# in case of macosx, the apple.laf.useScreenMenuBar property should be ideally in the Info.plist file
+# but it doesn't get propagated into the executed java VM. 
+case "`uname`" in
+    Darwin*)
+        launchNbexec \
+            --jdkhome "$netbeans_jdkhome" \
+            -J-Dcom.apple.mrj.application.apple.menu.about.name="NetBeans IDE 5.0 BlueJ Edition" \
+            -J-Xdock:name="NetBeans IDE 5.0 BlueJ Edition" \
+            "-J-Xdock:icon=$progdir/../nbbluej5.0/nbbluej.icns" \
+            --branding nbbluej \
+            --clusters "$netbeans_clusters" \
+            -J-Dnetbeans.importclass=org.netbeans.bluej.upgrade.AutoUpgrade \
+            -J-Dnetbeans.accept_license_class=org.netbeans.bluej.license.AcceptLicense \
+            ${netbeans_default_options} \
+            "$@"
+        ;;
+    *)
+        launchNbexec \
+            --jdkhome "$netbeans_jdkhome" \
+            --branding nbbluej \
+            --clusters "$netbeans_clusters" \
+            -J-Dnetbeans.importclass=org.netbeans.bluej.upgrade.AutoUpgrade \
+            -J-Dnetbeans.accept_license_class=org.netbeans.bluej.license.AcceptLicense \
+            ${netbeans_default_options} \
+            "$@"
+        ;;
+esac

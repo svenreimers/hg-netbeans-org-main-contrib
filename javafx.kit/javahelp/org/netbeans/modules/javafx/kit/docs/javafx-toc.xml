@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN"
+                     "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+
+<toc version="2.0">
+	<tocitem text="IDE Basics">
+		<tocitem text="Getting Started">
+			<tocitem text="JavaFX Script Applications" target="javafx_quickref_toclink" />
+		</tocitem>
+	</tocitem>
+	<tocitem text="JavaFX Script Applications" expand="false">
+		<tocitem text="About JavaFX Script Applications" target="javafx_about_javafx" />
+		<tocitem text="Working With JavaFX Script Projects" target="javafx_quickref" />
+		<tocitem text="Editing JavaFX Script Source Files" target="javafx_editing_source" />
+		<tocitem text="Customizing Syntax Settings" target="javafx_options" />
+		<tocitem text="Using the JavaFX Script Preview Feature" target="javafx_using_javafxpreview" />
+		<tocitem text="Deploying JavaFX Script Applications" target="javafx_deploy_javafxapp" />
+	</tocitem>
+</toc>	

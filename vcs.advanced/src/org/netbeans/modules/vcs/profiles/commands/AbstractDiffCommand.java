@@ -1,0 +1,459 @@
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder.
+ */
+
+package org.netbeans.modules.vcs.profiles.commands;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+
+import org.openide.NotifyDescriptor;
+import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
+
+import org.netbeans.api.diff.Difference;
+import org.netbeans.spi.diff.DiffVisualizer;
+import org.netbeans.modules.diff.EncodedReaderFactory;
+import org.netbeans.modules.diff.builtin.DefaultDiff;
+import org.netbeans.modules.diff.builtin.DiffPresenter;
+
+import org.netbeans.modules.vcscore.VcsFileSystem;
+import org.netbeans.modules.vcscore.cmdline.VcsAdditionalCommand;
+import org.netbeans.modules.vcscore.commands.CommandDataOutputListener;
+import org.netbeans.modules.vcscore.commands.CommandOutputListener;
+import org.netbeans.modules.vcscore.commands.VcsCommand;
+import org.netbeans.modules.vcscore.commands.VcsCommandExecutor;
+import org.netbeans.modules.vcscore.util.VariableValueAdjustment;
+import org.netbeans.modules.vcscore.util.VcsUtilities;
+
+import org.openide.DialogDisplayer;
+import org.openide.ErrorManager;
+
+import javax.swing.*;
+
+/**
+ * The abstract diff command, that use a VCS diff command to get the differences.
+ *
+ * @author  Martin Entlicher
+ */
+public abstract class AbstractDiffCommand extends Object implements VcsAdditionalCommand, CommandDataOutputListener {
+    
+    private static final String TEXT_MIMETYPE = "text/plain";
+
+    private VcsFileSystem fileSystem = null;
+    private List differences = new ArrayList();
+
+    private File tmpDir = null;
+    private File tmpDir2 = null;
+    private String tmpDirName = ""; // NOI18N
+    private String tmpDir2Name = ""; // NOI18N
+    Hashtable vars = null;
+
+    private String rootDir = null;
+    private String file = null;
+    private String dir = null;
+    
+    private transient CommandOutputListener stdoutNRListener = null;
+    private transient CommandOutputListener stderrNRListener = null;
+    private transient CommandDataOutputListener stdoutListener = null;
+    protected transient CommandDataOutputListener stderrListener = null;
+
+    protected String diffOutRev1 = null;
+    protected String diffOutRev2 = null;
+    protected int outputType = -1;
+    
+    private String checkoutCmd = null;
+    private String diffCmd = null;
+
+    /** Set the VCS file system to use to execute commands.
+     */
+    public void setFileSystem(VcsFileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+    }
+    
+    private boolean checkOut(Hashtable vars, String file, String revision, String tmpDir) {
+        VcsCommand cmd = fileSystem.getCommand(checkoutCmd);
+        String varRevision = ""; // NOI18N
+        if (revision != null) varRevision = ""+revision; // NOI18N
+        vars.put("REVISION", varRevision); // NOI18N
+        vars.put("TEMPDIR", tmpDir); // NOI18N
+        Hashtable newVars = new Hashtable(vars);
+        fileSystem.getVarValueAdjustment().revertAdjustedVarValues(newVars);
+        VcsCommandExecutor vce = fileSystem.getVcsFactory().getCommandExecutor(cmd, newVars);
+        if (stderrNRListener != null) {
+            vce.addErrorOutputListener(new CommandOutputListener() {
+                public void outputLine(String line) {
+                    stderrNRListener.outputLine(line);
+                }
+            });
+        }
+        fileSystem.getCommandsPool().preprocessCommand(vce, newVars, fileSystem);
+        fileSystem.getCommandsPool().startExecutor(vce);
+        try {
+            fileSystem.getCommandsPool().waitToFinish(vce);
+        } catch (InterruptedException iexc) {
+            fileSystem.getCommandsPool().kill(vce);
+            return false;
+        }
+        return vce.getExitStatus() == VcsCommandExecutor.SUCCEEDED;
+    }
+
+    private boolean performDiff(String revision1, String revision2) throws InterruptedException {
+        VcsCommand cmd = fileSystem.getCommand(diffCmd);
+        if (revision1 != null) vars.put("REVISION1", revision1); // NOI18N
+        else vars.put("REVISION1", ""); // Put an empty variable to disable the error output about undefined variables // NOI18N
+        if (revision2 != null) vars.put("REVISION2", revision2); // NOI18N
+        else vars.put("REVISION2", ""); // Put an empty variable to disable the error output about undefined variables // NOI18N
+        //System.out.println("diff command: "+cmd); // NOI18N
+        Hashtable newVars = new Hashtable(vars);
+        fileSystem.getVarValueAdjustment().revertAdjustedVarValues(newVars);
+        VcsCommandExecutor vce = fileSystem.getVcsFactory().getCommandExecutor(cmd, newVars);
+        vce.addDataOutputListener(this);
+        if (stderrNRListener != null) {
+            vce.addErrorOutputListener(new CommandOutputListener() {
+                public void outputLine(String line) {
+                    stderrNRListener.outputLine(line);
+                }
+            });
+        }
+        fileSystem.getCommandsPool().preprocessCommand(vce, newVars, fileSystem);
+        fileSystem.getCommandsPool().startExecutor(vce);
+        try {
+            fileSystem.getCommandsPool().waitToFinish(vce);
+        } catch (InterruptedException iexc) {
+            // be sure to propagate the interruption
+            fileSystem.getCommandsPool().kill(vce);
+            throw iexc;
+        }
+        diffFinished();
+        if (vce.getExitStatus() != VcsCommandExecutor.SUCCEEDED) {
+            //D.deb("exec failed "+ec.getExitStatus()); // NOI18N
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Executes the checkout and diff commands and display differences.
+     * @param vars variables needed to run cvs commands
+     * @param args the arguments. At least three arguments have to be present:
+     *             the diff output type, the checkout command and the diff command.
+     *             Additionally, the first two arguments can be the revision tags to be compared.
+     * @param stdoutNRListener listener of the standard output of the command
+     * @param stderrNRListener listener of the error output of the command
+     * @param stdoutListener listener of the standard output of the command which
+     *                       satisfies regex <CODE>dataRegex</CODE>
+     * @param dataRegex the regular expression for parsing the standard output
+     * @param stderrListener listener of the error output of the command which
+     *                       satisfies regex <CODE>errorRegex</CODE>
+     * @param errorRegex the regular expression for parsing the error output
+     * @return true if the command was succesfull,
+     *         false if some error has occured.
+     */
+    public boolean exec(Hashtable vars, String[] args,
+                        CommandOutputListener stdoutNRListener,
+                        CommandOutputListener stderrNRListener,
+                        CommandDataOutputListener stdoutListener, String dataRegex,
+                        CommandDataOutputListener stderrListener, String errorRegex) {
+        boolean status = true;
+        this.stdoutNRListener = stdoutNRListener;
+        this.stderrNRListener = stderrNRListener;
+        this.stdoutListener = stdoutListener;
+        //this.dataRegex = dataRegex;
+        this.stderrListener = stderrListener;
+        //this.errorRegex = errorRegex;
+        this.vars = vars;
+        int arglen = args.length;
+        //System.out.println("DIFF: args = "+VcsUtilities.arrayToString(args));
+        if (arglen < 3) {
+            String message = "Too few arguments to Diff command !";
+            String[] elements = { message };
+            if (stderrListener != null) stderrListener.outputData(elements);
+            if (stderrNRListener != null) stderrNRListener.outputLine(message);
+            return false;
+        }
+        try {
+            this.outputType = Integer.parseInt(args[arglen - 3]);
+        } catch (NumberFormatException e) {
+            String message = "Bad output type specification:"+args[arglen - 3];
+            String[] elements = { message };
+            if (stderrListener != null) stderrListener.outputData(elements);
+            if (stderrNRListener != null) stderrNRListener.outputLine(message);
+            return false;
+        }
+        //System.out.println("outputType = "+outputType);
+        this.checkoutCmd = args[arglen - 2];
+        this.diffCmd = args[arglen - 1];
+        String mime = (String) vars.get("MIMETYPE"); // NOI18N
+        if (mime == null || mime.indexOf("unknown") >= 0) { // NOI18N
+            vars.put("MIMETYPE", TEXT_MIMETYPE);
+            mime = TEXT_MIMETYPE;
+        }
+        final String mimeType = mime;
+        this.rootDir = (String) vars.get("ROOTDIR"); // NOI18N
+        String module = (String) vars.get("MODULE"); // NOI18N
+        if (module == null) module = ""; // NOI18N
+        if (module.length() > 0) module += File.separator;
+        //this.dir = (String) vars.get("DIR"); // NOI18N
+        this.dir = module + (String) vars.get("DIR"); // NOI18N
+        this.file = (String) vars.get("FILE"); // NOI18N
+        VariableValueAdjustment adjust = fileSystem.getVarValueAdjustment();
+        if (adjust != null) {
+            this.file = adjust.revertAdjustedVarValue(this.file);
+        }
+        tmpDir = VcsUtilities.createTMP();
+        //tmpDirName = tmpDir.getName();
+        tmpDirName = tmpDir.getAbsolutePath();
+        String path = rootDir+File.separator+dir+File.separator+file;
+        //this.diffDataRegex = (String) vars.get("DATAREGEX"); // NOI18N
+        //if (this.diffDataRegex == null) this.diffDataRegex = "(^.*$)"; // NOI18N
+        String revision1 = null;
+        String revision2 = null;
+        if (args.length > 3) {
+            revision1 = args[0];
+            if (args.length > 4) {
+                revision2 = args[1];
+            }
+        }
+
+        // shows conputing diff presenter
+        DiffPresenter presenter = new DiffPresenter();
+        final DefaultDiff.DiffTopComponent diffComponent = new DefaultDiff.DiffTopComponent(presenter);
+        javax.swing.SwingUtilities.invokeLater(new Runnable () {
+            public void run () {
+                String name = NbBundle.getMessage(AbstractDiffCommand.class, "Diff.titleComponent", file);
+                diffComponent.setName(name);
+                diffComponent.open();
+            }
+        });
+
+        boolean diffStatus;
+        try {
+            diffStatus = performDiff(revision1, revision2);
+        } catch (InterruptedException iexc) {
+            closeDiffComponent(diffComponent);
+            return false;
+        }
+        if (differences.size() == 0) {
+            if (diffStatus == true) {
+                DialogDisplayer.getDefault ().notify (new NotifyDescriptor.Message(
+                    NbBundle.getMessage(AbstractDiffCommand.class, "NoDifferenceInFile", file)));
+                closeDiffComponent(diffComponent);
+                return true;
+            } else {
+                closeDiffComponent(diffComponent);
+                return false;
+            }
+        }
+
+
+        if (diffOutRev1 != null) revision1 = diffOutRev1;
+        if (diffOutRev2 != null) revision2 = diffOutRev2;
+        //System.out.println("revision1 = "+revision1+", revision2 = "+revision2);
+        if (revision2 != null) {
+            tmpDir2 = VcsUtilities.createTMP();
+            tmpDir2Name = tmpDir2.getAbsolutePath();
+        }
+        status = checkOut(vars, dir+File.separator+file, revision1, tmpDirName);
+        if (!status) {
+            closing();
+            return status;
+        }
+        if (revision2 != null) {
+            status = checkOut(vars, dir+File.separator+file, revision2, tmpDir2Name);
+            if (!status) {
+                closing();
+                return status;
+            }
+        }
+        final String file1Title = (revision1 == null) ? getTitleHeadRevision() : getTitleRevision(revision1);
+        final String file2Title = (revision2 == null) ? getTitleWorkingRevision() : getTitleRevision(revision2);
+        String file1 = tmpDir+File.separator+file;
+        String file2;
+        if (tmpDir2 == null) {
+            file2 = path;
+        } else {
+            file2 = tmpDir2+File.separator+file;
+        }
+        DiffPresenter.Info diffInfo = new DiffInfo((Difference[]) differences.toArray(new Difference[differences.size()]),
+                                                   NbBundle.getMessage(AbstractDiffCommand.class, "Diff.titleComponent", file), "",
+                                                   file1Title, file2Title,
+                                                   mimeType, false, true,
+                                                   new File(file1), new File(file2),
+                                                   tmpDir, tmpDir2,
+                                                   EncodedReaderFactory.getDefault().getEncoding(new File(path)));
+        presenter.initWithDiffInfo(diffInfo);
+        diffInfo.setPresentingComponent(diffComponent);
+        presenter.setVisualizer((DiffVisualizer) Lookup.getDefault().lookup(DiffVisualizer.class));
+        /*
+        javax.swing.SwingUtilities.invokeLater(new Runnable () {
+                                                   public void run () {
+                                                       String file1 = tmpDir+File.separator+file;
+                                                       String file2;
+                                                       if (tmpDir2 == null) {
+                                                           file2 = rootDir+File.separator+dir+File.separator+file;
+                                                       } else {
+                                                           file2 = tmpDir2+File.separator+file;
+                                                       }
+                                                       diff.open(java.text.MessageFormat.format (org.openide.util.NbBundle.getBundle(AbstractDiff.class).
+                                                                                        getString("DiffComponent.titleFile"), new Object[] { file }),
+                                                            mimeType, file1, file2, file1Title, file2Title);
+                                                       diff.addCloseListener(new TopComponentCloseListener() {
+                                                           public void closing() {
+                                                               AbstractDiffCmdline.this.closing();
+                                                           }
+                                                       });
+                                                   }
+                                               });
+         */
+        return status;
+    }
+
+    private void closeDiffComponent(final DefaultDiff.DiffTopComponent diffComponent) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                diffComponent.close();
+            }
+        });
+    }
+
+    /*
+     * Called when the diff is being closed. Cleanup of temporary files.
+     */
+    public void closing() {
+        //new File(tmpDir, file).delete();
+        //System.out.println("AbstractDiffCmdline.closing(), delete "+tmpDir+" & "+tmpDir2);
+        VcsUtilities.deleteRecursive(tmpDir);
+        if (tmpDir2 != null) {
+            VcsUtilities.deleteRecursive(tmpDir2);
+        }
+    }
+    
+    protected boolean checkEmpty(String str, String element) {
+        if (str == null || str.length() == 0) {
+            if (this.stderrListener != null) {
+                String[] elements = { "Bad format of diff result: "+element }; // NOI18N
+                stderrListener.outputData(elements);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    protected abstract String getTitleHeadRevision();
+    
+    protected abstract String getTitleWorkingRevision();
+    
+    protected abstract String getTitleRevision(String revNumber);
+
+    /** Add a difference to the list of differences. */
+    protected final void addDifference(Difference diff) {
+        differences.add(diff);
+    }
+    
+    protected final void setTextOnLastDifference(String text1, String text2) {
+        if (differences.size() > 0) {
+            if (text1.length() == 0) text1 = null;
+            if (text2.length() == 0) text2 = null;
+            Difference d = (Difference) differences.remove(differences.size() - 1);
+            differences.add(new Difference(d.getType(), d.getFirstStart(), d.getFirstEnd(),
+            d.getSecondStart(), d.getSecondEnd(), text1, text2));
+        }
+    }
+
+    /**
+     * This method is called when the diff command finishes.
+     * Allows subclasess to do some cleanup of diff actions
+     */
+    protected void diffFinished() {
+    }
+    
+    public abstract void outputData(String[] elements);
+    
+    private static class DiffInfo extends DiffPresenter.Info {
+        
+        private Difference[] diffs;
+        private File file1;
+        private File file2;
+        private File tmpDir;
+        private File tmpDir2;
+        private String mimeType;
+        private String encoding;
+        
+        public DiffInfo(Difference[] diffs, String name1, String name2, String title1, String title2,
+                        String mimeType, boolean chooseProviders, boolean chooseVisualizers,
+                        File file1, File file2, File tmpDir, File tmpDir2, String encoding) {
+            super(name1, name2, title1, title2, mimeType, chooseProviders, chooseVisualizers);
+            this.file1 = file1;
+            this.file2 = file2;
+            this.tmpDir = tmpDir;
+            this.tmpDir2 = tmpDir2;
+            this.diffs = diffs;
+            this.mimeType = mimeType;
+            this.encoding = encoding;
+        }
+        
+        public Reader createFirstReader() throws FileNotFoundException {
+            return EncodedReaderFactory.getDefault().getReader(file1, mimeType, encoding);
+        }
+        
+        public Reader createSecondReader() throws FileNotFoundException {
+            return EncodedReaderFactory.getDefault().getReader(file2, mimeType, encoding);
+        }
+        
+        public Difference[] getDifferences() {
+            return diffs;
+        }
+        
+        protected void finalize() throws Throwable {
+            //file1.delete();
+            //file2.delete();
+            VcsUtilities.deleteRecursive(tmpDir);
+            if (tmpDir2 != null) {
+                VcsUtilities.deleteRecursive(tmpDir2);
+            }
+        }
+        
+    }
+}

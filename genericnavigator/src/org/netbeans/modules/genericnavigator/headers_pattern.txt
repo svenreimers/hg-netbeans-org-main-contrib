@@ -1,0 +1,5 @@
+(<\s*[Hh][1-6]\s*>)(.*?)(</\s*[Hh][1-6]\s*>)
+
+CASE_INSENSITIVE,MULTILINE,DOTALL,
+0
+stripMarkup
