@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+
+<!DOCTYPE orb-settings PUBLIC "-//Forte for Java//DTD ORBSettings 1.0//EN" "ORBSettings.dtd"[
+<!ENTITY corba23-poa SYSTEM "nbres:/org/netbeans/modules/corba/resources/impls/corba23-poa.ent">
+<!ENTITY corba23-generic-impl SYSTEM "nbres:/org/netbeans/modules/corba/resources/impls/corba23-generic-impl.ent">
+]>
+<orb-settings name='Orbix 2000 1.x for Java' tag='orbix20004j' supported='true'>
+
+  &corba23-poa;
+  &corba23-generic-impl;
+
+  <poa-settings>
+    <poa-policy name='Object Deactivation' mnemonic_character='D'>
+      <value name='DELIVER'>
+      </value>
+      <value name='DISCARD'>
+      </value>
+      <value name='HOLD'>
+      </value>
+      <prepare-code><![CDATA[org.omg.CORBA.Any _odPolicyAny__$INDEX$__ = __ORB_VAR_NAME__.create_any();
+        com.iona.corba.IT_PortableServer.ObjectDeactivationPolicyValueHelper.insert(_odPolicyAny__$INDEX$__, com.iona.corba.IT_PortableServer.ObjectDeactivationPolicyValue.__POLICY_VALUE__);]]>
+      </prepare-code>
+      <prepare-code-pattern value='org.omg.CORBA.Any _odPolicyAny[0-9]+ = [:javastart:][:javapart:]*.create_any\s*\(\);\n\s* com.iona.corba.IT_PortableServer.ObjectDeactivationPolicyValueHelper.insert\s*\(_odPolicyAny[0-9]+, com.iona.corba.IT_PortableServer.ObjectDeactivationPolicyValue.([:javastart:][:javapart:]*)\);\n'/>
+      <create-code><![CDATA[__ORB_VAR_NAME__.create_policy(com.iona.corba.IT_PortableServer.OBJECT_DEACTIVATION_POLICY_ID.value, _odPolicyAny__$INDEX$__)]]></create-code>
+      <create-code-pattern value='[:javastart:][:javapart:]*.create_policy\s*\(com.iona.corba.IT_PortableServer.OBJECT_DEACTIVATION_POLICY_ID.value, _odPolicyAny[0-9]+\),?'/>
+    </poa-policy>
+
+    <poa-policy name='Persistence Mode' mnemonic_character='P'>
+      <value name='INDIRECT_PERSISTENCE'>
+      </value>
+      <value name='DIRECT_PERSISTENCE'>
+        <require-policy name='Lifespan' value='PERSISTENT'/>
+      </value>
+      <prepare-code><![CDATA[org.omg.CORBA.Any _pmPolicyAny__$INDEX$__ = __ORB_VAR_NAME__.create_any();
+        com.iona.corba.IT_PortableServer.PersistenceModePolicyValueHelper.insert(_pmPolicyAny__$INDEX$__, com.iona.corba.IT_PortableServer.PersistenceModePolicyValue.__POLICY_VALUE__);]]>
+      </prepare-code>
+      <prepare-code-pattern value='org.omg.CORBA.Any _pmPolicyAny[0-9]+ = [:javastart:][:javapart:]*.create_any\s*\(\);\n\s* com.iona.corba.IT_PortableServer.PersistenceModePolicyValueHelper.insert\s*\(_pmPolicyAny[0-9]+, com.iona.corba.IT_PortableServer.PersistenceModePolicyValue.([:javastart:][:javapart:]*)\);\n'/>
+      <create-code><![CDATA[__ORB_VAR_NAME__.create_policy(com.iona.corba.IT_PortableServer.PERSISTENCE_MODE_POLICY_ID.value, _pmPolicyAny__$INDEX$__)]]></create-code>
+      <create-code-pattern value='[:javastart:][:javapart:]*.create_policy\s*\(com.iona.corba.IT_PortableServer.PERSISTENCE_MODE_POLICY_ID.value, _pmPolicyAny[0-9]+\),?'/>
+    </poa-policy>
+
+    <poa-policy name='Well Known Addressing' mnemonic_character='W'>
+      <prepare-code><![CDATA[org.omg.CORBA.Any _wkaPolicyAny__$INDEX$__ = __ORB_VAR_NAME__.create_any();
+        _wkaPolicyAny__$INDEX$__.insert_string("__POLICY_VALUE__");]]>
+      </prepare-code>
+      <prepare-code-pattern value='org.omg.CORBA.Any _wkaPolicyAny[0-9]+ = [:javastart:][:javapart:]*.create_any\s*\(\);\n\s* _wkaPolicyAny[0-9]+.insert_string\s*\("([:javastart:][:javapart:]*)"\);\n'/>
+      <create-code><![CDATA[__ORB_VAR_NAME__.create_policy(com.iona.corba.IT_CORBA.WELL_KNOWN_ADDRESSING_POLICY_ID.value, _wkaPolicyAny__$INDEX$__)]]></create-code>
+      <create-code-pattern value='[:javastart:][:javapart:]*.create_policy\s*\(com.iona.corba.IT_CORBA.WELL_KNOWN_ADDRESSING_POLICY_ID.value, _wkaPolicyAny[0-9]+\),?'/>
+    </poa-policy>
+
+    <poa-policy name='Work Queue' mnemonic_character='Q'>
+      <prepare-code><![CDATA[org.omg.CORBA.Any _wqPolicyAny__$INDEX$__ = __ORB_VAR_NAME__.create_any();
+        _wqPolicyAny__$INDEX$__.insert_Object(__POLICY_VALUE__);]]>
+      </prepare-code>
+      <prepare-code-pattern value='org.omg.CORBA.Any _wqPolicyAny[0-9]+ = [:javastart:][:javapart:]*.create_any\s*\(\);\n\s* _wqPolicyAny[0-9]+.insert_Object\s*\(([:javastart:][:javapart:]*)\);\n'/>
+      <create-code><![CDATA[__ORB_VAR_NAME__.create_policy(com.iona.corba.IT_WorkQueue.WORK_QUEUE_POLICY_ID.value, _wqPolicyAny__$INDEX$__)]]></create-code>
+      <create-code-pattern value='[:javastart:][:javapart:]*.create_policy\s*\(com.iona.corba.IT_WorkQueue.WORK_QUEUE_POLICY_ID.value, _wqPolicyAny[0-9]+\),?'/>
+    </poa-policy>
+  </poa-settings>
+
+
+  <java-template-code>
+    <template-code name='ORB_PROPERTIES'><![CDATA[// setting system properties is necessary in order to use this ORB in JDK
+      Properties props = System.getProperties ();
+      props.put ("org.omg.CORBA.ORBClass", "com.iona.corba.art.artimpl.ORBImpl");
+      props.put ("org.omg.CORBA.ORBSingletonClass", "com.iona.corba.art.artimpl.ORBSingleton");
+      System.setProperties (props);]]>
+    </template-code>
+  </java-template-code>
+
+  <idl-compiler-settings>
+    <tie-param value=''/>
+    <dir-param value='-O'/>
+    <package-param value='-P'/>
+    <compiler value='idl {cpp_params} {params} -jbase:{dir_param}{package_root}:{package_param}{package} -jpoa:{dir_param}{package_root}:{package_param}{package} {files}'/>
+    <package-delimiter value='.'/>
+    <error-expression value='^idl: "([^ ]+)", line ([0-9]+): (.*)'/>
+    <file-position value='1'/>
+    <line-position value='2'/>
+    <column-position value='-1'/>
+    <message-position value='3'/>
+    
+  </idl-compiler-settings>
+    
+    
+</orb-settings>

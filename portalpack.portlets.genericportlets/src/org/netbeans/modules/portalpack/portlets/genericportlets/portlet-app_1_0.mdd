@@ -1,0 +1,594 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!--
+The contents of this file are subject to the terms of the Common Development
+and Distribution License (the License). You may not use this file except in
+compliance with the License.
+
+ You can obtain a copy of the License at http://www.netbeans.org/cddl.html
+or http://www.netbeans.org/cddl.txt.
+
+When distributing Covered Code, include this CDDL Header Notice in each file
+and include the License file at http://www.netbeans.org/cddl.txt.
+If applicable, add the following below the CDDL Header, with the fields
+enclosed by brackets [] replaced by your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+ The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ Microsystems, Inc. All Rights Reserved.
+-->
+<metaDD>
+	<meta-element>
+            <dtd-name>portlet-app</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>PortletApp</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PortletApp
+            </implements>
+
+            <user-code>
+                public java.net.URI getPortletDefaultNamespace()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+                public void setResourceBundle(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String getResourceBundle()
+                {   
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+                public void setFilter(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType getFilter(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeFilter()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setFilter(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType[] getFilter()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addFilter(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeFilter(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterType newFilterType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setFilterMapping(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType getFilterMapping(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeFilterMapping()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setFilterMapping(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType[] getFilterMapping()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addFilterMapping(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeFilterMapping(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.FilterMappingType newFilterMappingType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setPortletDefaultNamespace(java.net.URI value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setEventDefinition(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType getEventDefinition(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeEventDefinition()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setEventDefinition(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType[] getEventDefinition()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addEventDefinition(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeEventDefinition(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionType newEventDefinitionType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setPublicRenderParameter(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType getPublicRenderParameter(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizePublicRenderParameter()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setPublicRenderParameter(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType[] getPublicRenderParameter()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addPublicRenderParameter(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removePublicRenderParameter(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PublicRenderParameterType newPublicRenderParameterType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setContainerRuntimeOption(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType getContainerRuntimeOption(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeContainerRuntimeOption()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setContainerRuntimeOption(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType[] getContainerRuntimeOption()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addContainerRuntimeOption(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeContainerRuntimeOption(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType newContainerRuntimeOptionType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+        </user-code>
+	</meta-element>
+	
+       <meta-element>
+            <dtd-name>portletType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>PortletType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PortletType
+            </implements>
+
+            <user-code>
+                public void setSupportedProcessingEvent(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType getSupportedProcessingEvent(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeSupportedProcessingEvent()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setSupportedProcessingEvent(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType[] getSupportedProcessingEvent()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addSupportedProcessingEvent(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeSupportedProcessingEvent(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType newEventDefinitionReferenceType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setSupportedPublishingEvent(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }   
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType getSupportedPublishingEvent(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeSupportedPublishingEvent()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setSupportedPublishingEvent(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType[] getSupportedPublishingEvent()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addSupportedPublishingEvent(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeSupportedPublishingEvent(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.EventDefinitionReferenceType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setSupportedPublicRenderParameter(int index, java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String getSupportedPublicRenderParameter(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeSupportedPublicRenderParameter()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setSupportedPublicRenderParameter(java.lang.String[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String[] getSupportedPublicRenderParameter()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addSupportedPublicRenderParameter(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeSupportedPublicRenderParameter(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setContainerRuntimeOption(int index, org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType getContainerRuntimeOption(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeContainerRuntimeOption()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setContainerRuntimeOption(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType[] getContainerRuntimeOption()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addContainerRuntimeOption(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeContainerRuntimeOption(org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.ContainerRuntimeOptionType newContainerRuntimeOptionType()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+            </user-code>
+	</meta-element> 
+        <meta-element>
+            <dtd-name>portlet-collectionType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>PortletCollectionType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PortletCollectionType
+            </implements>
+	</meta-element> 
+        <meta-element>
+            <dtd-name>custom-portlet-modeType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>CustomPortletModeType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.CustomPortletModeType
+            </implements>
+
+            <user-code>
+                public void setPortalManaged(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String getPortalManaged()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setDecorationName(int index, java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String getDecorationName(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeDecorationName()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setDecorationName(java.lang.String[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String[] getDecorationName()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addDecorationName(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeDecorationName(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+            </user-code>
+
+        </meta-element>
+        <meta-element>
+            <dtd-name>custom-window-stateType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>CustomWindowStateType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.CustomWindowStateType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>init-paramType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>InitParamType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.InitParamType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>portlet-infoType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>PortletInfoType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PortletInfoType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>portlet-preferencesType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>PortletPreferencesType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PortletPreferencesType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>preferenceType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>PreferenceType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.PreferenceType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>security-constraintType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>SecurityConstraintType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.SecurityConstraintType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>security-role-refType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>SecurityRoleRefType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.SecurityRoleRefType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>supportsType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>SupportsType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.SupportsType
+            </implements>
+            
+            <user-code>
+               
+        
+                public void setWindowState(int index, java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String getWindowState(int index)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int sizeWindowState()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public void setWindowState(java.lang.String[] value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public java.lang.String[] getWindowState()
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int addWindowState(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+
+                public int removeWindowState(java.lang.String value)
+                {
+                    throw new org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.common.VersionNotSupportedException(PortletApp.VERSION_1_0);
+                }
+            </user-code>
+        </meta-element>
+        <meta-element>
+            <dtd-name>user-attributeType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>UserAttributeType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.UserAttributeType
+            </implements>
+        </meta-element>
+        <meta-element>
+            <dtd-name>user-data-constraintType</dtd-name>
+            <namespace>http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd</namespace>
+            <bean-name>UserDataConstraintType</bean-name>
+            <implements> 
+                org.netbeans.modules.portalpack.portlets.genericportlets.ddapi.UserDataConstraintType
+            </implements>
+        </meta-element>
+</metaDD>

@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+  
+  Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+  
+  The contents of this file are subject to the terms of either the GNU General Public
+  License Version 2 only ("GPL") or the Common Development and Distribution
+  License("CDDL") (collectively, the "License"). You may not use this file except in
+  compliance with the License. You can obtain a copy of the License at
+  http://www.netbeans.org/cddl-gplv2.html or nbbuild/licenses/CDDL-GPL-2-CP. See the
+  License for the specific language governing permissions and limitations under the
+  License.  When distributing the software, include this License Header Notice in
+  each file and include the License file at nbbuild/licenses/CDDL-GPL-2-CP.  Sun
+  designates this particular file as subject to the "Classpath" exception as provided
+  by Sun in the GPL Version 2 section of the License file that accompanied this code.
+  If applicable, add the following below the License Header, with the fields enclosed
+  by brackets [] replaced by your own identifying information:
+  "Portions Copyrighted [year] [name of copyright owner]"
+  
+  Contributor(s):
+  
+  The Original Software is NetBeans. The Initial Developer of the Original Software
+  is Sun Microsystems, Inc. Portions Copyright 1997-2007 Sun Microsystems, Inc. All
+  Rights Reserved.
+  
+  If you wish your version of this file to be governed by only the CDDL or only the
+  GPL Version 2, indicate your decision by adding "[Contributor] elects to include
+  this software in this distribution under the [CDDL or GPL Version 2] license." If
+  you do not indicate a single choice of license, a recipient has the option to
+  distribute your version of this file under either the CDDL, the GPL Version 2 or
+  to extend the choice of license to its licensees as provided above. However, if you
+  add GPL Version 2 code and therefore, elected the GPL Version 2 license, then the
+  option applies only if the new code is made subject to such option by the copyright
+  holder.
+-->
+
+<project name="bootstrap" default="all" basedir=".">
+    <property file="${basedir}/build.properties"/>
+    
+    <target name="build" depends="init,-build"/>
+
+    <target name="bundle" depends="-init-ml,-init-sources,-init,-init-properties,generate-bundles"/>
+
+    
+    <target name="init" depends="-clean,-init-ml,-init-sources,-get-sources,-init,-init-properties,-post-init-clean"/>
+
+    
+    <target name="-clean">
+        <delete dir="${output.dir}"/>
+    </target>
+
+
+    <target name="-init-sources">
+	<!-- use.hg.root property is set if hg.root is set and not empty -->
+	<condition property="use.hg.root">
+	    <and>
+	        <isset property="hg.root"/>
+	        <not>
+	            <equals arg1="${hg.root}" arg2=""/> 
+	         </not>
+	    </and>
+        </condition>
+
+        <!-- use.hg.root.translatedfiles property is set if ml.build is set and hg.root.translated is set and not empty -->
+	<condition property="use.hg.root.translatedfiles">
+	    <and>
+	        <isset property="hg.root.translatedfiles"/>
+	        <not>
+	            <equals arg1="${hg.root.translatedfiles}" arg2=""/> 
+	         </not>		
+		<isset property="ml.build"/>
+	    </and>
+        </condition>
+    </target>
+
+
+    <target name="-get-sources" depends="-init-working-dir,-get-installer-sources,-get-translatedfiles"/>
+
+    <target name="-init-working-dir" if="use.hg.root">
+	<delete dir="${nbi.all.dir}"/>
+    </target>
+    
+    <target name="-get-installer-sources" if="use.hg.root">
+        <copy todir="${nbi.core.dir}">
+            <fileset dir="${hg.root}/nbi">
+                <exclude name="infra/server/**/build/**/*.*"/>
+                <exclude name="infra/server/**/dist/**/*.*"/>
+                <exclude name="infra/server/**/private/**/*.*"/>
+            </fileset>
+        </copy>
+        <copy todir="${nbi.netbeans.dir}">
+            <fileset dir="${hg.root}/ssinstaller">
+                <exclude name="infra/server/**/build/**/*.*"/>
+                <exclude name="infra/server/**/dist/**/*.*"/>
+                <exclude name="infra/server/**/private/**/*.*"/>
+                <include name="components/**/*.*"/>
+                <include name="infra/**/*.*"/>
+                <include name="engine/**/*.*"/>
+            </fileset>
+        </copy>
+        <mkdir dir="${nbi.all.dir}/reglib"/>
+        <copy todir="${nbi.all.dir}/reglib">
+            <fileset dir="${hg.root}/reglib">
+		<include name="**/*.*"/>
+                <exclude name="build/**/*.*"/>
+                <exclude name="dist/**/*.*"/>                
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-get-translatedfiles" if="use.hg.root.translatedfiles">
+	<copy todir="${nbi.all.dir}/translatedfiles/src/nbi">
+            <fileset dir="${hg.root.translatedfiles}/translatedfiles/src/nbi">
+                <include name="**/*.*"/>
+            </fileset>
+        </copy>
+        <copy todir="${nbi.all.dir}/translatedfiles/src/installer">
+            <fileset dir="${hg.root.translatedfiles}/translatedfiles/src/installer">
+                <include name="components/**/*.*"/>
+                <include name="infra/**/*.*"/>
+                <include name="engine/**/*.*"/>
+            </fileset>
+        </copy>
+    </target>
+
+
+
+    <target name="-remove-wrong-locale-files" if="nb.locales.isset">
+        <echo file="${nbi.all.dir}/locales.tmp">**/*_${nb.locales}.*</echo> 
+        <loadfile srcFile="${nbi.all.dir}/locales.tmp" property="locale.pattern.excludes">
+            <filterchain>
+                <tokenfilter>
+                    <replaceregex pattern="\," replace="\.\* \*\*\/\*_" flags="g"/>
+           	</tokenfilter>
+               </filterchain>
+        </loadfile>
+        <delete file="${nbi.all.dir}/locales.tmp"/>
+
+	<delete failonerror="false" verbose="true">
+            	<fileset dir="${nbi.all.dir}/translatedfiles" excludes="${locale.pattern.excludes}"/>
+	</delete>
+    </target>
+
+    <target name="-init-ml">
+        <condition property="ml.build">
+	     <equals arg1="${nb.build.type}" arg2="ml"/>
+        </condition>
+        <condition property="nb.locales.isset">
+ 	     <not>
+ 	     	<equals arg1="${nb.locales}" arg2=""/>
+ 	     </not>
+        </condition>
+    </target>
+
+    <target name="-init">
+        <delete dir="${custom.tasks.cls}"/>
+        <mkdir dir="${custom.tasks.cls}"/>
+        
+        <!-- first we need to perform an "unofficial" build of the engine in order 
+             to ensure it's available in the classpath for the custom ant tasks -->
+        <subant buildpath="${nbi.core.dir}/engine" 
+                target="compile" 
+                failonerror="true" 
+                output="core.engine.unofficial.build.output">
+            <property name="platforms.JDK_1.5.home" value="${jdk.home}"/>
+            <property name="basedir" value="${nbi.core.dir}/engine"/>
+        </subant>
+        <copy todir="${custom.tasks.cls}">
+            <fileset dir="${nbi.core.dir}/engine/build/classes">
+                <include name="**/*.*"/>
+            </fileset>
+        </copy>
+        
+        <!-- second we compile the required custom libraries -->
+        <javac 
+            srcdir="${nbi.core.dir}/infra/lib/registries-management" 
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+        
+        <!-- then compile all the custom ant tasks -->
+        <javac 
+            srcdir="${custom.tasks.src.1}"
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+        <javac 
+            srcdir="${custom.tasks.src.2}" 
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+        <javac 
+            srcdir="${custom.tasks.src.3}" 
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+      
+        <taskdef 
+            name="for-each"
+            classname="org.netbeans.installer.infra.build.ant.ForEach"
+            classpath="${custom.tasks.cls}"/>
+        <taskdef 
+            name="if" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.If"/>
+        <taskdef 
+            name="set" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.SetProperty"/>
+        <taskdef 
+            name="export-registry" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.registries.ExportRegistry"/>
+        <taskdef 
+            name="generate-components-js" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.registries.GenerateComponentsJs"/>
+        <taskdef 
+            name="create-bundle" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.registries.CreateBundle"/>
+
+	<set property="nb.build.type.number"
+                 value="0"/>
+        <set property="nb.build.suffix"
+                 value=""/>
+
+        <if property="nb.build.type" value="ml">
+            <set property="nb.build.type.number"
+                 value="1"/>
+	    <set property="nb.build.suffix"
+                 value="-ml"/>
+        </if>
+
+	<set property="nb.full.version"
+             value="6.1.0.${nb.build.type.number}.${build.number}"/>
+
+        <set property="nb.zip.files.prefix"
+             value="${nb.files.prefix}-${build.number}${nb.build.suffix}"/>
+
+        <set property="ss.bundle.files.prefix"
+             value="${ss.name}"/>
+
+        <set property="jdk.bundle.files.suffix"
+             value="${nb.files.prefix}-${build.number}${nb.build.suffix}"/>
+
+        <set property="glassfish.milestone.number" value="09"/>
+        <set property="glassfish.milestone.number.real" value="09d"/>
+        <set property="glassfish.build.type" value="fcs"/>
+        <set property="glassfish.build.number" value="20071206"/>
+
+	<set property="sjsas.milestone.number" value="09"/>
+        <set property="sjsas.milestone.number.real" value="09d"/>
+        <set property="sjsas.build.type" value="fcs"/>
+        <set property="sjsas.build.number" value="20071206"/>
+        
+        
+        <delete file="${temp.file}" failonerror="false"/>
+    </target>
+    
+    <target name="-init-properties">
+        <echo file="${environment.properties}"/>
+        <!-- Obligatory properties -->
+
+        <echo file="${environment.properties}" append="true">
+cvs.root=${cvs.root}
+cvs.module=ssinstaller
+cvs.timestamp=${cvs.timestamp}
+cvs.branch=${cvs.branch}
+
+checkout.sources=false
+sources.dir=${nbi.all.dir}
+
+release.to.server=false
+release.registry.dir=${output.dir}/registry-temp
+
+build.number=${build.number}
+dont.build.custom.tasks=true
+custom.tasks.cls=${custom.tasks.cls}
+
+build.engine=false
+
+engine.dist.file.name=nbi-engine.jar
+engine.dist.file=${nbi.netbeans.dir}/infra/engine/dist/nbi-engine.jar
+
+release.url=http://${glassfish.host}:${glassfish.http.port}${context.path}/admin
+release.registry=NetBeans
+
+packaged.data.dir=${nbi.cache.dir}/packaged
+packaged.data.dir.release=${output.dir}/packaged
+downloads.cache.dir=${nbi.cache.dir}/raw
+
+binary.cache.host=${binary.cache.host}
+nb.builds.host=${nb.builds.host}
+glassfish.builds.host=${glassfish.builds.host}
+openesb.builds.host=${openesb.builds.host}
+remote.work.dir=~/.${ss.bundle.files.prefix}
+	</echo>
+
+	<!-- NetBeans Build properties -->
+        <echo file="${environment.properties}" append="true">
+glassfish.milestone.number=${glassfish.milestone.number}
+glassfish.milestone.number.real=${glassfish.milestone.number.real}
+glassfish.build.type=${glassfish.build.type}
+glassfish.build.number=${glassfish.build.number}
+
+sjsas.milestone.number=${sjsas.milestone.number}
+sjsas.milestone.number.real=${sjsas.milestone.number.real}
+sjsas.build.type=${sjsas.build.type}
+sjsas.build.number=${sjsas.build.number}
+
+#openesb.build.number=${openesb.build.number}
+#openesb.build.number.real=${openesb.build.number.real}
+
+nb.full.version=${nb.full.version}
+nb.build.suffix=${nb.build.suffix}
+nb.zip.files.prefix=${nb.zip.files.prefix}
+ss.bundle.files.prefix=${ss.bundle.files.prefix}
+	</echo>
+
+	<!-- SJSAS Image properties -->
+         <echo file="${environment.properties}" append="true">
+remote.host.windows=${remote.host.windows}
+remote.port.windows=${remote.port.windows}
+remote.user.windows=${remote.user.windows}
+
+remote.host.linux=${remote.host.linux}
+remote.port.linux=${remote.port.linux}
+remote.user.linux=${remote.user.linux}
+
+remote.host.solaris-x86=${remote.host.solaris-x86}
+remote.port.solaris-x86=${remote.port.solaris-x86}
+remote.user.solaris-x86=${remote.user.solaris-x86}
+
+remote.host.solaris-sparc=${remote.host.solaris-sparc}
+remote.port.solaris-sparc=${remote.port.solaris-sparc}
+remote.user.solaris-sparc=${remote.user.solaris-sparc}
+
+remote.host.macosx=${remote.host.macosx}
+remote.port.macosx=${remote.port.macosx}
+remote.user.macosx=${remote.user.macosx}
+
+sjsas.image.token.hostname.windows=${sjsas.image.token.hostname.windows}
+sjsas.image.token.hostname.linux=${sjsas.image.token.hostname.linux}
+sjsas.image.token.hostname.solaris-x86=${sjsas.image.token.hostname.solaris-x86}
+sjsas.image.token.hostname.solaris-sparc=${sjsas.image.token.hostname.solaris-sparc}
+sjsas.image.token.hostname.macosx=${sjsas.image.token.hostname.macosx}
+        </echo>
+
+        <!-- Jar singing properties -->
+	<if property="jarsigner.enabled" value="true">
+	    <echo file="${environment.properties}" append="true">
+jarsigner.keystore=${jarsigner.keystore}
+jarsigner.alias=${jarsigner.alias}
+jarsigner.storepass=${jarsigner.storepass}
+            </echo>
+	</if>
+        
+        <replace file="${environment.properties}" token="\" value="/"/>
+    </target>
+    
+    <target name="-post-init-clean" depends="-remove-wrong-locale-files">
+        <delete dir="${nbi.cache.dir}/raw" failonerror="false"/>
+        <delete failonerror="false">
+            <fileset dir="${nbi.cache.dir}/packaged">
+                <!-- nb components -->
+                <exclude name="**/nb*${build.number}*"/>
+                
+                <!-- glassfish -->
+                <exclude name="**/glassfish*${glassfish.milestone.number}.${glassfish.build.number}*"/>
+                
+                <!-- openesb -->
+                <exclude name="**/openesb*${glassfish.milestone.number}.${openesb.build.number}*"/>
+                
+                <!-- sjsam -->
+                <!--
+		<exclude name="**/sjsam*${glassfish.milestone.number}.${sjsam.build.number}*"/>
+		-->
+                
+                <!-- tomcat -->
+                <exclude name="**/tomcat*"/>
+
+		<!-- wtk -->
+                <exclude name="**/wtk*"/>
+
+
+
+                <!-- JDK -->
+                <exclude name="**/jdk*"/>
+
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="build-netbeans">
+    <antcall target="build-tools-group"/>
+    <antcall target="build-ide-group"/>
+    <antcall target="build-other-group"/>
+ 
+    <build-product dir="C_Compiler"/>
+               
+        <echo message="BUILDING NB-BASE =========================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/products/nb-base" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/nb-base"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="ide-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+
+	<echo message="BUILDING NB-CND =========================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/products/nb-cnd" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/nb-cnd"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="ide-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+        
+         <ant dir="${nbi.netbeans.dir}/infra/products/ss-base" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/ss-base"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="tools-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+
+
+        <build-product dir="C++_Compiler"/>
+        <build-product dir="Fortran_95_Compiler"/>
+        <build-product dir="DBX_Debugging_Tools"/>
+        <build-product dir="build_tools"/>
+        <build-product dir="X-Designer" group="other-group"/>
+        
+        <build-product dir="support_files"/>
+        <build-product dir="Performance_Library" group="other-group"/>
+        <build-product dir="Third-party_Source" group="other-group"/>
+	
+		
+	<!--<build-product dir="demos"/>
+        -->
+     </target>
+
+      <target name="build-tools-group">
+        <echo message="BUILDING TOOLS-GROUP ==================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/groups/tools-group" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/groups/tools-group"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="release.parent.uid"
+                value=""/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+     </target>
+
+      <target name="build-ide-group">
+        <echo message="BUILDING IDE-GROUP ==================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/groups/ide-group" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/groups/ide-group"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="release.parent.uid"
+                value=""/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+     </target>
+
+      <target name="build-other-group">
+        <echo message="BUILDING OTHER-GROUP ==================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/groups/other-group" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/groups/other-group"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="release.parent.uid"
+                value=""/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+     </target>
+
+     <macrodef name="build-product">
+         <attribute name="dir"/>
+         <attribute name="group" default="tools-group"/>
+	 <sequential>	
+            <ant dir="${nbi.netbeans.dir}/infra/products/native" target="release-all">
+	    <property 
+                name="build.properties" 
+                value="${nbi.netbeans.dir}/infra/products/native/@{dir}/build.properties"/>
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/native"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+		<!--
+            <property
+                name="product.platforms"
+                value="solaris-x86"/>
+            -->
+            <property
+                name="release.parent.uid"
+                value="@{group}"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+         </sequential>
+     </macrodef>
+    <target name="generate-netbeans-cpp-bundles">
+        <!-- C/C++ bundles -->
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="linux" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-linux.sh">
+            <component uid="ss-base" version="1.0.0.0.0"/>
+            <component uid="nb-base" version="${nb.full.version}"/>
+	    <component uid="nb-cnd" version="${nb.full.version}"/>
+	    <component uid="cc" version="1.0.0.0.0"/>
+	    <component uid="cpp" version="1.0.0.0.0"/>
+    	    <component uid="fortran" version="1.0.0.0.0"/>
+    	    <component uid="dbx" version="1.0.0.0.0"/>
+    	    <component uid="dmake" version="1.0.0.0.0"/>
+    	    <component uid="x-designer" version="1.0.0.0.0"/>
+    	    <component uid="support-files" version="1.0.0.0.0"/>
+    	    <component uid="perf-lib" version="1.0.0.0.0"/>
+    	    <component uid="third-party-source" version="1.0.0.0.0"/>
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+        <!-- Added by Igor Nikiforov -->
+        <delete file="${output.dir}/registry-temp/bundles.list" />
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="linux" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-linux-external.sh">
+            <component uid="ss-base" version="1.0.0.0.0"/>
+            <component uid="nb-base" version="${nb.full.version}"/>
+	    <component uid="nb-cnd" version="${nb.full.version}"/>
+	    <component uid="cc" version="1.0.0.0.0"/>
+	    <component uid="cpp" version="1.0.0.0.0"/>
+    	    <component uid="fortran" version="1.0.0.0.0"/>
+    	    <component uid="dbx" version="1.0.0.0.0"/>
+    	    <component uid="dmake" version="1.0.0.0.0"/>
+    	    <component uid="x-designer" version="1.0.0.0.0"/>
+    	    <component uid="support-files" version="1.0.0.0.0"/>
+    	    <component uid="perf-lib" version="1.0.0.0.0"/>
+    	    <component uid="third-party-source" version="1.0.0.0.0"/>
+                                 <property name="product.data.all.location" value="http://endif.russia.sun.com/installer/packaged" />
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+        <!-- End of addition -->	
+
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="solaris-x86" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-solaris-x86.sh">
+            <component uid="ss-base" version="1.0.0.0.0"/>
+            
+	    <component uid="nb-base" version="${nb.full.version}"/>
+	    <component uid="nb-cnd" version="${nb.full.version}"/>
+	    <component uid="cc" version="1.0.0.0.0"/>            
+	    <component uid="cpp" version="1.0.0.0.0"/>
+    	    <component uid="fortran" version="1.0.0.0.0"/>
+    	    <component uid="dbx" version="1.0.0.0.0"/>
+    	    <component uid="dmake" version="1.0.0.0.0"/>
+    	    <component uid="x-designer" version="1.0.0.0.0"/>
+    	    <component uid="support-files" version="1.0.0.0.0"/>
+    	    <component uid="perf-lib" version="1.0.0.0.0"/>
+    	    <component uid="third-party-source" version="1.0.0.0.0"/>
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+        <!-- Added by Igor Nikiforov -->
+        <delete file="${output.dir}/registry-temp/bundles.list" />
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="solaris-x86" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-solaris-x86-external.sh">
+            <component uid="ss-base" version="1.0.0.0.0"/>
+            
+	    <component uid="nb-base" version="${nb.full.version}"/>
+	    <component uid="nb-cnd" version="${nb.full.version}"/>
+	    <component uid="cc" version="1.0.0.0.0"/>            
+	    <component uid="cpp" version="1.0.0.0.0"/>
+    	    <component uid="fortran" version="1.0.0.0.0"/>
+    	    <component uid="dbx" version="1.0.0.0.0"/>
+    	    <component uid="dmake" version="1.0.0.0.0"/>
+    	    <component uid="x-designer" version="1.0.0.0.0"/>
+    	    <component uid="support-files" version="1.0.0.0.0"/>
+    	    <component uid="perf-lib" version="1.0.0.0.0"/>
+    	    <component uid="third-party-source" version="1.0.0.0.0"/>
+                                 <property name="product.data.all.location" value="http://endif.russia.sun.com/installer/packaged" />
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+        <!-- End of addition -->
+
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="solaris-sparc" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-solaris-sparc.sh">            
+            <component uid="ss-base" version="1.0.0.0.0"/>
+            <component uid="nb-base" version="${nb.full.version}"/>
+            <component uid="nb-cnd" version="${nb.full.version}"/>
+	    <component uid="cc" version="1.0.0.0.0"/>            
+	    <component uid="cpp" version="1.0.0.0.0"/>
+    	    <component uid="fortran" version="1.0.0.0.0"/>
+    	    <component uid="dbx" version="1.0.0.0.0"/>
+    	    <component uid="dmake" version="1.0.0.0.0"/>
+    	    <component uid="x-designer" version="1.0.0.0.0"/>
+    	    <component uid="support-files" version="1.0.0.0.0"/>
+    	    <component uid="perf-lib" version="1.0.0.0.0"/>
+    	    <component uid="third-party-source" version="1.0.0.0.0"/>
+
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+        <!-- Added by Igor Nikiforov -->
+        <delete file="${output.dir}/registry-temp/bundles.list" />
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="solaris-sparc" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-solaris-sparc-external.sh">            
+            <component uid="ss-base" version="1.0.0.0.0"/>
+            <component uid="nb-base" version="${nb.full.version}"/>
+            <component uid="nb-cnd" version="${nb.full.version}"/>
+	    <component uid="cc" version="1.0.0.0.0"/>            
+	    <component uid="cpp" version="1.0.0.0.0"/>
+    	    <component uid="fortran" version="1.0.0.0.0"/>
+    	    <component uid="dbx" version="1.0.0.0.0"/>
+    	    <component uid="dmake" version="1.0.0.0.0"/>
+    	    <component uid="x-designer" version="1.0.0.0.0"/>
+    	    <component uid="support-files" version="1.0.0.0.0"/>
+    	    <component uid="perf-lib" version="1.0.0.0.0"/>
+    	    <component uid="third-party-source" version="1.0.0.0.0"/>
+                                 <property name="product.data.all.location" value="http://endif.russia.sun.com/installer/packaged" />
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+        <!-- End of addition -->
+	
+    </target>
+    
+    
+    <target name="build-engine">
+	<property name="engine.dist.file.name" value="nbi-engine.jar"/>
+        
+        <echo message="BUILDING CORE ENGINE ======================================"/>
+        <ant dir="${nbi.core.dir}/infra/build/engine" target="build-all">
+            <property 
+                name="basedir" 
+                value="${nbi.core.dir}/infra/build/engine"/>
+           <property 
+                name="sources.dir" 
+                value="${nbi.all.dir}/.."/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>            
+            <property
+                name="build.native"
+                value="false"/>
+            <property 
+                name="cvs.module" 
+                value="${core.module.name}"/>
+        </ant>
+        
+        <echo message="BUILDING NETBEANS ENGINE =================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/engine" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/engine"/>                          
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>            
+            <property 
+                name="core.engine.dist.file" 
+                value="${nbi.core.dir}/infra/build/engine/dist/${engine.dist.file.name}"/>
+        </ant>
+    </target>
+
+    <target name="prepare-output-dir">
+	<delete dir="${output.dir}"/>    
+        <mkdir dir="${output.dir}"/>
+        <mkdir dir="${output.dir}/bundles"/>
+        <mkdir dir="${output.dir}/components"/>    
+        <!-- Added by Igor Nikiforov -->
+        <mkdir dir="${output.dir}/packaged"/>        
+        <!-- End of addition -->    
+    </target>
+
+    <target name="generate-bundles">
+        <antcall target="generate-netbeans-cpp-bundles"/>
+        <!--
+	<antcall target="generate-netbeans-full-bundles"/>
+        -->
+    </target>
+
+
+    <target name="-build">     
+        <antcall target="prepare-output-dir"/>
+        <antcall target="build-engine"/>
+
+        <antcall target="build-netbeans"/>
+            <!--
+	<antcall target="generate-bundles"/>
+	    
+	<delete dir="${output.dir}/registry-temp"/>        
+        <delete dir="${output.dir}/components"/>
+        -->
+    </target>
+
+    <target name="replace">
+        <property file="${token.file}"/>
+        <replaceregexp file="${file.to.replace}" flags="mg">
+            <regexp pattern="${regexp.token}"/>
+            <substitution expression="${regexp.replacement}"/>
+        </replaceregexp>
+    </target>
+</project>

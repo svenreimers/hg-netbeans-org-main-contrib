@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>Debugging CORBA Programs</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>Debugging CORBA Programs</h2>
+
+<p>
+You can use the IDE's debugger with your CORBA client and server programs.
+There are a few things you must consider:
+<ul>
+<li>
+You must debug client and server programs separately. You cannot start
+the debugger on the client side and trace the remote method call into
+the server. Start the debugger on the server side and then run the
+client. The debugger will show the server executing in response to the
+request.</li>
+
+<li>
+You cannot use the IDE's debugger for processes that are started
+outside the IDE. In particular, you cannot debug CORBA server
+processes that are started from an implementation repository.</li>
+
+<li>
+If you want to debug a server-side program that is already running,
+you need to unbind the program from the naming service before
+restarting it. (If you do not, you will get an exception when the
+binding code executes.)
+
+<ul>
+<li>
+If you have the naming service attached in the Naming Service browser
+(on the Runtime tab of Explorer), right-click on the node for the
+server and choose Unbind.</li>
+
+<li>
+If the naming service is not attached, you must kill and restart the
+<tt>tnameserv</tt> process by using shell utilities (<tt>ps</tt> and
+<tt>kill</tt>) or by using your operating system's task manager.
+Restart the naming service using the same arguments as before (<tt>tnameserv
+-ORBInitialPort 1050</tt>).</li>
+</ul></li>
+
+<li>
+If you want to debug only the client side, you do not need to restart
+the naming service and rebind the implementation instance.</li>
+</ul>
+
+<h3>Setting Breakpoints</h3>
+
+<p>
+Use the standard IDE procedures for setting breakpoints. For example, to
+set a breakpoint in the Hello World example's implementation class:
+<ol>
+<li>
+Go to the <tt>HelloImpl</tt> class in the editor and locate the line
+containing the <tt>for()</tt> loop in the code.</li>
+
+<li>
+Put the insertion point in this line, and press Ctrl-F8 to set a breakpoint
+on this line.</li>
+
+<li>
+Select the <tt>HelloServer</tt> class in the Explorer, and press F5 to
+start the server in the debugger.</li>
+</ol>
+</p>
+<p>
+Execute the client as you did before. Server-side execution pauses
+at your breakpoint. Just as when debugging other Java objects, you can
+freely make use of tracing, watch variables, and other debugging techniques.
+
+<table width="550" border="0" cellpadding="2">
+<tr valign="top">
+<td><img src="../images/tip.gif" width="12" height="12"></td>
+<td>If you are running the IDE on Java HotSpot<sup><small>TM</small></sup> 
+technology, you must disable Java HotSpot
+before restarting the client.</td>
+</tr>
+</table>
+</p>
+
+
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small></body>
+</html>

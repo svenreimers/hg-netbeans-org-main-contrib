@@ -1,0 +1,391 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<!--
+- DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+-
+- Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+-
+- The contents of this file are subject to the terms of either the GNU
+- General Public License Version 2 only ("GPL") or the Common
+- Development and Distribution License("CDDL") (collectively, the
+- "License"). You may not use this file except in compliance with the
+- License. You can obtain a copy of the License at
+- http://www.netbeans.org/cddl-gplv2.html
+- or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+- specific language governing permissions and limitations under the
+- License.  When distributing the software, include this License Header
+- Notice in each file and include the License file at
+- nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+- particular file as subject to the "Classpath" exception as provided
+- by Sun in the GPL Version 2 section of the License file that
+- accompanied this code. If applicable, add the following below the
+- License Header, with the fields enclosed by brackets [] replaced by
+- your own identifying information:
+- "Portions Copyrighted [year] [name of copyright owner]"
+-
+- Contributor(s):
+- - The Original Software is NetBeans. The Initial Developer of the Original
+- Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+- Microsystems, Inc. All Rights Reserved.
+-
+- If you wish your version of this file to be governed by only the CDDL
+- or only the GPL Version 2, indicate your decision by adding
+- "[Contributor] elects to include this software in this distribution
+- under the [CDDL or GPL Version 2] license." If you do not indicate a
+- single choice of license, a recipient has the option to distribute
+- your version of this file under either the CDDL, the GPL Version 2 or
+- to extend the choice of license to its licensees as provided above.
+- However, if you add GPL Version 2 code and therefore, elected the GPL
+- Version 2 license, then the option applies only if the new code is
+- made subject to such option by the copyright holder.
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <title>Using the Table</title>
+  <link rel="StyleSheet" href="ide.css" type="text/css">
+</head>
+
+
+<body>
+
+
+
+
+
+
+
+
+<h2> Using the Task List Table</h2>
+
+
+
+
+
+
+
+
+<h3>Choosing visible columns/Sorting/Editing</h3>
+
+
+
+
+
+
+
+
+Tasks have many properties, and by default only a few of
+these properties are shown in the task list table. You can set
+the sorting column by simply clicking on a table header.
+Clicking repeatedly will reverse the sort order and turn off the
+sorting.
+Use F2 to start editing a cell.&nbsp;&nbsp;You can also change the visible columns by clicking the
+little icon (<img src="images/columns.gif" title="" alt="Columns" style="width: 12px; height: 12px;">)
+which
+appears to the right of the table headers,
+straight above the vertical scrollbar (see image below). You may select
+multiple tasks and change some properties of the selected tasks at
+once. The view also remembers selected tasks and scrollbar positions.
+Different icons are used for undone (<img src="images/task.gif" alt="Task" style="width: 16px; height: 16px;">) and
+done (<img src="images/doneItem.gif" alt="Done item" style="width: 16px; height: 16px;">) tasks.
+The same icons are used in
+the editor if a line is associated with the task. Tasks can also be expanded/collapsed using keyboard (Right/Left).<br>
+
+<br>
+
+If a task list is presented as a plain list without category tasks sorting a column leads also to automatic grouping.<br>
+
+
+
+
+
+
+<br>
+
+
+
+
+
+
+Drag &amp; Drop support:<br>
+
+
+
+
+
+
+<ul>
+
+
+
+
+
+
+  <li>columns can be reordered&nbsp;by dragging
+them around</li>
+
+
+
+
+
+
+  <li>tasks can be moved and copied (use system specific modifier keys like Control in KDE)</li>
+
+
+
+
+
+
+  <li>dropping a task over an editor pastes it's summary</li>
+
+
+
+
+
+
+  <li>dropping some text over a task creates a new one (dragged text is used for summary of newly created task)</li>
+
+
+  <li>dropping a link from <a href="http://www.firefox.com">Firefox</a> creates a task with page's title as the summary and corresponding URL</li>
+
+
+
+
+
+
+</ul>
+
+
+
+
+
+
+
+<p><img style="width: 726px; height: 342px;" src="images/table.png" alt="Table"><br>
+
+
+
+
+
+
+
+
+</p>
+
+
+
+
+
+
+
+
+<h3>Available columns:</h3>
+
+
+
+
+
+
+
+
+<ul>
+
+
+
+
+
+
+
+
+  <li>Summary - Summary for
+the task. The summary is painted in bold if the task is running.</li>
+
+
+
+
+
+
+
+
+  <li>Priority - Contains the
+priority of the task.</li>
+
+
+
+
+
+
+
+
+  <li>Done - Shows whether
+a&nbsp; particular task is done. A task is done when it's percent
+complete value is 100%.</li>
+
+
+
+
+
+
+
+
+  <li>Percent Complete - Shows
+completion status of a task.</li>
+
+
+
+
+
+
+
+
+  <li>Effort - Effort cells are
+painted
+in red using a bold font if the sum of the spent time and the remaining
+effort exceeds
+the planed effort.</li>
+
+
+
+
+
+
+
+
+  <li>Rem. Effort - Remaining
+effort. This value is computed as Effort * (1 - Percent Complete)</li>
+
+
+
+
+
+
+
+
+  <li>Spent Time - Shows the
+time that was spent working on this task.</li>
+
+
+
+
+
+
+
+
+  <li>Details - Here you can
+write a longer description of the task</li>
+  <li>Category - A possible
+category for the task. </li>
+
+
+
+
+
+
+
+
+  <li>Created - The date when
+the task was created. </li>
+
+
+
+
+
+
+
+
+  <li>Edited - The date when
+the task was last edited. </li>
+
+
+
+
+
+
+
+
+  <li>Completed - This columns
+contains the date when a particular task was completed. It
+will be filled automatically if you mark a task as done.</li>
+
+
+
+
+
+
+
+
+  <li>Due date - Due date is
+painted in red if the deadline was not met.</li>
+
+
+
+
+
+
+
+
+  <li>Start - Planned start
+date for the task.</li>
+
+
+
+
+
+
+
+
+  <li>Spent Time Today - Shows the time that was spent working on
+the
+task today.<br>
+
+
+
+
+
+
+
+
+  </li>
+
+
+
+
+
+
+
+
+</ul>
+
+
+
+
+
+
+
+
+<hr>Comments &amp; requests to <a href="mailto:dev@tasklist.netbeans.org"><code>dev@tasklist.netbeans.org</code></a>.
+Further information at <a href="http://tasklist.netbeans.org/"><code>http://tasklist.netbeans.org</code></a>.
+</body>
+</html>

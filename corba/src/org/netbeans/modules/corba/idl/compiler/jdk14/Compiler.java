@@ -1,0 +1,193 @@
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder.
+ */
+
+package org.netbeans.modules.corba.idl.compiler.jdk14;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
+
+import com.sun.tools.corba.se.idl.GenFileStream;
+import com.sun.tools.corba.se.idl.SymtabFactory;
+import com.sun.tools.corba.se.idl.IncludeEntry;
+import com.sun.tools.corba.se.idl.InterfaceEntry;
+import com.sun.tools.corba.se.idl.InterfaceState;
+import com.sun.tools.corba.se.idl.ModuleEntry;
+import com.sun.tools.corba.se.idl.PrimitiveEntry;
+import com.sun.tools.corba.se.idl.SequenceEntry;
+import com.sun.tools.corba.se.idl.StructEntry;
+import com.sun.tools.corba.se.idl.SymtabEntry;
+import com.sun.tools.corba.se.idl.TypedefEntry;
+import com.sun.tools.corba.se.idl.UnionBranch;
+import com.sun.tools.corba.se.idl.UnionEntry;
+import com.sun.tools.corba.se.idl.ValueEntry;
+import com.sun.tools.corba.se.idl.ValueBoxEntry;
+import com.sun.tools.corba.se.idl.InvalidArgument;
+import com.sun.tools.corba.se.idl.PragmaEntry;
+
+import com.sun.tools.corba.se.idl.toJavaPortable.Compile;
+import com.sun.tools.corba.se.idl.toJavaPortable.Util;
+//import com.sun.tools.corba.se.idl.toJavaPortable.Factories;
+//import com.sun.tools.corba.se.idl.toJavaPortable.Util;
+//import com.sun.tools.corba.se.idl.toJavaPortable.Util;
+
+public class Compiler extends com.sun.tools.corba.se.idl.toJavaPortable.Compile {
+
+    //public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
+  
+    public static void main (String[] args) {
+	/*
+	 *
+	 * options --directory  <dir> --package <package> --tie
+	 * --directory => -td
+	 * --package => -pkgPrefix
+	 * --tie => -fallTIE - else -fall
+	 * other options
+	 *
+	 */
+	Vector __parser_args = new Vector ();
+	for (int i=0; i<args.length; i++) {
+	    if (DEBUG)
+		System.out.println ("param: " + args[i]); // NOI18N
+	    if (!args[i].equals ("--directory")) {
+		if (!args[i].equals ("--package")) {
+		    if (!args[i].equals ("--tie")) {
+			if (DEBUG)
+			    System.out.println ("adding parser param: " + args[i]);
+			__parser_args.add (args[i]);
+		    }
+		}
+		else {
+		    // removing package name
+		    i++;
+		}
+	    }
+	    else {
+		// removing directory name
+		i++;
+	    }
+	} 
+	String file_name = args[args.length - 1];
+	if (DEBUG)
+	    System.err.println ("idl name: " + file_name); // NOI18N
+	String[] parser_args = new String[__parser_args.size ()];
+	parser_args = (String[])__parser_args.toArray (parser_args);
+	Vector names = new Vector ();
+	try {
+            compiler = new Compiler ();
+            Util.registerMessageFile("com/sun/tools/corba/se/idl/toJavaPortable/toJavaPortable.prp");
+            ((Compiler)compiler).init (parser_args);
+            ((Compiler)compiler).preParse();
+	    java.util.Enumeration en = ((Compiler)compiler).parse ();
+	    if (en == null)
+		return;
+	    while (en.hasMoreElements ()) {
+                SymtabEntry _se = (SymtabEntry)en.nextElement (); 
+                if (_se instanceof IncludeEntry || _se instanceof PragmaEntry)
+                    continue;
+		String name = _se.fullName ();
+		if (DEBUG)
+		    System.err.println ("element: " + name); // NOI18N
+		if (name.indexOf ('/') == -1) {
+		    // top level element
+		    names.addElement (name);
+		    if (DEBUG)
+			System.err.println ("top level element: " + name); // NOI18N
+		}
+	    }	
+	} catch (Exception e) {
+	    e.printStackTrace ();
+	}
+
+	Vector new_args = new Vector ();
+	boolean ties = false;
+	for (int i=0; i<args.length-1; i++) {
+	    if (args[i].equals ("--directory")) { // NOI18N
+		new_args.addElement ("-td"); // NOI18N
+		new_args.addElement (args[++i]);
+		continue;
+	    }
+	    if (args[i].equals ("--package")) { // NOI18N
+		i++;
+		for (int j=0; j<names.size (); j++) {
+		    new_args.addElement ("-pkgPrefix"); // NOI18N
+		    new_args.addElement ((String)names.elementAt (j));
+		    new_args.addElement (args[i]);
+		}
+		continue;
+	    }
+	    if (args[i].equals ("--tie")) { // NOI18N
+		new_args.addElement ("-fallTIE"); // NOI18N
+		ties = true;
+		continue;
+	    }
+	    // other parameters (JDK1.4 IDL compliant)
+	    new_args.addElement (args[i]);
+	}
+	if (!ties)
+	    new_args.addElement ("-fall"); // NOI18N
+	new_args.addElement (file_name);
+	String[] args2 = (String[])new_args.toArray (new String[] {});
+	if (DEBUG) {
+	    System.err.println ("---");
+	    for (int i=0; i<args2.length; i++) {
+		System.err.println ("new param: " + args2[i]); // NOI18N
+	    }
+	}
+	if (DEBUG)
+	    System.err.println ("Compile.main (" + args2 + ");");
+	Compile.main (args2);
+    
+    }
+
+}
+
+/*
+ * $Log
+ * $
+ */

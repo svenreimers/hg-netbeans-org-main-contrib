@@ -1,0 +1,355 @@
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder.
+ */
+
+package org.netbeans.modules.vcs.advanced.conditioned;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.table.DefaultTableModel;
+
+import org.openide.DialogDescriptor;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+
+import org.netbeans.modules.vcs.advanced.commands.StructuredExecPanel;
+import org.netbeans.modules.vcs.advanced.commands.ConditionedCommandsBuilder.ConditionedProperty;
+import org.netbeans.modules.vcs.advanced.variables.Condition;
+
+import org.netbeans.modules.vcscore.cmdline.exec.StructuredExec;
+import org.netbeans.modules.vcscore.commands.VcsCommand;
+
+/**
+ *
+ * @author  Martin Entlicher
+ */
+public class ConditionedStructuredExecPanel extends StructuredExecPanel {
+    
+    private ConditionedString cexecString;
+    private ConditionedObject cexecStructured;
+    private VcsCommand cmd;
+    private Map cproperties;
+    
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JButton addButton;
+    private javax.swing.JComboBox conditionComboBox;
+    private javax.swing.JLabel conditionLabel;
+    private javax.swing.JButton editButton;
+    private javax.swing.JButton removeButton;
+    
+    /** Creates a new instance of ConditionedStructuredExecPanel */
+    public ConditionedStructuredExecPanel(VcsCommand cmd, Map cproperties) {
+        super(cmd);
+        this.cmd = cmd;
+        this.cproperties = cproperties;
+    }
+    
+    protected void postInitComponents() {
+        argTableModel = new DefaultTableModel(new Object[0][0], new Object[] {
+            org.openide.util.NbBundle.getMessage(StructuredExecPanel.class, "StructuredExecPanel.Arguments"),
+            org.openide.util.NbBundle.getMessage(StructuredExecPanel.class, "StructuredExecPanel.ArgLine"),
+            org.openide.util.NbBundle.getMessage(ConditionedStructuredExecPanel.class, "ConditionedStructuredExecPanel.Conditions")
+        }) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Boolean.class, IfUnlessCondition.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        };
+        final javax.swing.JTable argTable = getArgTable();
+        argTable.setModel(argTableModel);
+        addConditionPanel();
+        Object lineHeaderValue = argTable.getColumnModel().getColumn(1).getHeaderValue();
+        javax.swing.table.TableCellRenderer tcr = argTable.getColumnModel().getColumn(1).getHeaderRenderer();
+        if (tcr == null) {
+            tcr = argTable.getTableHeader().getDefaultRenderer();
+        }
+        java.awt.Component lineHeaderComponent = tcr.getTableCellRendererComponent(argTable, lineHeaderValue, false, true, 0, 1);
+        int width = lineHeaderComponent.getPreferredSize().width;
+        argTable.getColumnModel().getColumn(1).setPreferredWidth(width + 24);
+        argTable.getColumnModel().getColumn(1).setMaxWidth(width + 24);
+        editButton.setVisible(false);
+    }
+    
+    private void addConditionPanel() {
+        java.awt.GridBagConstraints gridBagConstraints;
+        
+        jPanel1 = new javax.swing.JPanel();
+        jPanel1.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.Condition"));
+        jPanel1.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACSD_ConditionedStringPanel.Condition"));
+        conditionLabel = new javax.swing.JLabel();
+        conditionComboBox = new javax.swing.JComboBox();
+        addButton = new javax.swing.JButton();        
+        editButton = new javax.swing.JButton();
+        removeButton = new javax.swing.JButton();
+
+        FormListener formListener = new FormListener();
+        
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        conditionLabel.setText(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.Condition"));
+        conditionLabel.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACSD_ConditionedStringPanel.Condition"));
+        conditionLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACS_ConditionedStringPanel.Condition"));
+        conditionLabel.setLabelFor(conditionComboBox);
+        conditionLabel.setDisplayedMnemonic(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACS_ConditionedStringPanel.Condition_mnc").charAt(0));
+        
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 6);
+        jPanel1.add(conditionLabel, gridBagConstraints);
+
+        conditionComboBox.addActionListener(formListener);
+        conditionComboBox.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACS_ConditionedStringPanel.ConditionCombo"));
+        conditionComboBox.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACSD_ConditionedStringPanel.ConditionCombo"));
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 6);
+        jPanel1.add(conditionComboBox, gridBagConstraints);
+
+        addButton.setText(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.addButton"));
+        addButton.addActionListener(formListener);
+        addButton.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.addButton"));
+        addButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACSD_ConditionedStringPanel.addButton"));
+        addButton.setMnemonic(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACS_ConditionedStringPanel.addButton_mnc").charAt(0));
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 6);
+        jPanel1.add(addButton, gridBagConstraints);
+
+        editButton.setText(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.editButton"));
+        editButton.addActionListener(formListener);
+        editButton.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.editButton"));
+        editButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACSD_ConditionedStringPanel.editButton"));
+        editButton.setMnemonic(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACS_ConditionedStringPanel.editButton_mnc").charAt(0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 6);
+        jPanel1.add(editButton, gridBagConstraints);
+
+        removeButton.setText(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.removeButton"));
+        removeButton.addActionListener(formListener);
+        removeButton.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ConditionedStringPanel.removeButton"));
+        removeButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACSD_ConditionedStringPanel.removeButton"));
+        removeButton.setMnemonic(org.openide.util.NbBundle.getMessage(ConditionedStringPanel.class, "ACS_ConditionedStringPanel.removeButton_mnc").charAt(0));
+        jPanel1.add(removeButton, new java.awt.GridBagConstraints());
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(12, 12, 11, 11);
+        add(jPanel1, gridBagConstraints);
+    }
+    
+    private class FormListener implements java.awt.event.ActionListener {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            if (evt.getSource() == conditionComboBox) {
+                ConditionedStructuredExecPanel.this.conditionComboBoxActionPerformed(evt);
+            }
+            else if (evt.getSource() == addButton) {
+                ConditionedStructuredExecPanel.this.addButtonActionPerformed(evt);
+            }
+            else if (evt.getSource() == editButton) {
+                ConditionedStructuredExecPanel.this.editButtonActionPerformed(evt);
+            }
+            else if (evt.getSource() == removeButton) {
+                ConditionedStructuredExecPanel.this.removeButtonActionPerformed(evt);
+            }
+        }
+    }
+
+    private void conditionComboBoxActionPerformed(java.awt.event.ActionEvent evt) {
+        // Add your handling code here:
+        setFieldsForCurrentCondition();
+    }
+    
+    private void setFieldsForCurrentCondition() {
+        IfUnlessCondition iuc = (IfUnlessCondition) conditionComboBox.getSelectedItem();
+        if (cexecString != null) {
+            String exec = cexecString.getValue(iuc);
+            if (exec != null) {
+                setExecString(exec);
+            }
+        }
+        if (cexecStructured != null) {
+            StructuredExec sexec = (StructuredExec) cexecStructured.getObjectValue(iuc);
+            if (sexec != null) {
+                setExecStructured(sexec);
+            }
+        }
+    }
+
+    private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        // Add your handling code here:
+        IfUnlessCondition iuc = (IfUnlessCondition) conditionComboBox.getSelectedItem();
+        if (cexecString != null) {
+            cexecString.removeValue(iuc);
+        }
+        if (cexecStructured != null) {
+            cexecStructured.removeValue(iuc);
+        }
+        conditionComboBox.removeItem(iuc);
+        removeButton.setEnabled(conditionComboBox.getItemCount() > 1);
+    }
+
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        // Add your handling code here:
+        IfUnlessCondition iuc = (IfUnlessCondition) conditionComboBox.getSelectedItem();
+        IfUnlessConditionPanel panel = new IfUnlessConditionPanel(iuc, new String[0]);
+        DialogDescriptor dd = new DialogDescriptor(panel, org.openide.util.NbBundle.getMessage(IfUnlessConditionPanel.class, "IfUnlessConditionPanel.title"));
+        if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(dd))) {
+            iuc = panel.getCondition();
+            //cs.setValue(iuc, cs.getValue((IfUnlessCondition) conditionComboBox.getSelectedItem()));  // Rather leave the last text
+        }
+    }
+
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        // Add your handling code here:
+        IfUnlessCondition iuc = new IfUnlessCondition(null);
+        IfUnlessConditionPanel panel = new IfUnlessConditionPanel(iuc, new String[0]);
+        DialogDescriptor dd = new DialogDescriptor(panel, org.openide.util.NbBundle.getMessage(IfUnlessConditionPanel.class, "IfUnlessConditionPanel.title"));
+        if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(dd))) {
+            iuc = panel.getCondition();
+            conditionComboBox.addItem(iuc);
+            //cs.setValue(iuc, cs.getValue((IfUnlessCondition) conditionComboBox.getSelectedItem()));  // Rather leave the last text
+            conditionComboBox.setSelectedItem(iuc);
+        }
+        removeButton.setEnabled(conditionComboBox.getItemCount() > 1);
+    }
+
+    private void fillConditions() {
+        conditionComboBox.removeAllItems();
+        IfUnlessCondition[] iucs1 = null;
+        if (cexecString != null) {
+            iucs1 = cexecString.getIfUnlessConditions();
+            Arrays.sort(iucs1, new IfUnlessCondition.IfUnlessComparator());
+            for (int i = 0; i < iucs1.length; i++) {
+                conditionComboBox.addItem(iucs1[i]);
+            }
+        }
+        if (cexecStructured != null) {
+            IfUnlessCondition[] iucs2 = cexecStructured.getIfUnlessConditions();
+            Arrays.sort(iucs2, new IfUnlessCondition.IfUnlessComparator());
+fori:       for (int i = 0; i < iucs2.length; i++) {
+                if (iucs1 != null) {
+                    //Condition c2 = iucs2[i].getCondition();
+                    for (int j = 0; j < iucs1.length; j++) {
+                        //Condition c1 = iucs1[j].getCondition();
+                        //if (c1 == null && c2 == null || c1 != null && c1.equals(c2)) {
+                        if (iucs2[i].equals(iucs1[j])) {
+                            break fori;
+                        }
+                    }
+                }
+                conditionComboBox.addItem(iucs2[i]);
+            }
+        }
+        removeButton.setEnabled(conditionComboBox.getItemCount() > 1);
+    }
+    
+    protected void fieldsFocusLost() {
+        IfUnlessCondition iuc = (IfUnlessCondition) conditionComboBox.getSelectedItem();
+        if (isStringExecSelected()) {
+            String exec = getExecString();
+            if (cexecString == null) {
+                cexecString = new ConditionedString(VcsCommand.PROPERTY_EXEC, new HashMap());
+            }
+            cexecString.setValue(iuc, exec);
+            if(cexecStructured != null)                
+                cexecStructured.setObjectValue(iuc,null);
+        } else {
+            StructuredExec sexec = getExecStructured();
+            if (cexecStructured == null) {
+                cexecStructured = new ConditionedObject(VcsCommand.PROPERTY_EXEC_STRUCTURED, new HashMap());
+            }
+            cexecStructured.setObjectValue(iuc, sexec);
+            if(cexecString != null)                
+                cexecString.setObjectValue(iuc,null);
+        }
+    }
+    
+    public ConditionedString getExecStringConditioned() {
+        return cexecString;
+    }
+    
+    public void setExecStringConditioned(ConditionedString cexecString) {
+        this.cexecString = cexecString;
+        fillConditions();
+        setFieldsForCurrentCondition();
+    }
+    
+    public void setExecStructuredConditioned(ConditionedObject cexecStructured) {
+        this.cexecStructured = cexecStructured;
+        fillConditions();
+        setFieldsForCurrentCondition();
+    }
+    
+    public ConditionedObject getExecStructuredConditioned() {
+        return cexecStructured;
+    }
+    
+    public Object getPropertyValue() throws IllegalStateException {
+        ConditionedProperty cproperty = (ConditionedProperty) cproperties.get(VcsCommand.PROPERTY_EXEC);
+        Map valuesByConditions = cexecString.getValuesByConditions();
+        ConditionedProperty newCProperty;
+        Object varValue = null;
+        if (valuesByConditions.size() == 1 && valuesByConditions.keySet().iterator().next() == null) {
+            newCProperty = null;
+            varValue = valuesByConditions.get(null);
+        } else {
+            if (cproperty != null) {
+                newCProperty = new ConditionedProperty(VcsCommand.PROPERTY_EXEC, cproperty.getCondition(), valuesByConditions);
+            } else {
+                newCProperty = new ConditionedProperty(VcsCommand.PROPERTY_EXEC, null, valuesByConditions);
+            }
+        }
+        if (newCProperty != null) {
+            cproperties.put(VcsCommand.PROPERTY_EXEC, newCProperty);
+        } else {
+            cproperties.remove(VcsCommand.PROPERTY_EXEC);
+            cmd.setProperty(VcsCommand.PROPERTY_EXEC, varValue);
+        }
+        return cexecStructured;
+    }
+}
