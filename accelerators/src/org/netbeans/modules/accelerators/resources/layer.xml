@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+                Sun Public License Notice
+
+The contents of this file are subject to the Sun Public License
+Version 1.0 (the "License"). You may not use this file except in
+compliance with the License. A copy of the License is available at
+http://www.sun.com/
+
+The Original Code is the Accelerators module.
+The Initial Developer of the Original Code is Andrei Badea.
+Portions Copyright 2005-2006 Andrei Badea.
+All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+
+Contributor(s): Andrei Badea, Leon Chiver
+-->
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+
+    <!-- Install the actions -->
+    <folder name="Actions">
+        <folder name="Tools">
+            <file name="org-netbeans-modules-accelerators-terminal-RunTerminalAction.instance"/>
+            <file name="org-netbeans-modules-accelerators-filesearch-FileSearchAction.instance"/>
+        </folder>
+    </folder>
+
+    <!-- Register menu items -->
+    <folder name="Menu">
+        <folder name="Tools">
+            <file name="org-netbeans-modules-accelerators-terminal-RunTerminalAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Tools/org-netbeans-modules-accelerators-terminal-RunTerminalAction.instance"/>
+            </file>
+        </folder>
+        <folder name="GoTo">
+            <file name="org-netbeans-modules-accelerators-filesearch-FileSearchAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Tools/org-netbeans-modules-accelerators-filesearch-FileSearchAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-editor-java-JavaFastOpenAction.shadow/org-netbeans-modules-accelerators-filesearch-FileSearchAction.shadow" boolvalue="true"/>
+            <attr name="org-netbeans-modules-accelerators-filesearch-FileSearchAction.shadow/org-netbeans-modules-junit-OpenTestAction.shadow" boolvalue="true"/>
+        </folder>
+    </folder>
+  
+    <!-- Register the file search action in the projects context menu -->
+    <folder name="Projects">
+        <folder name="Actions">
+            <file name="org-netbeans-modules-accelerators-filesearch-FileSearchAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Tools/org-netbeans-modules-accelerators-filesearch-FileSearchAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-accelerators-filesearch-FileSearchAction.instance/org-netbeans-modules-versioning-system-cvss-ui-actions-ProjectCvsMenuItem.instance" boolvalue="true"/>
+        </folder>
+    </folder>
+    
+    <!-- Install the action shortcuts -->
+    <folder name="Shortcuts">
+        <file name="DS-Enter.shadow">
+            <attr name="originalFile" stringvalue="Actions/Tools/org-netbeans-modules-accelerators-terminal-RunTerminalAction.instance"/>
+        </file>
+        <file name="OS-P.shadow">
+            <attr name="originalFile" stringvalue="Actions/Tools/org-netbeans-modules-accelerators-filesearch-FileSearchAction.instance"/>
+        </file>
+    </folder>
+    
+    <!-- Install the options item for the Run Terminal action-->
+    <folder name="Services">
+        <file name="AcceleratorsOptions.settings" url="AcceleratorsOptions.xml"/>
+    </folder>
+    
+    <!-- Show the options item in the right folder in the Options dialog -->
+    <folder name="UI">
+        <folder name="Services">
+            <folder name="IDEConfiguration">
+                <folder name="ServerAndExternalToolSettings">
+                    <file name="AcceleratorsOptions.shadow">
+                        <attr name="originalFile" stringvalue="Services/AcceleratorsOptions.settings"/>
+                    </file>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
+    
+</filesystem>

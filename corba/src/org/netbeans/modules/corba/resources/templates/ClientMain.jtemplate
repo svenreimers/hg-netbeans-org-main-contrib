@@ -1,0 +1,38 @@
+/*
+ * __NAME__.java  --  client side implementation 
+ *
+ * Created on __DATE__, __TIME__ for __ORB_NAME__
+ * with __CLIENT_BINDING_NAME__ binding.
+ */
+
+package Templates.CORBA;
+
+__CLIENT_IMPORT__
+__CLIENT_BINDING_IMPORT__
+/**
+ *
+ * @author  __USER__
+ * @version 
+ */
+public class ClientMain {
+
+    /** Creates new __NAME__ */
+    public ClientMain () {
+    }
+
+    /**
+    * @param args the command line arguments
+    */
+    public static void main (String args[]) {
+
+	try {
+	    __ORB_PROPERTIES__
+	    __ORB_INIT__
+	    __CLIENT_BINDING__
+	} catch (Exception ex) {
+	     ex.printStackTrace ();
+	}
+    }
+}
+
+

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+<!--
+<!-- Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+<!--
+<!-- The contents of this file are subject to the terms of either the GNU
+<!-- General Public License Version 2 only ("GPL") or the Common
+<!-- Development and Distribution License("CDDL") (collectively, the
+<!-- "License"). You may not use this file except in compliance with the
+<!-- License. You can obtain a copy of the License at
+<!-- http://www.netbeans.org/cddl-gplv2.html
+<!-- or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+<!-- specific language governing permissions and limitations under the
+<!-- License.  When distributing the software, include this License Header
+<!-- Notice in each file and include the License file at
+<!-- nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+<!-- particular file as subject to the "Classpath" exception as provided
+<!-- by Sun in the GPL Version 2 section of the License file that
+<!-- accompanied this code. If applicable, add the following below the
+<!-- License Header, with the fields enclosed by brackets [] replaced by
+<!-- your own identifying information:
+<!-- "Portions Copyrighted [year] [name of copyright owner]"
+<!--
+<!-- Contributor(s): -->
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Edit">
+            <file name="OpenBraceAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction"/>
+                <attr name="instanceCreate" methodvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction.createSemicolonAction"/>
+            </file>
+            
+            <file name="AddI18nAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction"/>
+                <attr name="instanceCreate" methodvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction.createAddI18nAction"/>
+            </file>
+            
+            <file name="LineCompletionAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction"/>
+                <attr name="instanceCreate" methodvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction.createSemicolonAction"/>
+            </file>
+            
+            <file name="LineCompletionActionNL.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction"/>
+                <attr name="instanceCreate" methodvalue="org.netbeans.modules.semicolon.InsertAtEndOfCurrentLineAction.createSemicolonNewlineAction"/>
+            </file>
+            
+            <file name="DeletePreviousLineAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.DeletePreviousLineAction"/>
+            </file>
+            
+            <file name="DeleteNextLineAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.DeleteNextLineAction"/>
+            </file>
+            
+            <file name="QuoteAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.semicolon.QuoteAction"/>
+            </file>
+            
+        </folder>
+    </folder>
+    
+    <folder name="Shortcuts">
+        <file name="ODS-OPEN_BRACKET.shadow">;
+            <attr name="originalFile" stringvalue="Actions/Edit/OpenBraceAction.instance"/>
+        </file>
+        <file name="D-SEMICOLON.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/LineCompletionAction.instance"/>
+        </file>
+        <file name="DS-SEMICOLON.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/LineCompletionActionNL.instance"/>
+        </file>
+        <file name="OS-J.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/DeleteNextLineAction.instance"/>
+        </file>
+        <file name="OS-K.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/DeletePreviousAction.instance"/>
+        </file>
+        <file name="DO-I.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/AddI18nAction.instance"/>
+        </file>
+        <file name="DS-QUOTE.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/QuoteAction.instance"/>
+        </file>
+    </folder>
+</filesystem>

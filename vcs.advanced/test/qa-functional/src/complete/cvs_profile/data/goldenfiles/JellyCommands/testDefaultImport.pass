@@ -1,0 +1,21 @@
+dumpFile:
+imfile
+strict
+/imdir/imfile,v
+1.1
+1.1.1
+2
+2
+
+
+dumpSymbolicNamesList: 2,2
+1. - ReleaseTag - 1.1.1.1
+2. - VendorTag - 1.1.1
+dumpRevisionList: 2,6
+1. - 1.1 - <FILTERED> - Initial revision - <FILTERED> - Exp - null
+2. - 1.1.1.1 - <FILTERED> - LoggingMessage - <FILTERED> - Exp - +0 -0
+dumpLogMessage: 2
+Initial revision
+
+LoggingMessage
+

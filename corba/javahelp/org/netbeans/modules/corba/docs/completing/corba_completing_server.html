@@ -1,0 +1,220 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>Completing Server-Side Files</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>Completing Server-Side Files</h2>
+
+<p>
+If you created a server file with the CORBA template instead of
+generating one through the CORBA wizard, you must do some coding to
+complete the implementation class and the server class.  The code you
+must add to your server class depends on the binding method it uses:
+<ul>
+<li>
+For all binding methods, you must add code that 
+instantiates the implementation class and connects it to the ORB.</li>
+<li> 
+If your server class writes the IOR to standard output, you must add code that 
+converts the IOR to string form and writes it to standard output.</li>
+<li> 
+If your server class writes the IOR to a file, you must add code that converts 
+the IOR to string form and writes it to a file that you specify.</li>
+<li> 
+If your server class registers the IOR with a naming service, you must
+add code that specifies the name to which the IOR will be bound in the naming
+service operation.</li> 
+</ul>
+</p>
+
+<a name="completing_impl"></a>
+<h3>Completing the Implementation Class</h3>
+
+<p>
+If you generated your implementation class with the CORBA template,
+ServerMain, you must add method bodies to the implementation class'
+business methods (the methods declared in the IDL). Note that implementation
+classes can also have private methods (not declared in the IDL) that
+are called by the business methods. </p>
+
+<p>
+<b>To add code that instantiates the implementation class and connects
+it to the ORB:</b> 
+<ol>
+<li>
+Look for the following comment and code line near the top of your
+generated server class: 
+<pre>
+         // add your creating of object implementation here
+ /*servant_class*/ /*servant_variable*/ = new /*servant_class*/();
+ orb.connect(/*servant_variable*/);
+</pre>
+</li>
+
+<li> 
+Below the comment, replace the placeholder code with a line of code
+like the following example, which instantiates an implementation class
+to create a servant instance and below that a name you used for the servant
+instance, for example: 
+<pre>
+ helloworld.HelloApp.HelloImpl servant = new helloworld.HelloApp.HelloImpl();
+ orb.connect(servant);
+</pre>
+</li>
+</ol>
+</p>
+
+<p>
+<b>To add code that writes the IOR to standard output:</b>
+<ol> 
+<li> 
+Look for the following line in your generated server class:
+<pre>
+ System.out.println(orb.object_to_string (/*servant_variable*/));
+</pre></li>
+
+<li> 
+Replace the commented parameter with your servant instance, as in the
+following example:
+<pre>
+ System.out.println(orb.object_to_string (servant));
+</pre></li>
+</ol>
+</p>
+
+<p>
+<b>To add code that writes the IOR to a file:</b>
+<ol>
+<li>
+Look for the following lines in your generated server class:
+<pre>
+ String ior = orb.object_to_string (/*servant_variable*/);
+ FileWriter file = new java.io.FileWriter("<file_name>");
+ ...
+</pre>
+</li>
+<li>
+Replace the commented parameters with your servant instance and the
+name of the file to which you want to write the IOR, as in the
+following example:
+<pre>
+ String ior = orb.object_to_string (servant);
+ FileWriter file = new java.io.FileWriter("HelloIOR");
+      ...
+</pre>
+</li>
+</ol>
+</p>
+
+<p>
+<b>To add code that specifies the binding name:</b> 
+<ol> 
+<li> 
+Start the naming service with which you plan to register your
+server.</li>
+<li> 
+In the IDE, go to the Explorer's Runtime tab.</li> 
+<li> 
+Start the CORBA module's Naming Service browser, specifying the naming
+service.  You can register your server in an existing naming context
+or create a new context for it.
+
+<p>To create a new naming context: 
+<ol type="a">
+<li>
+Right-click the node for the JDK Naming Service and choose Create New
+Context. This opens a dialog box.</li> 
+<li> 
+In the Name and Kind fields, type names that describe the context you
+are creating, and click OK. 
+<p>
+Another new subnode appears underneath the one for the JDK naming
+service. You have just created a naming context in which you will
+register your servant instance.</p>
+<p>
+The names you use in this step are arbitrary--they are chosen to be
+descriptive.
+</p></li>
+</ol></li>
+<li>  
+Right-click the node that represents the naming context in which you
+are registering the server, and choose Copy Server Binding Code.</li> 
+<li> 
+Switch back to the editing window, and look for the following comment
+in your generated server class: 
+<pre>
+ // paste code retrieved using the Copy Client/Server Code action 
+ // (on the corresponding node in the Naming Service Browser) here
+</pre></li>
+<li>
+Click to place the insertion point under this line, and press Ctrl-V.
+<p>
+The code you pasted registers an object with the naming service and naming
+context you selected with the Naming Service browser.</li> 
+<li>
+Complete the pasted code by supplying the name that will be used for your
+servant instance, as follows: 
+<ol type="a">
+<li>
+Look for the <tt>&lt;name of server&gt;</tt> variable. Replace it
+with the server name, for example, Hello.</li>  
+<li>
+Look for the <tt>&lt;kind of server&gt;</tt> variable. Replace it with
+a server type, for example, <tt>demo</tt>.</li>
+</ol>
+Reminder: the names you supply for <tt>name_of_server</tt> and
+<tt>kind_of_server</tt> are arbitrary--the examples are chosen to be
+descriptive.</li> 
+<li>
+Locate the following comment:
+<pre>
+ nc.bind (aName, /*servant_variable*/);
+</pre></li> 
+<li> 
+Replace the commented parameter with the servant name (for
+example, <tt>servant</tt>) so that the line looks like this:
+<pre>
+ nc.bind (aName, servant);
+</pre>
+</li>
+</ol> 
+</p>
+
+<p>
+Save the changes to the file. The last step in completing the server
+class is to compile all the classes related to the server, including
+the IDL file:
+
+<p>
+<b>To compile your server:</b> 
+<ul>
+<li>Right-click the node for the package and choose Compile.</li>
+</ul>
+</p>
+
+<table>
+<tr valign="top">
+<th colspan=2 align=left>See also</th>
+</tr>
+<tr valign="top">
+<td width="23"></td>
+<td><a href="../completing/corba_completing_client.html">Completing
+Client-Side Files</a>
+<br>
+<a href="../generating/corba_generating.html">Generating CORBA Files</a>
+</td>
+</tr>
+</table>
+
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small></body>
+</html>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+<!DOCTYPE issues PUBLIC '-//NetBeans org.netbeans.modules.tasklist.bugs//DTD Issues 1.0//EN' 'issues-1_0.dtd'>
+<issues>
+    <components>
+        <component name="UI"/>
+        <component name="code"/>
+    </components>
+    <statuses>
+        <status name="new"/>
+        <status name="started"/>
+        <status name="resolved"/>
+        <status name="verified"/>
+    </statuses>
+    <resolutions>
+        <resolution name="fixed"/>
+        <resolution name="invalid"/>
+        <resolution name="wontfix"/>
+        <resolution name="worksforme"/>
+    </resolutions>
+    <platforms>
+        <platform name="DEC"/>
+        <platform name="HP"/>
+        <platform name="Macintosh"/>
+        <platform name="Palm PDA"/>
+        <platform name="PC"/>
+        <platform name="SGI"/>
+        <platform name="Sun"/>
+        <platform name="Other"/>
+    </platforms>
+    <operating-systems>
+        <os name="Windows 3.1"/>
+        <os name="Windows 95"/>
+        <os name="Windows 98"/>
+        <os name="Windows ME"/>
+        <os name="Windows 2000"/>
+        <os name="Windows NT"/>
+        <os name="Windows XP"/>
+        <os name="Mac System 7"/>
+        <os name="Mac System 7.5"/>
+        <os name="Mac System 7.6.1"/>
+        <os name="Mac System 8.0"/>
+        <os name="Mac System 8.5"/>
+        <os name="Mac System 8.6"/>
+        <os name="Mac System 9.0"/>
+        <os name="Mac OS X"/>
+        <os name="Palm OS 3.x"/>
+        <os name="Palm OS 4.x"/>
+        <os name="Linux"/>
+        <os name="BSDI"/>
+        <os name="FreeBSD"/>
+        <os name="NetBSD"/>
+        <os name="OpenBSD"/>
+        <os name="AIX"/>
+        <os name="BeOS"/>
+        <os name="HP-UX"/>
+        <os name="IRIX"/>
+        <os name="Neutrino"/>
+        <os name="OpenVMS"/>
+        <os name="OS/2"/>
+        <os name="OSF/1"/>
+        <os name="Solaris"/>
+        <os name="SunOS"/>
+        <os name="other"/>
+    </operating-systems>
+    <versions>
+        <version name="1.0"/>
+    </versions>
+    <priorities>
+        <priority name="P1"/>
+        <priority name="P2"/>
+        <priority name="P3"/>
+        <priority name="P4"/>
+        <priority name="P5"/>
+    </priorities>
+    <issue-types>
+        <issue-type name="defect"/>
+        <issue-type name="enhancement"/>
+        <issue-type name="feature"/>
+        <issue-type name="task"/>
+    </issue-types>
+    <persons>
+        <person email="developer@domain.org" first-name="Developer" surname="Developer"/>
+    </persons>
+</issues>

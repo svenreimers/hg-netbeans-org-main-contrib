@@ -1,0 +1,153 @@
+<!--
+   - DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+   -
+   - Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+   -
+   - The contents of this file are subject to the terms of either the GNU
+   - General Public License Version 2 only ("GPL") or the Common
+   - Development and Distribution License("CDDL") (collectively, the
+   - "License"). You may not use this file except in compliance with the
+   - License. You can obtain a copy of the License at
+   - http://www.netbeans.org/cddl-gplv2.html
+   - or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+   - specific language governing permissions and limitations under the
+   - License.  When distributing the software, include this License Header
+   - Notice in each file and include the License file at
+   - nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+   - particular file as subject to the "Classpath" exception as provided
+   - by Sun in the GPL Version 2 section of the License file that
+   - accompanied this code. If applicable, add the following below the
+   - License Header, with the fields enclosed by brackets [] replaced by
+   - your own identifying information:
+   - "Portions Copyrighted [year] [name of copyright owner]"
+   -
+   - Contributor(s):
+   -
+   - The Original Software is NetBeans. The Initial Developer of the Original
+   - Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+   - Microsystems, Inc. All Rights Reserved.
+   -
+   - If you wish your version of this file to be governed by only the CDDL
+   - or only the GPL Version 2, indicate your decision by adding
+   - "[Contributor] elects to include this software in this distribution
+   - under the [CDDL or GPL Version 2] license." If you do not indicate a
+   - single choice of license, a recipient has the option to distribute
+   - your version of this file under either the CDDL, the GPL Version 2 or
+   - to extend the choice of license to its licensees as provided above.
+   - However, if you add GPL Version 2 code and therefore, elected the GPL
+   - Version 2 license, then the option applies only if the new code is
+   - made subject to such option by the copyright holder.
+  -->
+
+<html>
+<body>
+The tasklist API allows modules to register and unregister
+Suggestions in the Suggestions window.
+<p>
+The simple scenario for how to create a suggestion is
+as follows:
+<ol>
+ <li> Obtain a reference to the SuggestionManager:
+   <pre>
+     SuggestionManager manager = SuggestionManager.getDefault();
+   </pre>
+   Note: this may return null (in the case where the Suggestions
+   module is not available/enabled) so check the return value!
+   <p>
+ <li> Check to make sure that the type of suggestion you're about
+      to add is welcome by the user:
+   <pre>
+      if (manager.isEnabled(suggestionTypeId) &&
+          manager.isObserved(suggestionTypeId)) {
+   </pre>
+   <p>
+ <li> Create a new {@link org.netbeans.api.tasklist.Suggestion}:
+   <pre>
+      Suggestion suggestion = manager.createSuggestion(suggestionTypeId,
+                                    "my suggestion description",
+          new SuggestionPerformer() {
+            public void perform(Suggestion s) {
+               beep();
+            }
+          }
+        <i>(two more methods here, both returning null)</i>,
+        null
+      );
+      suggestion.setPriority(SuggestionPriority.HIGH);
+   </pre>
+  <li> Register the suggestion with the SuggestionManager:
+   <pre>
+      List addList = new ArrayList(1);
+      addList.add(suggestion);
+      manager.register(suggestionTypeId, addList, null, null);
+   </pre>
+  <li> You also need to register the Suggestion type for this
+     suggestion with the system. We used <code>suggestionTypeId</code>
+     above; this is just a string with some unique Id, let's say
+     "CopyrightCheck".  We need to register this in the module's layer XML
+     file:
+<pre>
+    &lt;folder name="Suggestions"&gt; 
+        &lt;folder name="Types"&gt; 
+            &lt;file name="copyrightcheck.xml" url="copyrightcheck.xml"/&gt;
+        &lt;/folder&gt;
+    &lt;/folder&gt;
+</pre>
+and then the file copyrightcheck.xml in your module (in the same
+directory as your layer file) contains something like this:
+<pre>
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE type PUBLIC "-//NetBeans//DTD suggestion type 1.0//EN" "http://www.netbeans.org/dtds/suggestion-type-1_0.dtd"&gt;
+&lt;type
+    name='CopyrightCheck'
+    description_key='HINT_COPYRIGHT'
+    long_description_key='LONGHINT_COPYRIGHT'
+    localizing_bundle='com.foo.bar.Bundle'
+    icon='nbresloc:/com/foo/bar/copyrightCheck.gif'
+/&gt;
+</pre>
+The DTD referenced above can be 
+<a href="doc-files/suggestion-type-1_0.dtd">found here</a>.
+
+ <p>
+Then in your Bundle file identified above, add an entry like:
+<pre>
+    HINT_COPYRIGHT=Copyright Problems
+    LONGHINT_copyrighttype=Identify copyright notices in files where the copyright year does not include the current year.
+</pre>
+
+</ol>
+Done! Obviously, you also have to add a dependency on
+the tasklist-api in your module's manifest file:
+<pre>
+OpenIDE-Module-Module-Dependencies: org.netbeans.api.tasklist/1 > 1.0
+</pre>
+If you are writing code which needs to add suggestions based on 
+the current document in the editor, or based on the current node,
+etc., look at the SPI documents for tasklist since there are
+convenience classes which will instantiate your code lazily etc.
+<p>
+So here's what a complete code segment might look like:
+<pre>
+  String suggestionType = "beepid";
+  SuggestionManager mgr = SuggestionManager.getDefault();
+  if ((mgr != null) && mgr.isEnabled(suggestionType) &&
+      mgr.isObserved(suggestionType)) {
+     String summary = "Ring the system bell to annoy others";
+     SuggestionPerformer performer = new SuggestionPerformer() {
+        public void perform(Suggestion s) {
+            beep(); beep(); beep();
+        }
+        public Object getConfirmation(Suggestion s) {
+            return "Ring the system bell 3 times, then quit. Will echo \007.";
+        }
+	public boolean hasConfirmation() {
+	    return true;
+	}
+     });
+     Suggestion s = manager.createSuggestion(suggestionType, summary, performer);
+     mgr.add(s);
+  }
+</pre>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+<folder name="Menu">
+    <folder name="Tools">
+        <file name="ExportColorsAction.instance">
+            <attr name="instanceOf" 
+                stringvalue="org.netbeans.modules.editorthemes.export.ExportAction"/>
+            <attr name="instanceCreate" 
+                methodvalue="org.netbeans.modules.editorthemes.export.ExportAction.createExportColorThemesAction"/>
+        </file>
+<!--        <file name="ExportKeybindingsAction.instance">
+            <attr name="instanceOf" 
+                stringvalue="org.netbeans.modules.editorthemes.export.ExportAction"/>
+            <attr name="instanceCreate" 
+                methodvalue="org.netbeans.modules.editorthemes.export.ExportAction.createExportKeyboardProfilesAction"/>
+        </file> -->
+    </folder>
+</folder>
+</filesystem>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+<project default="all" name="Build Differences Between NetBeans APIs">
+    <property name="new-nb" location="../../contrib/other/.." />
+    <property name="new-javadoc" location="${new-nb}/nbbuild/modules_javadoc" />
+    <property name="old-nb" location="sources/old" />
+    <property name="old-javadoc" location="${old-nb}/nbbuild/modules_javadoc" />
+
+    <target name="old-co" description="Checkouts the sources for the old version" >
+        <cvs
+            dest="${old-nb}"
+            tag="release35"
+            cvsRoot=":pserver:anoncvs@cvs.netbeans.org:/cvs"
+            compressionlevel="3" 
+            package="nbbuild editor openide core libs xml autoupdate java/srcmodel java/arch debuggercore/oldapi debuggercore/arch"
+        />
+        <patch patchfile="patch35.diff" dir="${old-nb}" strip="0" />
+    </target>
+    
+    <target name="new-javadoc" description="Builds javadoc for new version" >
+        <ant dir="${new-nb}/nbbuild" target="build-javadoc" >
+            <property name="fixedmodules" value="
+                openide, 
+                openide/compiler,
+                openide/execution,
+                openide/io,
+                openide/deprecated,
+                openide/loaders,
+                core/javahelp,
+                core/settings"
+             />
+            <property name="modules" value="
+                java/srcmodel,
+                autoupdate,
+                debuggercore/oldapi,
+                editor" 
+            />
+            <property name="arch.xsl" location="arch.xsl" />
+        </ant>
+    </target>
+    
+    <target name="old-javadoc" description="Builds javadoc for old version" >
+        <ant dir="${old-nb}/nbbuild" target="build-javadoc" >
+            <property name="fixedmodules" value="
+                openide, 
+                openide/compiler,
+                openide/execution,
+                openide/io,
+                openide/deprecated,
+                core/javahelp,
+                core/settings"
+             />
+<!--                openide/loaders, -->
+            <property name="modules" value="
+                java/srcmodel,
+                autoupdate,
+                debuggercore/oldapi,
+                editor" 
+            />
+            <property name="arch.xsl" location="arch.xsl" />
+        </ant>
+    </target>
+    
+    
+    <target name="compile">
+          <ant dir="${new-nb}/nbbuild" target="build-nozip" >
+            <property name="modules" value="diff" />
+          </ant>
+          <ant dir="${new-nb}/diff" />
+          <ant dir="../../nbbuild" target="all-contrib/htmldiff"/>
+    </target>
+
+    <target name="api-list"  >
+        <style 
+            in="${new-javadoc}/index.xml" 
+            out="list.html" 
+            style="export2html.xsl"
+        />
+    </target>
+    
+    <target name="diff" depends="compile, api-list" >
+        <java classname="org.netbeans.modules.htmldiff.DiffPages" fork="yes" >
+             <jvmarg value="-Xmx512m" />
+             <arg value="${old-javadoc}" /> 
+             <arg value="${new-javadoc}" />
+             <arg value="diff" />
+             <classpath>
+                  <pathelement location="${new-nb}/diff/netbeans/modules/diff.jar" />
+                  <pathelement location="${new-nb}/openide/netbeans/lib/openide.jar" />
+                  <pathelement location="netbeans/modules/eager/htmldiff.jar" />
+             </classpath>
+        </java>
+        <delete file="diff/index.html" />
+        <copy file="list.html" tofile="diff/index.html" />  
+    </target>
+    
+    <target name="all" depends="old-co, new-javadoc, old-javadoc, api-list, diff" />
+
+    <target name="clean" >
+        <delete dir="diff" />
+        <delete file="list.html" />
+        <delete dir="sources/new" />
+        <ant dir="${new-nb}/nbbuild" target="clean" />
+        <!-- do real clean due to patching -->
+        <ant dir="${old-nb}/nbbuild" target="real-clean" />
+    </target>    
+</project>

@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+
+<filesystem>
+
+    <folder name="contextX">
+        <attr name="contextXAttribute" stringvalue="contextXAttributeValue"/>
+
+        <file name="objectBindingOne.instance">
+            <attr name="objectBindingOneAttribute" stringvalue="objectBindingOneAttributeValue"/>
+        </file>
+
+        <file name="objectBindingTwo.instance">
+            <attr name="objectBindingTwoAttribute" stringvalue="objectBindingTwoAttributeValue"/>
+        </file>
+
+        <attr name="BINDING:primitiveBindingOne" stringvalue="primitiveBindingOneValue"/>
+        <attr name="BINDINGATTR:primitiveBindingOne/primitiveBindingOneAttribute" stringvalue="primitiveBindingOneAttributeValue"/>
+
+        <attr name="BINDING:primitiveBindingTwo" stringvalue="primitiveBindingTwoValue"/>
+        <attr name="BINDINGATTR:primitiveBindingTwo/primitiveBindingTwoAttribute" stringvalue="primitiveBindingTwoAttributeValue"/>
+
+    </folder>
+    
+    <folder name="contextY">
+        <attr name="BINDING:bndString" stringvalue="string val"/>
+        <attr name="BINDING:bndInteger" intvalue="1984"/>
+        <attr name="BINDING:bndLong" longvalue="19841984"/>
+        <attr name="BINDING:bndBoolean" boolvalue="true"/>
+        <attr name="BINDING:bndFloat" floatvalue="1112.1112"/>
+        <attr name="BINDING:bndDouble" doublevalue="11121112.11121112"/>
+        <attr name="BINDING:bndURL" urlvalue="http://www.netbeans.org/download/"/>
+        <attr name="BINDING:bndFont" stringvalue="Font[Arial-bolditalic-15]"/>
+        <attr name="BINDING:bndColor" stringvalue="Color[25000]"/>
+    </folder>
+
+    <folder name="contextZ">
+        <file name="objectBindingOne.instance">
+            <attr name="instanceCreate" newvalue="java.lang.String"/>
+        </file>
+        <attr name="BINDING:primitiveBindingOne" stringvalue="primitiveBindingOneValue"/>
+    </folder>
+
+    <folder name="contextREF">
+        <file name="ref.shadow">
+            <attr name="originalFile" stringvalue="contextZ/objectBindingOne.instance"/>
+        </file>
+        <file name="ref2.xml">
+            <![CDATA[
+                <link xmlns="http://www.netbeans.org/ns/registry">/contextZ/primitiveBindingOne</link>
+            ]]>
+        </file>
+    </folder>
+
+</filesystem>
