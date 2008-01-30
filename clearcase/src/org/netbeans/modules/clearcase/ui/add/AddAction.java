@@ -121,14 +121,6 @@ public class AddAction extends AbstractAction {
         addFiles(message, checkInAddedFiles, filesToAdd);
     }
 
-    /**
-     * Invokes "mkelem" on supplied files.
-     * 
-     * @param message message from the mkelem command or null
-     * @param checkInAddedFiles
-     * @param filesToAdd set of files to add - only files that have the ADD_XXXXXX checkin option set will be added
-     * @return CommandRunnable that is adding the files or NULL of there are no files to add and no command was executed
-     */
     public static ClearcaseClient.CommandRunnable addFiles(String message, boolean checkInAddedFiles, Map<ClearcaseFileNode, CheckinOptions> filesToAdd) {
         // TODO: process options
         List<File> addFiles = new ArrayList<File>();
@@ -137,8 +129,6 @@ public class AddAction extends AbstractAction {
                 addFiles.add(entry.getKey().getFile());
             }
         }
-        
-        if (addFiles.size() == 0) return null;
         
         // sort files - parents first, to avoid unnecessary warnings
         Collections.sort(addFiles);
@@ -151,8 +141,16 @@ public class AddAction extends AbstractAction {
                     public void commandStarted()        { /* boring */ }
                     public void outputText(String line) { /* boring */ }
                     public void errorText(String line)  { /* boring */ }
-                    public void commandFinished() {       
-                        org.netbeans.modules.clearcase.util.Utils.afterCommandRefresh(files);        
+                    public void commandFinished() {                        
+                        Set<File> filesToRefresh = new HashSet<File>();
+                        for (File file : files) {
+                            File parent = file.getParentFile();
+                            if(parent != null) {
+                                filesToRefresh.add(parent);
+                            }
+                            filesToRefresh.add(file);
+                        }                        
+                        org.netbeans.modules.clearcase.util.Utils.afterCommandRefresh(filesToRefresh.toArray(new File[filesToRefresh.size()]));        
                     }    
                 })));
     }
