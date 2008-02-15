@@ -72,6 +72,7 @@ import org.netbeans.modules.clearcase.ui.diff.DiffAction;
 import org.netbeans.modules.clearcase.ui.checkin.CheckinAction;
 import org.netbeans.modules.clearcase.ui.update.UpdateAction;
 import org.netbeans.modules.versioning.spi.VCSContext;
+import org.openide.util.Cancellable;
 
 /**
  * The main class of the Synchronize view, shows and acts on set of file roots. 
@@ -102,6 +103,7 @@ class VersioningPanel extends JPanel implements ExplorerManager.Provider, Prefer
         this.parentTopComponent = parent;
         explorerManager = new ExplorerManager ();
         displayStatuses = FileInformation.STATUS_LOCAL_CHANGE;
+        //refreshViewTask = rp.create(new RefreshViewTask());
         noContentComponent.setLabel(NbBundle.getMessage(VersioningPanel.class, "MSG_No_Changes_All")); // NOI18N
         syncTable = new SyncTable();
 
@@ -721,7 +723,9 @@ class VersioningPanel extends JPanel implements ExplorerManager.Provider, Prefer
             if(context == null) {
                 return;
             }
-            Clearcase.getInstance().getFileStatusCache().refreshRecursively(context, this);                
+            Cancellable c = Clearcase.getInstance().getFileStatusCache().refreshRecursively(context);                
+            setCancellableDelegate(c);
+            
             setupModels();
             parentTopComponent.contentRefreshed();                
         }
