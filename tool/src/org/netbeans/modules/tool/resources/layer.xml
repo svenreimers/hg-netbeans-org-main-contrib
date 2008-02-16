@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+ The Original Software is NetBeans. The Initial Developer of the Original
+Software is Nokia. Portions Copyright 2005 Nokia.
+ All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+<filesystem>
+    <folder name="Menu">
+        <folder name="File">
+            <attr name="Separator2.instance/org-netbeans-modules-tool-actions-SaveAction.shadow" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SaveAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-SaveAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-tool-actions-SaveAction.shadow/org-netbeans-modules-tool-actions-SaveAsAction.shadow" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SaveAsAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-SaveAsAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-tool-actions-SaveAsAction.shadow/org-netbeans-modules-tool-actions-SaveAllAction.shadow" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SaveAllAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-SaveAllAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-tool-actions-SaveAllAction.shadow/Separator3.instance" boolvalue="true"/>
+            <attr name="Separator3.instance/org-netbeans-modules-tool-actions-PrintAction.shadow" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-PrintAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-PrintAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-tool-actions-PrintAction.shadow/Separator4.instance" boolvalue="true"/>
+            <attr name="org-netbeans-modules-tool-actions-PrintAction.instance/org-openide-actions-PageSetupAction.instance" boolvalue="true"/>
+            <attr name="org-openide-actions-PageSetupAction.instance/Separator4.instance" boolvalue="true"/>
+            <file name="org-openide-actions-PrintAction.instance_hidden"/>
+            <file name="org-openide-actions-SaveAction.instance_hidden"/>
+            <file name="org-openide-actions-SaveAllAction.instance_hidden"/>
+        </folder>
+        <folder name="Edit">
+            <attr name="org-openide-actions-DeleteAction.instance/SelectAllSeparator.instance" boolvalue="true"/>
+            <attr name="SelectAllSeparator.instance/org-netbeans-modules-tool-actions-SelectAllSystemAction.instance" boolvalue="true"/>
+            <file name="SelectAllSeparator.instance">
+                <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+            </file>
+            <file name="org-netbeans-modules-tool-actions-SelectAllSystemAction.instance"/>
+        </folder>
+    </folder>
+    <folder name="Toolbars">
+        <folder name="File">
+            <file name="org-netbeans-modules-tool-actions-SaveAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-SaveAction.instance"/>
+            </file>
+            <attr name="org-netbeans-modules-tool-actions-SaveAction.shadow/org-openide-actions-SaveAllAction.shadow" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SaveAllAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-SaveAllAction.instance"/>
+            </file>
+            <file name="org-openide-actions-SaveAction.instance"/>
+            <file name="org-openide-actions-SaveAllAction.instance_hidden"/>
+        </folder>
+        <folder name="Edit1">
+            <attr name="org-openide-actions-DeleteAction.instance/org-netbeans-modules-tool-actions-SelectAllSystemAction.instance" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SelectAllSystemAction.instance"/>
+        </folder>
+    </folder>
+    <folder name="Actions">
+        <folder name="File">
+            <file name="org-netbeans-modules-tool-actions-SaveAction.instance"/>
+            <attr name="org-netbeans-modules-tool-actions-SaveAction.instance/org-netbeans-modules-tool-actions-SaveAsAction.instance" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SaveAsAction.instance"/>
+            <attr name="org-netbeans-modules-tool-actions-SaveAsAction.instance/org-openide-actions-SaveAllAction.instance" boolvalue="true"/>
+            <attr name="org-netbeans-modules-tool-actions-SaveAsAction.instance/org-netbeans-modules-tool-actions-SaveAllAction.instance" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SaveAllAction.instance"/>
+            <file name="org-netbeans-modules-tool-actions-PrintAction.instance"/>
+            <file name="org-openide-actions-SaveAction.instance_hidden"/>
+            <file name="org-openide-actions-SaveAllAction.instance_hidden"/>
+        </folder>
+        <folder name="Edit">
+            <attr name="org-openide-actions-DeleteAction.instance/org-netbeans-modules-tool-actions-SelectAllSystemAction.instance" boolvalue="true"/>
+            <file name="org-netbeans-modules-tool-actions-SelectAllSystemAction.instance"/>
+            <attr name="org-netbeans-modules-tool-actions-SelectAllSystemAction.instance/org-openide-actions-FindAction.instance" boolvalue="true"/>
+        </folder>
+    </folder>
+    <folder name="Shortcuts">
+        <file name="CS-S.shadow">
+            <attr name="originalFile" stringvalue="Actions/File/org-netbeans-modules-tool-actions-SaveAsAction.instance"/>
+        </file>
+        <file name="C-A.instance">
+            <attr name="instanceClass" stringvalue="org.netbeans.modules.tool.actions.SelectAllSystemAction"/>
+        </file>
+    </folder>
+    <folder name="xml">
+        <folder name="entities">
+            <!--the public identifier registration-->
+            <folder name="NetBeans_org_netbeans_modules_tool">
+                <file name="DTD_Tool_1_0" url="nbres:/org/netbeans/modules/settings/resources/properties-1_0.dtd">
+                    <attr name="hint.originalPublicID" stringvalue="-//NetBeans org.netbeans.modules.tool//DTD Tool 1.0//EN"/>
+                </file>
+            </folder>
+        </folder>
+        <folder name="lookups">
+            <folder name="NetBeans_org_netbeans_modules_tool">
+                <file name="DTD_Tool_1_0.instance">
+                    <!--env. provider-->
+                    <attr name="instanceCreate" methodvalue="org.netbeans.api.settings.Factory.create"/>
+                    <!--XMLProperties convertor provided by the settings module-->
+                    <attr name="settings.convertor" methodvalue="org.netbeans.modules.tool.XMLPropertiesConvertor.create"/> 
+                    <attr name="settings.instanceClass" stringvalue="org.netbeans.modules.tool.AbstractTool"/>
+                    <attr name="settings.instanceOf" stringvalue="org.netbeans.modules.tool.AbstractTool, org.openide.windows.TopComponent"/>
+                </file>
+            </folder>
+        </folder>
+        <folder name="memory">
+            <folder name="org">
+                <folder name="netbeans">
+                    <folder name="modules">
+                        <folder name="tool">
+                            <!--allows to create .settings file from memory via InstanceDataObject.create-->
+                            <file name="AbstractTool">
+                                <attr name="settings.providerPath" stringvalue="xml/lookups/NetBeans_org_netbeans_modules_tool/DTD_Tool_1_0.instance"/>
+                                <attr name="settings.subclasses" boolvalue="true"/>
+                            </file>
+                        </folder> <!--tool-->
+                    </folder> <!--modules-->
+                </folder> <!--netbeans-->
+            </folder> <!--org-->
+        </folder> <!--memory-->
+    </folder>
+</filesystem>

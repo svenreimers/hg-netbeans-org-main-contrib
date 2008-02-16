@@ -1,0 +1,4 @@
+This module provides integration with the PMD module for NetBeans,
+available from pmd.sf.net.
+
+This is bundled in CVS in contrib/pmd-nb-wrapper and libs/external/pmd*.

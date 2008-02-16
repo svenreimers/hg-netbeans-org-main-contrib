@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Debug">
+            <file name="org-netbeans-contrib-debuggerretry-RetryAction.instance"/>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="RunProject">
+            <file name="org-netbeans-contrib-debuggerretry-RetryAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Debug/org-netbeans-contrib-debuggerretry-RetryAction.instance"/>
+                <attr name="position" intvalue="1750"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Toolbars">
+        <folder name="Debug">
+            <file name="org-netbeans-contrib-debuggerretry-RetryAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Debug/org-netbeans-contrib-debuggerretry-RetryAction.instance"/>
+                <attr name="position" intvalue="850"/>
+            </file>
+        </folder>
+    </folder>
+</filesystem>

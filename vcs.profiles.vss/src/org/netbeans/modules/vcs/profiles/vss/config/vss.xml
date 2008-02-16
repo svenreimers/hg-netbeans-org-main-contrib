@@ -1,0 +1,1821 @@
+<?xml version="1.0"?>
+<!DOCTYPE configuration PUBLIC '-//NetBeans//DTD VCS Configuration 1.1//EN'
+'http://www.netbeans.org/dtds/vcs-configuration-1_1.dtd' [
+    <!ENTITY versioned-statuses '"Current", "Missing", "Locally Modified"'>
+    <!ENTITY local-statuses '"Local", "Ignored"'>
+]>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+-->
+
+
+<configuration type="netbeans.vss" splitloc="org/netbeans/modules/vcs/profiles/vss/config/BundleLocalizedVSS">
+  <resourceBundle>org/netbeans/modules/vcs/profiles/vss/config/Bundle</resourceBundle>
+  <resourceBundle>org/netbeans/modules/vcs/profiles/vss/config/BundleLocalizedVSS</resourceBundle>
+  <label>$[? LOCALIZED_PROFILE_COPY] [ResourceMsg1(VSS_Localized_Label)] [ResourceMsg1(VSS_Label)]</label>
+  
+  <os>
+    <compatible>"Windows"</compatible>
+  </os>
+   
+  <variables>
+    <variable name="FS_DISPLAY_NAME" basic="false">
+      <value>VSS</value>
+    </variable>
+    <variable name="MODULE_INFORMATION_CODE_NAME_BASE" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss</value>
+    </variable>
+    <variable name="LOCAL_FILES_FILTERED_OUT_CASE_SENSITIVE" basic="false">
+      <value>false</value>
+    </variable>
+    <variable name="LOCAL_FILES_FILTERED_OUT" basic="false">
+      <value>"vssver.scc"</value>
+    </variable>
+    <variable name="WRAPPER" basic="false">
+      <value>vcs.list.VssListCommand.class $[? LOCALIZED_PROFILE_COPY] [-loc] []</value>
+    </variable>
+    <variable name="OPTIONS" basic="false">
+      <value>-I- ${IDENT}</value>
+    </variable>
+    <variable name="NUR" basic="false">
+      <value></value>
+    </variable>
+    <variable name="SHOWLOCALFILES" basic="false">
+      <value>true</value>
+    </variable>
+    <variable name="PS" basic="false">
+      <value>${path.separator}</value>
+    </variable>
+    <variable name="USER_LOCAL_PARAM_LABELS" basic="false">
+      <value>"VSS command options"</value>
+    </variable>
+    <variable name="RUN_REFRESH" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=$[? EMPTY_REFRESH_FOLDER] [${EMPTY_REFRESH_FOLDER}] [${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []]" -silent cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUN" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" -mkdir cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUN_SILENT" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" -mkdir -silent cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUN_NMK" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUNCDF_NMK" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []$[? FILE] [${PS}${FILE}] []" cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []$[? FILE] [${PS}${FILE}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUNCDM" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []" -mkdir cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUNCDM_SILENT" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []" -mkdir -silent cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUN_GLOBAL" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}" cd ${OPTIONS} "${PROJECT}" &amp;&amp;</value>
+    </variable>
+    <variable name="QUOTE" basic="false">
+      <value>"</value>
+    </variable>
+    <variable name="IDENT" basic="false">
+      <value>-Y${QUOTE}${USER_NAME},${PASSWORD}${QUOTE}</value>
+    </variable>
+    <variable name="WORKPROJ" basic="false">
+      <value>${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? PATH] [${PS}${PATH}] []</value>
+    </variable>
+    <variable name="POSSIBLE_FILE_STATUSES" basic="false">
+      <value>"Current", "Missing", "Locally Modified"</value>
+    </variable>
+    <variable name="VCS_FILE_STATUS_MISSING" basic="false">
+      <value>Missing</value>
+    </variable>
+    <variable name="VCS_FOLDER_STATUS_MISSING" basic="false">
+      <value>Missing</value>
+    </variable>
+    <variable name="ICONS_FOR_FILE_STATUSES" basic="false">
+      <value>"org/netbeans/modules/vcs/profiles/resources/badgeUpToDate.gif", "org/netbeans/modules/vcs/profiles/resources/badgeNeedsCheckout.gif"</value>
+    </variable>
+    <variable name="RUNSIMPLE" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []" </value>
+    </variable>
+    <variable name="POSSIBLE_FILE_STATUSES_LOCALIZED" basic="false">
+      <value>"ResourceMsg(VSS_FileStatus_Current)", "ResourceMsg(VSS_FileStatus_Missing)", "ResourceMsg(VSS_FileStatus_LM)"</value>
+    </variable>
+    <variable name="POSSIBLE_FILE_STATUSES_LOCALIZED_SHORT" basic="false">
+      <value>"ResourceMsg(VSS_FileStatus_Short_Current)", "ResourceMsg(VSS_FileStatus_Short_Missing)", "ResourceMsg(VSS_FileStatus_Short_LM)"</value>
+    </variable>
+    <variable name="NOT_MODIFIABLE_FILE_STATUSES">
+        <value>"Local", "Missing"</value>
+    </variable>
+    <variable name="GENERIC_STATUS_MODIFIED">
+        <value>"Locally Modified"</value>
+    </variable>
+    <variable name="RUNPATH" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? PATH] [${PS}${PATH}] []" -mkdir cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? PATH] [${PS}${PATH}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="RUNPATH_NMK" basic="false">
+      <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class "dir=${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? PATH] [${PS}${PATH}] []" cd ${OPTIONS} "${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? PATH] [${PS}${PATH}] []" &amp;&amp;</value>
+    </variable>
+    <variable name="USER_NAME" basic="true" label="ResourceMsg(VSS_UserName)" labelMnemonic="ResourceMsg(VSS_UserName_Mnemonic)" localFile="false" localDir="false" executable="false" order="1">
+      <value></value>
+    </variable>
+    <variable name="VSSCMD_EXE" basic="true" label="ResourceMsg(VSS_Command)" labelMnemonic="ResourceMsg(VSS_Command_Mnemonic)" localFile="true" localDir="false" executable="false" order="2">
+      <value>C:\Program Files\Microsoft Visual Studio\VSS\win32\SS.EXE</value>
+    </variable>
+    <variable name="PROJECT" basic="true" label="ResourceMsg(VSS_Project)" labelMnemonic="ResourceMsg(VSS_Project_Mnemonic)" localFile="false" localDir="false" executable="false" order="3">
+      <value>$/</value>
+    </variable>
+    <variable name="VSSCMD" basic="false">
+      <value>${VSSCMD_EXE}</value>
+    </variable>
+    <variable name="ENVIRONMENT_VAR_SSDIR" basic="true" label="ResourceMsg(VSS_SSDIR)" labelMnemonic="ResourceMsg(VSS_SSDIR_Mnemonic)" localDir="true" order="5">
+      <value>C:\Program Files\Microsoft Visual Studio\VSS</value>
+    </variable>
+    <variable name="MSG_PROMPT_FOR_AUTO_EDIT" basic = "false">
+      <value>ResourceMsg(VSS_MSG_PROMPT_FOR_AUTO_EDIT)</value>
+    </variable>
+    <variable name="SHARE_PASSWORD_WHEN_CONFIG_IS_SAME" basic="false">
+      <value>USER_NAME, VSSCMD, ENVIRONMENT_VAR_SSDIR</value>
+    </variable>
+    <variable name="PASSWORD_DESCRIPTION_STRING" basic="false">
+      <value>ResourceMsg(MSG_PROMPT_FOR_PASSWORD_DESCRIPTION, $[? USER_NAME] [${USER_NAME}@] []${ENVIRONMENT_VAR_SSDIR})</value>
+    </variable>
+    <variable name="MAX_CMD_LENGTH" basic="false">
+      <value>1000</value>
+    </variable>
+    <variable name="ARGUMENT_FILES_TO_CLONE" basic="false">
+      <value>DESCRIPTION_FILE</value>
+    </variable>
+    <variable name="AUTO_FILL_VARS" basic="false">
+      <value>ROOTDIR, AUTO_FILL_CONFIG</value>
+    </variable>
+    <variable name="CONFIG_INPUT_DESCRIPTOR" basic="false">
+      <value>PROMPT_FOR(ROOTDIR, ResourceMsg(VSS_WorkingDir), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_WorkingDir);;MNEMONIC_ResourceMsg(VSS_WorkDir_Mnemonic)), SELECTOR_DIR)
+             PROMPT_FOR(USER_NAME, ResourceMsg(VSS_UserName), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_UserName);;MNEMONIC_ResourceMsg(VSS_UserName_Mnemonic)))                 
+             PROMPT_FOR(VSSCMD_EXE, ResourceMsg(VSS_Command), "C:\Program Files\Microsoft Visual Studio\VSS\win32\SS.EXE", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_Command);;MNEMONIC_ResourceMsg(VSS_Command_Mnemonic)), SELECTOR_FILE)
+             PROMPT_FOR(PROJECT, ResourceMsg(VSS_Project), "$/", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_Project);;MNEMONIC_ResourceMsg(VSS_Project_Mnemonic)))
+             PROMPT_FOR(ENVIRONMENT_VAR_SSDIR, ResourceMsg(VSS_SSDIR), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_SSDIR);;MNEMONIC_ResourceMsg(VSS_SSDIR_Mnemonic)), SELECTOR_DIR)    
+      </value>
+    </variable>
+    <variable name="WIZARD_INPUT_DESCRIPTOR" basic="false">
+      <value>PROMPT_FOR(ROOTDIR, ResourceMsg(VSS_WorkingDir), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_WorkingDir);;MNEMONIC_ResourceMsg(VSS_WorkDir_Mnemonic)), VALIDATOR_FOLDER, SELECTOR_DIR)
+             PROMPT_FOR(USER_NAME, ResourceMsg(VSS_UserName), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_UserName);;MNEMONIC_ResourceMsg(VSS_UserName_Mnemonic)))
+             PROMPT_FOR(VSSCMD_EXE, ResourceMsg(VSS_Command), "C:\Program Files\Microsoft Visual Studio\VSS\win32\SS.EXE", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_Command);;MNEMONIC_ResourceMsg(VSS_Command_Mnemonic)), SELECTOR_FILE)
+             PROMPT_FOR(PROJECT, ResourceMsg(VSS_Project), "$/", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_Project);;MNEMONIC_ResourceMsg(VSS_Project_Mnemonic)), VALIDATOR_NON_EMPTY)
+             PROMPT_FOR(ENVIRONMENT_VAR_SSDIR, ResourceMsg(VSS_SSDIR), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_SSDIR);;MNEMONIC_ResourceMsg(VSS_SSDIR_Mnemonic)), VALIDATOR_FOLDER, SELECTOR_DIR)
+             ASK_FOR(DO_VSS_CHECKOUT, ResourceMsg(VSS_GET), "true",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_GET);;MNEMONIC_ResourceMsg(WIZARD_VSS_CHECKOUT_Mnemonic)))
+      </value>
+    </variable>
+    <variable name="IS_FINISH_ENABLED" basic="false">
+      <value>$[? DO_VSS_CHECKOUT][]["true"]</value>
+    </variable>
+    <variable name="DO_VSS_CHECKOUT" basic="false">
+      <value></value>
+    </variable>  
+    <variable name="WIZARD_INPUT_DESCRIPTOR1" basic="false">
+      <value>LABEL(ResourceMsg(VSS_GET),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_GET)))             
+             ASK_FOR(RW_MODE, ResourceMsg(COMMAND_VSS_GET_RW), "false", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_RW);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_RW_mnc)), "-W", "")
+             ASK_FOR(RECURSIVE, ResourceMsg(COMMAND_VSS_GETR_Rec), "true", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Rec_mnc)), "-R", "-R-")
+             PROMPT_FOR(GET_OPTIONS, ResourceMsg(COMMAND_VSS_GET_Options), "-GWA", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Options_mnc)))
+      </value>
+    </variable>
+    <variable name="AUTO_EXEC"> <!-- executed after filesystem instantiation if defined -->
+      <value>$[? DO_VSS_CHECKOUT][GETR][]</value>
+    </variable>
+    <variable name="PASSWORD"> <!-- Suppose an empty password. The command will ask if the password is wrong. -->
+      <value></value>
+    </variable>
+  </variables>
+  <commands>
+    <command name="ROOT" displayName="ResourceMsg(VSS)">
+      <property name="labelMnemonic">
+        <value>ResourceMsg(VSS_Mnemonic)</value>
+      </property>
+      <command name="LIST" displayName="ResourceMsg(LIST)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(LIST_Mnemonic)</value>
+        </property>
+	<property name="data.fileName.index">
+	  <value>0</value>
+	</property>
+	<property name="data.status.index">
+	  <value>1</value>
+	</property>
+	<property name="exec">
+          <value>${WRAPPER} LIST_DIR_READER LIST_STATUS_READER LIST_STATUS_FOLDER_READER</value>
+	</property>
+	<property name="data.time.index">
+	  <value>-1</value>
+	</property>
+	<property name="data.size.index">
+	  <value>-1</value>
+	</property>
+	<property name="data.locker.index">
+	  <value>2</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$) ; ^(.*[0-z].*) (.*[0-z].*) .* ([0-z]+) .* ([0-9]+/[0-9]+/[0-9]+) .* ([0-9]+:[0-9]+[ap])(.*$)</value>
+	</property>
+	<property name="data.attr.index">
+	  <value>-1</value>
+	</property>
+	<property name="error.regex">
+	  <value>(Error.*)</value>
+	</property>
+	<property name="data.date.index">
+	  <value>-1</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+          <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+      </command>
+      <command name="LIST_FILE" displayName="ResourceMsg(LIST)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(LIST_Mnemonic)</value>
+        </property>
+	<property name="data.fileName.index">
+	  <value>0</value>
+	</property>
+	<property name="data.status.index">
+	  <value>1</value>
+	</property>
+        <property name="refreshFileStatusSubstitutions">
+          <!-- Match anything, but "Unknown" status. --> <!-- TODO may harm ExecuteCommand.performStatusSubstitution -->
+          <value>"^($|[^U].*$|.[^n)].*$|..[^k].*$|...[^n].*$|....[^o].*$|.....[^w].*$|......[^n].*)$", "REG_EXP_PARSE_OUTPUT"</value>
+        </property>
+	<property name="exec">
+          <value>vcs.list.VssListFileCommand.class LIST_FILE_DIFF LIST_STATUS_READER</value>
+	</property>
+	<property name="data.time.index">
+	  <value>-1</value>
+	</property>
+	<property name="data.size.index">
+	  <value>-1</value>
+	</property>
+	<property name="data.locker.index">
+	  <value>2</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$) ; ^(.*[0-z].*) (.*[0-z].*) .* ([0-z]+) .* ([0-9]+/[0-9]+/[0-9]+) .* ([0-9]+:[0-9]+[ap])(.*$)</value>
+	</property>
+	<property name="data.attr.index">
+	  <value>-1</value>
+	</property>
+	<property name="error.regex">
+	  <value>(Error.*)</value>
+	</property>
+	<property name="data.date.index">
+	  <value>-1</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onFile">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+      </command>
+      <command name="LIST_SUB" displayName="ResourceMsg(LIST_SUB)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(LIST_SUB_Mnemonic)</value>
+        </property>
+	<property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.list.VssListRecursive.class $[? LOCALIZED_PROFILE_COPY] [-loc] [] LIST_DIR_READER_REC LIST_STATUS_FOLDER_READER_REC LIST_STATUS_READER</value>
+	</property>
+	<property name="data.fileName.index">
+	  <value>0</value>
+	</property>
+	<property name="data.status.index">
+	  <value>1</value>
+	</property>
+	<property name="data.locker.index">
+	  <value>2</value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+          <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+      </command>
+      <separator />
+      <command name="CHECKIN" displayName="ResourceMsg(VSS_CHECKIN)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_CHECKIN_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUN} checkin ${CHECKIN_OPTIONS} $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${OPTIONS} ${QFILE} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_CHECKIN),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_CHECKIN)))
+                 VARIABLE_DEFAULTS(CHECKIN_OPTIONS USER)
+                 PROMPT_FOR_FILE(DESCRIPTION_FILE, ResourceMsg(COMMAND_VSS_CHECKIN_Reason), "{FILE_OUTPUT_OF_CHECKIN_TEMPLATE_GETTER(0)}", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKIN_Reason);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKIN_Reason_mnc)))
+                 PROMPT_FOR_EXPERT(CHECKIN_OPTIONS, ResourceMsg(COMMAND_VSS_CHECKIN_Options), "-GCC", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKIN_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKIN_Options_mnc)))
+          </value>
+	</property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+        <property name="refreshProcessedFiles">
+          <value>true</value>
+        </property>
+        <property name="changingNumRevisions">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.CommitCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_COMMIT)</value>
+        </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.CheckInCommand</value>
+        </property>
+        <property name="disabledOnStatus">
+          <value>&local-statuses;</value>
+	    </property>
+      </command>
+      <command name="CHECKIN_TEMPLATE_GETTER">
+	<property name="exec">
+	  <value>$[? message] [org.netbeans.modules.vcs.profiles.commands.Echo.class ${message}] []</value>
+	</property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+      </command>
+      <command name="CHECKINR" displayName="ResourceMsg(VSS_CHECKIN)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_CHECKIN_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUNPATH} checkin ${RECURSIVE} ${CHECKIN_OPTIONS} $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${OPTIONS} ${QUOTE}${WORKPROJ}${QUOTE} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_CHECKIN),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_CHECKIN)))
+                 VARIABLE_DEFAULTS(CHECKIN_OPTIONS USER)
+                 PROMPT_FOR_FILE(DESCRIPTION_FILE, ResourceMsg(COMMAND_VSS_CHECKIN_Reason),"",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKIN_Reason);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKIN_Reason_mnc)))
+                 IF_VAR_EMPTY"recursionBanned"_ASK_FOR(RECURSIVE, ResourceMsg(COMMAND_VSS_CHECKIN_Rec), "$[? recursionBanned] [-R-] [-R]", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKIN_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKIN_Rec_mnc)), "-R", "-R-")
+                 PROMPT_FOR_EXPERT(CHECKIN_OPTIONS, ResourceMsg(COMMAND_VSS_CHECKIN_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKIN_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKIN_Options_mnc)))
+          </value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="display">
+	  <value>true</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternUnmatched">
+          <value>-R-</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>1</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.CommitCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_COMMIT)</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+      </command>
+      <command name="CHECKOUT_CONFIRM">
+        <property name="exec">
+          <value>${RUN} checkout ${CHECKOUT_OPTIONS} -I-N ${IDENT} ${QFILE} ${NUR}</value>
+        </property>
+	<property name="error.regex.global">
+	  <value>(^.*)\(Y/N\)N$</value>
+	</property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="AUTO_FILL_CONFIG">
+      <property name="exec">
+        <value>vcs.commands.VssAutoFillConfig.class</value>
+      </property>
+      <property name="concurrentExec">
+        <value>-1</value> <!-- EXEC_SERIAL_INERT -->
+      </property>
+    </command>
+      <command name="CHECKOUT_CONFIRMED">
+        <property name="exec">
+          <value>${RUN} checkout ${CHECKOUT_OPTIONS} -I-Y ${IDENT} ${QFILE} ${NUR}</value>
+        </property>
+	<property name="error.regex.global">
+	  <value>(^.*)\(Y/N\)N$</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="CHECKOUT" displayName="ResourceMsg(VSS_CHECKOUT)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_CHECKOUT_Mnemonic)</value>
+        </property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+        </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_CHECKOUT),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_CHECKOUT)))
+                 VARIABLE_DEFAULTS(CHECKOUT_OPTIONS USER)
+                 PROMPT_FOR_EXPERT(CHECKOUT_OPTIONS, ResourceMsg(COMMAND_VSS_CHECKOUT_Options), "-GWA", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKOUT_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKOUT_Options_mnc)))
+          </value>
+	</property>
+        <property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -te CHECKOUT_CONFIRM CHECKOUT_CONFIRMED</value>
+        </property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshProcessedFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.UpdateCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_UPDATE)</value>
+        </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.CheckOutCommand</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+      </command>
+      <command name="CHECKOUTR_CONFIRM">
+        <property name="exec">
+          <value>${RUNPATH} checkout ${RECURSIVE} ${CHECKOUT_OPTIONS} -I-N ${IDENT} ${QUOTE}${WORKPROJ}${QUOTE} ${NUR}</value>
+        </property>
+	<property name="error.regex">
+	  <value>(^.*)$</value>
+	</property>
+        <property name="ignoreFail">
+  	  <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="CHECKOUT_FILES_CONFIRMED">
+        <property name="exec">
+          <value>${RUN} checkout ${CHECKOUT_OPTIONS} -I-Y ${IDENT} ${QFILES} ${NUR}</value>
+        </property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="CHECKOUTR" displayName="ResourceMsg(VSS_CHECKOUT)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_CHECKOUT_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -te -m(Y/N)N CHECKOUTR_CONFIRM CHECKOUT_FILES_CONFIRMED ${RECURSIVE}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+        </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_CHECKOUT),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_CHECKOUT)))
+                 VARIABLE_DEFAULTS(CHECKOUT_OPTIONS USER)
+                 IF_VAR_EMPTY"recursionBanned"_ASK_FOR(RECURSIVE, ResourceMsg(COMMAND_VSS_CHECKOUT_Rec), "$[? recursionBanned] [-R-] [-R]", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKOUT_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKOUT_Rec_mnc)), "-R", "-R-")
+                 PROMPT_FOR_EXPERT(CHECKOUT_OPTIONS, ResourceMsg(COMMAND_VSS_CHECKOUT_Options), "-GWA", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CHECKOUT_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CHECKOUT_Options_mnc)))
+          </value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternUnmatched">
+          <value>-R-</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>1</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.UpdateCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_UPDATE)</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+      </command>
+      <command name="UNCHECKOUT_CONFIRM">
+        <property name="exec">
+          <value>${RUN_NMK} uncheckout ${CMD_OPTIONS} -I-N ${IDENT} ${QFILE} ${NUR}</value>
+        </property>
+	<property name="error.regex.global">
+	  <value>(^.*)\(Y/N\)N$</value>
+	</property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="UNCHECKOUT_CONFIRMED">
+        <property name="exec">
+          <value>${RUN_NMK} uncheckout ${CMD_OPTIONS} -I-Y ${IDENT} ${QFILE} ${NUR}</value>
+        </property>
+	<property name="error.regex.global">
+	  <value>(^.*)\(Y/N\)N$</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="UNCHECKOUT" displayName="ResourceMsg(VSS_UNCHECKOUT)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_UNCHECKOUT_Mnemonic)</value>
+        </property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+        </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(COMMAND_VSS_UNCHECKOUT_Label),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_UNCHECKOUT_Label)))
+                 VARIABLE_DEFAULTS(CMD_OPTIONS USER)
+                 PROMPT_FOR_EXPERT(CMD_OPTIONS, ResourceMsg(COMMAND_VSS_UNCHECKOUT_Options), "",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_UNCHECKOUT_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_UNCHECKOUT_Options_mnc)))
+          </value>
+	</property>
+        <property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -te UNCHECKOUT_CONFIRM UNCHECKOUT_CONFIRMED</value>
+        </property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshProcessedFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.UncheckOutCommand</value>
+        </property>
+      </command>
+      <command name="UNCHECKOUTR_CONFIRM">
+        <property name="exec">
+          <value>${RUNPATH_NMK} uncheckout ${RECURSIVELY} ${CMD_OPTIONS} -I-N ${IDENT} ${QUOTE}${WORKPROJ}${QUOTE} ${NUR}</value>
+        </property>
+	<property name="error.regex">
+	  <value>(^.*)$</value>
+	</property>
+        <property name="ignoreFail">
+  	  <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="UNCHECKOUT_FILES_CONFIRMED">
+        <property name="exec">
+          <value>${RUN} uncheckout ${CMD_OPTIONS} -I-Y ${IDENT} ${QFILES} ${NUR}</value>
+        </property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="UNCHECKOUTR" displayName="ResourceMsg(VSS_UNCHECKOUT)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_UNCHECKOUT_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -te -m(Y/N)N UNCHECKOUTR_CONFIRM UNCHECKOUT_FILES_CONFIRMED ${RECURSIVELY}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+        </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(COMMAND_VSS_UNCHECKOUTR_Label), ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_UNCHECKOUTR_Label)))
+                 VARIABLE_DEFAULTS(CMD_OPTIONS USER)
+                 IF_VAR_EMPTY"recursionBanned"_ASK_FOR(RECURSIVELY, ResourceMsg(COMMAND_VSS_UNCHECKOUTR_Recursively), "$[? recursionBanned] [-R-] [-R]",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_UNCHECKOUTR_Recursively);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_UNCHECKOUTR_Recursively_mnc)) ,"-R", "-R-")
+                 PROMPT_FOR_EXPERT(CMD_OPTIONS, ResourceMsg(COMMAND_VSS_UNCHECKOUT_Options), "",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_UNCHECKOUT_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_UNCHECKOUT_Options_mnc)))
+          </value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternUnmatched">
+          <value>-R-</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>1</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+      </command>
+      <command name="EDIT">
+	<property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -te CHECKOUT_CONFIRM CHECKOUT_CONFIRMED</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshProcessedFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value> <!-- INERT -->
+        </property>
+      </command>
+      <command name="GET_CONFIRM">
+        <property name="exec">
+          <value>${RUN} get ${RW_MODE} ${GET_OPTIONS} -I-N ${IDENT} ${QFILE} ${NUR}</value>
+        </property>
+	<property name="error.regex.global">
+	  <value>(^.*)\(Y/N\)N$</value>
+	</property>
+        <property name="ignoreFail">
+  	  <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GET_CONFIRMED">
+        <property name="exec">
+          <value>${RUN} get ${RW_MODE} ${GET_OPTIONS} -I-Y ${IDENT} ${QFILE} ${NUR}</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GET" displayName="ResourceMsg(VSS_GET)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_GET_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t GET_CONFIRM GET_CONFIRMED</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_GET),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_GET)))
+                 VARIABLE_DEFAULTS(RW_MODE USER, GET_OPTIONS USER)
+                 ASK_FOR(RW_MODE, ResourceMsg(COMMAND_VSS_GET_RW), "false", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_RW);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_RW_mnc)), "-W", "")
+                 PROMPT_FOR_EXPERT(GET_OPTIONS, ResourceMsg(COMMAND_VSS_GET_Options), "-GWA", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Options_mnc)))
+          </value>
+	</property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshProcessedFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+      </command>
+      <command name="GETR_CONFIRM">
+        <property name="exec">
+          <value>${RUNPATH} get ${RECURSIVE} ${RW_MODE} ${GET_OPTIONS} -I-N ${IDENT} ${QUOTE}${WORKPROJ}${QUOTE} ${NUR}</value>
+        </property>
+	<property name="error.regex">
+	  <value>(^.*)$</value>
+	</property>
+        <property name="ignoreFail">
+  	  <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GET_FILES_CONFIRMED">
+        <property name="exec">
+          <value>${RUN} get ${RW_MODE} ${GET_OPTIONS} -I-Y ${IDENT} ${QFILES} ${NUR}</value>
+        </property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GETR" displayName="ResourceMsg(VSS_GET)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_GET_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -m(Y/N)N GETR_CONFIRM GET_FILES_CONFIRMED ${RECURSIVE}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_GET),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_GET)))
+                 VARIABLE_DEFAULTS(RW_MODE USER, GET_OPTIONS USER)
+                 ASK_FOR(RW_MODE, ResourceMsg(COMMAND_VSS_GET_RW), "false", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_RW);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_RW_mnc)), "-W", "")
+                 IF_VAR_EMPTY"recursionBanned"_ASK_FOR(RECURSIVE, ResourceMsg(COMMAND_VSS_GETR_Rec), "$[? recursionBanned] [-R-] [-R]", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Rec_mnc)), "-R", "-R-")
+                 PROMPT_FOR_EXPERT(GET_OPTIONS, ResourceMsg(COMMAND_VSS_GET_Options), "-GWA", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Options_mnc)))
+          </value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternUnmatched">
+          <value>-R-</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>1</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+      </command>
+      <separator />
+      <command name="ADD" displayName="ResourceMsg(VSS_ADD)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_ADD_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUN} add $[? PROCESSING_BINARY_FILES] [-B] [] $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${ADD_OPTIONS} ${OPTIONS} ${QFILES} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_ADD),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_ADD)))
+                 VARIABLE_DEFAULTS(ADD_OPTIONS USER)
+                 PROMPT_FOR_FILE(DESCRIPTION_FILE, ResourceMsg(COMMAND_VSS_ADD_Reason),"",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_ADD_Reason);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_ADD_Reason_mnc)))
+                 PROMPT_FOR_EXPERT(ADD_OPTIONS, ResourceMsg(COMMAND_VSS_ADD_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_ADD_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_ADD_Options_mnc)))
+          </value>
+	</property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshProcessedFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="notificationSuccessMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_ADDs_Success, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_ADD_Success, ${FILE})]</value>
+        </property>
+        <property name="notificationFailMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_ADDs_Fail, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_ADD_Fail, ${FILE})]</value>
+        </property>
+        <property name="distinguishBinaryFiles">
+          <value>true</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.AddCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_ADD)</value>
+        </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.AddCommand</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&versioned-statuses;</value>
+          </property>
+      </command>
+      <command name="ADD_ALL_CMD">
+	<property name="exec">
+	  <value>${RUN} add $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${ADD_OPTIONS} ${OPTIONS} $[? IS_RECURSIVE] [-R] [-R-] ${QFILES} ${NUR}</value>
+	</property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GET_ADJUSTED_RELEVANT_MASKS">
+	<property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.GetAdjustedRelevantMasks.class</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="SET_RELEVANT_MASKS">
+	<property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.SetInitializationVariable.class Relevant_Masks "${RELEVANT_MASK}"</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="IGNORE_AND_RELEVANT_LIST_EXPRESSIONS">
+	<property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.IgnoreAndRelevantListExpressions.class</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="ADD_ALL" displayName="ResourceMsg(VSS_ADD_ALL)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_ADD_ALL_Mnemonic)</value>
+        </property>
+	<property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.commands.SharableFilesCommand.class -ic IGNORE_AND_RELEVANT_LIST_EXPRESSIONS $[? IS_RECURSIVE] [] [-l] ADD_ALL_CMD CREATE_CMD_NO_REFRESH</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+        </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_ADD),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_ADD)))
+                 VARIABLE_DEFAULTS(RELEVANT_MASK USER, ADD_OPTIONS USER)
+                 PROMPT_FOR_FILE(DESCRIPTION_FILE, ResourceMsg(COMMAND_VSS_ADD_Reason),"",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_ADD_Reason);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_ADD_Reason_mnc)))
+                 IF_VAR_EMPTY"recursionBanned"_ASK_FOR(IS_RECURSIVE, ResourceMsg(COMMAND_VSS_ADD_ALL_Rec), "$[? recursionBanned] [-R-] [-R]", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_ADD_ALL_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_ADD_ALL_Rec_mnc)), "true", "")
+                 PROMPT_FOR_EXPERT(RELEVANT_MASK, ResourceMsg(COMMAND_VSS_ADD_ALL_RelevantMask), "{INSERT_OUTPUT_OF_GET_ADJUSTED_RELEVANT_MASKS(0)}", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_ADD_ALL_RelevantMask);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_ADD_ALL_RelevantMask_mnc)))
+                 PROMPT_FOR_EXPERT(ADD_OPTIONS, ResourceMsg(COMMAND_VSS_ADD_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_ADD_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_ADD_Options_mnc)))
+          </value>
+	</property>
+	<property name="onDir">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+        <property name="preCommands">
+          <value>SET_RELEVANT_MASKS, ADD_LOCAL_PARENTS</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternUnmatched">
+          <value> -l </value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value> <!-- EXEC_SERIAL_INERT -->
+        </property>
+        <property name="notificationSuccessMsg">
+          <value>ResourceMsg(NOTIFICATION_VSS_ADD_ALL_Success)</value>
+        </property>
+        <property name="notificationFailMsg">
+          <value>ResourceMsg(NOTIFICATION_VSS_ADD_ALL_Fail)</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.AddCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_ADD)</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&versioned-statuses;</value>
+          </property>
+      </command>
+      <command name="DIR_FOLDERS">
+        <property name="exec">
+	  <value>$[? FILES_IS_FOLDER] [cmd /X /C "cd /D \"${ROOTDIR}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []$[? FILE] [${PS}${FILE}] []\" &amp;&amp; dir /AD /B "] []</value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+      </command>
+      <command name="CREATE_CMD">
+	<property name="exec">
+	  <value>${RUN} create $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${CREATE_OPTIONS} ${OPTIONS} ${QFILE} ${NUR}</value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+        <property name="disabledOnStatus">
+          <value>"", "Current"</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="needsHierarchicalOrder">
+	  <value>true</value>
+        </property>
+      </command>
+      <command name="CREATE_CMD_NO_REFRESH">
+	<property name="exec">
+	  <value>${RUN} create $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${CREATE_OPTIONS} ${OPTIONS} ${QFILE} ${NUR}</value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+        <property name="disabledOnStatus">
+          <value>"", "Current"</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="needsHierarchicalOrder">
+	  <value>true</value>
+        </property>
+      </command>
+      <command name="CREATE" displayName="ResourceMsg(VSS_CREATE)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_CREATE_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUN} create $[? DESCRIPTION_FILE] [-C@${QUOTE}${DESCRIPTION_FILE}${QUOTE}] [-C${QUOTE}${message}${QUOTE}] ${CREATE_OPTIONS} ${OPTIONS} ${QFILE} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_CREATE),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_CREATE)))
+                 VARIABLE_DEFAULTS(CREATE_OPTIONS USER)
+                 PROMPT_FOR_FILE(DESCRIPTION_FILE, ResourceMsg(COMMAND_VSS_CREATE_Reason),"",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CREATE_Reason);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CREATE_Reason_mnc)))
+                 PROMPT_FOR_EXPERT(CREATE_OPTIONS, ResourceMsg(COMMAND_VSS_CREATE_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_CREATE_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_CREATE_Options_mnc)))
+          </value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="needsHierarchicalOrder">
+	  <value>true</value>
+        </property>
+        <property name="preCommands">
+          <value>ADD_LOCAL_PARENTS</value>
+        </property>
+        <property name="notificationSuccessMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_CREATEs_Success, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_CREATE_Success, ${FILE})]</value>
+        </property>
+        <property name="notificationFailMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_CREATEs_Fail, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_CREATE_Fail, ${FILE})]</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.AddCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_ADD)</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&versioned-statuses;</value>
+          </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.AddFolderCommand</value>
+        </property>
+      </command>
+      <command name="ADD_LOCAL_PARENTS">
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.commands.AddLocalParents.class CREATE_CMD</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="onDir">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>-1</value> <!-- INERT -->
+        </property>
+      </command>
+      
+      <command name="REMOVE_CONFIRM">
+	<property name="exec">
+	  <value>${RUNCDM} remove ${CMD_OPTIONS} -I-N ${IDENT} ${QPATHS} ${NUR}</value>
+	</property>
+	<property name="error.regex.global">
+	  <value>(^.*)\(Y/N\)N$</value>
+	</property>
+        <property name="ignoreFail">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="REMOVE_DO">
+	<property name="exec">
+	  <value>${RUNCDM} remove ${CMD_OPTIONS} -I-Y ${IDENT} ${QPATHS} ${NUR}</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="REMOVE" displayName="ResourceMsg(VSS_REMOVE)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_REMOVE_Mnemonic)</value>
+        </property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+        </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(COMMAND_VSS_REMOVE_Label),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_REMOVE_Label)))
+                 VARIABLE_DEFAULTS(CMD_OPTIONS USER)
+                 PROMPT_FOR_EXPERT(CMD_OPTIONS, ResourceMsg(COMMAND_VSS_REMOVE_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_REMOVE_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_REMOVE_Options_mnc)))
+          </value>
+	</property>
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t REMOVE_CONFIRM REMOVE_DO</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternMatched">
+          <value>REMOVE</value>
+        </property>
+        <property name="runOnMultipleFiles">
+          <value>true</value>
+        </property>
+        <property name="notificationSuccessMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_REMOVEs_Success, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_REMOVE_Success, ${FILE})]</value>
+        </property>
+        <property name="notificationFailMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_REMOVEs_Fail, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_REMOVE_Fail, ${FILE})]</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.RemoveCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_REMOVE)</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>2</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.RemoveCommand</value>
+        </property>
+      </command>
+      <command name="RECOVER" displayName="ResourceMsg(VSS_RECOVER)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_RECOVER_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUN} recover ${RECOVER_OPTIONS} ${OPTIONS} ${QFILES} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_RECOVER),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_RECOVER)))
+                 VARIABLE_DEFAULTS(RECOVER_OPTIONS USER)
+                 PROMPT_FOR_EXPERT(RECOVER_OPTIONS, ResourceMsg(COMMAND_VSS_RECOVER_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_RECOVER_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_RECOVER_Options_mnc)))
+          </value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshParentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternMatched">
+          <value>recover</value>
+        </property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="notificationSuccessMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_RECOVERs_Success, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_RECOVER_Success, ${FILE})]</value>
+        </property>
+        <property name="notificationFailMsg">
+          <value>$[? MULTIPLE_FILES] [ResourceMsg(NOTIFICATION_VSS_RECOVERs_Fail, ${NUM_FILES})] [ResourceMsg(NOTIFICATION_VSS_RECOVER_Fail, ${FILE})]</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>2</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+          <property name="disabledOnStatus">
+            <value>&versioned-statuses; Ignored</value>
+          </property>
+      </command>
+      <separator />
+      <command name="HISTORY" displayName="ResourceMsg(VSS_HISTORY)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_HISTORY_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUNCDM_SILENT} history ${HISTORY_OPTIONS} ${RECURSIVE} ${OPTIONS} ${QPATHS} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_HISTORY),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_HISTORY)))
+                 VARIABLE_DEFAULTS(HISTORY_OPTIONS USER)
+                 IF_VAR_EMPTY"recursionBanned"_IF_VAR_NON_EMPTY"FILES_IS_FOLDER"_ASK_FOR_EXPERT(RECURSIVE, ResourceMsg(COMMAND_VSS_HISTORY_Rec), "$[? recursionBanned] [-R-] [-R]", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_HISTORY_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_HISTORY_Rec_mnc)), "-R", "-R-")
+                 PROMPT_FOR_EXPERT(HISTORY_OPTIONS, ResourceMsg(COMMAND_VSS_HISTORY_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_HISTORY_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_HISTORY_Options_mnc)))
+          </value>
+	</property>
+	<property name="display">
+	  <value>true</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+        <property name="runOnMultipleFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.HistoryCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_HISTORY)</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.HistoryCommand</value>
+        </property>
+      </command>
+      <command name="PROPERTIES" displayName="ResourceMsg(VSS_PROPERTIES)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_PROPERTIES_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>${RUNCDM_SILENT} properties ${PROPERTIES_OPTIONS} ${RECURSIVE} ${OPTIONS} ${QPATHS} ${NUR}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_PROPERTIES),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_PROPERTIES)))
+                 VARIABLE_DEFAULTS(PROPERTIES_OPTIONS USER)
+                 IF_VAR_EMPTY"recursionBanned"_IF_VAR_NON_EMPTY"FILES_IS_FOLDER"_ASK_FOR_EXPERT(RECURSIVE, ResourceMsg(COMMAND_VSS_PROPERTIES_Rec), "$[? recursionBanned] [-R-] [-R]", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_PROPERTIES_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_PROPERTIES_Rec_mnc)), "-R", "-R-")
+                 PROMPT_FOR_EXPERT(PROPERTIES_OPTIONS, ResourceMsg(COMMAND_VSS_PROPERTIES_Options), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_PROPERTIES_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_PROPERTIES_Options_mnc)))
+          </value>
+	</property>
+	<property name="display">
+	  <value>true</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="onNonRecursiveDir">
+	  <value>true</value>
+	</property>
+        <property name="runOnMultipleFiles">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.PropertiesCommand</value>
+        </property>
+      </command>
+      <separator />
+      <command name="DIFF" displayName="ResourceMsg(VSS_DIFF)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_DIFF_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>vcs.commands.Diff.class 2 CHECKOUT_CMD DIFF_USR_CMD</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(COMMAND_VSS_DIFF_Label),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_DIFF_Label)))
+                 VARIABLE_DEFAULTS(CMD_DIFF_OPTIONS USER)
+                 PROMPT_FOR_EXPERT(CMD_DIFF_OPTIONS, ResourceMsg(COMMAND_VSS_DIFF_Options), "",ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_DIFF_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_DIFF_Options_mnc)) ,VALIDATOR_REGEXP_UNMATCH(^.*-B.*$|^.*-D.*$|^.*-O.*$))
+          </value>
+	</property>
+	<property name="onDir">
+	  <value>false</value>
+	</property>
+	<property name="onRoot">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.actions.DiffCommandAction</value>
+        </property>
+        <property name="generalCommandActionDisplayName">
+          <value>ResourceMsg(VSS_GENERAL_ACTION_DIFF)</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+          <property name="disabledOnStatus">
+            <value>&local-statuses;</value>
+          </property>
+        <property name="associatedCommandInterfaceName">
+          <value>org.netbeans.api.vcs.commands.DiffCommand</value>
+        </property>
+      </command>
+      <command name="LIST_FILE_DIFF">
+	<property name="exec">
+	  <value>${RUN} diff -B ${QUOTE}${FILE}${QUOTE} ${OPTIONS} ${NUR}</value>
+        </property>
+	<property name="data.regex">
+	  <value>$[? LOCALIZED_PROFILE_COPY] [(^ResourceMsg1(VSS_MSG_FILES_ARE_DIFFERENT)$)] [(^The files are different.$)]</value>
+	</property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="LIST_DIR_READER">
+	<property name="exec">
+	  <value>${RUN_REFRESH} dir -R- -F- ${QUOTE}${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []${QUOTE} ${OPTIONS} &amp;&amp; diff -R- ${OPTIONS}</value>
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="LIST_STATUS_READER">
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class status -R- ${QUOTE}${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []$[? FILE] [${PS}${FILE}] []${QUOTE} ${OPTIONS}</value>
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="LIST_STATUS_FOLDER_READER">
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class status -R- ${QUOTE}${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []${QUOTE} ${OPTIONS}</value>
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="LIST_DIR_READER_REC">
+	<property name="exec">
+	  <value>${RUN_REFRESH} dir -R -F- ${QUOTE}${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []${QUOTE} ${OPTIONS} &amp;&amp; diff -R ${OPTIONS}</value>
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="LIST_STATUS_FOLDER_READER_REC">
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.SSCommand.class status -R ${QUOTE}${PROJECT}$[? MODULE] [${PS}${MODULE}] []$[? DIR] [${PS}${DIR}] []${QUOTE} ${OPTIONS}</value>
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="CHECKOUT_CMD">
+	<property name="exec">
+          <value>${RUN} view $[? REVISION] [-V${REVISION}] [] ${OPTIONS} ${QUOTE}${FILE}${QUOTE} -O${QUOTE}${TEMPDIR}${PS}${FILE}${QUOTE} ${NUR}</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="DIFF_USR_CMD">
+	<property name="exec">
+          <value>${RUN} diff -DU ${CMD_DIFF_OPTIONS} $[? revision] [-V${revision}] [] ${OPTIONS} ${QUOTE}${FILE}${QUOTE} ${NUR}</value>
+        </property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+      </command>
+      <command name="DIFF_REVISIONS_CMD">
+	<property name="exec">
+          <value>${RUN} diff -DU -V${REVISION1}$[? REVISION2] [~${REVISION2}] [] ${OPTIONS} ${QUOTE}${FILE}${QUOTE} ${NUR}</value>
+        </property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+	<property name="ignoreFail">
+	  <value>true</value>
+	</property>
+      </command>
+      <command name="SET_PASSWORD" displayName="ResourceMsg(SET_PASSWORD, ${WORKPROJ})">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(SET_PASSWORD_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>vcs.commands.SetPasswordCommand.class</value>
+	</property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+        <property name="runOnMultipleFiles">
+          <value>true</value>
+        </property>
+      </command>
+    </command>
+
+    <command name="REVISION_LIST">
+      <property name="exec">
+        <value>$[? LOCALIZED_PROFILE_COPY] [vcs.commands.VssRevisionListGetterLocalized.class] [vcs.commands.VssRevisionListGetter.class] REVISION_GETTER</value>
+      </property>
+      <property name="disabledOnStatus">
+          <value>"Local", "Ignored"</value>
+      </property>
+      <property name="ignoreFail">
+	<value>true</value>
+      </property>
+      <property name="concurrentExec">
+        <value>-1</value>
+      </property>
+    </command>
+    <command name="REVISION_GETTER">
+      <property name="exec">
+        <value>${RUN} history ${OPTIONS} ${QUOTE}${FILE}${QUOTE} ${NUR}</value>
+      </property>
+      <property name="concurrentExec">
+        <value>16</value> <!-- EXEC_SERIAL_ALL -->
+      </property>
+    </command>
+    <command name="REVISION_OPEN">
+      <property name="exec">
+        <value>${RUN_SILENT} view $[? REVISION] [-V${REVISION}] [] ${OPTIONS} ${QUOTE}${PROJECT_\/}$[? MODULE] [/${MODULE_\/}] []$[? DIR] [/${DIR_\/}] []/${FILE}${QUOTE} -O${TEMPORARY_FILE} &amp;&amp; -os cmd /X /C "type ${TEMPORARY_FILE}" ${NUR}</value>
+      </property>
+      <property name="numRevisions">
+	<value>1</value>
+      </property>
+      <property name="concurrentExec">
+        <value>16</value> <!-- EXEC_SERIAL_ALL -->
+      </property>
+    </command>
+    <command name="REVISION_DIFF" displayName="ResourceMsg(VSS_DIFF)">
+      <property name="labelMnemonic">
+        <value>ResourceMsg(VSS_DIFF_Mnemonic)</value>
+      </property>
+      <property name="exec">
+        <value>vcs.commands.Diff.class ${REVISION1} 2 CHECKOUT_CMD DIFF_REVISIONS_CMD</value>
+      </property>
+      <property name="numRevisions">
+	<value>1</value>
+      </property>
+      <property name="concurrentExec">
+        <value>-1</value>
+      </property>
+    </command>
+    <command name="REVISION_DIFF2" displayName="ResourceMsg(VSS_DIFF)">
+      <property name="labelMnemonic">
+        <value>ResourceMsg(VSS_DIFF_Mnemonic)</value>
+      </property>
+      <property name="exec">
+        <value>vcs.commands.Diff.class ${REVISION1} ${REVISION2} 2 CHECKOUT_CMD DIFF_REVISIONS_CMD</value>
+      </property>
+      <property name="numRevisions">
+	<value>2</value>
+      </property>
+      <property name="concurrentExec">
+        <value>-1</value>
+      </property>
+    </command>
+
+    <command name="VERIFY_ACTION">
+        <property name="exec">
+            <value>vcs.commands.VssVerifyAction.class LIST_FILE CHECKOUT</value>
+        </property>
+        <property name="runOnMultipleFiles">
+          <value>true</value>
+        </property>
+        <property name="generalCommandActionClassName">
+          <value>org.netbeans.modules.vcscore.grouping.VerifyGroupAction</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+        <property name="executionPriority">
+          <value>1</value> <!-- HIGH PRIORITY -->
+        </property>
+    </command>
+  </commands>
+  
+  <globalCommands>
+    <command name="ROOT" displayName="ResourceMsg(VSS)">
+      <property name="labelMnemonic">
+        <value>ResourceMsg(VSS_Mnemonic)</value>
+      </property>
+      <command name="GET_CONFIRM">
+        <property name="exec">
+          <value>${RUNPATH_NMK} get ${RECURSIVE} ${RW_MODE} ${GET_OPTIONS} -I-N ${IDENT} ${QUOTE}${WORKPROJ}${QUOTE} ${NUR}</value>
+        </property>
+	<property name="error.regex">
+	  <value>(^.*)$</value>
+	</property>
+        <property name="ignoreFail">
+  	  <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GET_FILES_CONFIRMED">
+        <property name="exec">
+          <value>${RUN_GLOBAL} get ${RW_MODE} ${GET_OPTIONS} -I-Y ${IDENT} ${QFILES} ${NUR}</value>
+        </property>
+        <property name="runOnMultipleFilesInFolder">
+          <value>true</value>
+        </property>
+        <property name="concurrentExec">
+          <value>16</value> <!-- EXEC_SERIAL_ALL -->
+        </property>
+      </command>
+      <command name="GET_LATEST" displayName="ResourceMsg(VSS_GGET_LATEST)">
+        <property name="labelMnemonic">
+          <value>ResourceMsg(VSS_GGET_Mnemonic)</value>
+        </property>
+	<property name="exec">
+	  <value>org.netbeans.modules.vcs.profiles.vss.commands.ConfirmationCommand.class -e -t -m(Y/N)N GET_CONFIRM GET_FILES_CONFIRMED ${RECURSIVE}</value>
+	</property>
+	<property name="supportsAdvancedMode">
+	  <value>true</value>
+         </property>
+        <property name="inputDescriptor">
+          <value>LABEL(ResourceMsg(VSS_GET),ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_GET)))
+                 VARIABLE_DEFAULTS(ROOTDIR USER, ENVIRONMENT_VAR_SSDIR USER, PROJECT USER, VSSCMD_EXE USER, USER_NAME USER, RW_MODE USER, GET_OPTIONS USER)
+                 PROMPT_FOR(ROOTDIR, ResourceMsg(COMMAND_VSS_GGET_WORK), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GGET_WORK);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GGET_WORK_mnc)), VALIDATOR_FOLDER, SELECTOR_DIR)
+                 PROMPT_FOR(ENVIRONMENT_VAR_SSDIR, ResourceMsg(COMMAND_VSS_GGET_SSDIR), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GGET_SSDIR);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GGET_SSDIR_mnc)), VALIDATOR_FOLDER, SELECTOR_DIR)
+                 PROMPT_FOR(PROJECT, ResourceMsg(COMMAND_VSS_GGET_PROJECT), "$/", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GGET_PROJECT);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GGET_PROJECT_mnc)), VALIDATOR_NON_EMPTY)
+                 PROMPT_FOR(VSSCMD_EXE, ResourceMsg(VSS_GGET_Command), "C:\Program Files\Microsoft Visual Studio\VSS\win32\SS.EXE", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GGET_EXE);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GGET_EXE_mnc)), VALIDATOR_NON_EMPTY, SELECTOR_FILE)
+                 PROMPT_FOR(USER_NAME, ResourceMsg(VSS_GGET_UserName), "", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_VSS_UserName);;MNEMONIC_ResourceMsg(VSS_UserName_Mnemonic)))
+                 ASK_FOR(RW_MODE, ResourceMsg(COMMAND_VSS_GET_RW), "false", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_RW);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_RW_mnc)), "-W", "")
+                 ASK_FOR(RECURSIVE, ResourceMsg(COMMAND_VSS_GETR_Rec), "true", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Rec);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Rec_mnc)), "-R", "-R-")
+                 PROMPT_FOR_EXPERT(GET_OPTIONS, ResourceMsg(COMMAND_VSS_GET_Options), "-GWA", ACCESSIBILITY(DESCRIPTION_ResourceMsg(ACSD_COMMAND_VSS_GET_Options);;MNEMONIC_ResourceMsg(ACS_COMMAND_VSS_GET_Options_mnc)))
+          </value>
+	</property>
+	<property name="onFile">
+	  <value>false</value>
+	</property>
+	<property name="data.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="error.regex">
+	  <value>(.*$)</value>
+	</property>
+	<property name="onRoot">
+	  <value>true</value>
+	</property>
+	<property name="checkForModifications">
+	  <value>true</value>
+	</property>
+        <property name="refreshCurrentFolder">
+          <value>true</value>
+        </property>
+        <property name="refreshRecursivelyPatternUnmatched">
+          <value>-R-</value>
+        </property>
+        <property name="refreshOnFail">
+          <value>1</value>
+        </property>
+        <property name="concurrentExec">
+          <value>-1</value>
+        </property>
+        <property name="commandsAfterSuccess">
+          <value>GLOBAL_REGISTER</value>
+        </property>
+      </command>
+      <command name="GLOBAL_REGISTER">
+        <property name="exec">
+          <value>org.netbeans.modules.vcs.profiles.vss.commands.VssGlobalRegister.class</value>
+        </property>
+        <property name="executionPriority">
+          <value>1</value> <!-- HIGH PRIORITY -->
+        </property>
+        <property name="ignoreFail">
+          <value>true</value>
+        </property>
+      </command>
+    </command>
+  </globalCommands>
+  
+</configuration>
+

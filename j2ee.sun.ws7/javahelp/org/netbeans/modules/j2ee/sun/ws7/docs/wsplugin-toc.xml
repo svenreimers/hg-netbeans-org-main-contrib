@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN"
+                     "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+<!-- 
+*     Copyright (c) 2006 Sun Microsystems, Inc. All rights reserved.
+*     Use is subject to license terms.
+-->
+
+
+<toc version="2.0">
+	<tocitem text="Servers and Databases">
+		<tocitem text="Servers">
+			<tocitem text="Sun Java System Web Server">
+				<tocitem text="Registering a Sun Java System Web Server" target="wsplugin_webserver7_plugin_help"/>
+				<tocitem text="Hierarchy of Sun Java System Web Server Instance Nodes" target="wsplugin_hierarchyofserverinstancenodes"/>
+				<tocitem text="Configuration Files for Web Applications Targeted for Sun Java System Web Server" target="wsplugin_configfiles"/>
+				<tocitem text="Setting Up a Custom Resource on the Sun Java System Web Server" target="wsplugin_res_custom"/>
+				<tocitem text="Setting Up an External JNDI Resource on the Sun Java System Web Server" target="wsplugin_res_extjndi"/>
+				<tocitem text="Setting Up a JavaMail Resource on the Sun Java System Web Server" target="wsplugin_res_javamail"/>
+				<tocitem text="Setting Up a JDBC Resource on the Sun Java System Web Server" target="wsplugin_res_jdbc"/>
+				<tocitem text="Registering a Resource with the Sun Java System Web Server" target="wsplugin_res_register" />
+			</tocitem>
+		</tocitem>
+	</tocitem>
+</toc>

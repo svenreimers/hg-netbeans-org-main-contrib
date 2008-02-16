@@ -1,0 +1,422 @@
+<?xml version="1.0"?>
+<!DOCTYPE configuration PUBLIC '-//NetBeans//DTD VCS Configuration 1.1//EN' 'http://www.netbeans.org/dtds/vcs-configuration-1_1.dtd'>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+<configuration>
+    <label>StarTeam 4.0</label>
+
+    <os>
+        <compatible>"Unix", "Windows"</compatible>
+        <uncompatible>"Windows 95", "Windows 98", "Windows Me"</uncompatible>
+    </os>
+
+    <condition var="IS_WINDOWS">
+        <var name="os.name" valueContainsIgnoreCase="WINDOWS"/>
+    </condition>
+
+    <variables>
+        <variable basic="false" name="FS_DISPLAY_NAME">
+            <value>StarTeam</value>
+        </variable>
+        <variable basic="true" executable="false" label="Server Name" localDir="false" localFile="false" name="STSRVNAME" order="-1">
+            <value>starteam_srv</value>
+        </variable>
+        <variable basic="false" name="OPTIONS">
+            <value>-nologo -rp &quot;${ROOTDIR}&quot;</value>
+        </variable>
+        <variable basic="true" executable="false" label="Star Team Command" localDir="false" localFile="true" name="STCMD" order="-1">
+            <value>stcmd</value>
+            <value if="IS_WINDOWS">c:\Program Files\StarTeam 4.0\stcmd.exe</value>
+        </variable>
+        <variable basic="true" executable="false" label="Endpoint" localDir="false" localFile="false" name="ENDPOINT" order="-1">
+            <value>1024</value>
+        </variable>
+        <variable basic="false" name="STSERVER">
+            <value>${USER}:${PASSWORD}@${STSRVNAME}:${ENDPOINT}</value>
+        </variable>
+        <variable basic="false" name="SHOWLOCALFILES">
+            <value>true</value>
+        </variable>
+        <variable basic="false" name="PS">
+            <value>${path.separator}</value>
+        </variable>
+        <variable basic="true" executable="false" label="User Name" localDir="false" localFile="false" name="USER" order="-1">
+            <value>user_name</value>
+        </variable>
+        <variable basic="true" executable="false" label="Project Directory" localDir="false" localFile="false" name="PROJECT" order="-1">
+            <value></value>
+        </variable>
+        <variable basic="false" name="PROJECT_DIR">
+            <value>$[? DIR] [$[? MODULE] [${PROJECT}/${MODULE}/${DIR}] [${PROJECT}/${DIR}]] [$[? MODULE] [${PROJECT}/${MODULE}] [${PROJECT}]]</value>
+        </variable>
+        <variable basic="false" name="CD">
+            <value>cd</value>
+        </variable>
+    </variables>
+    <commands>
+        <command displayName="StarTeam" name="ROOT">
+            <command displayName="Refresh" name="LIST">
+                <property name="data.size.index">
+                    <value>6</value>
+                </property>
+                <property name="data.locker.index">
+                    <value>1</value>
+                </property>
+                <property name="exec">
+                    <value>org.netbeans.modules.vcs.profiles.starteam.list.Stcmd40ListCommand.class LIST_CMD</value>
+                </property>
+                <property name="error.regex">
+                    <value>(Error.*)</value>
+                </property>
+                <property name="data.date.index">
+                    <value>3</value>
+                </property>
+                <property name="data.attr.index">
+                    <value>2</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="data.time.index">
+                    <value>4</value>
+                </property>
+                <property name="data.regex">
+                    <value>([A-z]+) (.*) (r-|rw|  ) ([0-9]+.*[0-9]+) ([0-9]+.*[0-9]+) (.*) ([0-9]+) (.*$)|(.*/$)</value>
+                    <value if="IS_WINDOWS">([A-z]+) (.*) (r-|rw|  ) ([0-9]+.*[0-9]+) ([0-9]+.*[0-9]+) (.*) ([0-9]+) (.*$)|(.*\\$)</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="data.status.index">
+                    <value>0</value>
+                </property>
+                <property name="data.fileName.index">
+                    <value>7</value>
+                </property>
+            </command>
+            <command name="LIST_CMD">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; list -cf ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot;</value>
+                    <value if="IS_WINDOWS">&quot;${STCMD}&quot; list -cf ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot;</value>
+                </property>
+            </command>
+            <command displayName="Refresh Recursively" name="LIST_SUB">
+                <property name="onFile">
+                    <value>false</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+            </command>
+            <separator/>
+            <command displayName="Check In" name="CHECKIN">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; ci -o ${OPTIONS} -r &quot;${REASON}&quot; -p &quot;${STSERVER}/${PROJECT_DIR}&quot; -u -ro &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="inputDescriptor">
+                    <value>LABEL(Check In) PROMPT_FOR(REASON, &quot;Reason:&quot;) </value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <command displayName="Check In Recursively" name="CHECKINR">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; ci -o ${OPTIONS} -r &quot;${REASON}&quot; -p &quot;${STSERVER}/${PROJECT_DIR}&quot; -u -ro -is *</value>
+                </property>
+        	<property name="onFile">
+                    <value>false</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="inputDescriptor">
+                    <value>LABEL(Check In Recursively) PROMPT_FOR(REASON, &quot;Reason:&quot;) </value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+                <property name="refreshRecursivelyPatternMatched">
+                    <value>-is</value>
+                </property>
+            </command>
+            <command displayName="Check Out" name="CHECKOUT">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; co -o ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <command displayName="Check Out Recursively" name="CHECKOUTR">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; co -o ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; -is *</value>
+                </property>
+        	<property name="onFile">
+                    <value>false</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+                <property name="refreshRecursivelyPatternMatched">
+                    <value>-is</value>
+                </property>
+            </command>
+            <separator/>
+            <command displayName="Lock" name="LOCK">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; lck -l ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <command displayName="Unlock" name="UNLOCK">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; lck -u ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <separator/>
+            <command displayName="Add" name="ADD">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; add ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <command displayName="Remove" name="REMOVE">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; remove ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <separator/>
+            <command displayName="Update Status By Checksums (MD5)" name="UPDATE_STATUS">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; update-status ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <command displayName="Update Status By Content" name="UPDATE_STATUS_CONT">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; update-status -contents ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+                <property name="refreshCurrentFolder">
+                    <value>true</value>
+                </property>
+            </command>
+            <separator/>
+            <command displayName="History" name="HISTORY">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; hist ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+                <property name="input">
+                    <value>Cancel </value>
+                </property>
+                <property name="display">
+                    <value>true</value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+            </command>
+            <separator/>
+            <command displayName="Diff" name="DIFF">
+                <property name="exec">
+                    <value>vcs.commands.Diff.class 1 CHECKOUT_CMD DIFF_CMD</value>
+                </property>
+                <property name="error.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="data.regex">
+                    <value>(.*$)</value>
+                </property>
+                <property name="onRoot">
+                    <value>true</value>
+                </property>
+            </command>
+            <command basic="false" name="CHECKOUT_CMD">
+                <property name="exec">
+                    <value>/bin/sh -c &quot;cd \&quot;${ROOTDIR - MODULE}\&quot;; ${STCMD} co -nologo -p ${STSERVER}/${PROJECT_DIR} -rp \&quot;${TEMPDIR}\&quot; \&quot;${FILE}\&quot;; mv \&quot;${TEMPDIR}/${MODULE}/${DIR}/${FILE}\&quot; \&quot;${TEMPDIR}/${FILE}\&quot; &quot;</value>
+                    <value if="IS_WINDOWS">cmd /X /C &quot;cd /D \&quot;${ROOTDIR - MODULE}\&quot;&amp;&amp; \&quot;${STCMD}\&quot; co -nologo -p ${STSERVER}/${PROJECT_DIR} -rp \&quot;${TEMPDIR}\&quot; \&quot;${FILE}\&quot;&amp;&amp; move \&quot;${TEMPDIR}${PS}${MODULE}${PS}${DIR}${PS}${FILE}\&quot; \&quot;${TEMPDIR}${PS}${FILE}\&quot; &quot;</value>
+                </property>
+            </command>
+            <command basic="false" name="DIFF_CMD">
+                <property name="exec">
+                    <value>&quot;${STCMD}&quot; diff ${OPTIONS} -p &quot;${STSERVER}/${PROJECT_DIR}&quot; &quot;${FILE}&quot;</value>
+                </property>
+            </command>
+        </command>
+    </commands>
+</configuration>

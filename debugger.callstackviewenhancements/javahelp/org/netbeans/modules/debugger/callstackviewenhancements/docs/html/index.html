@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+    <head>
+        <title>JPDA (Java) Debugger Call Stack View Enhancements Module</title>
+        <link rel="StyleSheet" href="nbdocs:/org/netbeans/modules/usersguide/ide.css" type="text/css">
+    </head>
+    <body>
+        <h1>JPDA (Java) Debugger Call Stack View Enhancements</h1>
+        <h2>Features </h2>
+        This module enhances the Call Stack View of JPDA (Java) Debugger by adding the following columns:
+        <ul>
+            <li><b>Modifiers</b> - this columns displays the modifiers of the method
+            associated with the stack frame.
+            <li><b>Method</b> - this columns displays the name, parameters and
+            return type of the method associated with the stack frame.
+            <li><b>Declaring Class</b> - this column displays the class declaring
+            the method associated with the stack frame.
+            <li><b>this Class</b> - this column displays the class of
+            <code>this</code> variable associated with the non-static stack frame.
+            Note: The class <code>this</code> of may be different from the Declaring class.
+            <li><b>Location Path</b> - when available this column displays the
+            full path of the location of the method associated with the stack frame.
+        </ul>
+        The call stack view shows the custom icons (similar to Navigator window)
+        for constructors and methods with public, protected, private, (package),
+        and static qualifiers. This behaviour can be turned off by setting the
+        system property -
+        <code>-Dorg.netbeans.modules.debugger.callstackviewenhancements.dontShowCustomIcons=true</code>
+        <h2>How to use</h2>
+        Simply debug any Java application. You should see the above additional
+        information in the Call Stack view.
+        <p>
+        The following popup actions are supported:
+        <ul>
+            <li><b>Go to type of this</b> - Go to source file of the class of the
+            <code>this</code> variable associated with the stack frame if it is
+            different from the class that declares the method associated with
+            the stack frame.
+            <li>A set of <b>Go to type [local variable type]</b> - Go to
+            (distinct) declared and actual types of local variables of the method
+            associated with the stack frame.
+            <li><b>Show Classes...</b> - Show the table of all classes loaded in
+            the debugee. Each row in Classes table shows Class name, Package name and the value
+            returned by the <code>toString()</code> method of class's ClassLoader and the initiating
+            classloader. This can be useful for debugging applications such as App Servers, IDE
+            Frameworks (e.g. Netbeans itself), that employ a complex multi-ClassLoader
+            architecture. This view helps you determine which ClassLoader loaded the class.
+            <br>
+            TODO: Update screenshot
+            <br>
+            <image src="classes.jpg" alt="Classes loaded in the debugee.">
+            <br>
+        </ul>
+        <h2>Example</h2>
+        The following images shows a Java classes - parent class
+        <code>humanresources.Person</code> and sub class
+        <code>humanresources.Employee</code> being debugged. The debugger has
+        stopped at a line in <code>humanresources.Person</code>'s
+        <code>toString()</code> method which has been called from
+        <code>humanresources.Employee</code>'s <code>toString()</code> method.
+        <br>
+        <image src="persondotjava.jpg" alt="humanresources.Person Source"><br>
+        <image src="employeedotjava.jpg" alt="humanresources.Employee Source"><br>
+        <p>
+            The following image shows the enahanced Call Stack view. Note the
+            additional columns and popup actions.
+        </p>
+        <br>
+        <image src="callstackview.jpg" alt="Enhanced Call Stack view">
+        <br>
+    </body>
+</html>

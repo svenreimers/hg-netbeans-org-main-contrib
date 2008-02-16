@@ -1,0 +1,117 @@
+<!--
+   - DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+   -
+   - Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+   -
+   - The contents of this file are subject to the terms of either the GNU
+   - General Public License Version 2 only ("GPL") or the Common
+   - Development and Distribution License("CDDL") (collectively, the
+   - "License"). You may not use this file except in compliance with the
+   - License. You can obtain a copy of the License at
+   - http://www.netbeans.org/cddl-gplv2.html
+   - or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+   - specific language governing permissions and limitations under the
+   - License.  When distributing the software, include this License Header
+   - Notice in each file and include the License file at
+   - nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+   - particular file as subject to the "Classpath" exception as provided
+   - by Sun in the GPL Version 2 section of the License file that
+   - accompanied this code. If applicable, add the following below the
+   - License Header, with the fields enclosed by brackets [] replaced by
+   - your own identifying information:
+   - "Portions Copyrighted [year] [name of copyright owner]"
+   -
+   - Contributor(s):
+   -
+   - The Original Software is NetBeans. The Initial Developer of the Original
+   - Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+   - Microsystems, Inc. All Rights Reserved.
+   -
+   - If you wish your version of this file to be governed by only the CDDL
+   - or only the GPL Version 2, indicate your decision by adding
+   - "[Contributor] elects to include this software in this distribution
+   - under the [CDDL or GPL Version 2] license." If you do not indicate a
+   - single choice of license, a recipient has the option to distribute
+   - your version of this file under either the CDDL, the GPL Version 2 or
+   - to extend the choice of license to its licensees as provided above.
+   - However, if you add GPL Version 2 code and therefore, elected the GPL
+   - Version 2 license, then the option applies only if the new code is
+   - made subject to such option by the copyright holder.
+  -->
+
+<html>
+<body>
+API classes and interfaces that are used for import/export of XMI documents into/from
+a JMI-compliant repository. Below is a description of the most common use-cases.
+
+<h3>Reading XMI</h3>
+<a href="XMIReader.html">XMIReader</a> instances can be used for reading XMI documents. XMIReader class extends
+the standard javax.jmi.xmi.XmiReader interface and is a little more flexible (allows plugging of custom
+<a href="XMIReferenceResolver.html">XMIReferenceResolver</a> implementations via
+<a href="XMIInputConfig.html">XMIInputConfig</a> for custom handling of references (href's)
+in the XMI documents being read).
+<p>Here is a sample code that creates an empty instance of MOF and reads in an XMI containing some MOF metamodel:
+<p><pre>
+    // get the default repository
+    MDRepository repository = MDRManager.getDefault().getDefaultRepository();
+    
+    // start a write transaction
+    boolean fail = true;
+    repository.beginTrans(true);
+    try {
+        // create a new MOF extent
+        RefPackage mof = repository.createExtent("MyMOFExtent");
+        // create an XMIReader
+        XMIReader reader = XMIReaderFactory.getDefault().createXMIReader();
+        // read the document
+        reader.read(new File("myxmifile.xmi").toURL().toString(), mof);
+        // everything succeeded => set fail flag to false
+        fail = false;
+    } catch (Exception e) {
+        System.out.println("Fatal error reading XMI.");
+        e.printStackTrace();
+    } finally {
+        // commit/rollback the transaction
+        repository.endTrans(fail);
+    }
+</pre>
+
+<h3>Writing XMI</h3>
+Writing is similar to reading. The following code writes content of "MyMOFExtent" to an XMI file:
+<p><pre>
+    // get the default repository
+    MDRepository repository = MDRManager.getDefault().getDefaultRepository();
+    
+    // declare an output stream
+    FileOutputStream out = null;
+    
+    // start a read-only transaction
+    repository.beginTrans(false);
+    try {
+        // get the extent
+        RefPackage mof = repository.getExtent("MyMOFExtent");
+        // create an XMIWriter
+        XMIWriter writer = XMIWriterFactory.getDefault().createXMIWriter();
+        // open a stream
+        out = new FileOutputStream("myxmifile.xml");
+        // export the document (default version of XMI = 1.2)
+        writer.write(out, mof, null);
+    } catch (Exception e) {
+        System.out.println("Fatal error reading XMI.");
+        e.printStackTrace();
+    } finally {
+        // release the transaction
+        repository.endTrans();
+        // close the stream if necessary
+        if (out != null) {
+            try {
+               out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+</pre>
+</body>
+</html>
+
