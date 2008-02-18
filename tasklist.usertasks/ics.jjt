@@ -1,0 +1,133 @@
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder.
+ */
+
+/**
+ * iCal syntax
+ */
+
+options {
+    NODE_SCOPE_HOOK=true;
+    JAVA_UNICODE_ESCAPE = false;
+    CHOICE_AMBIGUITY_CHECK = 100;
+}
+
+PARSER_BEGIN(IcsParser)
+
+package org.netbeans.modules.tasklist.usertasks.ics.parser;
+
+public class IcsParser {
+    void jjtreeOpenNodeScope(Node n) {
+        ((SimpleNode) n).firstToken = getToken(1);
+    }
+
+    void jjtreeCloseNodeScope(Node n) {
+	((SimpleNode) n).lastToken = getToken(0);
+    }
+}
+
+PARSER_END(IcsParser)
+
+<*> TOKEN : {
+    <EOF>
+}
+
+TOKEN : {
+	<#HTAB : "\u0009">
+|	<#SPACE : "\u0020">
+|	<#DQUOTE : "\"">
+|	<#CR : "\r">
+|	<#LF : "\n"> 
+|	<#WSP : <SPACE> | <HTAB>>
+|	<IANA_TOKEN : (<ALPHA> | <DIGIT> | "-")+>
+|       <COMMA : ",">
+|       <COLON : ":"> : IN_VALUE
+|       <SEMICOLON : ";">
+|       <EQUALS : "=">
+|	<X_NAME : "X-" (<VENDORID> "-")? (<ALPHA> | <DIGIT> | "-")+>
+|	<CRLF : <CR> <LF>> 
+|       <QUOTED_STRING : <DQUOTE> (<QSAFE_CHAR>)* <DQUOTE>>
+|       <PARAM_TEXT : (<SAFE_CHAR>)+>
+|	<#ALPHA : ["\u0041"-"\u005a"] | ["\u0061"-"\u007a"] | ["A"-"Z"] | ["a"-"z"]>
+|	<#DIGIT : ["\u0030"-"\u0039"]>
+|	<#VENDORID : (<ALPHA> | <DIGIT>) (<ALPHA> | <DIGIT>) (<ALPHA> | <DIGIT>)+>
+|	<#NON_US_ASCII : ["\u0080"-"\u00f8"]>
+|	<#QSAFE_CHAR : <WSP> | "\u0021" | ["\u0023"-"\u007e"] | <NON_US_ASCII>>
+|	<#SAFE_CHAR : <WSP> | "\u0021" | ["\u0023"-"\u002b"] | ["\u002d"-"\u0039"] | ["\u003c"-"\u007e"] | <NON_US_ASCII>> 
+}
+
+<IN_VALUE> TOKEN :
+{
+        <VALUE : (<WSP> | ["\u0021"-"\u007e"] | <NON_US_ASCII>)*>  : DEFAULT
+}
+
+/******************************************
+ * ICS GRAMMAR STARTS HERE                *
+ ******************************************/
+Node File() : {}
+{
+	(<CRLF> | ContentLine())* <EOF>
+	{return jjtThis;}
+}
+
+void ContentLine() : {}
+{
+	(Name()) (";" Param())* ":" <VALUE>
+}
+
+void Name() : {}
+{
+	<X_NAME> | <IANA_TOKEN>
+}
+
+void Param() : {}
+{
+	ParamName() "=" (ParamValue() ("," ParamValue())*)?
+}
+
+void ParamName() : {}
+{
+	<IANA_TOKEN> | <X_NAME>
+}
+
+void ParamValue() : {}
+{
+	<PARAM_TEXT> | <QUOTED_STRING>
+}

@@ -1,0 +1,92 @@
+File1 - Brief
+dumpAll
+dumpFile:
+File1
+Up-to-date
+/StatusDir1/File1,v
+1.1.2.1
+1.1.2.1
+BranchTag1 (branch: 1.1.2)
+(none)
+No Tags Loaded
+File1 - Verbose
+dumpAll
+dumpFile:
+File1
+Up-to-date
+/StatusDir1/File1,v
+1.1.2.1
+1.1.2.1
+BranchTag1 (branch: 1.1.2)
+(none)
+dumpExistingTags: 1,2
+1. - BranchTag1 - branch: 1.1.2
+Dir1 - Recursive - Brief
+dumpAll
+Table Rows
+dumpFile:
+File1
+Up-to-date
+/StatusDir1/File1,v
+1.1.2.1
+1.1.2.1
+BranchTag1 (branch: 1.1.2)
+(none)
+No Tags Loaded
+dumpFile:
+File2
+Up-to-date
+/StatusDir1/StatusDir2/File2,v
+1.1.2.1
+1.1.2.1
+BranchTag2 (branch: 1.1.2)
+(none)
+No Tags Loaded
+Dir1 - Recursive - Verbose
+dumpAll
+Table Rows
+dumpFile:
+File1
+Up-to-date
+/StatusDir1/File1,v
+1.1.2.1
+1.1.2.1
+BranchTag1 (branch: 1.1.2)
+(none)
+dumpExistingTags: 1,2
+1. - BranchTag1 - branch: 1.1.2
+dumpFile:
+File2
+Up-to-date
+/StatusDir1/StatusDir2/File2,v
+1.1.2.1
+1.1.2.1
+BranchTag2 (branch: 1.1.2)
+(none)
+dumpExistingTags: 1,2
+1. - BranchTag2 - branch: 1.1.2
+Dir1 - Brief
+dumpAll
+Table Rows
+dumpFile:
+File1
+Up-to-date
+/StatusDir1/File1,v
+1.1.2.1
+1.1.2.1
+BranchTag1 (branch: 1.1.2)
+(none)
+No Tags Loaded
+Dir1 - Verbose
+dumpAll
+Table Rows
+dumpFile:
+File1
+Up-to-date
+/StatusDir1/File1,v
+1.1.2.1
+1.1.2.1
+BranchTag1 (branch: 1.1.2)
+(none)
+dumpExistingTags: 1,2
+1. - BranchTag1 - branch: 1.1.2

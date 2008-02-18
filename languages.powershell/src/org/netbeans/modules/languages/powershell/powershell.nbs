@@ -1,0 +1,484 @@
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+#
+# Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+#
+# The contents of this file are subject to the terms of either the GNU
+# General Public License Version 2 only ("GPL") or the Common
+# Development and Distribution License("CDDL") (collectively, the
+# "License"). You may not use this file except in compliance with the
+# License. You can obtain a copy of the License at
+# http://www.netbeans.org/cddl-gplv2.html
+# or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+# specific language governing permissions and limitations under the
+# License.  When distributing the software, include this License Header
+# Notice in each file and include the License file at
+# nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+# particular file as subject to the "Classpath" exception as provided
+# by Sun in the GPL Version 2 section of the License file that
+# accompanied this code. If applicable, add the following below the
+# License Header, with the fields enclosed by brackets [] replaced by
+# your own identifying information:
+# "Portions Copyrighted [year] [name of copyright owner]"
+#
+# Contributor(s):
+#
+# The Original Software is NetBeans. The Initial Developer of the Original
+# Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+# Microsystems, Inc. All Rights Reserved.
+#
+# If you wish your version of this file to be governed by only the CDDL
+# or only the GPL Version 2, indicate your decision by adding
+# "[Contributor] elects to include this software in this distribution
+# under the [CDDL or GPL Version 2] license." If you do not indicate a
+# single choice of license, a recipient has the option to distribute
+# your version of this file under either the CDDL, the GPL Version 2 or
+# to extend the choice of license to its licensees as provided above.
+# However, if you add GPL Version 2 code and therefore, elected the GPL
+# Version 2 license, then the option applies only if the new code is
+# made subject to such option by the copyright holder.
+
+########### tokens #############################################################
+TOKEN:ps_line_comment:( "#" [^ "\n" "\r"]* )
+TOKEN:ps_prefix_postfix_operator:( "++" | "--" )
+TOKEN:ps_format_operator: ( "-f" )
+TOKEN:ps_assignment_operator: ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" )
+TOKEN:ps_unary_operator: ( "!" | "-not" | "-bnot" )
+TOKEN:ps_additive_operator: ( "+" | "-" )
+TOKEN:ps_logical_operator: ( "-and" | "-or" )
+TOKEN:ps_bitwise_operator: ( "-band" | "-bor" )
+TOKEN:ps_multiplicative_operator: ( "*" | "/" )
+TOKEN:ps_redirectiron_operator: ( "1>>" | "2>&" | "2>>" | "2>" | ">>" | ">" | "<<" | "<" )
+TOKEN:ps_dereference_operator: ( "." | "::" | "[" | "]" | "@" | ":")
+TOKEN:ps_range_operator: ( ".." )
+TOKEN:ps_comparison_operator: (
+    "-lt"
+    | "-le"
+    | "-eq"
+    | "-nq"
+    | "-ge"
+    | "-gt"
+    | "-ilt"
+    | "-ile"
+    | "-ieq"
+    | "-inq"
+    | "-ige"
+    | "-igt"
+    | "-clt"
+    | "-cle"
+    | "-ceq"
+    | "-cnq"
+    | "-cge"
+    | "-cgt"
+    | "-and"
+    | "-or"
+    | "-not"
+    | "-band"
+    | "-bor"
+    | "-bnot"
+    | "-match"
+    | "-nomatch"
+    | "-like"
+    | "-notlike"
+    | "-cmatch"
+    | "-cnomatch"
+    | "-clike"
+    | "-cnotlike"
+    | "-imatch"
+    | "-inomatch"
+    | "-ilike"
+    | "-inotlike"
+    | "-contains" 
+    | "-nocontains" 
+    | "-ccontains" 
+    | "-cnocontains" 
+    | "-icontains" 
+    | "-inocontains"
+    | "-isnot"
+    | "-is"
+    | "-as"
+    | "-replace"
+    | "-ireplace"
+    | "-creplace"
+)
+
+TOKEN:ps_statement_separator: ( ";" | "&&" | "||" |  "|" )
+
+TOKEN:ps_separator: ( "{" | "}"  | "(" | ")" | "\\" | "," )
+
+TOKEN:ps_command: (
+    "Add-Content" 
+    | "Add-History" 
+    | "Add-Member" 
+    | "Add-PSSnapin" 
+    | "Clear-Content" 
+    | "Clear-Item" 
+    | "Clear-ItemProperty" 
+    | "Clear-Variable" 
+    | "Compare-Object" 
+    | "ConvertFrom-SecureString" 
+    | "Convert-Path" 
+    | "ConvertTo-Html" 
+    | "ConvertTo-SecureString" 
+    | "Copy-Item" 
+    | "Copy-ItemProperty" 
+    | "Export-Alias" 
+    | "Export-Clixml" 
+    | "Export-Console" 
+    | "Export-Csv" 
+    | "ForEach-Object" 
+    | "Format-Custom" 
+    | "Format-List" 
+    | "Format-Table" 
+    | "Format-Wide" 
+    | "Get-Acl" 
+    | "Get-Alias" 
+    | "Get-AuthenticodeSignature" 
+    | "Get-ChildItem" 
+    | "Get-Command" 
+    | "Get-Content" 
+    | "Get-Credential" 
+    | "Get-Culture" 
+    | "Get-Date" 
+    | "Get-EventLog" 
+    | "Get-ExecutionPolicy" 
+    | "Get-Help" 
+    | "Get-History" 
+    | "Get-Host" 
+    | "Get-Item" 
+    | "Get-ItemProperty" 
+    | "Get-Location" 
+    | "Get-Member" 
+    | "Get-PfxCertificate" 
+    | "Get-Process" 
+    | "Get-PSDrive" 
+    | "Get-PSProvider" 
+    | "Get-PSSnapin" 
+    | "Get-Service" 
+    | "Get-TraceSource" 
+    | "Get-UICulture" 
+    | "Get-Unique" 
+    | "Get-Variable" 
+    | "Get-WmiObject" 
+    | "Group-Object" 
+    | "Import-Alias" 
+    | "Import-Clixml"
+    | "Import-Csv" 
+    | "Invoke-Expression" 
+    | "Invoke-History" 
+    | "Invoke-Item" 
+    | "Join-Path" 
+    | "Measure-Command" 
+    | "Measure-Object" 
+    | "Move-Item" 
+    | "Move-ItemProperty" 
+    | "New-Alias" 
+    | "New-Item" 
+    | "New-ItemProperty" 
+    | "New-Object" 
+    | "New-PSDrive" 
+    | "New-Service" 
+    | "New-TimeSpan" 
+    | "New-Variable" 
+    | "Out-Default" 
+    | "Out-File" 
+    | "Out-Host" 
+    | "Out-Null" 
+    | "Out-Printer" 
+    | "Out-String" 
+    | "Pop-Location" 
+    | "Push-Location" 
+    | "Read-Host" 
+    | "Remove-Item" 
+    | "Remove-ItemProperty" 
+    | "Remove-PSDrive" 
+    | "Remove-PSSnapin" 
+    | "Remove-Variable" 
+    | "Rename-Item" 
+    | "Rename-ItemProperty" 
+    | "Resolve-Path" 
+    | "Restart-Service" 
+    | "Resume-Service" 
+    | "Select-Object" 
+    | "Select-String" 
+    | "Set-Acl" 
+    | "Set-Alias" 
+    | "Set-AuthenticodeSignature" 
+    | "Set-Content" 
+    | "Set-Date" 
+    | "Set-ExecutionPolicy" 
+    | "Set-Item" 
+    | "Set-ItemProperty" 
+    | "Set-Location" 
+    | "Set-PSDebug" 
+    | "Set-Service" 
+    | "Set-TraceSource" 
+    | "Set-Variable" 
+    | "Sort-Object" 
+    | "Split-Path" 
+    | "Start-Service" 
+    | "Start-Sleep" 
+    | "Start-Transcript" 
+    | "Stop-Process" 
+    | "Stop-Service" 
+    | "Stop-Transcript" 
+    | "Suspend-Service" 
+    | "Tee-Object" 
+    | "Test-Path" 
+    | "Trace-Command" 
+    | "Update-FormatData" 
+    | "Update-TypeData" 
+    | "Where-Object" 
+    | "Write-Debug" 
+    | "Write-Error" 
+    | "Write-Host" 
+    | "Write-Output" 
+    | "Write-Progress" 
+    | "Write-Verbose" 
+    | "Write-Warning"
+)
+
+TOKEN:ps_keyword:(
+    "begin" 
+    | "break" 
+    | "continue" 
+    | "do" 
+    | "elseif" 
+    | "else" 
+    | "end" 
+    | "exit" 
+    | "fi" 
+    | "for" 
+    | "foreach" 
+    | "filter" 
+    | "function" 
+    | "if" 
+    | "in" 
+    | "return" 
+    | "switch"
+    | "trap" 
+    | "while"
+)
+
+TOKEN:ps_label:( ":" ["a" - "z"]+ )
+TOKEN:ps_number:(["0"-"9"] ["0"-"9" "."]*)
+TOKEN:ps_expandable_string:( "\"" ( [^ "\"" "\n" "\r"] | ("\\" ["r" "n" "t" "\\" "\'" "\""]) )* "\"" )
+
+TOKEN:ps_string:( "\'" ( [^ "\'" "\n" "\r"] | ("\\" ["r" "n" "t" "\\" "\'" "\""]) )* "\'" )
+
+TOKEN:ps_whitespace:( [" " "\t" "\n" "\r"]+ )
+
+TOKEN:ps_variable:( "$" "{" ["a"-"z" "_"] ["a"-"z" "A"-"Z" "0"-"9" "-" "_"]* "}" | "$" ["a"-"z" "_"] ["a"-"z" "A"-"Z" "0"-"9" "-" "_"]* )
+
+TOKEN:ps_flag:( "-" ["a"-"z" "A"-"Z" "_"] ["a"-"z" "A"-"Z" "0"-"9" "-" "_"]* )
+
+TOKEN:ps_class:( ["A"-"Z" "_"] ["a"-"z" "A"-"Z" "0"-"9" "-" "_"]* )
+
+TOKEN:ps_identifier:( ["a"-"z" "_"] ["a"-"z" "A"-"Z" "0"-"9" "-" "_"]* )
+
+########### colors #############################################################
+COLOR:ps_line_comment: {
+    default_coloring:"line_comment";
+    foreground_color:"0xB22222";
+}
+
+COLOR:ps_prefix_postfix_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_format_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+    font_type:"italic";
+}
+
+COLOR:ps_assignment_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_unary_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_additive_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_logical_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_bitwise_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_multiplicative_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_redirectiron_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_dereference_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_range_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_comparison_operator:{
+    default_coloring:"operator";
+    foreground_color:"gray";
+}
+
+COLOR:ps_statement_separator:{
+    default_coloring:"operator";
+    foreground_color:"0xB22222";
+    font_type:"bold";
+}
+
+COLOR:ps_separator:{
+    default_coloring:"operator";
+    foreground_color:"0xB22222";
+}
+
+COLOR:ps_command:{
+    default_coloring:"keyword";
+    foreground_color:"0x1E7AAB";
+}
+
+COLOR:ps_keyword:{
+    default_coloring:"keyword";
+    foreground_color:"0x8BC9FF";
+}
+
+COLOR:ps_label:{
+    default_coloring:"identifier";
+}
+
+COLOR:ps_expandable_string:{
+    default_coloring:"string";
+    foreground_color:"0xBC8F8F";
+    font_type:"bold";
+}
+
+COLOR:ps_string:{
+    default_coloring:"string";
+    foreground_color:"0x008080"; 
+    font_type:"bold-italics";
+}
+
+COLOR:ps_number:{
+    default_coloring:"number";
+    foreground_color:"red"; 
+    font_type:"bold";
+}
+
+COLOR:ps_whitespace:{
+    default_coloring:"whitespace";
+}
+
+COLOR:ps_variable:{
+    default_coloring:"identifier";
+    font_type:"bold";
+}
+
+COLOR:ps_flag:{
+    default_coloring:"identifier";
+    foreground_color:"gray";
+    font_type:"italic";
+}
+
+COLOR:ps_class:{
+    default_coloring:"identifier";
+    foreground_color:"gray";
+}
+
+COLOR:ps_identifier:{
+    default_coloring:"identifier";
+}
+
+# COLOR:ps_attribute_specification {
+#     default_coloring:"identifier";
+# }
+
+########### grammar ############################################################
+
+# SKIP:ps_whitespace
+# SKIP:ps_line_comment
+
+# statementListRule                   = statementRule ( PS_STATEMENTSEPARATOR_TOKEN statementRule )*;
+# statementBlockRule                  = '{' statementListRule '}';
+# statementRule                       = ifStatementRule | foreachStatementRule | forWhileStatementRule | doWhileStatementRule | functionDeclarationRule | parameterDeclarationRule | flowControlStatementRule | trapStatementRule | finallyStatementRule | pipelineRule;
+# pipelineRule                        = assignmentStatement | firstPipelineElement ( '|' cmdletCall )*;# assignmentStatementRule             = lvalueExpression PS_ASSIGNMENTOPERATOR_TOKEN pipelineRule;
+# lvalueExpression                    = lvalue;
+# lvalue                              = simpleLvalue propertyOrArrayReferenceOperator*;
+# simpleLvalue                        = PS_ATTRIBUTESPECIFICATION_TOKEN* PS_VARIABLE_TOKEN;
+# firstPipelineElement                = expressionRule | cmdletCall;
+# cmdletCall                          = [ '&' | '.' | empty ] [ name | expressionRule ] ( PS_PARAMETER_TOKEN | PS_PARAMETERARGUMENT_TOKEN | postfixOperatorRule | redirectionRule )*;
+# redirectionRule                     = PS_REDIRECTIONOPERATOR_TOKEN propertyOrArrayReferenceRule;
+# ifStatementRule                     = 'if' '(' pipelineRule ')' statementBlockRule  ( 'elseif' '(' pipelineRule ')' statementBlockRule )* [ 'else' statementBlockRule ];
+# foreachStatementRule                = (PS_LOOPLABEL_TOKEN)? 'foreach' '(' PS_VARIABLE_TOKEN  'in' pipelineRule ')' statementBlockRule;
+# forWhileStatementRule               = (PS_LOOPLABEL_TOKEN)? 'while' '(' pipelineRule ')' statementBlockRule | [ PS_LOOPLABEL_TOKEN ] 'for' '(' ( pipelineRule )? ';' ( pipelineRule)? ';' (pipelineRule)? ')' statementBlockRule;
+# doWhileStatementRule                = (PS_LOOPLABEL_TOKEN)? 'do' statementBlockRule ['while' | 'until'] '(' pipelineRule ')';
+# trapStatementRule                   = 'trap' PS_ATTRIBUTESPECIFICATION_TOKEN? statementBlockRule;
+# finallyStatementRule                = 'finally' statementBlockRule;
+# flowControlStatementRule            = ['break' | 'continue'] [ PS_PROPERTYNAME_TOKEN | propertyOrArrayReferenceRule] | 'return' pipelineRule;
+# functionDeclarationRule             = PS_FUNCTIONDECLARATION_TOKEN PS_PARAMETERARGUMENT_TOKEN [ '(' parameterDeclarationExpressionRule ')' ] cmdletBodyRule;
+# cmdletBodyRule                      =  '{' [ '(' parameterDeclarationExpressionRule ')' ] ( 'begin' statementBlock | 'process' statementBlock | 'end' statementBlock )* | statementList '}';
+# parameterDeclarationRule            = PS_PARAMETERDECLARATION_TOKEN '(' parameterDeclarationExpressionRule ')';
+# parameterDeclarationExpressionRule  = parameterWithIntializer ( PS_COMMA_TOKEN parameterWithIntializer )*;
+# parameterWithIntializer             = simpleLvalue [ '='  expressionRule ];
+# expressionRule                      = logicalExpressionRule;
+# logicalExpressionRule               = bitwiseExpressionRule ( PS_LOGICALOPERATOR_TOKEN bitwiseExpressionRule )*;
+# bitwiseExpressionRule               = comparisonExpressionRule ( PS_BITWISEOPERATOR_TOKEN comparisonExpressionRule )*;
+# comparisonExpressionRule            = addExpressionRule ( PS_COMPARISONOPERATOR_TOKEN addExpressionRule )*;
+# addExpressionRule                   = multiplyExpressionRule ( PS_ADDITIONOPERATOR_TOKEN multiplyExpressionRule )*;
+# multiplyExpressionRule              = formatExpressionRule [ PS_MULTIPLYOPERATOR_TOKEN formatExpressionRule ];
+# formatExpressionRule                = rangeExpressionRule ( PS_FORMATOPERATOR_TOKEN rangeExpressionRule )*;
+# rangeExpressionRule                 = arrayLiteralRule ( PS_RANGEOPERATOR_TOKEN arrayLiteralRule )*;
+# arrayLiteralRule                    = postfixOperatorRule ( PS_COMMA_TOKEN postfixOperatorRule )*;
+# postfixOperatorRule                 = lvalueExpression PS_PREPOSTFIXOPERATOR_TOKEN | propertyOrArrayReferenceRule;
+# propertyOrArrayReferenceRule        = valueRule propertyOrArrayReferenceOperator*;
+# propertyOrArrayReferenceOperator    = '[' expressionRule ']' [ | '.' [ PS_PROPERTYNAME_TOKEN (parseCallRule)? | valueRule ] ];
+# parseCallRule                       = '(' arrayLiteralRule ')';
+# valueRule                           = '(' (assignmentStatementRule ')' | '$(' statementListRule ')' | '@(' statementListRule ')' | cmdletBodyRule ) '}';
+
+########### folds ##############################################################
+
+# FOLD:cmdletBodyRule:"{...}"
+# FOLD:ps_line_comment:"{...}"
+
+
+########### marks ##############################################################
+
+#  MARK:ERROR {
+#      type:"Error";
+#      message:"Syntax error.";
+#  }
+
+#  MARK:error {
+#      type:"Error";
+#      message:"Unexpected character.";
+#  }
+
+########### navigation #########################################################
+
+########### indents ############################################################
+
+#  INDENT "(:)"
+#  INDENT "{:}"
+#  INDENT "[:]"
+#  INDENT "\\s*(((if|while)\\s*\\(|else\\s*|else\\s+if\\s*\\(|for\\s*\\(.*\\))[^{;]*)"
+

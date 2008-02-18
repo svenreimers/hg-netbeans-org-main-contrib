@@ -1,0 +1,144 @@
+<!--
+   - DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+   -
+   - Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+   -
+   - The contents of this file are subject to the terms of either the GNU
+   - General Public License Version 2 only ("GPL") or the Common
+   - Development and Distribution License("CDDL") (collectively, the
+   - "License"). You may not use this file except in compliance with the
+   - License. You can obtain a copy of the License at
+   - http://www.netbeans.org/cddl-gplv2.html
+   - or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+   - specific language governing permissions and limitations under the
+   - License.  When distributing the software, include this License Header
+   - Notice in each file and include the License file at
+   - nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+   - particular file as subject to the "Classpath" exception as provided
+   - by Sun in the GPL Version 2 section of the License file that
+   - accompanied this code. If applicable, add the following below the
+   - License Header, with the fields enclosed by brackets [] replaced by
+   - your own identifying information:
+   - "Portions Copyrighted [year] [name of copyright owner]"
+   -
+   - Contributor(s):
+   -
+   - The Original Software is NetBeans. The Initial Developer of the Original
+   - Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+   - Microsystems, Inc. All Rights Reserved.
+   -
+   - If you wish your version of this file to be governed by only the CDDL
+   - or only the GPL Version 2, indicate your decision by adding
+   - "[Contributor] elects to include this software in this distribution
+   - under the [CDDL or GPL Version 2] license." If you do not indicate a
+   - single choice of license, a recipient has the option to distribute
+   - your version of this file under either the CDDL, the GPL Version 2 or
+   - to extend the choice of license to its licensees as provided above.
+   - However, if you add GPL Version 2 code and therefore, elected the GPL
+   - Version 2 license, then the option applies only if the new code is
+   - made subject to such option by the copyright holder.
+  -->
+
+<html>
+<body>
+API classes and interfaces that serve as an entry point to a metadata repository.
+The fundamental classes in this regard are <a href="MDRManager.html">MDRManager</a>
+and <a href="MDRepository.html">MDRepository</a>.
+<p>MDRManager is used to access repositories (represented
+by instances of MDRepository, these can then be used
+to access instances of MOF metamodels (represented by javax.jmi.reflect.RefPackage instances
+corresponding to package proxies for outermost packages of the metamodels). MDRManager is
+a singleton. There can be several repositories in the system (accessible via MDRManager) and
+each repository may contain any number of instances of any number of metamodels.
+
+<h3>Creating Metamodel Instances</h3>
+Here is an example code showing how to create a new empty instance of MOF metamodel
+that can be used e.g. to load XMI files conforming to MOF:
+<p>
+<pre>
+    // get default repository
+    MDRepository repository = MDRManager.getDefault().getDefaultRepository();
+    // create a new instance of MOF metamodel - name it MyInstanceOfMOF
+    RefPackage mof = null;
+    try {
+        mof = repository.createExtent("MyInstanceOfMOF");
+    } catch (CreationFailedException e) {
+        // handle the failure - happens if extent (i.e. metamodel instance) named
+        // MyInstanceOfMOF already exists in the repository, or if some other fatal
+        // error occurs
+        ...
+    }
+    ...
+</pre>
+
+<h3>Accessing Metamodel Instances</h3>
+Instances of metamodels in the repository are also called extents. Following is
+an example code that retrieves a reference to an extent created in the first example
+from the repository:
+<p>
+<pre>
+    // get default repository
+    MDRepository repository = MDRManager.getDefault().getDefaultRepository();
+    // get an extent named MyInstanceOfMOF
+    RefPackage mof = repository.getExtent("MyInstanceOfMOF");
+    if (mof == null) {
+        // the previous call returned null - it means that an extent with a given
+        // name was not found
+        System.out.println("Extent named MyInstanceOfMOF not found in the repository.");
+        ...
+    }
+    ...
+</pre>
+
+<h3>Working with Transactions</h3>
+MDRepository interfaces supports transactional processing. Simple atomic per-repository
+transactions are assumed. Capability of real nested transactions is optional (see description
+of beginTrans and endTrans method of <a href="MDRepository.html">MDRepository</a> class for
+more information.
+<p>When working with transactions it is important to strictly enforce the following pattern:
+<ol>
+    <li>Start a transaction
+    <li>Start a try block
+    <li>Do the work
+    <li>Finalize the transaction in the finally clause of the try block
+</ol>
+When not using explicit transactions, it is assumed that all JMI calls
+are auto-commited.
+<p>It is essential to use transactions in multithreaded applications especially
+when iterating through the content of collections returned from JMI calls (since
+these collections are live) to avoid concurrent modifications. Here is an example code
+that iterates through all class proxies in a given extent and uses a read-only transaction
+to ensure that the collection is not modified by other thread during the iteration:
+<p>
+<pre>
+    // get the default repository
+    MDRepository repository = MDRManager.getDefault().getDefaultRepository();
+    // start a read-only transaction
+    repository.beginTrans(false);
+    try {
+        // get an extent named MyInstanceOfMOF (assuming that this extent was already created by
+        // other part of the application
+        RefPackage mof = repository.getExtent("MyInstanceOfMOF");
+        for (Iterator it = mof.refAllClasses(); it.hasNext();) {
+            RefClass clsProxy = (RefClass) it.next();
+            // print name of the class proxy meta-object
+            System.out.println(((MofClass) clsProxy.refMetaObject()).getName());
+        }
+    } finally {
+        // release the transaction
+        repository.endTrans();
+    }
+</pre>
+
+<h3>Other Use-Cases</h3>
+Please see <a href="../xmi/package-summary.html">MDR XMI API description</a> for more info 
+on how to load/save XMI files into/from repository extents.
+<p>Also for a more complete example of an application that uses MDR to load UML metamodel, 
+instantiate it in the repository, load an UML model from XMI to the instance of UML metamodel, 
+transform it to MOF (into an instance of MOF metamodel) and serialize it to XMI as an instance
+of MOF, please refer to the source code of the 
+<a href="http://www.netbeans.org/source/browse/~checkout~/mdr/extras/uml2mof/src/org/netbeans/lib/jmi/uml2mof/Main.java?content-type=text/plain">Main class</a>
+of <a href="http://mdr.netbeans.org/uml2mof">UML2MOF tool</a>.
+</body>
+</html>
+

@@ -1,0 +1,6 @@
+OpenIDE-Module: org.netbeans.modules.loaderswitcher/1
+OpenIDE-Module-Implementation-Version: 1
+OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/loaderswitcher/Bundle.properties
+
+Name: org/netbeans/modules/loaderswitcher/ChangeTypeAction.class
+OpenIDE-Module-Class: Action

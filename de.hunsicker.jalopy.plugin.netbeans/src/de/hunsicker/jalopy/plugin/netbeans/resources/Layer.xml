@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+
+	<!-- ##################################################################### -->
+
+	<folder name="Actions">
+
+		<folder name="Tools">
+			<file name="de-hunsicker-jalopy-plugin-netbeans-FormatAction.instance"/>
+			<file name="de-hunsicker-jalopy-plugin-netbeans-SettingsAction.instance"/>
+		</folder>    <!--folder name="Tools"-->
+
+	</folder>  <!--folder name="Actions"-->
+
+	<!-- ##################################################################### -->
+
+	<folder name="Menu">
+
+		<folder name="Source">
+			<file name="de-hunsicker-jalopy-plugin-netbeans-FormatAction.shadow">
+				<attr name="originalFile" stringvalue="Actions/Tools/de-hunsicker-jalopy-plugin-netbeans-FormatAction.instance"/>
+                                <attr name="position" intvalue="310"/>
+			</file>
+		</folder>    <!--folder name="Source"-->
+
+		<folder name="Tools">
+			<file name="de-hunsicker-jalopy-plugin-netbeans-SettingsAction.shadow">
+				<attr name="originalFile" stringvalue="Actions/Tools/de-hunsicker-jalopy-plugin-netbeans-SettingsAction.instance"/>
+                                <attr name="position" intvalue="1710"/>
+			</file>
+		</folder>    <!--folder name="Tools"-->
+
+	</folder>  <!--folder name="Menu"-->
+
+	<!-- ##################################################################### -->
+
+	<folder name="Shortcuts">
+
+		<file name="CS-F10.shadow">
+			<attr name="originalFile" stringvalue="Actions/Tools/de-hunsicker-jalopy-plugin-netbeans-FormatAction.instance"/>
+		</file>
+
+	</folder>  <!--folder name="Shortcuts"-->
+
+	<!-- ##################################################################### -->
+
+	<folder name="Editors">
+
+		<folder name="AnnotationTypes">
+			<file name="de-hunsicker-jalopy-plugin-netbeans-error.xml" url="error-annotation.xml"/>
+			<file name="de-hunsicker-jalopy-plugin-netbeans-warn.xml" url="warn-annotation.xml"/>
+		</folder>    <!--folder name="AnnotationTypes"-->
+
+		<folder name="text">
+			<folder name="x-java">
+				<folder name="Popup">
+					<file name="de-hunsicker-jalopy-plugin-netbeans-FormatAction.shadow">
+						<attr name="originalFile" stringvalue="Actions/Tools/de-hunsicker-jalopy-plugin-netbeans-FormatAction.instance"/>
+                                                <attr name="position" intvalue="1470"/>
+					</file>
+				</folder>
+			</folder>
+		</folder>    <!--folder name="text"-->
+
+	</folder>  <!--folder name="Editors"-->
+
+	<!-- ##################################################################### -->
+
+	<folder name="Loaders">
+
+		<folder name="text">
+			<folder name="x-java">
+				<folder name="Actions">
+					<file name="de-hunsicker-jalopy-plugin-netbeans-FormatAction.shadow">
+						<attr name="originalFile" stringvalue="Actions/Tools/de-hunsicker-jalopy-plugin-netbeans-FormatAction.instance"/>
+                                                <attr name="position" intvalue="2070"/>
+					</file>
+				</folder>
+			</folder>
+		</folder>    <!--folder name="text"-->
+
+		<folder name="folder">
+			<folder name="any">
+				<folder name="Actions">
+					<file name="de-hunsicker-jalopy-plugin-netbeans-FormatAction.shadow">
+						<attr name="originalFile" stringvalue="Actions/Tools/de-hunsicker-jalopy-plugin-netbeans-FormatAction.instance"/>
+                                                <attr name="position" intvalue="1270"/>
+					</file>
+				</folder>
+			</folder>
+		</folder>    <!--folder name="folder"-->
+
+	</folder>  <!--folder name="Loaders"-->
+
+</filesystem>

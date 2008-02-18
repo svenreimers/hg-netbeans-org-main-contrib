@@ -1,0 +1,9 @@
+rmi/src/**/Bundle.properties
+rmi/libsrc/**/Bundle.properties
+rmi/src/org/netbeans/modules/rmi/resources/*.html
+rmi/javahelp/org/netbeans/modules/rmi/docs/**/*.html
+rmi/javahelp/org/netbeans/modules/rmi/docs/**/*.jhm
+rmi/javahelp/org/netbeans/modules/rmi/docs/**/*.hs
+rmi/javahelp/org/netbeans/modules/rmi/docs/**/*.xml
+rmi/javahelp/org/netbeans/modules/rmi/docs/**/*.gif
+rmi/javahelp/org/netbeans/modules/rmi/docs/**/*.css
