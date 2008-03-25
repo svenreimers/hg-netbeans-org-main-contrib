@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,7 +20,13 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- * 
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -31,53 +37,41 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
- * 
- * Contributor(s):
- * 
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.scala.editing;
 
-/*
- * Definition of Scala lexical tokens.
- * 
+import org.netbeans.modules.gsf.api.CompilationInfo;
+import org.netbeans.modules.gsf.api.ElementHandle;
+import org.netbeans.modules.gsf.api.OffsetRange;
+import org.netbeans.modules.gsf.api.ParserResult;
+import org.netbeans.modules.gsf.api.PositionManager;
+import org.netbeans.modules.scala.editing.nodes.AstElement;
+
+/**
+ *
  * @author Caoyuan Deng
  */
-module org.netbeans.modules.scala.editing.rats.LexerScala;
+public class ScalaPositionManager implements PositionManager {
 
-import org.netbeans.modules.scala.editing.rats.Character;
-import org.netbeans.modules.scala.editing.rats.Identifier;
-import org.netbeans.modules.scala.editing.rats.Keyword;
-import org.netbeans.modules.scala.editing.rats.Literal;
-import org.netbeans.modules.scala.editing.rats.Spacing;
-import org.netbeans.modules.scala.editing.rats.Symbol;
-import org.netbeans.modules.scala.editing.rats.Xml;
+    public OffsetRange getOffsetRange(CompilationInfo info, ElementHandle object) {
+        OffsetRange range = OffsetRange.NONE;
 
-option flatten;
+        if (object instanceof AstElement) {
+            AstElement astElement = (AstElement) object;
+            range = AstUtilities.getRange(info, astElement.getNode());
+        }
+        return range;
+    }
 
-public generic Token = 
-  Keyword               
-/ XmlExpr              
-/ BlockComment   
-/ LineComment           
-/ Identifier           
-/ Nl                   
-/ Ws                  
-/ Literal
-/ Separator
-/ Error      
-/ EOF
-;
+    public boolean isTranslatingSource() {
+        return false;
+    }
 
-// ----- Literal
+    public int getLexicalOffset(ParserResult result, int astOffset) {
+        return astOffset;
+    }
 
-transient generic Literal =
-  FloatingPointLiteral
-/ IntegerLiteral
-/ CharacterLiteral
-/ StringLiteral
-/ SymbolLiteral
-;
-
-transient generic XmlExpr =
-  &( ' ' / '(' / '{' ) ( Ws / Separator ) XmlElement ;
-
+    public int getAstOffset(ParserResult result, int lexicalOffset) {
+        return lexicalOffset;
+    }
+}
