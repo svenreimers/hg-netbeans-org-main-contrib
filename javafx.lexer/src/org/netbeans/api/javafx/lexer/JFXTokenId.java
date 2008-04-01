@@ -1,3 +1,44 @@
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder.
+ */
+
 package org.netbeans.api.javafx.lexer;
 
 import org.netbeans.api.java.lexer.JavaStringTokenId;
@@ -47,7 +88,7 @@ public enum JFXTokenId implements TokenId {
     THIS("keyword", 36),
     RETURN("keyword-directive", 32),
     DoubleQuoteBody("string", 140),
-    TRANSLATION_KEY("literal", 151),
+    TRANSLATION_KEY("i18n-artifact", 151),
     VAR("keyword", 40),
     SUPER("keyword", 33),
     LAST("keyword", 65),
@@ -64,7 +105,7 @@ public enum JFXTokenId implements TokenId {
     STATIC("keyword", 35),
     PRIVATE("keyword", 28),
     SEQ_INDEX(null, 123),
-    NULL("literal", 24),
+    NULL("keyword-literal", 24),
     ELSE("keyword-directive", 54),
     ON("keyword", 67),
     DELETE("keyword", 13),
@@ -87,7 +128,7 @@ public enum JFXTokenId implements TokenId {
     CATCH("keyword-directive", 53),
     FROM("keyword", 59),
     REVERSE("keyword", 70),
-    FALSE("literal", 14),
+    FALSE("keyword-literal", 14),
     INIT("keyword", 19),
     Letter("identifier", 161),
     DECIMAL_LITERAL("number", 152),
@@ -158,7 +199,7 @@ public enum JFXTokenId implements TokenId {
     CLASS_MEMBERS(null, 105),
     MODULE(null, 103),
     READONLY("keyword", 31),
-    TRUE("literal", 39),
+    TRUE("keyword-literal", 39),
     SEMI("separator", 79),
     COLON("operator", 99),
     POSTINIT(null, 27),
@@ -166,7 +207,7 @@ public enum JFXTokenId implements TokenId {
     PERCENTEQ("operator", 98),
     FINALLY("keyword-directive", 57),
     OVERRIDE("keyword", 25),
-    FORMAT_STRING_LITERAL("string", 149),
+    FORMAT_STRING_LITERAL("format", 149),
     BLOCK(null, 110),
     SEQ_EMPTY(null, 128),
     SEQ_SLICE(null, 124),
