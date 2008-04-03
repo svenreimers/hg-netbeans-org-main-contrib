@@ -303,9 +303,10 @@ public class Clearcase {
     
     public void getOriginalFile(File workingCopy, File originalFile) {
         FileInformation info = Clearcase.getInstance().getFileStatusCache().getInfo(workingCopy);        
-        if ((info.getStatus() & FileInformation.STATUS_DIFFABLE) == 0) return;
+        if (!workingCopy.exists() || ((info.getStatus() & FileInformation.STATUS_DIFFABLE) == 0) ) return;
         try {
             File original = VersionsCache.getInstance().getRemoteFile(workingCopy, VersionsCache.REVISION_BASE, true);
+            if(!workingCopy.exists()) return;
             if (original == null) {
                 throw new IOException("Unable to get BASE revision of " + workingCopy);
             }
