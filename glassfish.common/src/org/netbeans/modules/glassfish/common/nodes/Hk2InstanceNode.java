@@ -54,14 +54,18 @@ import org.netbeans.modules.glassfish.common.actions.StartServerAction;
 import org.netbeans.modules.glassfish.common.actions.StopServerAction;
 import org.netbeans.modules.glassfish.common.actions.ViewAdminConsoleAction;
 import org.netbeans.modules.glassfish.common.nodes.actions.RefreshModulesAction;
+import org.netbeans.modules.glassfish.common.nodes.actions.RefreshModulesCookie;
 import org.netbeans.spi.glassfish.GlassfishModule;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
-import org.openide.nodes.Node;
 import org.openide.util.Mutex;
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
+import org.openide.util.WeakListeners;
 import org.openide.util.actions.SystemAction;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
+import org.openide.util.lookup.ProxyLookup;
 
 
 /**
@@ -91,24 +95,32 @@ public class Hk2InstanceNode extends AbstractNode implements ChangeListener { //
     
 
     private final GlassfishInstance serverInstance;
+    private final InstanceContent instanceContent;
     private volatile String displayName = null;
     private volatile String shortDesc = null;
+
+    public Hk2InstanceNode(final GlassfishInstance instance, boolean isFullNode) {
+        this(instance, new InstanceContent(), isFullNode);
+    }
     
-    public Hk2InstanceNode(final GlassfishInstance instance, boolean showChildren) {
-        super(showChildren ? new Children.Array() : Children.LEAF, instance.getLookup());
+    private Hk2InstanceNode(final GlassfishInstance instance, final InstanceContent ic, boolean isFullNode) {
+        super(isFullNode ? new Hk2InstanceChildren(instance) : Children.LEAF, 
+                new ProxyLookup(new AbstractLookup(ic), instance.getLookup()));
         serverInstance = instance;
+        instanceContent = ic;
         setIconBaseWithExtension(ICON_BASE);
         
-        if(showChildren) {
-            getChildren().add(new Node[] {
-                new Hk2ItemNode(instance.getLookup(), 
-                        new Hk2ApplicationsChildren(instance.getLookup()),
-                        NbBundle.getMessage(Hk2InstanceNode.class, "LBL_Apps"),
-                        Hk2ItemNode.J2EE_APPLICATION_FOLDER)
+        if(isFullNode) {
+            serverInstance.addChangeListener(WeakListeners.change(this, serverInstance));
+            instanceContent.add(new RefreshModulesCookie() {
+                public void refresh() {
+                    Children children = getChildren();
+                    if(children instanceof Refreshable) {
+                        ((Refreshable) children).updateKeys();
+                    }
+                }
             });
         }
-        
-        serverInstance.addChangeListener(this);
     }
 
     @Override

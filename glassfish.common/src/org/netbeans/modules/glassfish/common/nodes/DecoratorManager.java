@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
- *
+ * 
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * 
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,13 +20,7 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- *
- * Contributor(s):
- *
- * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2007 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
+ * 
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -37,62 +31,51 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
+ * 
+ * Contributor(s):
+ * 
+ * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.glassfish.common.nodes.actions;
+package org.netbeans.modules.glassfish.common.nodes;
 
-import java.util.Collection;
-import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
-import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
+import java.util.HashMap;
+import org.netbeans.spi.glassfish.Decorator;
+import org.netbeans.spi.glassfish.DecoratorFactory;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
- * @author Michal Mocnak
  * @author Peter Williams
  */
-public class RefreshModulesAction extends NodeAction {
+public final class DecoratorManager {
+
+    private static volatile java.util.Map<String, Decorator> decoratorMap;
     
-    public RefreshModulesAction() {
+    private DecoratorManager() {
     }
     
-    protected boolean enable(Node[] nodes) {
-        for(Node node:nodes) {
-            RefreshModulesCookie cookie = node.getCookie(RefreshModulesCookie.class);
-            if (cookie == null) {
-                return false;
-            }
+    private static synchronized void initDecorators() {
+        if(decoratorMap != null) {
+            return;
         }
         
-        return true;
-    }    
-    
-    public String getName() {
-        return NbBundle.getMessage(RefreshModulesAction.class, "LBL_RefreshModulesAction"); // NOI18N
-    }
-    
-    protected void performAction(Node[] nodes) {
-        for(Node node:nodes) {
-//            RefreshModulesCookie cookie = node.getCookie(RefreshModulesCookie.class);
-//            if (cookie != null) {
-//                cookie.refresh();
-//            }
-            Collection<? extends RefreshModulesCookie> cookies = 
-                    node.getLookup().lookupAll(RefreshModulesCookie.class);
-            for(RefreshModulesCookie cookie: cookies) {
-                cookie.refresh();
-            }
+        // Find all decorator support, categorize by type.
+        decoratorMap = new HashMap<String, Decorator>();;
+        for (DecoratorFactory decoratorFactory : 
+                Lookups.forPath("Servers/GlassFish").lookupAll(DecoratorFactory.class)) { // NOI18N
+            java.util.Map<String, Decorator> map = decoratorFactory.getAllDecorators();
+            decoratorMap.putAll(map);
         }
     }
     
-    @Override
-    protected boolean asynchronous() {
-        return false;
-    }
-    
-    public org.openide.util.HelpCtx getHelpCtx() {
-        return HelpCtx.DEFAULT_HELP;
+    public static Decorator findDecorator(String type, Decorator defaultDecorator) {
+        if(decoratorMap == null) {
+            initDecorators();
+        }
+        
+        Decorator d = decoratorMap.get(type);
+        return d != null ? d : defaultDecorator;
     }
     
 }

@@ -41,64 +41,45 @@
 
 package org.netbeans.modules.glassfish.common.nodes;
 
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Collection;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.modules.glassfish.common.CommandRunner;
-import org.netbeans.spi.glassfish.AppDesc;
-import org.netbeans.spi.glassfish.Decorator;
-import org.netbeans.spi.glassfish.GlassfishModule;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.netbeans.modules.glassfish.common.GlassfishInstance;
+import org.netbeans.spi.glassfish.GlassfishModule.ServerState;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.util.Lookup;
-import org.openide.util.RequestProcessor;
+import org.openide.util.Mutex;
+import org.openide.util.NbBundle;
+import org.openide.util.WeakListeners;
 
 
 /**
  * 
- * @author Ludovic Champenois
  * @author Peter Williams
  */
-public class Hk2ApplicationsChildren extends Children.Keys<Object> implements Refreshable {
+public class Hk2InstanceChildren extends Children.Keys<Hk2ItemNode> implements Refreshable, ChangeListener {
     
-    private Lookup lookup;
-    private final static Node WAIT_NODE = Hk2ItemNode.createWaitNode();
+    private GlassfishInstance serverInstance;
     
-    Hk2ApplicationsChildren(Lookup lookup) {
-        this.lookup = lookup;
+    Hk2InstanceChildren(GlassfishInstance instance) {
+        serverInstance = instance;
+        serverInstance.addChangeListener(WeakListeners.change(this, serverInstance));
     }
 
     public void updateKeys(){
-        setKeys(new Object[] { WAIT_NODE });
-        
-        RequestProcessor.getDefault().post(new Runnable() {
-            Vector<Object> keys = new Vector<Object>();
-            
-            public void run() {
-                GlassfishModule commonSupport = lookup.lookup(GlassfishModule.class);
-                if(commonSupport != null) {
-                    try {
-                        java.util.Map<String, String> ip = commonSupport.getInstanceProperties();
-                        CommandRunner mgr = new CommandRunner(ip);
-                        java.util.Map<String, List<AppDesc>> appMap = mgr.getApplications(null);
-                        for(Entry<String, List<AppDesc>> entry: appMap.entrySet()) {
-                            List<AppDesc> apps = entry.getValue();
-                            Decorator decorator = DecoratorManager.findDecorator(entry.getKey(), Hk2ItemNode.J2EE_APPLICATION);
-                            for(AppDesc app: apps) {
-                                keys.add(new Hk2ItemNode(lookup, app, decorator));
-                            }
-                        }
-                    } catch (Exception ex) {
-                        Logger.getLogger("glassfish").log(Level.INFO, ex.getLocalizedMessage(), ex);
-                    }
-                    
-                    setKeys(keys);
-                }
-            }
-        }, 0);
+        Vector<Hk2ItemNode> keys = new Vector<Hk2ItemNode>();
+        if(serverInstance.getServerState() == ServerState.RUNNING) {
+            keys.add(new Hk2ItemNode(serverInstance.getLookup(), 
+                    new Hk2ApplicationsChildren(serverInstance.getLookup()),
+                    NbBundle.getMessage(Hk2InstanceNode.class, "LBL_Apps"),
+                    Hk2ItemNode.J2EE_APPLICATION_FOLDER));
+            keys.add(new Hk2ItemNode(serverInstance.getLookup(), 
+                    new Hk2ResourcesChildren(serverInstance.getLookup()),
+                    NbBundle.getMessage(Hk2InstanceNode.class, "LBL_Resources"),
+                    Hk2ItemNode.RESOURCES_FOLDER));
+        }
+        setKeys(keys);
     }
     
     @Override
@@ -108,18 +89,19 @@ public class Hk2ApplicationsChildren extends Children.Keys<Object> implements Re
     
     @Override
     protected void removeNotify() {
-        setKeys((Set<? extends Object>) java.util.Collections.EMPTY_SET);
+        Collection<Hk2ItemNode> noKeys = java.util.Collections.emptySet();
+        setKeys(noKeys);
     }
     
-    protected org.openide.nodes.Node[] createNodes(Object key) {
-        if (key instanceof Hk2ItemNode){
-            return new Node [] { (Hk2ItemNode) key };
-        }
-        
-        if (key instanceof String && key.equals(WAIT_NODE)){
-            return new Node [] { WAIT_NODE };
-        }
-        
-        return null;
+    protected org.openide.nodes.Node[] createNodes(Hk2ItemNode key) {
+        return new Node [] { key };
+    }
+
+    public void stateChanged(ChangeEvent e) {
+        Mutex.EVENT.readAccess(new Runnable() {
+            public void run() {
+                updateKeys();
+            }
+        });
     }
 }
