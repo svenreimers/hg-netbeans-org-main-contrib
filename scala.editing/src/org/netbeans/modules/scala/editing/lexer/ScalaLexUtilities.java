@@ -61,8 +61,11 @@ import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.Utilities;
 import org.netbeans.modules.scala.editing.ScalaMimeResolver;
+import org.openide.cookies.EditorCookie;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 
 /**
@@ -280,10 +283,45 @@ public class ScalaLexUtilities {
     public static Token<? extends ScalaTokenId> findPreviousNonWsNonComment(TokenSequence<? extends ScalaTokenId> ts) {
         return findPrevious(ts, WS_COMMENT);
     }
+    private static final List<ScalaTokenId> WS = Arrays.asList(
+            ScalaTokenId.Ws,
+            ScalaTokenId.Nl);
+
+    public static Token<? extends ScalaTokenId> findNextNonWs(TokenSequence<? extends ScalaTokenId> ts) {
+        return findNext(ts, WS);
+    }
+
+    public static Token<? extends ScalaTokenId> findPreviousNonWs(TokenSequence<? extends ScalaTokenId> ts) {
+        return findPrevious(ts, WS);
+    }
 
     public static Token<? extends ScalaTokenId> findNext(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> ignores) {
         if (ignores.contains(ts.token().id())) {
             while (ts.moveNext() && ignores.contains(ts.token().id())) {
+            }
+        }
+        return ts.token();
+    }
+
+    public static Token<? extends ScalaTokenId> findPrevious(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> ignores) {
+        if (ignores.contains(ts.token().id())) {
+            while (ts.movePrevious() && ignores.contains(ts.token().id())) {
+            }
+        }
+        return ts.token();
+    }
+
+    public static Token<? extends ScalaTokenId> findNext(TokenSequence<? extends ScalaTokenId> ts, ScalaTokenId id) {
+        if (ts.token().id() != id) {
+            while (ts.moveNext() && ts.token().id() != id) {
+            }
+        }
+        return ts.token();
+    }
+
+    public static Token<? extends ScalaTokenId> findPrevious(TokenSequence<? extends ScalaTokenId> ts, ScalaTokenId id) {
+        if (ts.token().id() != id) {
+            while (ts.movePrevious() && ts.token().id() != id) {
             }
         }
         return ts.token();
@@ -297,14 +335,6 @@ public class ScalaLexUtilities {
 
     public static Token<? extends ScalaTokenId> findPreviousIncluding(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> includes) {
         while (ts.movePrevious() && !includes.contains(ts.token().id())) {
-        }
-        return ts.token();
-    }
-
-    public static Token<? extends ScalaTokenId> findPrevious(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> ignores) {
-        if (ignores.contains(ts.token().id())) {
-            while (ts.movePrevious() && ignores.contains(ts.token().id())) {
-            }
         }
         return ts.token();
     }
@@ -1150,6 +1180,95 @@ public class ScalaLexUtilities {
         return -1;
     }
 
+    /**
+     * Get the comment block for the given offset. The offset may be either within the comment
+     * block, or the comment corresponding to a code node, depending on isAfter.
+     * 
+     * @param doc The document
+     * @param caretOffset The offset in the document
+     * @param isAfter If true, the offset is pointing to some code AFTER the code block
+     *   such as a method node. In this case it needs to back up to find the comment.
+     * @return
+     */
+    public static OffsetRange getCommentBlock(BaseDocument doc, int caretOffset, boolean isAfter) {
+        // Check if the caret is within a comment, and if so insert a new
+        // leaf "node" which contains the comment line and then comment block
+        try {
+            TokenSequence<? extends TokenId> ts = getTokenSequence(doc, caretOffset);
+            if (ts == null) {
+                return OffsetRange.NONE;
+            }
+            ts.move(caretOffset);
+            if (isAfter) {
+                while (ts.movePrevious()) {
+                    TokenId id = ts.token().id();
+                    if (isComment(id)) {
+                        return getCommentBlock(doc, ts.offset(), false);
+                    } else if (!((id == ScalaTokenId.Ws) || (id == ScalaTokenId.Nl))) {
+                        return OffsetRange.NONE;
+                    }
+                }
+                return OffsetRange.NONE;
+            }
+
+            if (!ts.moveNext() && !ts.movePrevious()) {
+                return null;
+            }
+            Token<? extends TokenId> token = ts.token();
+
+            if (token != null && isBlockComment(token.id())) {
+                return new OffsetRange(ts.offset(), ts.offset() + token.length());
+            }
+
+            if ((token != null) && (token.id() == ScalaTokenId.LineComment)) {
+                // First add a range for the current line
+                int begin = Utilities.getRowStart(doc, caretOffset);
+                int end = Utilities.getRowEnd(doc, caretOffset);
+
+                if (isCommentOnlyLine(doc, caretOffset)) {
+
+                    while (begin > 0) {
+                        int newBegin = Utilities.getRowStart(doc, begin - 1);
+
+                        if ((newBegin < 0) || !isCommentOnlyLine(doc, newBegin)) {
+                            begin = Utilities.getRowFirstNonWhite(doc, begin);
+                            break;
+                        }
+
+                        begin = newBegin;
+                    }
+
+                    int length = doc.getLength();
+
+                    while (true) {
+                        int newEnd = Utilities.getRowEnd(doc, end + 1);
+
+                        if ((newEnd >= length) || !isCommentOnlyLine(doc, newEnd)) {
+                            end = Utilities.getRowLastNonWhite(doc, end) + 1;
+                            break;
+                        }
+
+                        end = newEnd;
+                    }
+
+                    if (begin < end) {
+                        return new OffsetRange(begin, end);
+                    }
+                } else {
+                    // It's just a line comment next to some code
+                    TokenHierarchy<Document> th = TokenHierarchy.get((Document) doc);
+                    int offset = token.offset(th);
+                    return new OffsetRange(offset, offset + token.length());
+                }
+            }
+        } catch (BadLocationException ble) {
+            Exceptions.printStackTrace(ble);
+        }
+
+        return OffsetRange.NONE;
+    }
+
+
 //    public static boolean isInsideQuotedString(BaseDocument doc, int offset) {
 //        TokenSequence<?extends ScalaTokenId> ts = FortressLexUtilities.getTokenSequence(doc, offset);
 //
@@ -1202,94 +1321,6 @@ public class ScalaLexUtilities {
         }
 
         return false;
-    }
-
-    /**
-     * Get the comment block for the given offset. The offset may be either within the comment
-     * block, or the comment corresponding to a code node, depending on isAfter.
-     * 
-     * @param doc The document
-     * @param caretOffset The offset in the document
-     * @param isAfter If true, the offset is pointing to some code AFTER the code block
-     *   such as a method node. In this case it needs to back up to find the comment.
-     * @return
-     */
-    public static OffsetRange getCommentBlock(BaseDocument doc, int caretOffset, boolean isAfter) {
-        // Check if the caret is within a comment, and if so insert a new
-        // leaf "node" which contains the comment line and then comment block
-        try {
-            TokenSequence<? extends TokenId> ts = ScalaLexUtilities.getTokenSequence(doc, caretOffset);
-            if (ts == null) {
-                return OffsetRange.NONE;
-            }
-            ts.move(caretOffset);
-            if (isAfter) {
-                while (ts.movePrevious()) {
-                    TokenId id = ts.token().id();
-                    if (isComment(id)) {
-                        return getCommentBlock(doc, ts.offset(), false);
-                    } else if (!((id == ScalaTokenId.Ws) || (id == ScalaTokenId.Nl))) {
-                        return OffsetRange.NONE;
-                    }
-                }
-                return OffsetRange.NONE;
-            }
-
-            if (!ts.moveNext() && !ts.movePrevious()) {
-                return null;
-            }
-            Token<? extends TokenId> token = ts.token();
-
-            if (token != null && (token.id() == ScalaTokenId.BlockCommentData)) {
-                return new OffsetRange(ts.offset(), ts.offset() + token.length());
-            }
-
-            if ((token != null) && (token.id() == ScalaTokenId.LineComment)) {
-                // First add a range for the current line
-                int begin = Utilities.getRowStart(doc, caretOffset);
-                int end = Utilities.getRowEnd(doc, caretOffset);
-
-                if (ScalaLexUtilities.isCommentOnlyLine(doc, caretOffset)) {
-
-                    while (begin > 0) {
-                        int newBegin = Utilities.getRowStart(doc, begin - 1);
-
-                        if ((newBegin < 0) || !ScalaLexUtilities.isCommentOnlyLine(doc, newBegin)) {
-                            begin = Utilities.getRowFirstNonWhite(doc, begin);
-                            break;
-                        }
-
-                        begin = newBegin;
-                    }
-
-                    int length = doc.getLength();
-
-                    while (true) {
-                        int newEnd = Utilities.getRowEnd(doc, end + 1);
-
-                        if ((newEnd >= length) || !ScalaLexUtilities.isCommentOnlyLine(doc, newEnd)) {
-                            end = Utilities.getRowLastNonWhite(doc, end) + 1;
-                            break;
-                        }
-
-                        end = newEnd;
-                    }
-
-                    if (begin < end) {
-                        return new OffsetRange(begin, end);
-                    }
-                } else {
-                    // It's just a line comment next to some code
-                    TokenHierarchy<Document> th = TokenHierarchy.get((Document) doc);
-                    int offset = token.offset(th);
-                    return new OffsetRange(offset, offset + token.length());
-                }
-            }
-        } catch (BadLocationException ble) {
-            Exceptions.printStackTrace(ble);
-        }
-
-        return OffsetRange.NONE;
     }
 
     /**
@@ -1475,4 +1506,28 @@ public class ScalaLexUtilities {
         }
 
     }
+
+    public static OffsetRange getRangeOfToken(TokenHierarchy th, Token token) {
+        final int offset = token.offset(th);
+        return new OffsetRange(offset, offset + token.length());
+    }
+    
+    public static BaseDocument getDocument(FileObject fileObject, boolean openIfNecessary) {
+        try {
+            DataObject dobj = DataObject.find(fileObject);
+            
+            EditorCookie ec = dobj.getCookie(EditorCookie.class);
+            if (ec != null) {
+                return (BaseDocument)(openIfNecessary ? ec.openDocument() : ec.getDocument());
+            }
+        } catch (DataObjectNotFoundException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        
+        return null;
+    }
+
+    
 }

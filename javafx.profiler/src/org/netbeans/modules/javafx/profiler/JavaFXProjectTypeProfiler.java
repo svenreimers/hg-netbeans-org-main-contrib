@@ -58,8 +58,15 @@ import org.netbeans.modules.profiler.AbstractProjectTypeProfiler;
 import org.netbeans.modules.profiler.ui.ProfilerDialogs;
 import org.netbeans.modules.profiler.utils.AppletSupport;
 import org.netbeans.modules.profiler.utils.ProjectUtilities;
+import org.netbeans.modules.profiler.projectsupport.utilities.SourceUtils;
+import org.netbeans.modules.javafx.project.JavaFXProject;
+import org.netbeans.api.javafx.source.JavaFXSourceUtils;
 import org.netbeans.spi.project.AuxiliaryConfiguration;
-import org.netbeans.spi.project.support.ant.*;
+import org.netbeans.spi.project.support.ant.PropertyEvaluator;
+import org.netbeans.spi.project.support.ant.PropertyProvider;
+import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
+import org.netbeans.spi.project.support.ant.AntProjectHelper;
+import org.netbeans.spi.project.support.ant.PropertyUtils;
 import org.openide.ErrorManager;
 import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileLock;
@@ -69,14 +76,18 @@ import org.openide.modules.InstalledFileLocator;
 import org.openide.util.NbBundle;
 import org.openide.xml.XMLUtil;
 import org.w3c.dom.Element;
-import java.io.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.OutputStreamWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Properties;
 import javax.swing.event.ChangeListener;
-import org.netbeans.modules.profiler.projectsupport.utilities.SourceUtils;
-
 
 /**
  * @author Tomas Hurka
@@ -146,6 +157,8 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
     private static final String PROFILER_IMPORT_STRING = "<import file=\"nbproject/profiler-build-impl.xml\"/>"; // NOI18N
     private static final String PROFILE_VERSION_ATTRIBUTE = "version"; // NOI18N
     private static final String VERSION_NUMBER = "0.9.1"; // NOI18N
+    private static final String JAVAFX_MIME_TYPE = "text/x-fx"; // NOI18N
+    private static final String JAVA_MIME_TYPE = "text/x-java"; // NOI18N    
 
     //~ Instance fields ----------------------------------------------------------------------------------------------------------
 
@@ -161,8 +174,13 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
             !"fx".equals(fo.getExt())) {
             return false; // NOI18N
         }
-
-        return SourceUtils.isRunnable(fo);
+        
+        if (JAVA_MIME_TYPE.equals(fo.getMIMEType()))
+            return SourceUtils.isRunnable(fo);
+            
+        // TBD: need to determine if the selected fx class is executable
+        // currently returns true for any fx file
+        return JAVAFX_MIME_TYPE.equals(fo.getMIMEType());
     }
 
     @Override
@@ -189,7 +207,8 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
                 return "profile"; // NOI18N
             case TARGET_PROFILE_SINGLE:
 
-                if (SourceUtils.isApplet(profiledClassFile)) {
+                if (SourceUtils.isApplet(profiledClassFile) || 
+                    JavaFXSourceUtils.isJavaFXApplet(profiledClassFile)) {
                     return "profile-applet"; // NOI18N
                 } else {
                     return "profile-single"; // NOI18N
@@ -205,6 +224,7 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
 
     // --- ProjectTypeProfiler implementation ------------------------------------------------------------------------------
     public boolean isProfilingSupported(final Project project) {
+        
         final AuxiliaryConfiguration aux = (AuxiliaryConfiguration) project.getLookup().lookup(AuxiliaryConfiguration.class);
 
         if (aux == null) {
@@ -422,6 +442,7 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
 
     @Override
     public void configurePropertiesForProfiling(final Properties props, final Project project, final FileObject profiledClassFile) {
+        PropertyEvaluator projectProps = getProjectProperties(project);        
         if (profiledClassFile == null) {
             if (mainClassSetManually != null) {
                 props.put("main.class", mainClassSetManually); // NOI18N
@@ -430,15 +451,15 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
         } else {
             // In case the class to profile is explicitely selected (profile-single)
             // 1. specify profiled class name
-            if (SourceUtils.isApplet(profiledClassFile)) {
+            if (SourceUtils.isApplet(profiledClassFile) ||
+                JavaFXSourceUtils.isJavaFXApplet(profiledClassFile)) {
                 String jvmargs = props.getProperty("run.jvmargs"); // NOI18N
 
-                URL url = null;
+                URL url = null;                
 
                 // do this only when security policy is not set manually
                 if ((jvmargs == null) || !(jvmargs.indexOf("java.security.policy") > 0)) { //NOI18N
-
-                    PropertyEvaluator projectProps = getProjectProperties(project);
+                    
                     String buildDirProp = projectProps.getProperty("build.dir"); //NOI18N
                                                                                  // TODO [M9] what if buildDirProp is null?
 
@@ -470,15 +491,33 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
                 props.setProperty("applet.url", url.toString()); // NOI18N
             } else {
                 final String profiledClass = SourceUtils.getToplevelClassName(profiledClassFile);
-                props.setProperty("profile.class", profiledClass); //NOI18N
-            }
-
-            // 2. include it in javac.includes so that the compile-single picks it up
-            final String clazz = FileUtil.getRelativePath(ProjectUtilities.getRootOf(ProjectUtilities.getSourceRoots(project),
+                if (null != profiledClass) {
+                    props.setProperty("profile.class", profiledClass); //NOI18N
+                    final String clazz = FileUtil.getRelativePath(ProjectUtilities.getRootOf(ProjectUtilities.getSourceRoots(project),
                                                                                      profiledClassFile), profiledClassFile);
-            props.setProperty("javac.includes", clazz); //NOI18N
+                    props.setProperty("javac.includes", clazz); //NOI18N
+                } else {
+                    // XXX TBD:  single file profiling temporary switched off
+                    // due to #132598 
+                    /* 
+                    if (project instanceof JavaFXProject) {
+                        JavaFXProject projectJFX = (JavaFXProject)project;
+                        String clazz = FileUtil.getRelativePath(getRoot(projectJFX.getSourceRoots().getRoots(),profiledClassFile), profiledClassFile);
+                        props.setProperty("javac.includes", clazz); // NOI18N
+                        clazz = clazz.substring(0, clazz.length() - 3);
+                        clazz = clazz.replace('/','.');
+                        props.setProperty("profile.class", clazz); //NOI18N
+                    }
+                     */
+                    // temporary solution to avoid profile-single build target failure
+                    // TBD
+                    props.setProperty("profile.class", projectProps.getProperty("main.class"));
+                    props.setProperty("javac.includes", projectProps.getProperty("main.class")); 
+                }
+            }
         }
     }
+    
 
     @Override
     public void setupProjectSessionSettings(final Project project, final SessionSettings ss) {
@@ -612,6 +651,17 @@ public final class JavaFXProjectTypeProfiler extends AbstractProjectTypeProfiler
                                                                          });
 
         return pe;
+    }
+
+    private FileObject getRoot(FileObject[] roots, FileObject file) {
+        FileObject srcDir = null;
+        for (int i=0; i< roots.length; i++) {
+            if (FileUtil.isParentOf(roots[i],file) || roots[i].equals(file)) {
+                srcDir = roots[i];
+                break;
+            }
+        }
+        return srcDir;
     }
 
     private void setupMarks(final Project project) {

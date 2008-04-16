@@ -68,11 +68,6 @@ implements Runnable {
         refresh.schedule(2000);
     }
 
-    @Override
-    public void addNotify() {
-        super.addNotify();
-    }
-
     public static FoDFileSystem getInstance() {
         return Lookup.getDefault().lookup(FoDFileSystem.class);
     }
@@ -81,6 +76,7 @@ implements Runnable {
         refresh.schedule(0);
         refresh.waitFinished();
     }
+    
     public void run() {
         Lookup.Result<FeatureInfo> result = ProjectTypeCreator.featureTypesLookup().lookupResult(FeatureInfo.class);
         
@@ -95,7 +91,7 @@ implements Runnable {
         setDelegates(delegate.toArray(new FileSystem[0]));
     }
     
-    public URL getParentFileSystem(FileObject template) {
+    public URL getDelegateFileSystem(FileObject template) {
         Lookup.Result<FeatureInfo> result = ProjectTypeCreator.featureTypesLookup().lookupResult(FeatureInfo.class);
         
         String path = template.getPath();

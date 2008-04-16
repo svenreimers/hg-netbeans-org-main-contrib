@@ -117,7 +117,7 @@ public class EnableStep implements WizardDescriptor.AsynchronousValidatingPanel<
         Object templateO = settings.getProperty (FeatureOnDemanWizardIterator.CHOSEN_TEMPLATE);
         assert templateO != null && templateO instanceof FileObject : templateO + " is not null and instanceof FileObject.";
         FileObject templateFO = (FileObject) templateO;
-        layer = FoDFileSystem.getInstance().getParentFileSystem (templateFO);
+        layer = FoDFileSystem.getInstance().getDelegateFileSystem (templateFO);
     }
 
     public void storeSettings (WizardDescriptor settings) {
@@ -217,7 +217,7 @@ public class EnableStep implements WizardDescriptor.AsynchronousValidatingPanel<
             o + " is not null and instanceof WizardDescriptor.InstantiatingIterator";
         WizardDescriptor.InstantiatingIterator iterator = (WizardDescriptor.InstantiatingIterator) o;
         iterator.initialize (wd);
-        wd.putProperty (FeatureOnDemanWizardIterator.TEMPORARY_DELEGATE_ITERATOR, iterator);
+        wd.putProperty (FeatureOnDemanWizardIterator.DELEGATE_ITERATOR, iterator);
         fireChange ();
     }
     

@@ -44,6 +44,7 @@ package org.netbeans.modules.groovy.editor.parser;
 import java.io.IOException;
 import java.util.Scanner;
 import org.codehaus.groovy.ast.ASTNode;
+import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.groovy.editor.AstPath;
@@ -51,6 +52,8 @@ import org.netbeans.modules.groovy.editor.AstUtilities;
 import org.netbeans.modules.groovy.editor.test.GroovyTestBase;
 import org.netbeans.modules.groovy.editor.test.TestCompilationInfo;
 import org.openide.filesystems.FileObject;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  *
@@ -61,6 +64,16 @@ public class GroovyParserTest extends GroovyTestBase {
     public GroovyParserTest(String testName) {
         super(testName);
     }
+    
+    @Override
+    protected void setUp() throws IOException {
+        super.setUp();
+        Logger.getLogger(org.netbeans.modules.groovy.editor.parser.GroovyParser.class.getName())
+                .setLevel(Level.FINEST);
+    }
+    
+    
+    
     
     private void checkParseTree(FileObject file, String caretLine, String nodeName) throws IOException {
         CompilationInfo info = getInfo(file);
@@ -134,6 +147,45 @@ public class GroovyParserTest extends GroovyTestBase {
                 "\t}\n" +
                 "}");
         checkParseTree(testFO, "void ^main", "MethodNode");
+    }
+    
+    public void testAstUtilitiesGetRoot() throws IOException {
+        copyStringToFileObject(testFO,
+                "class Hello {\n" +
+                "\tdef name = 'aaa'\n" +
+                "\tprintln name\n" +
+                "\tstatic void main(args) {\n" +
+                "\t\tprintln 'Hello, world'\n" +
+                "\t}\n" +
+                "}");
+        
+        CompilationInfo info = getInfo(testFO);
+        ASTNode root = AstUtilities.getRoot(info);
+        AstPath path = new AstPath(root ,1, (BaseDocument)info.getDocument());
+        assertNotNull("new AstPath() failed", path);
+    }    
+    
+    
+    public void testSanatizerLimitations() throws IOException {
+        
+        copyStringToFileObject(testFO,
+                "def m() {\n" +
+                "\tObject x = new Object()\n" +
+                "\tx.\n" +
+                "}\n");
+        
+        /*
+            0000000   d   e   f       m   (   )       {  \n  \t   O   b   j   e   c
+            0000016   t       x       =       n   e   w       O   b   j   e   c   t
+            0000032   (   )  \n  \t   x   .  \n   }  \n
+         */
+        
+        CompilationInfo info = getInfo(testFO);
+        ASTNode root = AstUtilities.getRoot(info);
+        // The code above is brocken (x. unfinisched method/memeber access)
+        // *AND* can not be repaired at the time of this writing (# 131317) 
+        // by the sanatizer, therefore we expect a null here.
+        assertNull(root);
     }
 
 }

@@ -38,15 +38,16 @@
  */
 package org.netbeans.modules.scala.editing;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.ImageIcon;
+import javax.swing.text.Document;
+import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.ElementHandle;
 import org.netbeans.modules.gsf.api.ElementKind;
@@ -55,9 +56,10 @@ import org.netbeans.modules.gsf.api.Modifier;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.gsf.api.StructureItem;
 import org.netbeans.modules.gsf.api.StructureScanner;
-import org.netbeans.modules.scala.editing.visitors.Definition;
-import org.netbeans.modules.scala.editing.visitors.Scope;
-import xtc.tree.Node;
+import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
+import org.netbeans.modules.scala.editing.nodes.AstDef;
+import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.openide.util.Exceptions;
 
 /**
  *
@@ -76,20 +78,17 @@ public class ScalaStructureAnalyzer implements StructureScanner {
             return Collections.emptyList();
         }
 
-        Node root = result.getRootNode();
-        if (root == null) {
-            return Collections.emptyList();
-        }
-
-        Scope rootScope = result.getRootScope();
+        AstScope rootScope = result.getRootScope();
         if (rootScope == null) {
             return Collections.emptyList();
         }
-        
+
         List<StructureItem> items = new ArrayList<StructureItem>();
 
-        for (Definition definition : rootScope.getDefinitions()) {
-            items.add(new ScalaStructureItem(definition, info, formatter));
+        for (AstDef def : rootScope.getDefs()) {
+            if (def.getKind() != ElementKind.PARAMETER && def.getKind() != ElementKind.VARIABLE) {
+                items.add(new ScalaStructureItem(def, info, formatter));
+            }
         }
 
         return items;
@@ -101,12 +100,7 @@ public class ScalaStructureAnalyzer implements StructureScanner {
             Collections.emptyList();
         }
 
-        Node root = result.getRootNode();
-        if (root == null) {
-            Collections.emptyMap();
-        }
-
-        Scope rootScope = result.getRootScope();
+        AstScope rootScope = result.getRootScope();
         if (rootScope == null) {
             return Collections.emptyMap();
         }
@@ -164,18 +158,30 @@ public class ScalaStructureAnalyzer implements StructureScanner {
 
     private class ScalaStructureItem implements StructureItem {
 
-        private Definition definition;
+        private AstDef def;
         private CompilationInfo info;
+        private Document doc;
         private HtmlFormatter formatter;
 
-        private ScalaStructureItem(Definition definition, CompilationInfo info, HtmlFormatter formatter) {
-            this.definition = definition;
+        private ScalaStructureItem(AstDef def, CompilationInfo info, HtmlFormatter formatter) {
+            this.def = def;
             this.info = info;
+
+            try {
+                this.doc = info.getDocument();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+
+            if (doc == null) {
+                ScalaLexUtilities.getDocument(info.getFileObject(), true);
+            }
+
             this.formatter = formatter;
         }
 
         public String getName() {
-            return definition.getName();
+            return def.getName();
         }
 
         public String getSortText() {
@@ -184,194 +190,24 @@ public class ScalaStructureAnalyzer implements StructureScanner {
 
         public String getHtml() {
             formatter.reset();
-//            boolean strike = signature.getModifiers().contains(Modifier.DEPRECATED);
-//            if (strike) {
-//                formatter.deprecated(true);
-//            }
-
-            formatter.appendText(getName());
-
-//            if (strike) {
-//                formatter.deprecated(false);
-//            }
-
-//            if (definition.getNode() instanceof FnDef) {
-//                // Append parameters
-//                FnDef fnDef = (FnDef) definition.getNode();
-//                List<StaticParam> staticParams = fnDef.getStaticParams();
-//                if (staticParams.size() > 0) {
-//                    formatter.appendHtml("[\\");
-//
-//                    for (Iterator<StaticParam> itr = staticParams.iterator(); itr.hasNext();) {
-//                        StaticParam param = itr.next();
-//
-//                        if (param instanceof NatParam) {
-//                            formatter.appendText(param.toString());
-//                        } else if (param instanceof SimpleTypeParam) {
-//                            formatter.appendText(param.toString());
-//                        } else {
-//                            formatter.appendText(param.stringName());
-//                        }
-//
-//
-//                        if (itr.hasNext()) {
-//                            formatter.appendHtml(", ");
-//                        }
-//                    }
-//
-//                    formatter.appendHtml("\\]");
-//                }
-//
-//                Collection<Param> params = fnDef.getParams();
-//
-//                formatter.appendHtml("(");
-//                if ((params != null) && (params.size() > 0)) {
-//                    formatter.parameters(true);
-//
-//                    for (Iterator<Param> itr = params.iterator(); itr.hasNext();) {
-//                        Param param = itr.next();
-//                        String nameStr = param.getName().stringName();
-//                        formatter.appendText(nameStr);
-//
-//                        String typeStr = null;
-//                        if (param instanceof NormalParam) {
-//                            Option<Type> typeOption = ((NormalParam) param).getType();
-//                            if (typeOption.isNone()) {
-//                            } else {
-//                                Type type = Option.unwrap(typeOption);
-//                                typeStr = getTypeHtml(type);
-//                            }
-//                        } else if (param instanceof VarargsParam) {
-//                            Type type = ((VarargsParam) param).getVarargsType().getType();
-//                            typeStr = getTypeHtml(type) + "...";
-//                        }
-//                        if (typeStr != null) {
-//                            formatter.appendHtml(":");
-//                            formatter.appendText(typeStr);
-//                        }
-//
-//                        if (itr.hasNext()) {
-//                            formatter.appendHtml(", ");
-//                        }
-//                    }
-//
-//                    formatter.parameters(false);
-//                }
-//                formatter.appendHtml(")");
-//
-//                Option<Type> retType = fnDef.getReturnType();
-//                if (retType.isNone()) {
-//                } else if (retType.isSome()) {
-//                    formatter.appendHtml(" : ");
-//                    Type type = Option.unwrap(retType);
-//                    formatter.appendText(getTypeHtml(type));
-//                }
-//
-//            }
-
+            def.htmlFormat(formatter);
             return formatter.getText();
         }
 
-//        private String getTypeHtml(Type type) {
-//            StringBuilder sb = new StringBuilder();
-//
-//            if (type instanceof IdType) {
-//                String typeName = ((IdType) type).getName().getName().getText();
-//                sb.append(FortressUtils.unicodedTypeName(typeName));
-//            } else if (type instanceof TupleType) {
-//                sb.append("(");
-//                List<Type> elements = ((TupleType) type).getElements();
-//                for (Iterator<Type> itr = elements.iterator(); itr.hasNext();) {
-//                    sb.append(getTypeHtml(itr.next()));
-//
-//                    if (itr.hasNext()) {
-//                        sb.append(", ");
-//                    }
-//                }
-//                sb.append(")");
-//            } else if (type instanceof VoidType) {
-//                sb.append("()");
-//            } else if (type instanceof InstantiatedType) {
-//                String idName = ((InstantiatedType) type).getName().getName().getText();
-//                sb.append(idName);
-//                sb.append("[\\"); // "[\\" "\u27E6" LEFT WHITE SQUARE BRACKET 
-//
-//                List<StaticArg> args = ((InstantiatedType) type).getArgs();
-//                for (Iterator<StaticArg> itr = args.iterator(); itr.hasNext();) {
-//                    StaticArg arg = itr.next();
-//                    String argStr = getArgHtml(arg);
-//
-//                    sb.append(argStr);
-//
-//                    if (itr.hasNext()) {
-//                        sb.append(", ");
-//                    }
-//                }
-//                sb.append("\\]"); // "\\]" "\u27E7" RIGHT WHITE SQUARE BRACKET 
-//
-//            } else if (type instanceof ArrowType) {
-//                Type domain = ((ArrowType) type).getDomain();
-//                Type range = ((ArrowType) type).getRange();
-//
-//                sb.append(getTypeHtml(domain));
-//                sb.append("\u2192"); // "->"
-//
-//                sb.append(getTypeHtml(range));
-//            } else if (type instanceof ArrayType) {
-//                Type element = ((ArrayType) type).getElement();
-//                sb.append(getTypeHtml(element));
-//                sb.append("[");
-//
-//                Indices indices = ((ArrayType) type).getIndices();
-//                List<ExtentRange> extentRanges = indices.getExtents();
-//                for (Iterator<ExtentRange> itr = extentRanges.iterator(); itr.hasNext();) {
-//                    Option<StaticArg> arg = itr.next().getSize();
-//                    if (arg.isSome()) {
-//                        sb.append(getArgHtml(Option.unwrap(arg)));
-//                    }
-//
-//                    if (itr.hasNext()) {
-//                        sb.append(", ");
-//                    }
-//                }
-//
-//                sb.append("]");
-//            } else {
-//                // @todo, leave stringName to get its kind of type
-//                sb.append(type.stringName());
-//            }
-//
-//            return sb.toString();
-//        }
-
-//        private String getArgHtml(StaticArg arg) {
-//            String argStr = null;
-//
-//            if (arg instanceof TypeArg) {
-//                argStr = getTypeHtml(((TypeArg) arg).getType());
-//            } else if (arg instanceof IntArg) {
-//                argStr = ((IntArg) arg).getVal().toString();
-//            } else {
-//                argStr = getTypeHtml(arg);
-//            }
-//
-//            return argStr;
-//        }
-        
         public ElementHandle getElementHandle() {
-            return definition;
+            return def;
         }
 
         public ElementKind getKind() {
-            return definition.getKind();
+            return def.getKind();
         }
 
         public Set<Modifier> getModifiers() {
-            return definition.getModifiers();
+            return def.getModifiers();
         }
 
         public boolean isLeaf() {
-            switch (definition.getKind()) {
+            switch (def.getKind()) {
                 case ATTRIBUTE:
                 case CONSTANT:
                 case CONSTRUCTOR:
@@ -381,28 +217,31 @@ public class ScalaStructureAnalyzer implements StructureScanner {
                 case VARIABLE:
                 case OTHER:
                 case GLOBAL:
-                case PACKAGE:
                 case PROPERTY:
+                case PARAMETER:
                     return true;
 
                 case FILE:
+                case PACKAGE:
                 case MODULE:
                 case CLASS:
                     return false;
 
                 default:
-                    throw new RuntimeException("Unhandled kind: " + definition.getKind());
+                    throw new RuntimeException("Unhandled kind: " + def.getKind());
             }
         }
 
         public List<? extends StructureItem> getNestedItems() {
-            List<Definition> nested = definition.getBindingScope().getDefinitions();
+            List<AstDef> nested = def.getBindingScope().getDefs();
 
             if ((nested != null) && (nested.size() > 0)) {
                 List<ScalaStructureItem> children = new ArrayList<ScalaStructureItem>(nested.size());
 
-                for (Definition child : nested) {
-                    children.add(new ScalaStructureItem(child, info, formatter));
+                for (AstDef child : nested) {
+                    if (child.getKind() != ElementKind.PARAMETER && def.getKind() != ElementKind.VARIABLE) {
+                        children.add(new ScalaStructureItem(child, info, formatter));
+                    }
                 }
 
                 return children;
@@ -412,11 +251,23 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         }
 
         public long getPosition() {
-            return definition.getBindingScope().getRange().getStart();
+            /** @Todo: TokenHierarchy.get(doc) may throw NPE, don't why, need further dig */
+            try {
+                TokenHierarchy th = TokenHierarchy.get(doc);
+                return def.getOffset(th);
+            } catch (Exception ex) {
+                return 0;
+            }
         }
 
         public long getEndPosition() {
-            return definition.getBindingScope().getRange().getEnd();
+            /** @Todo: TokenHierarchy.get(doc) may throw NPE, don't why, need further dig */
+            try {
+                TokenHierarchy th = TokenHierarchy.get(doc);
+                return def.getEndOffset(th);
+            } catch (Exception ex) {
+                return 0;
+            }
         }
 
         @Override
@@ -431,7 +282,7 @@ public class ScalaStructureAnalyzer implements StructureScanner {
 
             ScalaStructureItem d = (ScalaStructureItem) o;
 
-            if (definition.getKind() != d.definition.getKind()) {
+            if (def.getKind() != d.def.getKind()) {
                 return false;
             }
 
@@ -447,7 +298,7 @@ public class ScalaStructureAnalyzer implements StructureScanner {
             int hash = 7;
 
             hash = (29 * hash) + ((this.getName() != null) ? this.getName().hashCode() : 0);
-            hash = (29 * hash) + ((this.definition.getKind() != null) ? this.definition.getKind().hashCode() : 0);
+            hash = (29 * hash) + ((this.def.getKind() != null) ? this.def.getKind().hashCode() : 0);
 
             return hash;
         }
@@ -461,5 +312,4 @@ public class ScalaStructureAnalyzer implements StructureScanner {
             return null;
         }
     }
-    
 }

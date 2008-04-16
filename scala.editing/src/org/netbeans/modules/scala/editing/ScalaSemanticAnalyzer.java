@@ -38,15 +38,19 @@
  */
 package org.netbeans.modules.scala.editing;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.text.Document;
+import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.ColoringAttributes;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.gsf.api.SemanticAnalyzer;
-import org.netbeans.modules.scala.editing.visitors.Scope;
-import org.netbeans.modules.scala.editing.visitors.Signature;
-import xtc.tree.Node;
+import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
+import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.netbeans.modules.scala.editing.nodes.AstElement;
+import org.openide.util.Exceptions;
 
 /**
  *  
@@ -85,20 +89,15 @@ public class ScalaSemanticAnalyzer implements SemanticAnalyzer {
             return;
         }
 
-        Node root = result.getRootNode();
-        if (root == null) {
-            return;
-        }
-
         if (isCancelled()) {
             return;
         }
 
-        Scope rootScope = result.getRootScope();
+        AstScope rootScope = result.getRootScope();
         if (rootScope == null) {
             return;
         }
-        
+
         Map<OffsetRange, ColoringAttributes> highlights = new HashMap<OffsetRange, ColoringAttributes>(100);
         visitScopeRecursively(info, rootScope, highlights);
 
@@ -121,28 +120,38 @@ public class ScalaSemanticAnalyzer implements SemanticAnalyzer {
         }
     }
 
-    private void visitScopeRecursively(CompilationInfo info, Scope scope, Map<OffsetRange, ColoringAttributes> highlights) {
-        for (Signature definition : scope.getDefinitions()) {
-            OffsetRange range = definition.getNameRange();
+    private void visitScopeRecursively(CompilationInfo info, AstScope scope, Map<OffsetRange, ColoringAttributes> highlights) {
+        final Document document;
+        try {
+            document = info.getDocument();
+        } catch (Exception e) {
+            Exceptions.printStackTrace(e);
+            return;
+        }
+
+        final TokenHierarchy th = TokenHierarchy.get(document);
+
+        for (AstElement definition : scope.getDefs()) {
+            OffsetRange idRange = ScalaLexUtilities.getRangeOfToken(th, definition.getIdToken());
             switch (definition.getKind()) {
                 case MODULE:
-                    highlights.put(range, ColoringAttributes.CLASS);
+                    highlights.put(idRange, ColoringAttributes.CLASS);
                     break;
                 case CLASS:
-                    highlights.put(range, ColoringAttributes.CLASS);
+                    highlights.put(idRange, ColoringAttributes.CLASS);
                     break;
                 case METHOD:
-                    highlights.put(range, ColoringAttributes.METHOD);
+                    highlights.put(idRange, ColoringAttributes.METHOD);
                     break;
                 case FIELD:
-                    highlights.put(range, ColoringAttributes.FIELD);
+                    highlights.put(idRange, ColoringAttributes.FIELD);
                     break;
                 default:
             }
 
         }
 
-        for (Scope child : scope.getScopes()) {
+        for (AstScope child : scope.getScopes()) {
             visitScopeRecursively(info, child, highlights);
         }
     }

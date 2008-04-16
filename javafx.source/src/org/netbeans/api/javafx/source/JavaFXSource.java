@@ -41,7 +41,9 @@ package org.netbeans.api.javafx.source;
 
 import com.sun.javafx.api.JavafxcTask;
 import com.sun.source.tree.CompilationUnitTree;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacFileManager;
+import com.sun.tools.javafx.api.JavafxcTaskImpl;
 import com.sun.tools.javafx.api.JavafxcTool;
 import java.io.IOException;
 import java.lang.ref.Reference;
@@ -51,14 +53,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.openide.cookies.EditorCookie;
@@ -92,6 +99,7 @@ public final class JavaFXSource {
     public static enum Phase {
         MODIFIED,
         PARSED,
+        ANALYZED,
         ELEMENTS_RESOLVED,
         RESOLVED,   
         UP_TO_DATE;
@@ -149,6 +157,8 @@ public final class JavaFXSource {
     static {
         // Start listening on the editor registry:
         EditorRegistryListener.singleton.toString();
+        // Start the factories ...
+        JavaFXSourceTaskFactoryManager.register();
 //        Init the maps
 //        phase2Message.put (Phase.PARSED,"Parsed");                              //NOI18N
 //        phase2Message.put (Phase.ELEMENTS_RESOLVED,"Signatures Attributed");    //NOI18N
@@ -177,37 +187,69 @@ public final class JavaFXSource {
         includedTasks = _includedTasks;
     }  
 
-    JavafxcTask createJavafxcTask() {
+    JavafxcTaskImpl createJavafxcTask() {
         JavafxcTool tool = JavafxcTool.create();
         JavacFileManager fileManager = tool.getStandardFileManager(null, null, Charset.defaultCharset());
         JavaFileObject jfo = (JavaFileObject) SourceFileObject.create(files.iterator().next(), null); // XXX
-        JavafxcTask task = tool.getTask(null, fileManager, null, null, Collections.singleton(jfo));
-//            Context context = task.getContext();
+        
+        List<String> options = new ArrayList<String>();
+        options.add("-Xbootclasspath/a:" + JavaFXSourceUtils.getAdditionalCP(""));
+        options.add("-Xjcov"); //NOI18N, Make the compiler store end positions
+        options.add("-XDdisableStringFolding"); //NOI18N
+        
+        JavafxcTaskImpl task = (JavafxcTaskImpl)tool.getTask(null, fileManager, new DiagnosticListener<JavaFileObject>() {
+
+            public void report(Diagnostic<? extends JavaFileObject> arg0) {
+                System.err.println("Error at [" + arg0.getLineNumber() + ":" + arg0.getColumnNumber() + "]/" + arg0.getEndPosition() + " - " + arg0.getMessage(null));
+            }
+        }, options, Collections.singleton(jfo));
+        Context context = task.getContext();
+        //Messager.preRegister(context, null, DEV_NULL, DEV_NULL, DEV_NULL);
         
         return task;
   }
 
-    public Phase moveToPhase(Phase phase, CompilationController cc, boolean b) throws IOException {
-        if (cc.phase.lessThan(Phase.PARSED)) {
-                Iterable<? extends CompilationUnitTree> trees = cc.getJavafxcTask().parse();
-//                new JavaFileObject[] {currentInfo.jfo});
+    public Phase moveToPhase(Phase phase, CompilationInfoImpl cc, boolean cancellable) throws IOException {
+        FileObject file = getFileObject();
+        
+        if (cc.phase.lessThan(Phase.PARSED) && !phase.lessThan(Phase.PARSED)) {
+            if (cancellable && CompilationJob.currentRequest.isCanceled()) {
+                //Keep the currentPhase unchanged, it may happen that an userActionTask
+                //runnig after the phace completion task may still use it.
+                return cc.phase;
+            }
 
-                System.err.println("Parsed to: ");
-                for (CompilationUnitTree cut : trees) {
-                    System.err.println("  cut:" + cut);
-                    cc.setCompilationUnit(cut);
-                }
-                /*                assert trees != null : "Did not parse anything";        //NOI18N
-                Iterator<? extends CompilationUnitTree> it = trees.iterator();
-                assert it.hasNext();
-                CompilationUnitTree unit = it.next();
-                currentInfo.setCompilationUnit(unit);
-*/
-                cc.phase = Phase.PARSED;
+            long start = System.currentTimeMillis();
+            Iterable<? extends CompilationUnitTree> trees = cc.getJavafxcTask().parse();
+//                new JavaFileObject[] {currentInfo.jfo});
+            Iterator<? extends CompilationUnitTree> it = trees.iterator();
+            assert it.hasNext();
+            CompilationUnitTree unit = it.next();
+            cc.setCompilationUnit(unit);
+            assert !it.hasNext();
+            cc.setPhase(Phase.PARSED);
+            long end = System.currentTimeMillis();
+            Logger.getLogger("TIMER").log(Level.FINE, "Compilation Unit", new Object[] {file, unit}); // log the instance
+            Logger.getLogger("TIMER").log(Level.FINE, "Parsed", new Object[] {file, end-start});
+        }
+
+        if (cc.phase == Phase.PARSED && !phase.lessThan(Phase.ANALYZED)) {
+            if (cancellable && CompilationJob.currentRequest.isCanceled()) {
+                return Phase.MODIFIED;
+            }
+
+            long start = System.currentTimeMillis();
+            cc.getJavafxcTask().analyze();
+            cc.setPhase(Phase.ANALYZED);
+            long end = System.currentTimeMillis();
+            Logger.getLogger("TIMER").log(Level.FINE, "Analyzed", new Object[] {file, end-start});
         }
         return phase;
     }
 
+    public FileObject getFileObject() {
+        return files.iterator().next();
+    }
     
     private JavaFXSource(ClasspathInfo cpInfo, Collection<? extends FileObject> files) throws IOException {
         this.cpInfo = cpInfo;
@@ -323,8 +365,9 @@ public final class JavaFXSource {
         }
     }
 
-    public static CompilationController createCurrentInfo (final JavaFXSource js, final String javafxc) throws IOException {                
-        CompilationController info = new CompilationController(js);//js, binding, javac);
+    public static CompilationController createCurrentInfo (final JavaFXSource js, final String javafxc) throws IOException {
+        CompilationInfoImpl impl = new CompilationInfoImpl(js);
+        CompilationController info = new CompilationController(impl);//js, binding, javac);
         return info;
     }
 
@@ -469,6 +512,13 @@ out:            for (Iterator<Collection<Request>> it = CompilationJob.finishedR
             LOGGER.log(Level.WARNING,String.format("File: %s has no EditorCookie.Observable", FileUtil.getFileDisplayName (od.getPrimaryFile())));      //NOI18N
         }
     }
+  
+    public Document getDocument() {
+        if ((listener == null) || (listener.getDocument() == null)) {
+            return null;
+        }
+        return listener.getDocument();
+    }
     
     public TokenHierarchy getTokenHierarchy() {
         if ((listener == null) || (listener.getDocument() == null)) {
@@ -476,6 +526,18 @@ out:            for (Iterator<Collection<Request>> it = CompilationJob.finishedR
         }
         TokenHierarchy th = TokenHierarchy.get(listener.getDocument());
         return th;
+    }
+    
+    String getText() {
+        if ((listener == null) || (listener.getDocument() == null)) {
+            return "";
+        }
+        try {
+            return listener.getDocument().getText(0, listener.getDocument().getLength());
+        } catch (BadLocationException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return "";
     }
     
     private static void handleAddRequest (final Request nr) {
@@ -495,7 +557,23 @@ out:            for (Iterator<Collection<Request>> it = CompilationJob.finishedR
         }
     }
     
-    
+        /**
+     * Performs the given task when the scan finished. When no background scan is running
+     * it performs the given task synchronously. When the background scan is active it queues
+     * the given task and returns, the task is performed when the background scan completes by
+     * the thread doing the background scan.
+     * @param task to be performed
+     * @param shared if true the java compiler may be reused by other {@link org.netbeans.api.java.source.CancellableTasks},
+     * the value false may have negative impact on the IDE performance.
+     * @return {@link Future} which can be used to find out the sate of the task {@link Future#isDone} or {@link Future#isCancelled}.
+     * The caller may cancel the task using {@link Future#cancel} or wait until the task is performed {@link Future#get}.
+     * @throws IOException encapsulating the exception thrown by {@link CancellableTasks#run}
+     * @since 0.12
+     */
+    public Future<Void> runWhenScanFinished (final Task<CompilationController> task, final boolean shared) throws IOException {
+        return CompilationJob.runWhenScanFinished(this, task, shared);
+    }
+
     /**
      * Returns a {@link JavaSource} instance associated to the given {@link javax.swing.Document},
      * it returns null if the {@link Document} is not

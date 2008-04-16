@@ -70,10 +70,15 @@ public interface GlassfishModule {
     public static final String DEBUG_MODE = "debugMode"; // NOI18N
     public static final String PROFILE_MODE = "profileMode"; // NOI18N
     
+    public static final String COMET_FLAG = "v3.grizzly.cometSupport"; // NOI18N
+    
     // Contract provider constants (identify the different containers in V3)
-    public static final String WEB_CONTAINER = "web_ContractProvider";
-    public static final String JRUBY_CONTAINER = "jruby_ContractProvider";
+    public static final String WEB_CONTAINER = "web"; // NOI18N
+    public static final String JRUBY_CONTAINER = "jruby"; // NOI18N
 
+    // Resource types
+    public static final String JDBC_RESOURCE = "jdbc-resource"; // NOI18N
+    public static final String JDBC_CONNECTION_POOL = "jdbc-connection-pool"; // NOI18N
     
     /**
      * Enum for the current state of the server (stopped, running, etc.)
@@ -219,6 +224,15 @@ public interface GlassfishModule {
      */
     public Future<OperationState> undeploy(OperationStateListener stateListener, 
             String name);
+    
+    /**
+     * Execute the specified server command.
+     * 
+     * @param command Object representing the server command to execute.
+     * 
+     * @return Future instance that finishes when the command has been completed.
+     */
+    public Future<OperationState> execute(ServerCommand command);
     
     /**
      * List the applications currently deployed on the server.

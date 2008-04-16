@@ -46,7 +46,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +61,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeListener;
 import org.netbeans.modules.glassfish.common.nodes.Hk2InstanceNode;
 import org.netbeans.api.server.ServerInstance;
+import org.netbeans.modules.glassfish.common.ui.InstanceCustomizer;
 import org.netbeans.spi.glassfish.CustomizerCookie;
+import org.netbeans.spi.glassfish.GlassfishModule;
 import org.netbeans.spi.glassfish.GlassfishModuleFactory;
 import org.netbeans.spi.glassfish.GlassfishModule.OperationState;
 import org.netbeans.spi.glassfish.GlassfishModule.ServerState;
@@ -79,9 +83,9 @@ import org.openide.windows.InputOutput;
  */
 public class GlassfishInstance implements ServerInstanceImplementation {
 
-    // !PW FIXME Can we extrace the server name from the install?  That way,
+    // !PW FIXME Can we extract the server name from the install?  That way,
     // perhaps we can distinguish between GF V3 and Sun AS 10.0
-    public static final String GLASSFISH_SERVER_NAME = "GlassFish V3 New Preview";
+    public static final String GLASSFISH_SERVER_NAME = "GlassFish V3 TP2";
 
     // Reasonable default values for various server parameters.  Note, don't use
     // these unless the server's actual setting cannot be determined in any way.
@@ -104,9 +108,8 @@ public class GlassfishInstance implements ServerInstanceImplementation {
     // api instance
     private ServerInstance commonInstance;
     
-
-    GlassfishInstance(String displayName, String homeFolder, int httpPort, int adminPort) {
-        commonSupport = new CommonServerSupport(displayName, homeFolder, httpPort, adminPort);
+    GlassfishInstance(Map<String, String> ip) {
+        commonSupport = new CommonServerSupport(ip);
 
         ic = new InstanceContent();
         lookup = new AbstractLookup(ic);
@@ -166,7 +169,18 @@ public class GlassfishInstance implements ServerInstanceImplementation {
      * @return GlassfishInstance object for this server instance.
      */
     public static GlassfishInstance create(String displayName, String homeFolder, int httpPort, int adminPort) {
-        GlassfishInstance result = new GlassfishInstance(displayName, homeFolder, httpPort, adminPort);
+        Map<String, String> ip = new HashMap<String, String>();
+        ip.put(GlassfishModule.DISPLAY_NAME_ATTR, displayName);
+        ip.put(GlassfishModule.HOME_FOLDER_ATTR, homeFolder);
+        ip.put(GlassfishModule.HTTPPORT_ATTR, Integer.toString(httpPort));
+        ip.put(GlassfishModule.ADMINPORT_ATTR, Integer.toString(adminPort));
+        GlassfishInstance result = new GlassfishInstance(ip);
+        result.commonInstance = ServerInstanceFactory.createServerInstance(result);
+        return result;
+    }
+    
+    public static GlassfishInstance create(Map<String, String> ip) {
+        GlassfishInstance result = new GlassfishInstance(ip);
         result.commonInstance = ServerInstanceFactory.createServerInstance(result);
         return result;
     }
@@ -215,20 +229,17 @@ public class GlassfishInstance implements ServerInstanceImplementation {
     }
 
     public Node getFullNode() {
-        Logger.getLogger("glassfish").log(Level.INFO, "Creating GF Instance node [FULL]");
+        Logger.getLogger("glassfish").finer("Creating GF Instance node [FULL]");
         return new Hk2InstanceNode(this, true);
     }
 
     public Node getBasicNode() {
-        Logger.getLogger("glassfish").log(Level.INFO, "Creating GF Instance node [BASIC]");
+        Logger.getLogger("glassfish").finer("Creating GF Instance node [BASIC]");
         return new Hk2InstanceNode(this, false);
     }
     
     public JComponent getCustomizer() {
-        // !PW FIXME use real customizer
-        JPanel commonCustomizer = new JPanel();
-        commonCustomizer.setName("Common");
-        commonCustomizer.add(new javax.swing.JLabel("TODO V3 Server Common Properties"));
+        JPanel commonCustomizer = new InstanceCustomizer(commonSupport);
         
         Collection<JPanel> pages = new LinkedList<JPanel>();
         Collection<? extends CustomizerCookie> lookupAll = lookup.lookupAll(CustomizerCookie.class);

@@ -47,14 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.netbeans.api.java.platform.JavaPlatform;
 import org.netbeans.spi.glassfish.GlassfishModule;
 import org.netbeans.spi.glassfish.GlassfishModule.OperationState;
 import org.netbeans.spi.glassfish.OperationStateListener;
+import org.netbeans.spi.glassfish.ServerUtilities;
 import org.openide.ErrorManager;
 import org.openide.execution.NbProcessDescriptor;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 
 
 /**
@@ -63,21 +61,14 @@ import org.openide.filesystems.FileUtil;
  */
 public class StartTask extends BasicTask<OperationState> {
     
-    private static final String GFV3_LIB_DIR_NAME = "lib"; // NOI18N
-    private static final String GFV3_MODULES_DIR_NAME = "modules"; // NOI18N
-    private static final String GFV3_SNAPSHOT_JAR_NAME = "glassfish-10.0-SNAPSHOT.jar"; // NOI18N"
 
-    private final JavaPlatform platform;
-    
     /**
      * 
      * @param dm 
      * @param startServer 
      */
-    public StartTask(Map<String, String> properties, JavaPlatform platform, 
-            OperationStateListener... stateListener) {
+    public StartTask(Map<String, String> properties, OperationStateListener... stateListener) {
         super(properties, stateListener);
-        this.platform = platform != null ? platform : JavaPlatform.getDefault();
     }
     
     /**
@@ -156,21 +147,38 @@ public class StartTask extends BasicTask<OperationState> {
     
     private String[] createEnvironment() {
         List<String> envp = new ArrayList<String>();
-        FileObject fo = platform.getInstallFolders().iterator().next();
-        String javaHome = FileUtil.toFile(fo).getAbsolutePath();
-        String javaEnv = "JAVA_HOME=" + javaHome;
-        envp.add(javaEnv); // NOI18N
-        Logger.getLogger("glassfish").log(Level.FINE, "V3 Environment: " + javaEnv);
+        String jdkHome = getJdkHome();
+        if(jdkHome != null) {
+            String javaEnv = "JAVA_HOME=" + jdkHome;
+            envp.add(javaEnv); // NOI18N
+            Logger.getLogger("glassfish").log(Level.FINE, "V3 Environment: " + javaEnv);
+        } else {
+            Logger.getLogger("glassfish").log(Level.WARNING, "Unable to set JAVA_HOME for GlassFish V3 enviroment.");
+        }
         return (String[]) envp.toArray(new String[envp.size()]);
+    }
+    
+    private String getJdkHome() {
+        String result = null;
+        String jdkHome = System.getProperty("jdk.home");
+        if(jdkHome == null || jdkHome.length() == 0) {
+            String javaHome = System.getProperty("java.home");
+            if(javaHome.endsWith(File.separatorChar + "jre")) {
+                result = javaHome.substring(javaHome.length()-4);
+            }
+        } else {
+            result = jdkHome;
+        }
+        return result;
     }
     
     private NbProcessDescriptor createProcessDescriptor() {
         String startScript = System.getProperty("java.home") + "/bin/java" ; 
         String serverHome = ip.get(GlassfishModule.HOME_FOLDER_ATTR);
-        String jarLocation = serverHome + "/" + GFV3_MODULES_DIR_NAME + "/" + GFV3_SNAPSHOT_JAR_NAME;
+        String jarLocation = serverHome + "/" + ServerUtilities.GFV3_MODULES_DIR_NAME + "/" + ServerUtilities.GFV3_SNAPSHOT_JAR_NAME;
         if(!new File(jarLocation).exists()) {
-            // !PW Older V3 installs (pre 12/01/07) put snapshot jar in lib folder.
-            jarLocation = serverHome + "/" + GFV3_LIB_DIR_NAME + "/" + GFV3_SNAPSHOT_JAR_NAME;
+            // try TP2 jar names
+            jarLocation = serverHome + "/" + ServerUtilities.GFV3_MODULES_DIR_NAME + "/" + ServerUtilities.GFV3_TP2_JAR_NAME;
             if(!new File(jarLocation).exists()) {
                 fireOperationStateChanged(OperationState.FAILED, "MSG_START_SERVER_FAILED_FNF"); // NOI18N
                 return null;
@@ -180,13 +188,18 @@ public class StartTask extends BasicTask<OperationState> {
         StringBuilder argumentBuf = new StringBuilder(1024);
         appendSystemVars(argumentBuf);
         appendJavaOpts(argumentBuf);
-        argumentBuf.append(" -client -jar \"");
-        argumentBuf.append(jarLocation);
-        argumentBuf.append("\"");
+        argumentBuf.append(" -client -jar ");
+        argumentBuf.append(quote(jarLocation));
         
         String arguments = argumentBuf.toString();
         Logger.getLogger("glassfish").log(Level.FINE, "V3 JVM Command: " + startScript + arguments);
         return new NbProcessDescriptor(startScript, arguments); // NOI18N
+    }
+    
+    // quote the string if it contains spaces.  Might want to expand to all
+    // white space (tabs, localized white space, etc.)
+    private String quote(String path) {
+        return path.indexOf(' ') == -1 ? path : "\"" + path + "\"";
     }
     
     private StringBuilder appendJavaOpts(StringBuilder argumentBuf) {
@@ -200,14 +213,27 @@ public class StartTask extends BasicTask<OperationState> {
     }
     
     private StringBuilder appendSystemVars(StringBuilder argumentBuf) {
-         String jrubyHome = ip.get(GlassfishModule.JRUBY_HOME);
-         if(jrubyHome != null) {
+        String jrubyHome = ip.get(GlassfishModule.JRUBY_HOME);
+        if(jrubyHome != null) {
             argumentBuf.append(" -D");
             argumentBuf.append(GlassfishModule.JRUBY_HOME);
             argumentBuf.append("=\"");
             argumentBuf.append(jrubyHome);
             argumentBuf.append("\"");
         }
+
+        String cometEnabled = ip.get(GlassfishModule.COMET_FLAG);
+        // !PW FIXME remove when persistence for flags is enabled.
+        if(cometEnabled == null) {
+            cometEnabled = System.getProperty(GlassfishModule.COMET_FLAG);
+        }
+        if(cometEnabled != null && cometEnabled.length() > 0) {
+            argumentBuf.append(" -D");
+            argumentBuf.append(GlassfishModule.COMET_FLAG);
+            argumentBuf.append("=");
+            argumentBuf.append(cometEnabled);
+        }
+         
         return argumentBuf;
     }    
     

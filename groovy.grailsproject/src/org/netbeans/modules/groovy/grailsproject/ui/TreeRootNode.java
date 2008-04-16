@@ -78,9 +78,8 @@ import java.io.File;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import org.netbeans.modules.groovy.grailsproject.GrailsProject;
-import org.openide.filesystems.Repository;
-import org.openide.loaders.DataObjectNotFoundException;
 import org.netbeans.api.project.Project;
+import org.netbeans.spi.project.ui.support.CommonProjectActions;
 
 
 /**
@@ -94,44 +93,72 @@ public final class TreeRootNode extends FilterNode implements PropertyChangeList
     private SourceCategory category = SourceCategory.NONE;
     private final Logger LOG = Logger.getLogger(TreeRootNode.class.getName());
     GrailsProject project;
-    
     private static DataObject[] templates;
 
     public TreeRootNode(SourceGroup g, GrailsProject project) {
         this(DataFolder.findFolder(g.getRootFolder()), g);
         
         this.project = project;
+
         String pathName = g.getName();
-
-        // Source Groups always use a slash as file-separator, no matter
-        // whether we are dealing with unix or windows:
-        int lastSlash = pathName.lastIndexOf("/");
-        String dirName = pathName.substring(lastSlash + 1);
-
-        // LOG.log(Level.WARNING, "dirName: " + dirName);
+        String dirName = getDirName(g);
         
-        if (dirName.startsWith("conf")) {
-            category = SourceCategory.CONFIGURATION;
-        } else if (dirName.startsWith("controllers")) {
-            category = SourceCategory.CONTROLLERS;
-        } else if (dirName.startsWith("domain")) {
-            category = SourceCategory.DOMAIN;
-        } else if (dirName.startsWith("i18n")) {
-            category = SourceCategory.MESSAGES;
-        } else if (dirName.startsWith("services")) {
-            category = SourceCategory.SERVICES;
-        } else if (dirName.startsWith("taglib")) {
-            category = SourceCategory.TAGLIB;
-        } else if (dirName.startsWith("util")) {
-            category = SourceCategory.UTIL;
-        } else if (dirName.startsWith("lib")) {
-            category = SourceCategory.LIB;
-        } else if (dirName.startsWith("views")) {
-            category = SourceCategory.VIEWS;
-        }
+//        LOG.setLevel(Level.FINEST);
+//        LOG.log(Level.FINEST, "Pathname : " + pathName);
+//        LOG.log(Level.FINEST, "Dirname  : " + dirName);
+        
+        category = getCategoryForName(dirName);
+
         setShortDescription(pathName.substring(project.getProjectDirectory().getPath().length() + 1));
     }
+    
+    static SourceCategory getCategoryForName(String dirName){
+        
+        SourceCategory cat = SourceCategory.NONE;
+        
+        if (dirName.startsWith("conf")) {
+            cat = SourceCategory.CONFIGURATION;
+        } else if (dirName.startsWith("controllers")) {
+            cat = SourceCategory.CONTROLLERS;
+        } else if (dirName.startsWith("domain")) {
+            cat = SourceCategory.DOMAIN;
+        } else if (dirName.startsWith("i18n")) {
+            cat = SourceCategory.MESSAGES;
+        } else if (dirName.startsWith("services")) {
+            cat = SourceCategory.SERVICES;
+        } else if (dirName.startsWith("taglib")) {
+            cat = SourceCategory.TAGLIB;
+        } else if (dirName.startsWith("util")) {
+            cat = SourceCategory.UTIL;
+        } else if (dirName.startsWith("lib")) {
+            cat = SourceCategory.LIB;
+        } else if (dirName.startsWith("test")) {
+            cat = SourceCategory.TESTS;
+        } else if (dirName.startsWith("scripts")) {
+            cat = SourceCategory.SCRIPTS;
+        } else if (dirName.startsWith("src")) {
+            cat = SourceCategory.SRC;
+        } else if (dirName.startsWith("web-app")) {
+            cat = SourceCategory.WEBAPP;
+        } else if (dirName.startsWith("views")) {
+            cat = SourceCategory.VIEWS;
+        } 
 
+        return cat;
+    }
+    
+    
+    static String getDirName(SourceGroup g){
+        // Source Groups always use a slash as file-separator, no matter
+        // whether we are dealing with unix or windows:
+        
+        String pathName = g.getName();
+        int lastSlash = pathName.lastIndexOf("/");
+        String dirName = pathName.substring(lastSlash + 1);
+        return dirName;
+    }
+    
+    
     private TreeRootNode(DataFolder folder, SourceGroup g) {
         this(new FilterNode(folder.getNodeDelegate(), folder.createNodeChildren(new VisibilityQueryDataFilter(g))), g);
     }
@@ -140,48 +167,15 @@ public final class TreeRootNode extends FilterNode implements PropertyChangeList
         super(originalNode, new PackageFilterChildren(originalNode),
                 new ProxyLookup(
                 originalNode.getLookup(),
-                Lookups.singleton(new PathFinder(g)) // no need for explicit search info
+                Lookups.fixed(  new PathFinder(g),  // no need for explicit search info
+                                // Adding TemplatesImpl to Node's lookup to narrow-down
+                                // number of displayed templates with the NewFile action.
+                                // see # 122942
+                                new TemplatesImpl(g)
+                                ) 
                 ));
         this.g = g;
         g.addPropertyChangeListener(WeakListeners.propertyChange(this, g));
-    }
-
-    public DataObject[] getTemplates() {
-        
-        if ( templates == null ) {
-            
-            ArrayList<DataObject> tList = new ArrayList<DataObject>( 2 );
-            DataObject template;
-            
-            template = findTemplate( "Templates/Other/file" );
-            if ( template != null ) {
-                tList.add( template );
-            }
-                        
-            template = findTemplate( "Templates/Other/Folder" ); 
-            if ( template != null ) {
-                tList.add( template );
-            }
-        
-            templates = new DataObject[tList.size()]; 
-            tList.toArray( templates );
-        }
-        return templates;
-    }
-    
-    private  DataObject findTemplate( String name ) {
-        LOG.log(Level.WARNING, "findTemplate: " + name);
-        FileObject tFo = Repository.getDefault().getDefaultFileSystem().findResource( name );
-        if ( tFo == null ) {
-            return null;
-        }
-        try {
-            return DataObject.find( tFo );
-        }
-        catch ( DataObjectNotFoundException e ) {
-            return null;
-        }
-        
     }
 
     @Override
@@ -200,7 +194,7 @@ public final class TreeRootNode extends FilterNode implements PropertyChangeList
 
         switch (category) {
             case CONFIGURATION:
-                // do nothing.
+                result.add(CommonProjectActions.newFileAction());
                 break;
             case CONTROLLERS:
                 result.add(new NewArtifactAction(project, SourceCategory.CONTROLLERS, "Create new controller"));
@@ -209,18 +203,26 @@ public final class TreeRootNode extends FilterNode implements PropertyChangeList
                 result.add(new NewArtifactAction(project, SourceCategory.DOMAIN, "Create new Domain Class"));
                 break;
             case MESSAGES:
-                // result.add(new NewMessageAction());
-                // result.add(new org.openide.actions.NewTemplateAction());
-                
-                getTemplates();
-              
-                result.add(org.netbeans.spi.project.ui.support.CommonProjectActions.newFileAction());
+                result.add(CommonProjectActions.newFileAction());
+                break;
+            case TESTS:
+                result.add(CommonProjectActions.newFileAction());
+                break;
+            case SRC:
+                result.add(CommonProjectActions.newFileAction());
+                break;
+            case WEBAPP:
+                result.add(CommonProjectActions.newFileAction());
+                break;
+            case SCRIPTS:
+                result.add(new NewArtifactAction(project, SourceCategory.SCRIPTS, "Create a new Command Script"));
                 break;
             case SERVICES:
                 result.add(new NewArtifactAction(project, SourceCategory.SERVICES, "Create a new Service"));
                 break;
             case TAGLIB:
                 result.add(new NewArtifactAction(project, SourceCategory.TAGLIB, "Create new Tag Library"));
+                result.add(CommonProjectActions.newFileAction());
                 break;
             case UTIL:          
                 break;
@@ -228,9 +230,12 @@ public final class TreeRootNode extends FilterNode implements PropertyChangeList
                 result.add(new AddLibraryAction((Project)project, "Add Library"));
                 break;
             case VIEWS:
-                // we don't create views on the "Views and Layouts" logical view, but by selecting a Domain Class
-                // and invoking the action in the context-menu of the domain-class.
-                // result.add(new NewArtifactAction(project, SourceCategory.VIEWS, "Create a new View"));
+                /* Usually, you don't directly create views on the "Views and Layouts" logical view, 
+                   but select a Domain Class and invoke the action in the context-menu of the domain-class.
+                   But some users might want to be able to hand-craft what's in the views directory,
+                   therfore we add newFileAction() here (see # 131775, 131777) */
+                
+                result.add(CommonProjectActions.newFileAction());
                 break;
         }
 
@@ -239,19 +244,7 @@ public final class TreeRootNode extends FilterNode implements PropertyChangeList
         return result.toArray(new Action[result.size()]);
     }
 
-    //        public NewType[] getNewTypes() {
-//        return new NewType[] { new NewType() {
-//            public String getName() {
-//                return "create somethin new...";
-//            }
-//            public HelpCtx getHelpCtx() {
-//                return new HelpCtx("help me");
-//            }
-//            public void create() {
-//                return;
-//            }
-//            } };
-//        }
+
     /** Copied from PackageRootNode with modifications. */
     private Image computeIcon(boolean opened, int type) {
         Icon icon = g.getIcon(opened);
