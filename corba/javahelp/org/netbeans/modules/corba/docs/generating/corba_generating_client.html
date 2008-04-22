@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>Generating Client-Side Files With the CORBA Wizard</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+
+<h2>Generating Client-Side Files With the CORBA Wizard</h2>
+
+<p>
+You can generate client-side files with the CORBA template. You can
+also use the CORBA wizard in addition to add some basic information to
+expedite the process. Before generating any code, make sure the IDE is
+set up for the ORB product you want your CORBA programs to work
+with. You must have an existing IDL file to use the CORBA wizard.
+</p>
+
+<p>
+<b>To create a client file using the CORBA Wizard:</b>
+<ol>
+<li>Choose Tools <img src="../images/arrow.gif" alt="and choose">&nbsp;CORBA Wizard.</li>
+
+<li>Select the IDL file to base your client program on and click Next.
+<p>The Select Source IDL File pane displays the Filesystem
+hierarchy in your current session of the IDE. Expand the package you want and
+select the desired IDL.</p></li>
+
+<li>Indicate which files the wizard should generate, then click Next.
+<p>
+If you are writing a client for an existing server, check only
+Create Client. (Your client will be based on an existing IDL
+file.)</p></li>
+
+<li>Choose the ORB implementation and binding method you want to
+use and click Next.</li>
+
+<li>Select the root interface you want and click Next.</li>
+
+<li>Specify binding detail information (based on your selection of an
+ORB's binding method).
+<ul>
+<li>If you chose to use a naming service as your binding method,
+provide information about the naming service and context:
+
+<p>Select CORBA Naming Service and click Bind Context. In
+the CORBA Panel dialog box, enter the name of the ORB source providing
+the naming service (for example, JDK), the kind of
+the naming service, and the URL or IOR string for the
+naming service. For information on obtaining this information, see <a
+href="../nsbrowser/corba_nsbrowser_connecting.html">Starting the
+Naming Service Browser</a>.</p></li>  
+
+<li>If you chose IOR to file, enter the name of the IOR file.
+
+<li>If you chose IOR to standard output, no additional information is
+required.</li> 
+</ul>
+
+<li>Review the description of the actions the wizard will take, then click
+Finish to begin code generation. 
+<p>
+A java source file named <em>IDL_interface_name</em><tt>Client</tt> is
+generated. For example, if you specified <tt>hello.idl</tt>, the
+wizard creates <tt>helloClient.java</tt>.</p></li>
+</ol>
+</p>
+
+<table>
+<tr valign="top">
+<th colspan=2 align=left>See also</th>
+</tr>
+<tr valign="top">
+<td width="23"></td>
+<td><a href="corba_generating_idl.html">Generating IDL Files</a>
+<br>
+<a href="corba_generating_tmplclient.html">Generating Client-Side
+Files Using the CORBA Template</a>
+<br>
+<a href="../irbrowser/corba_irbrowser.html">The Interface Repository Browser</a>
+<br>
+<a href="../completing/corba_completing.html">Completing Generated Files</a>
+</td>
+</tr>
+</table>
+
+
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small></body>
+</html>

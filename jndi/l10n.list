@@ -1,0 +1,6 @@
+jndi/src/org/netbeans/modules/jndi/Bundle.properties
+jndi/javahelp/org/netbeans/modules/jndi/docs/**/*.html
+jndi/javahelp/org/netbeans/modules/jndi/docs/**/*.jhm
+jndi/javahelp/org/netbeans/modules/jndi/docs/**/*.hs
+jndi/javahelp/org/netbeans/modules/jndi/docs/**/*.xml
+jndi/javahelp/org/netbeans/modules/jndi/docs/**/*.gif

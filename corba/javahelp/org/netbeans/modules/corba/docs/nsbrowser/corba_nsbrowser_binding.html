@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+   <title>Naming Service Browser Commands</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>Naming Service Browser Commands</h2>
+<p>
+Use the Naming Service browser by right-clicking the CORBA Naming
+Service node or its subnodes in the Runtime tab of the Explorer. The
+contextual menu for each type of node displays the appropriate
+commands.</p>
+
+<h3>CORBA Naming Service Node Commands</h3>
+This node represents the naming service.
+
+<h4>Bind New Context</h4>
+<p>Connects to a running naming service and displays the contents of the naming
+service.</p>
+
+<h4>Start Local</h4>
+<p>Starts a local naming service.</p>
+
+<h3>Naming Context Node Commands</h3>
+<p>These nodes represent naming contexts, including the initial context, found
+in naming services.</p>
+
+<h4>Create New Context</h4>
+<p>Creates a new context underneath the selected context. The browser
+represents the new context as a subnode of the selected node.</p>
+
+<h4>Bind New Context</h4>
+<p>Binds a running naming service into the selected context. You must supply
+the naming service's interoperable object reference (IOR), either as a
+URL to a file that holds the IOR, or as text that you paste (into the IOR
+field in the dialog box opened by this command).</p>
+
+<h4>Unbind Context</h4>
+<p>Removes the selected context and its subnodes from the browser's context
+tree. If you select a top-level node that represents a naming
+service server, you only unbind the naming service from the 
+Naming Service browser. But if you select any other node and execute this
+command, you actually remove the context or object from the naming
+service.</p>
+
+<h4>Copy Server Binding Code</h4> 
+<p>Generates code for binding a server object to the selected context
+and copies the code to the system clipboard. You can paste this code
+into a server-side program and complete it, thereby binding an
+instance of an implementation class into the naming context you
+originally selected.</p>
+
+<h4>Bind New Object</h4> 
+<p>Binds a running server object into the selected context. You must
+supply the server object's IOR, either as a URL to a file that holds
+the IOR or as text that you paste into the IOR field in the dialog box
+opened by this command.</p>
+
+<h4>Refresh</h4>
+<p>Refreshes the selected node and all of its subnodes.</p>
+
+<h4>Properties</h4>
+<p>Displays the properties of the selected node.</p>
+
+<h3>Server Object Node Commands</h3>
+<p>These nodes represent CORBA servant objects that have been registered with
+a naming service. A naming service can contain many servant object nodes.</p>
+
+<h4>Unbind Object</h4>
+<p>Unbinds the selected object.</p>
+
+<h4>Copy Client Code</h4>
+<p>Generates code for binding a client to the selected server object and copies
+it to the system clipboard. You can paste this code into a client-side
+program, and it will return a reference to the server you
+selected.</p>
+
+<h4>Properties</h4>
+<p>Displays the properties of the selected server object node.</p>
+
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small></body>
+</html>

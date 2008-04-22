@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.netbeans.modules.tasklist.suggestions/2
+OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/tasklist/suggestions/ui/Bundle.properties
+OpenIDE-Module-Layer: org/netbeans/modules/tasklist/suggestions/ui/suggestions-layer.xml
+
+Name: org/netbeans/modules/tasklist/suggestions/ui/ScanSuggestionsAction.class
+OpenIDE-Module-Class: Action
+

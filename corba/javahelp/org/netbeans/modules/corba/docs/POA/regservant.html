@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>Registering Servants</title>
+<link rel="stylesheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>Registering Servants</h2>
+<ol>
+  <li>Right-click the node that represents the parent POA and choose 
+New <img src="../images/arrow.gif" alt="and choose">&nbsp;All Templates. 
+Then expand the CORBA node and select the Servant template.</li>
+  <li>In the New Servant dialog box, specify the variable and ObjectID related to 
+    the New Servant.</li>
+  <li>Click the Generate servant instantation code checkbox to generate code that 
+    creates an instance of this servant.</li>
+  <li>If you clicked the above checkbox, the Type and Constructor text fields 
+    are enabled.</li>
+  <li>Enter the Type for the servant POA instance.</li>
+  <li>Provide a Constructor for the servant POA instance.</li>
+  <li>Click OK.</li>
+</ol>
+<p>The IDE generates source code and places the code in a read-only guarded block 
+  within the server's main method.</p>
+<table>
+  <tr valign="top"> 
+    <th colspan=2 align=left>See also</th>
+  </tr>
+  <tr> 
+    <td width="23" align="left" valign="top">&nbsp;</td>
+    <td valign="top"><a href="adapteractivator.htm">Creating a New Adapter Activator 
+      </a><br>
+      <a href="servantlocator.htm">Creating a New Servant Locator</a></td>
+  </tr>
+</table>
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small> 
+
+</body>
+</html>

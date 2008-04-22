@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<!DOCTYPE configuration PUBLIC '-//NetBeans//DTD VCS Configuration 1.1//EN' 'http://www.netbeans.org/dtds/vcs-configuration-1_1.dtd'>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+
+<configuration>
+  <label>Test</label>
+
+  <os>
+    <compatible>"Windows", "Unix"</compatible>
+    <uncompatible>"Windows 95", "Windows 98", "Windows Me"</uncompatible>
+  </os>
+
+  <condition var="IS_WINDOWS">
+    <var name="os.name" valueContainsIgnoreCase="WINDOWS"/>
+  </condition>
+
+  <variables>
+    <variable name="FS_DISPLAY_NAME" basic="false">
+      <value>Test</value>
+    </variable>
+    <variable name="XML_FS" label="XML Filesystem" basic="true" isDir="true">
+      <value></value>
+    </variable>
+    <variable name="CD" basic="false">
+      <value>cd</value>
+    </variable>
+    <variable name="MAX_CMD_LENGTH" basic="false" if="IS_WINDOWS">
+      <value>1000</value>
+    </variable>
+  </variables>
+  
+  <commands>
+    <command name="ROOT" displayName="Test">
+    
+    <command name="LIST" displayName="Refresh">
+
+      <property name="exec">
+	<value>org.netbeans.modules.vcs.profiles.testprofiles.list.ListFromXMLFS.class $[? MODULE] [${MODULE}${PS}][]${DIR}</value>
+      </property>
+      <property name="onRoot">
+	<value>true</value>
+      </property>
+      <property name="data.fileName.index">
+	<value>0</value>
+      </property>
+      <property name="data.status.index">
+	<value>1</value>
+      </property>
+      <property name="data.locker.index">
+	<value>2</value>
+      </property>
+      <property name="data.revision.index">
+	<value>3</value>
+      </property>
+      <property name="data.sticky.index">
+	<value>4</value>
+      </property>
+      <property name="data.size.index">
+	<value>7</value>
+      </property>
+      <property name="data.attr.index">
+	<value>8</value>
+      </property>
+      <property name="data.time.index">
+	<value>5</value>
+      </property>
+      <property name="data.date.index">
+	<value>6</value>
+      </property>
+    </command>
+    <command name="LIST_SUB" displayName="Refresh Recursively">
+      <property name="exec">
+        <!-- echo If this exec is empty, the command uses LIST to recursively obtain the directory structure -->
+	<value></value>
+      </property>
+      <property name="onRoot">
+	<value>true</value>
+      </property>
+    </command>
+    
+    <separator />
+    
+    <command name="CHECK_STATUS" displayName="Check Status">
+      <property name="exec">
+	<value>org.netbeans.modules.vcs.profiles.testprofiles.commands.CheckCachedStatus.class</value>
+      </property>
+    </command>
+    
+    <separator />
+    
+    <!-- IMPORT is a global command only
+    <command name="IMPORT" displayName="Import">
+      <property name="exec">
+	<value>org.netbeans.modules.vcs.profiles.testprofiles.commands.ImportToXML.class</value>
+      </property>
+      <property name="refreshParentFolder">
+        <value>true</value>
+      </property>
+      <property name="refreshRecursivelyPatternMatched">
+        <value>ImportToXML</value>
+      </property>
+    </command>
+    -->
+    
+    <command name="CHECKOUT" displayName="Check Out">
+      <property name="exec">
+	<value>org.netbeans.modules.vcs.profiles.testprofiles.commands.CheckOutFromXML.class</value>
+      </property>
+      <property name="refreshParentFolder">
+        <value>true</value>
+      </property>
+      <property name="refreshRecursivelyPatternMatched">
+        <value>CheckOutFromXML</value>
+      </property>
+    </command>
+    
+    </command>
+  </commands>
+  
+  <globalCommands>
+    <command name="ROOT" displayName="Test">
+    
+    <command name="IMPORT" displayName="Import">
+      <property name="exec">
+	<value>org.netbeans.modules.vcs.profiles.testprofiles.commands.ImportToXML.class</value>
+      </property>
+      <property name="inputDescriptor">
+        <value>
+        LABEL(Import)
+        PROMPT_FOR(ROOTDIR, "Directory To Import:", "", VALIDATOR_NON_EMPTY, SELECTOR_DIR)
+        PROMPT_FOR(XML_FS, "XML Filesystem File:", "", VALIDATOR_NON_EMPTY)
+        </value>
+      </property>
+    </command>
+    
+    </command>
+  </globalCommands>
+  
+</configuration>
+

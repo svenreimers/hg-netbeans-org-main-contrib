@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<updates>
+    <update version="1.23">
+        <change>Experimental tab for suggestions in all opened projects.</change>
+    </update>
+
+    <update version="1.22">
+    <change>Assert in "Scan Directory for Suggestions" action fixed.</change>
+    </update>
+
+    <update version="1.19">
+    <change>Category nodes don't show priorities now</change>
+    <change>34385: Can't change suggestion priority</change>
+    <change>icon from the toolbar "tasklist" removed</change>
+    </update>
+
+    <update version="1.18">
+    <change>Module splitted to framework and its UI</change>
+    <change>Fixed NPE on 'Fix' action. Fixed fatal error with
+    missing SuggestionManager service registration</change>
+    </update>
+
+    <update version="1.14">
+    <change>34305: The actions present on the toolbar should toggle the view</change>
+    </update>
+
+    <update version="1.13">
+    <change>34060: "Source Comments" refresh does not remove 
+    obsoleted gutter annotations</change>
+    </update>
+
+    <update version="1.12">
+    <change>Fix such that "Scan Directory for Suggestions" does not
+    interfere with standard active file suggestion view</change>
+    </update>
+
+    <update version="1.11">
+    <change>34894: Suggestion View doesn't work after it has
+    been closed and reopened</change>
+    </update>
+
+</updates>

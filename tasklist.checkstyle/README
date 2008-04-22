@@ -1,0 +1,7 @@
+This module provides integration with the Checkstyle library,
+available from checkstyle.sf.net.
+
+You should also place the checkstyle configuration
+file you want to use, for example
+  checkstyle-X.X/contrib/examples/conf/BlochEffectiveJava.xml
+into external and name it "checkstyle_checks.xml".
