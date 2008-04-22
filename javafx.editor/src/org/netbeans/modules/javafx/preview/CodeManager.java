@@ -27,9 +27,6 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.text.Document;
 import org.netbeans.api.java.classpath.ClassPath;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.SourceGroup;
-import org.netbeans.api.project.Sources;
 import org.netbeans.modules.editor.NbEditorUtilities;
 import org.netbeans.modules.javafx.dataloader.JavaFXDataObject;
 import org.netbeans.modules.javafx.editor.FXDocument;
@@ -66,8 +63,9 @@ public class CodeManager {
     private static final String noCPFoundPrefix = "No classpath was found for folder: ";                     // NOI18N
     
     private static final DiagnosticCollector diagnostics = new DiagnosticCollector();
+    
     public static Object execute(FXDocument doc) {
-
+        
         ClassLoader orig = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(ToolProvider.class.getClassLoader());
         
@@ -98,7 +96,7 @@ public class CodeManager {
         JavaFXProject project = (JavaFXProject) JavaFXModel.getProject(doc);
         List <JavaFileObject> javaFileObjects = getProjectJFOList(doc, project, sourceCP, standardManager);
         
-        javaFileObjects.add(new MemoryFileObject(className, code, Kind.SOURCE));
+        javaFileObjects.add(new MemoryFileObject(className, code, Kind.SOURCE, doc));
         
         Map<String, byte[]> oldClassBytes = cut(JavaFXModel.getClassBytes(project), className);
         
@@ -230,7 +228,7 @@ public class CodeManager {
                 }
                 if (field != null) break;
             }
-            if (field == null);
+            if (field == null)
                 for (String frameStr : dialogNames) {
                     try {
                         field = obj.getClass().getDeclaredField(frameStr);
@@ -315,10 +313,14 @@ public class CodeManager {
     {
         List<JavaFileObject> compUnits = new ArrayList<JavaFileObject>(1);
         FileObject fo = ((JavaFXDocument)document).getDataObject().getPrimaryFile();
-        Sources sources = ProjectUtils.getSources(project);
-        SourceGroup[] sourceGrupps = sources.getSourceGroups(Sources.TYPE_GENERIC);
-        for (SourceGroup srcGrupp : sourceGrupps) {
-            FileObject rootFileObject = srcGrupp.getRootFolder();
+        //Sources sources = ProjectUtils.getSources(project);
+        //SourceGroup[] sourceGrupps = sources.getSourceGroups(Sources.TYPE_GENERIC);
+        List <ClassPath.Entry> sourcePathsList = sourceCP.entries();
+        //for (SourceGroup srcGrupp : sourceGrupps) {
+        for (ClassPath.Entry srcGrupp : sourcePathsList) {
+            //FileObject rootFileObject = srcGrupp.getRootFolder();
+            FileObject rootFileObject = srcGrupp.getRoot();
+            if (rootFileObject == null) continue;
             Enumeration <FileObject> fileObjectEnum = (Enumeration<FileObject>) rootFileObject.getChildren(true);
             while (fileObjectEnum.hasMoreElements()) {
                 FileObject fileObject = fileObjectEnum.nextElement();
@@ -343,7 +345,7 @@ public class CodeManager {
                                         ex.printStackTrace();
                                     }
                                     String docClassName = sourceCP.getResourceName(NbEditorUtilities.getFileObject(doc), '.', false); // NOI18N
-                                    compUnits.add(new MemoryFileObject(docClassName, docsCode, Kind.SOURCE));
+                                    compUnits.add(new MemoryFileObject(docClassName, docsCode, Kind.SOURCE, doc));
                                 } else {
                                     Iterable<? extends JavaFileObject> javaFileObjects = fileManager.getJavaFileObjects(FileUtil.toFile(fileObject));
                                     for (JavaFileObject javaFileObject : javaFileObjects) {
@@ -387,7 +389,7 @@ public class CodeManager {
         while (it.hasNext()) {
             Entry <String, byte[]> entry = it.next();
             String name = entry.getKey();
-            if (!name.toLowerCase().startsWith(className.toLowerCase())) {
+            if (!(name+"$").toLowerCase().startsWith((className+"$").toLowerCase())) {
                 newMap.put(name, entry.getValue());
             }
         }

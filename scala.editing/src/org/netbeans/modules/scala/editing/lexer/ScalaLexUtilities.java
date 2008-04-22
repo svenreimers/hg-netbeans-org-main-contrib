@@ -47,6 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import java.util.Stack;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import org.netbeans.modules.gsf.api.CompilationInfo;
@@ -172,19 +173,19 @@ public class ScalaLexUtilities {
 
     /** Find the Fortress token sequence (in case it's embedded in something else at the top level */
     @SuppressWarnings("unchecked")
-    public static TokenSequence<? extends ScalaTokenId> getTokenSequence(BaseDocument doc, int offset) {
+    public static TokenSequence<ScalaTokenId> getTokenSequence(BaseDocument doc, int offset) {
         TokenHierarchy<Document> th = TokenHierarchy.get((Document) doc);
         return getTokenSequence(th, offset);
     }
 
     @SuppressWarnings("unchecked")
-    public static TokenSequence<? extends ScalaTokenId> getTokenSequence(TokenHierarchy<Document> th, int offset) {
-        TokenSequence<? extends ScalaTokenId> ts = th.tokenSequence(ScalaTokenId.language());
+    public static TokenSequence<ScalaTokenId> getTokenSequence(final TokenHierarchy th, int offset) {
+        TokenSequence<ScalaTokenId> ts = th.tokenSequence(ScalaTokenId.language());
 
         if (ts == null) {
             // Possibly an embedding scenario such as an RHTML file
             // First try with backward bias true
-            List<TokenSequence<?>> list = th.embeddedTokenSequences(offset, true);
+            List<TokenSequence> list = th.embeddedTokenSequences(offset, true);
 
             for (TokenSequence t : list) {
                 if (t.language() == ScalaTokenId.language()) {
@@ -210,12 +211,12 @@ public class ScalaLexUtilities {
         return ts;
     }
 
-    public static TokenSequence<? extends ScalaTokenId> getPositionedSequence(BaseDocument doc, int offset) {
+    public static TokenSequence<ScalaTokenId> getPositionedSequence(BaseDocument doc, int offset) {
         return getPositionedSequence(doc, offset, true);
     }
 
-    public static TokenSequence<? extends ScalaTokenId> getPositionedSequence(BaseDocument doc, int offset, boolean lookBack) {
-        TokenSequence<? extends ScalaTokenId> ts = getTokenSequence(doc, offset);
+    public static TokenSequence<ScalaTokenId> getPositionedSequence(BaseDocument doc, int offset, boolean lookBack) {
+        TokenSequence<ScalaTokenId> ts = getTokenSequence(doc, offset);
 
         if (ts != null) {
             try {
@@ -242,8 +243,8 @@ public class ScalaLexUtilities {
         return null;
     }
 
-    public static Token<? extends ScalaTokenId> getToken(BaseDocument doc, int offset) {
-        TokenSequence<? extends ScalaTokenId> ts = getPositionedSequence(doc, offset);
+    public static Token<ScalaTokenId> getToken(BaseDocument doc, int offset) {
+        TokenSequence<ScalaTokenId> ts = getPositionedSequence(doc, offset);
 
         if (ts != null) {
             return ts.token();
@@ -253,7 +254,7 @@ public class ScalaLexUtilities {
     }
 
     public static char getTokenChar(BaseDocument doc, int offset) {
-        Token<? extends ScalaTokenId> token = getToken(doc, offset);
+        Token<ScalaTokenId> token = getToken(doc, offset);
 
         if (token != null) {
             String text = token.text().toString();
@@ -276,26 +277,26 @@ public class ScalaLexUtilities {
             ScalaTokenId.BlockCommentEnd,
             ScalaTokenId.BlockCommentData);
 
-    public static Token<? extends ScalaTokenId> findNextNonWsNonComment(TokenSequence<? extends ScalaTokenId> ts) {
+    public static Token<ScalaTokenId> findNextNonWsNonComment(TokenSequence<ScalaTokenId> ts) {
         return findNext(ts, WS_COMMENT);
     }
 
-    public static Token<? extends ScalaTokenId> findPreviousNonWsNonComment(TokenSequence<? extends ScalaTokenId> ts) {
+    public static Token<ScalaTokenId> findPreviousNonWsNonComment(TokenSequence<ScalaTokenId> ts) {
         return findPrevious(ts, WS_COMMENT);
     }
     private static final List<ScalaTokenId> WS = Arrays.asList(
             ScalaTokenId.Ws,
             ScalaTokenId.Nl);
 
-    public static Token<? extends ScalaTokenId> findNextNonWs(TokenSequence<? extends ScalaTokenId> ts) {
+    public static Token<ScalaTokenId> findNextNonWs(TokenSequence<ScalaTokenId> ts) {
         return findNext(ts, WS);
     }
 
-    public static Token<? extends ScalaTokenId> findPreviousNonWs(TokenSequence<? extends ScalaTokenId> ts) {
+    public static Token<ScalaTokenId> findPreviousNonWs(TokenSequence<ScalaTokenId> ts) {
         return findPrevious(ts, WS);
     }
 
-    public static Token<? extends ScalaTokenId> findNext(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> ignores) {
+    public static Token<ScalaTokenId> findNext(TokenSequence<ScalaTokenId> ts, List<ScalaTokenId> ignores) {
         if (ignores.contains(ts.token().id())) {
             while (ts.moveNext() && ignores.contains(ts.token().id())) {
             }
@@ -303,7 +304,7 @@ public class ScalaLexUtilities {
         return ts.token();
     }
 
-    public static Token<? extends ScalaTokenId> findPrevious(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> ignores) {
+    public static Token<ScalaTokenId> findPrevious(TokenSequence<ScalaTokenId> ts, List<ScalaTokenId> ignores) {
         if (ignores.contains(ts.token().id())) {
             while (ts.movePrevious() && ignores.contains(ts.token().id())) {
             }
@@ -311,7 +312,7 @@ public class ScalaLexUtilities {
         return ts.token();
     }
 
-    public static Token<? extends ScalaTokenId> findNext(TokenSequence<? extends ScalaTokenId> ts, ScalaTokenId id) {
+    public static Token<ScalaTokenId> findNext(TokenSequence<ScalaTokenId> ts, ScalaTokenId id) {
         if (ts.token().id() != id) {
             while (ts.moveNext() && ts.token().id() != id) {
             }
@@ -319,7 +320,7 @@ public class ScalaLexUtilities {
         return ts.token();
     }
 
-    public static Token<? extends ScalaTokenId> findPrevious(TokenSequence<? extends ScalaTokenId> ts, ScalaTokenId id) {
+    public static Token<ScalaTokenId> findPrevious(TokenSequence<ScalaTokenId> ts, ScalaTokenId id) {
         if (ts.token().id() != id) {
             while (ts.movePrevious() && ts.token().id() != id) {
             }
@@ -327,29 +328,29 @@ public class ScalaLexUtilities {
         return ts.token();
     }
 
-    public static Token<? extends ScalaTokenId> findNextIncluding(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> includes) {
+    public static Token<ScalaTokenId> findNextIncluding(TokenSequence<ScalaTokenId> ts, List<ScalaTokenId> includes) {
         while (ts.moveNext() && !includes.contains(ts.token().id())) {
         }
         return ts.token();
     }
 
-    public static Token<? extends ScalaTokenId> findPreviousIncluding(TokenSequence<? extends ScalaTokenId> ts, List<ScalaTokenId> includes) {
+    public static Token<ScalaTokenId> findPreviousIncluding(TokenSequence<ScalaTokenId> ts, List<ScalaTokenId> includes) {
         while (ts.movePrevious() && !includes.contains(ts.token().id())) {
         }
         return ts.token();
     }
 
-    static boolean skipParenthesis(TokenSequence<? extends ScalaTokenId> ts) {
+    static boolean skipParenthesis(TokenSequence<ScalaTokenId> ts) {
         return skipParenthesis(ts, false);
     }
 
     /**
      * Tries to skip parenthesis 
      */
-    public static boolean skipParenthesis(TokenSequence<? extends ScalaTokenId> ts, boolean back) {
+    public static boolean skipParenthesis(TokenSequence<ScalaTokenId> ts, boolean back) {
         int balance = 0;
 
-        Token<? extends ScalaTokenId> token = ts.token();
+        Token<ScalaTokenId> token = ts.token();
         if (token == null) {
             return false;
         }
@@ -397,12 +398,12 @@ public class ScalaLexUtilities {
     }
 
     /** Search forwards in the token sequence until a token of type <code>down</code> is found */
-    public static OffsetRange findFwd(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts, TokenId up,
+    public static OffsetRange findFwd(BaseDocument doc, TokenSequence<ScalaTokenId> ts, TokenId up,
             TokenId down) {
         int balance = 0;
 
         while (ts.moveNext()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             TokenId id = token.id();
 
             if (id == up) {
@@ -420,12 +421,12 @@ public class ScalaLexUtilities {
     }
 
     /** Search backwards in the token sequence until a token of type <code>up</code> is found */
-    public static OffsetRange findBwd(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts, TokenId up,
+    public static OffsetRange findBwd(BaseDocument doc, TokenSequence<ScalaTokenId> ts, TokenId up,
             TokenId down) {
         int balance = 0;
 
         while (ts.movePrevious()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             TokenId id = token.id();
 
             if (id == up) {
@@ -443,12 +444,12 @@ public class ScalaLexUtilities {
     }
 
     /** Search forwards in the token sequence until a token of type <code>down</code> is found */
-    public static OffsetRange findFwd(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts, String up,
+    public static OffsetRange findFwd(BaseDocument doc, TokenSequence<ScalaTokenId> ts, String up,
             String down) {
         int balance = 0;
 
         while (ts.moveNext()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             TokenId id = token.id();
             String text = token.text().toString();
 
@@ -467,12 +468,12 @@ public class ScalaLexUtilities {
     }
 
     /** Search backwards in the token sequence until a token of type <code>up</code> is found */
-    public static OffsetRange findBwd(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts, String up,
+    public static OffsetRange findBwd(BaseDocument doc, TokenSequence<ScalaTokenId> ts, String up,
             String down) {
         int balance = 0;
 
         while (ts.movePrevious()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             TokenId id = token.id();
             String text = token.text().toString();
 
@@ -495,11 +496,11 @@ public class ScalaLexUtilities {
      * It does not use indentation for clues since this could be wrong and be
      * precisely the reason why the user is using pair matching to see what's wrong.
      */
-    public static OffsetRange findBegin(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts) {
+    public static OffsetRange findBegin(BaseDocument doc, TokenSequence<ScalaTokenId> ts) {
         int balance = 0;
 
         while (ts.movePrevious()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             String text = token.text().toString();
 
             if (isBeginToken(text, doc, ts.offset())) {
@@ -517,11 +518,11 @@ public class ScalaLexUtilities {
         return OffsetRange.NONE;
     }
 
-    public static OffsetRange findEnd(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts) {
+    public static OffsetRange findEnd(BaseDocument doc, TokenSequence<ScalaTokenId> ts) {
         int balance = 0;
 
         while (ts.moveNext()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             String text = token.text().toString();
 
             if (isBeginToken(text, doc, ts.offset())) {
@@ -559,7 +560,7 @@ public class ScalaLexUtilities {
         try {
             int first = Utilities.getRowFirstNonWhite(doc, offset);
             if (first != -1) {
-                Token<? extends ScalaTokenId> token = getToken(doc, first);
+                Token<ScalaTokenId> token = getToken(doc, first);
                 if (token != null) {
                     String text = token.text().toString();
                     if (text.equals("while") || text.equals("for")) {
@@ -592,9 +593,9 @@ public class ScalaLexUtilities {
         return END_PAIRS.contains(tokenText);
     }
 
-    private static OffsetRange findMultilineRange(TokenSequence<? extends ScalaTokenId> ts) {
+    private static OffsetRange findMultilineRange(TokenSequence<ScalaTokenId> ts) {
         int startOffset = ts.offset();
-        Token<? extends ScalaTokenId> token = ts.token();
+        Token<ScalaTokenId> token = ts.token();
         ScalaTokenId id = token.id();
         switch (id) {
             case Else:
@@ -637,7 +638,7 @@ public class ScalaLexUtilities {
         return OffsetRange.NONE;
     }
 
-    public static OffsetRange getMultilineRange(BaseDocument doc, TokenSequence<? extends ScalaTokenId> ts) {
+    public static OffsetRange getMultilineRange(BaseDocument doc, TokenSequence<ScalaTokenId> ts) {
         int index = ts.index();
         OffsetRange offsetRange = findMultilineRange(ts);
         ts.moveIndex(index);
@@ -664,7 +665,7 @@ public class ScalaLexUtilities {
             int begin = Utilities.getRowStart(doc, offset);
             int end = upToOffset ? offset : Utilities.getRowEnd(doc, offset);
 
-            TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, begin);
+            TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, begin);
             if (ts == null) {
                 return 0;
             }
@@ -678,7 +679,7 @@ public class ScalaLexUtilities {
             int balance = 0;
 
             do {
-                Token<? extends ScalaTokenId> token = ts.token();
+                Token<ScalaTokenId> token = ts.token();
                 String text = token.text().toString();
 
                 if (isBeginToken(text, doc, ts.offset())) {
@@ -697,79 +698,45 @@ public class ScalaLexUtilities {
     }
 
     /** Compute the balance of begin/end tokens on the line */
-    public static int getLineBalance(BaseDocument doc, int offset, TokenId up, TokenId down) {
+    public static Stack<Token> getLineBalance(BaseDocument doc, int offset, TokenId up, TokenId down) {
+        Stack<Token> balanceStack = new Stack<Token>();
         try {
             int begin = Utilities.getRowStart(doc, offset);
             int end = Utilities.getRowEnd(doc, offset);
 
-            TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, begin);
+            TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, begin);
             if (ts == null) {
-                return 0;
+                return balanceStack;
             }
 
             ts.move(begin);
 
             if (!ts.moveNext()) {
-                return 0;
+                return balanceStack;
             }
 
             int balance = 0;
 
             do {
-                Token<? extends ScalaTokenId> token = ts.token();
+                Token<ScalaTokenId> token = ts.offsetToken();
                 TokenId id = token.id();
 
                 if (id == up) {
+                    balanceStack.push(token);
                     balance++;
                 } else if (id == down) {
+                    if (!balanceStack.empty()) {
+                        balanceStack.pop();
+                    }
                     balance--;
                 }
             } while (ts.moveNext() && (ts.offset() <= end));
 
-            return balance;
+            return balanceStack;
         } catch (BadLocationException ble) {
             Exceptions.printStackTrace(ble);
 
-            return 0;
-        }
-    }
-
-    /** Compute the balance of begin/end tokens on the line */
-    public static int getLineBalance(BaseDocument doc, int offset, String up, String down) {
-        try {
-            int begin = Utilities.getRowStart(doc, offset);
-            int end = Utilities.getRowEnd(doc, offset);
-
-            TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, begin);
-            if (ts == null) {
-                return 0;
-            }
-
-            ts.move(begin);
-
-            if (!ts.moveNext()) {
-                return 0;
-            }
-
-            int balance = 0;
-
-            do {
-                Token<? extends ScalaTokenId> token = ts.token();
-                TokenId id = token.id();
-                String text = token.text().toString();
-
-                if (text.equals(up)) {
-                    balance++;
-                } else if (text.equals(down)) {
-                    balance--;
-                }
-            } while (ts.moveNext() && (ts.offset() <= end));
-
-            return balance;
-        } catch (BadLocationException ble) {
-            Exceptions.printStackTrace(ble);
-
-            return 0;
+            return balanceStack;
         }
     }
 
@@ -781,7 +748,7 @@ public class ScalaLexUtilities {
      */
     public static int getTokenBalance(BaseDocument doc, TokenId open, TokenId close, int offset)
             throws BadLocationException {
-        TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, 0);
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, 0);
         if (ts == null) {
             return 0;
         }
@@ -816,7 +783,7 @@ public class ScalaLexUtilities {
      */
     public static int getTokenBalance(BaseDocument doc, String open, String close, int offset)
             throws BadLocationException {
-        TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, 0);
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, 0);
         if (ts == null) {
             return 0;
         }
@@ -892,7 +859,7 @@ public class ScalaLexUtilities {
 
         }
 
-        Token<? extends ScalaTokenId> token = ScalaLexUtilities.getToken(doc, begin);
+        Token<ScalaTokenId> token = ScalaLexUtilities.getToken(doc, begin);
         if (token != null) {
             return token.id() == ScalaTokenId.LineComment;
         }
@@ -960,7 +927,7 @@ public class ScalaLexUtilities {
      */
     @SuppressWarnings("unchecked")
     public static String getStringAt(int caretOffset, TokenHierarchy<Document> th) {
-        TokenSequence<? extends ScalaTokenId> ts = getTokenSequence(th, caretOffset);
+        TokenSequence<ScalaTokenId> ts = getTokenSequence(th, caretOffset);
 
         if (ts == null) {
             return null;
@@ -978,7 +945,7 @@ public class ScalaLexUtilities {
             ts.movePrevious();
         }
 
-        Token<? extends ScalaTokenId> token = ts.token();
+        Token<ScalaTokenId> token = ts.token();
 
         if (token != null) {
             TokenId id = token.id();
@@ -1122,7 +1089,7 @@ public class ScalaLexUtilities {
     @SuppressWarnings("unchecked")
     private static int getLiteralStringOffset(int caretOffset, TokenHierarchy<Document> th,
             ScalaTokenId begin) {
-        TokenSequence<? extends ScalaTokenId> ts = getTokenSequence(th, caretOffset);
+        TokenSequence<ScalaTokenId> ts = getTokenSequence(th, caretOffset);
 
         if (ts == null) {
             return -1;
@@ -1140,7 +1107,7 @@ public class ScalaLexUtilities {
             ts.movePrevious();
         }
 
-        Token<? extends ScalaTokenId> token = ts.token();
+        Token<ScalaTokenId> token = ts.token();
 
         if (token != null) {
             TokenId id = token.id();
@@ -1297,7 +1264,7 @@ public class ScalaLexUtilities {
 //    }
 //
     public static boolean isInsideRegexp(BaseDocument doc, int offset) {
-        TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, offset);
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(doc, offset);
 
         if (ts == null) {
             return false;
@@ -1306,14 +1273,14 @@ public class ScalaLexUtilities {
         ts.move(offset);
 
         if (ts.moveNext()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             TokenId id = token.id();
             if (id == ScalaTokenId.REGEXP_LITERAL || id == ScalaTokenId.REGEXP_END) {
                 return true;
             }
         }
         if (ts.movePrevious()) {
-            Token<? extends ScalaTokenId> token = ts.token();
+            Token<ScalaTokenId> token = ts.token();
             TokenId id = token.id();
             if (id == ScalaTokenId.REGEXP_LITERAL || id == ScalaTokenId.REGEXP_BEGIN) {
                 return true;

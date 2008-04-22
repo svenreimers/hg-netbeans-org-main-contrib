@@ -53,6 +53,7 @@ import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import org.netbeans.modules.scala.editing.nodes.AstDef;
 import org.netbeans.modules.scala.editing.nodes.AstElement;
+import org.netbeans.modules.scala.editing.nodes.AstRef;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.FunRef;
 import org.openide.util.Exceptions;
@@ -70,7 +71,7 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
 
         //BaseDocument doc = (BaseDocument)document;
 
-        TokenSequence<? extends ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, lexOffset);
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, lexOffset);
 
         if (ts == null) {
             return OffsetRange.NONE;
@@ -121,21 +122,20 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
     IndexedFunction findMethodDeclaration(CompilationInfo info, FunRef call, Set<IndexedFunction>[] alternativesHolder) {
         String prefix = call.getName();
         ScalaParserResult parseResult = AstUtilities.getParserResult(info);
-        ScalaIndex index = ScalaIndex.get(info.getIndex(ScalaMimeResolver.MIME_TYPE));
+        ScalaIndex index = ScalaIndex.get(info);
         Set<IndexedElement> functions = index.getAllNames(prefix,
                 NameKind.EXACT_NAME, ScalaIndex.ALL_SCOPE, parseResult);
 
         IndexedElement candidate = findBestElementMatch(info, /*name,*/ functions/*, (BaseDocument)info.getDocument(),
                 astOffset, lexOffset, path, closest, index*/);
         if (candidate instanceof IndexedFunction) {
-            return (IndexedFunction)candidate;
+            return (IndexedFunction) candidate;
         }
         return null;
     }
 
-
     private IndexedElement findBestElementMatch(CompilationInfo info, /*String name,*/ Set<IndexedElement> elements/*,
-        BaseDocument doc, int astOffset, int lexOffset, AstPath path/ Node call, JsIndex index*/) {
+            BaseDocument doc, int astOffset, int lexOffset, AstPath path/ Node call, JsIndex index*/) {
         // For now no good heuristics to pick a method.
         // Possible things to consider:
         // -- scope - whether the method is local
@@ -148,14 +148,13 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
             if (r != null) {
                 return r;
             }
-            
+
             return e;
         }
-        
+
         return null;
     }
-    
-    
+
     public DeclarationLocation findDeclaration(CompilationInfo info, int lexOffset) {
 
         final Document document;
@@ -168,27 +167,31 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
         final BaseDocument doc = (BaseDocument) document;
 
         ScalaParserResult pResult = AstUtilities.getParserResult(info);
-        doc.readLock(); // Read-lock due to Token hierarchy use
 
+        doc.readLock();
         try {
             AstScope root = pResult.getRootScope();
             if (root == null) {
-                return null;
+                return DeclarationLocation.NONE;
             }
 
             final int astOffset = AstUtilities.getAstOffset(info, lexOffset);
             if (astOffset == -1) {
-                return null;
+                return DeclarationLocation.NONE;
             }
+            
             final TokenHierarchy<Document> th = TokenHierarchy.get(document);
 
             AstElement closest = root.getElement(th, astOffset);
-            AstDef def = root.findDef(closest);
-            if (def == null) {
-                return null;
-            }
+            if (closest instanceof AstRef || closest instanceof AstDef) {
+                AstDef def = root.findDef(closest);
+                if (def != null) {
+                    return new DeclarationLocation(info.getFileObject(), def.getIdToken().offset(th), def);                
+                }
+            } 
+            
+            return DeclarationLocation.NONE;
 
-            return new DeclarationLocation(info.getFileObject(), def.getIdToken().offset(th), def);
         } finally {
             doc.readUnlock();
         }
