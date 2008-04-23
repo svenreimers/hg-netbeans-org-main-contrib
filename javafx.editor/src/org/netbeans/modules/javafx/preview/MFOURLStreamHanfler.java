@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- * Copyright 1997-2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * 
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -37,52 +37,51 @@
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.autoupdate.featureondemand.api;
+package org.netbeans.modules.javafx.preview;
 
-import java.awt.event.ActionListener;
 import java.io.IOException;
-import org.netbeans.modules.autoupdate.featureondemand.FeatureAction;
-import org.netbeans.modules.autoupdate.featureondemand.ui.FeatureOnDemanWizardIterator;
-import org.openide.WizardDescriptor;
-import org.openide.filesystems.FileObject;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
 
-/** Factories for iterators, actions and other useful elements for feature
- * on demand UI.
- *
- * @author Jaroslav Tulach <jaroslav.tulach@netbeans.org>, Jirka Rechtacek <jrechtacek@netbeans.org>
- */
-public final class Factory {
-    private Factory() {}
+public class MFOURLStreamHanfler extends URLStreamHandler {
+    static ClassLoader classLoader = null;
 
-    /** Creates new iterator for data provided by given file object.
-     * 
-     * @param fo file object describing the iterator
-     * @return the Feature On Demand-ready iterator
-     * @throws java.io.IOException 
-     */
-    public static WizardDescriptor.InstantiatingIterator newProject (FileObject fo) throws IOException {
-        return FeatureOnDemanWizardIterator.newProject(fo);
+    public static final class Factory implements URLStreamHandlerFactory {
+        public URLStreamHandler createURLStreamHandler(String protocol) {
+            if (protocol.equals("mfo")) { // NOI18N
+                return new MFOURLStreamHanfler();
+            } else {
+                return null;
+            }
+        }
     }
     
-    /** Creates an action that can trigger Feature On Demand&tm; 
-     * initialization.
-     * 
-     * @param fo file object to read the action from
-     * @return ActionListener
-     * @throws java.io.IOException 
-     */
-    public static ActionListener newDelegateAction(FileObject fo) throws IOException {
-        return new FeatureAction (fo, true);
+    public static void setClassLoader(ClassLoader cl) {
+        classLoader = cl;
+    }
+
+    @Override
+    protected URLConnection openConnection(URL u) throws IOException {
+        return new MemoryConnection(u);
     }
     
-    /** Creates an transient action that can trigger Feature On Demand&tm; 
-     * initialization.
-     * 
-     * @param fo file object to read the action from
-     * @return ActionListener
-     * @throws java.io.IOException 
-     */
-    public static ActionListener newAction(FileObject fo) throws IOException {
-        return new FeatureAction (fo, false);
+    private static final class MemoryConnection extends URLConnection {
+
+        public MemoryConnection(URL u) {
+            super(u);
+        }
+
+        @Override
+        public void connect() throws IOException {
+            return;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return classLoader.getResourceAsStream(url.getPath());
+        }
     }
 }
