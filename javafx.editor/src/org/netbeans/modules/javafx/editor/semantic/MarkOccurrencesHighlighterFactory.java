@@ -21,6 +21,12 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2007 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -31,63 +37,27 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
- *
- * Contributor(s):
- *
- * Portions Copyrighted 2007 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.javafx.editor.semantic;
 
-package org.netbeans.modules.groovy.grails.api;
-
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.groovy.grails.settings.Settings;
-
+import org.netbeans.api.javafx.source.CancellableTask;
+import org.netbeans.api.javafx.source.CompilationInfo;
+import org.netbeans.api.javafx.source.JavaFXSource.Phase;
+import org.netbeans.api.javafx.source.JavaFXSource.Priority;
+import org.netbeans.api.javafx.source.support.CaretAwareJavaSourceTaskFactory;
+import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author schmidtm
+ * @author Jan Lahoda
  */
-public class GrailsProjectConfig {
+public class MarkOccurrencesHighlighterFactory extends CaretAwareJavaSourceTaskFactory {
 
-    private final Project prj;
-    private final Settings settings = Settings.getInstance();
-
-    public GrailsProjectConfig(Project prj) {
-        this.prj = prj;
+    public MarkOccurrencesHighlighterFactory() {
+        super(Phase.ANALYZED, Priority.LOW, "*");
     }
 
-    public String getPort() {
-        return settings.getPortForProject(prj);
-    }
-
-    public void setPort(String port) {
-        assert port != null;
-        settings.setPortForProject(prj, port);
-    }
-
-    public String getEnv() {
-        return settings.getEnvForProject(prj);
-    }
-
-    public void setEnv(String env) {
-        assert env != null;
-        settings.setEnvForProject(prj, env);
-    }
-
-    public String getDeployDir() {
-        return settings.getDeployDirForProject(prj);
-    }
-
-    public void setDeployDir(String dir) {
-        assert dir != null;
-        settings.setDeployDirForProject(prj, dir);
-    }
-
-    public boolean getAutoDeployFlag() {
-        return settings.getAutoDeployFlagForProject(prj);
-    }
-
-    public void setAutoDeployFlag(boolean flag) {
-        settings.setAutoDeployFlagForProject(prj, flag);
+    public CancellableTask<CompilationInfo> createTask(FileObject file) {
+        return new MarkOccurrencesHighlighter(file);
     }
 }
