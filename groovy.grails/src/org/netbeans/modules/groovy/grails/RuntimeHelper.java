@@ -37,44 +37,40 @@
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.groovy.grails.api;
+package org.netbeans.modules.groovy.grails;
 
 import java.io.File;
-import java.io.IOException;
-import org.netbeans.junit.NbTestCase;
-import org.netbeans.modules.groovy.grails.settings.GrailsSettings;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 import org.openide.util.Utilities;
 
 /**
  *
  * @author Petr Hejl
  */
-public class GrailsRuntimeTest extends NbTestCase {
+public final class RuntimeHelper {
 
-    public GrailsRuntimeTest(String name) {
-        super(name);
+    public static final String WIN_EXECUTABLE = "\\bin\\grails.bat"; // NOI18N
+
+    public static final String NIX_EXECUTABLE = "/bin/grails"; // NOI18N
+
+    private RuntimeHelper() {
+        super();
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        clearWorkDir();
-        super.tearDown();
+    public static boolean isValidRuntime(File grailsBase) {
+        String pathToBinary = Utilities.isWindows() ? WIN_EXECUTABLE : NIX_EXECUTABLE;
+        return new File(grailsBase, pathToBinary).isFile();
     }
 
-    public void testConfigured() throws IOException {
-        final GrailsSettings settings = GrailsSettings.getInstance();
-        final GrailsRuntime runtime = GrailsRuntime.getInstance();
-        String path = getWorkDirPath();
+    public static File getSystemDefaultRuntime() {
+        String grailsHome = System.getenv("GRAILS_HOME"); // NOI18N
+        if (grailsHome == null) {
+            return null;
+        }
+        File grailsBase = new File(grailsHome);
+        if (isValidRuntime(grailsBase)) {
+            return grailsBase;
+        }
 
-        assertFalse(runtime.isConfigured());
-        settings.setGrailsBase(path);
-        assertFalse(runtime.isConfigured());
-
-        FileObject dir = FileUtil.createFolder(FileUtil.normalizeFile(new File(getWorkDir(), "bin")));
-        assertFalse(runtime.isConfigured());
-        FileObject executable = dir.createData(Utilities.isWindows() ? "grails.bat" : "grails");
-        assertTrue(runtime.isConfigured());
+        return null;
     }
 }
