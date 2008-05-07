@@ -40,6 +40,9 @@
  */
 package org.netbeans.modules.javafx.editor.semantic;
 
+import com.sun.javafx.api.tree.ClassDeclarationTree;
+import com.sun.javafx.api.tree.FunctionDefinitionTree;
+import com.sun.javafx.api.tree.JavaFXVariableTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberSelectTree;
@@ -114,12 +117,32 @@ public class FindLocalUsagesQuery extends CancellableTreePathScanner<Void, Stack
     }
     
     @Override
+    public Void visitFunctionDefinition(FunctionDefinitionTree tree, Stack<Tree> d) {
+        handlePotentialVariable(getCurrentPath());
+//        Element el = info.getTrees().getElement(getCurrentPath());
+//        handleJavadoc(el);
+        super.visitFunctionDefinition(tree, d);
+        return null;
+    }
+
+    @Override
     public Void visitMemberSelect(MemberSelectTree node, Stack<Tree> p) {
         handlePotentialVariable(getCurrentPath());
         super.visitMemberSelect(node, p);
         return null;
     }
     
+    @Override
+    public Void visitVariable(JavaFXVariableTree tree, Stack<Tree> d) {
+        handlePotentialVariable(getCurrentPath());
+//        Element el = info.getTrees().getElement(getCurrentPath());
+//        if (el != null && el.getKind().isField()) {
+//            handleJavadoc(el);
+//        }
+        super.visitVariable(tree, d);
+        return null;
+    }
+
     @Override
     public Void visitVariable(VariableTree tree, Stack<Tree> d) {
         handlePotentialVariable(getCurrentPath());
@@ -139,4 +162,14 @@ public class FindLocalUsagesQuery extends CancellableTreePathScanner<Void, Stack
         super.visitClass(tree, d);
         return null;
     }
+
+    @Override
+    public Void visitClassDeclaration(ClassDeclarationTree tree, Stack<Tree> d) {
+        handlePotentialVariable(getCurrentPath());
+//        Element el = info.getTrees().getElement(getCurrentPath());
+//        handleJavadoc(el);
+        super.visitClassDeclaration(tree, d);
+        return null;
+    }
+    
 }
