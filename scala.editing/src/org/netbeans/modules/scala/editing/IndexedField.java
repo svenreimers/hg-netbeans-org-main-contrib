@@ -36,61 +36,39 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.api.lexer.Token;
+package org.netbeans.modules.scala.editing;
+
 import org.netbeans.modules.gsf.api.ElementKind;
 
 /**
  *
- * @author Caoyuan Deng
+ * @author dcaoyuan
  */
-public class FieldRef extends AstRef {
-
-    /** base may be AstExpr, FunRef, FieldRef, IdRef etc */
-    private AstElement base;
-    private Id field;
-    private String retType;
-
-    public FieldRef(Token idToken) {
-        super(null, idToken, ElementKind.FIELD);
-    }
-
-    public void setBase(AstElement base) {
-        this.base = base;
-    }
-
-    public AstElement getBase() {
-        return base;
-    }
-
-    public void setField(Id field) {
-        this.field = field;
+public class IndexedField extends IndexedElement {
+    
+    IndexedField(String fqn, String name, String in, ScalaIndex index, String fileUrl, String attributes, int flags, ElementKind kind) {
+        super(fqn, name, in, index, fileUrl, attributes, flags, kind);
     }
     
-    public Id getField() {
-        return field;
+    @Override
+    public String toString() {
+        return getSignature() + ":" + getFilenameUrl() + ";" + decodeFlags(flags);
     }
 
     @Override
-    public String getName() {
-        StringBuilder sb = new StringBuilder();
-        if (base != null) {
-            TypeRef baseType = base.getType();
-            if (baseType != null) {
-                sb.append(baseType.getName());
+    public String getSignature() {
+        if (signature == null) {
+            StringBuilder sb = new StringBuilder();
+            if (in != null) {
+                sb.append(in);
+                sb.append('.');
             }
+            sb.append(name);
+            signature = sb.toString();
         }
-        sb.append(field.getName());
-        return sb.toString();
+
+        return signature;
     }
 
-    public void setRetType(String retType) {
-        this.retType = retType;
-    }
-
-    public String getRetType() {
-        return retType;
-    }
-    
 }
