@@ -39,72 +39,26 @@
 
 package org.netbeans.modules.javafx.editor.completion.environment;
 
-import com.sun.source.tree.ModifiersTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.util.TreePath;
+import com.sun.tools.javafx.tree.JFXForExpressionInClause;
 import java.io.IOException;
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.lang.model.element.Modifier;
-import static javax.lang.model.element.Modifier.*;
-import org.netbeans.api.javafx.lexer.JFXTokenId;
-import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.modules.javafx.editor.completion.JavaFXCompletionEnvironment;
 
 /**
  *
  * @author David Strupl
  */
-public class ModifiersTreeEnvironment extends JavaFXCompletionEnvironment<ModifiersTree> {
+public class ForExpressionInClauseEnvironment extends JavaFXCompletionEnvironment<JFXForExpressionInClause> {
     
-    private static final Logger logger = Logger.getLogger(ModifiersTreeEnvironment.class.getName());
+    private static final Logger logger = Logger.getLogger(ForExpressionInClauseEnvironment.class.getName());
     private static final boolean LOGGABLE = logger.isLoggable(Level.FINE);
 
     @Override
-    protected void inside(ModifiersTree t) throws IOException {
-        log("inside ModifiersTree " + t);
-        ModifiersTree mods = t;
-        Set<Modifier> m = EnumSet.noneOf(Modifier.class);
-        final TokenSequence<?> idTokenSequence = getController().getTreeUtilities().tokensFor(mods, getSourcePositions());
-        TokenSequence<JFXTokenId> ts = (TokenSequence<JFXTokenId>) idTokenSequence;
-        JFXTokenId lastNonWhitespaceTokenId = null;
-        while (ts.moveNext() && ts.offset() < offset) {
-            lastNonWhitespaceTokenId = ts.token().id();
-            switch (lastNonWhitespaceTokenId) {
-                case PUBLIC:
-                    m.add(PUBLIC);
-                    break;
-                case PROTECTED:
-                    m.add(PROTECTED);
-                    break;
-                case PRIVATE:
-                    m.add(PRIVATE);
-                    break;
-                case STATIC:
-                    m.add(STATIC);
-                    break;
-                case ABSTRACT:
-                    m.add(ABSTRACT);
-                    break;
-            }
-        }
-        TreePath parentPath = path.getParentPath();
-        Tree parent = parentPath.getLeaf();
-        TreePath grandParentPath = parentPath.getParentPath();
-        Tree grandParent = grandParentPath != null ? grandParentPath.getLeaf() : null;
-        if (parent.getKind() == Tree.Kind.CLASS) {
-            addClassModifiers(m);
-        } else if (parent.getKind() != Tree.Kind.VARIABLE || grandParent == null || grandParent.getKind() == Tree.Kind.CLASS) {
-            addMemberModifiers(m, false);
-        } else if (parent.getKind() == Tree.Kind.VARIABLE && grandParent.getKind() == Tree.Kind.METHOD) {
-            addMemberModifiers(m, true);
-        } else {
-            localResult();
-            addKeywordsForStatement();
-        }
-    }   
+    protected void inside(JFXForExpressionInClause t) throws IOException {
+        log("inside JFXForExpressionInClause " + t);
+        log("  prefix: " + prefix);
+    }
 
     private static void log(String s) {
         if (LOGGABLE) {
