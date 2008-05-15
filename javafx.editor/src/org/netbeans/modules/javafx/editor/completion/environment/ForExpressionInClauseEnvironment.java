@@ -36,29 +36,33 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.hibernate.hqleditor.ui;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
-import org.openide.util.NbBundle;
-import org.openide.util.Utilities;
+package org.netbeans.modules.javafx.editor.completion.environment;
+
+import com.sun.tools.javafx.tree.JFXForExpressionInClause;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.netbeans.modules.javafx.editor.completion.JavaFXCompletionEnvironment;
 
 /**
- * Action which shows HQLEditorOutput component.
- * 
- * @author Vadiraj Deshpande (Vadiraj.Deshpande@Sun.COM)
+ *
+ * @author David Strupl
  */
-public class HQLEditorOutputAction extends AbstractAction {
+public class ForExpressionInClauseEnvironment extends JavaFXCompletionEnvironment<JFXForExpressionInClause> {
+    
+    private static final Logger logger = Logger.getLogger(ForExpressionInClauseEnvironment.class.getName());
+    private static final boolean LOGGABLE = logger.isLoggable(Level.FINE);
 
-    public HQLEditorOutputAction() {
-        super(NbBundle.getMessage(HQLEditorOutputAction.class, "CTL_HQLEditorOutputAction"));
-        putValue(SMALL_ICON, new ImageIcon(Utilities.loadImage(HQLEditorTopComponent.ICON_PATH, true)));
+    @Override
+    protected void inside(JFXForExpressionInClause t) throws IOException {
+        log("inside JFXForExpressionInClause " + t);
+        log("  prefix: " + prefix);
     }
 
-    public void actionPerformed(ActionEvent evt) {
-//        TopComponent win = HQLEditorOutputTopComponent.findInstance();
-//        win.open();
-//        win.requestActive();
+    private static void log(String s) {
+        if (LOGGABLE) {
+            logger.fine(s);
+        }
     }
 }

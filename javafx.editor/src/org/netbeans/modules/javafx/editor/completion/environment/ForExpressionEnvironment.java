@@ -39,16 +39,10 @@
 
 package org.netbeans.modules.javafx.editor.completion.environment;
 
-import com.sun.source.tree.ModifiersTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.util.TreePath;
+import com.sun.tools.javafx.tree.JFXForExpression;
 import java.io.IOException;
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.lang.model.element.Modifier;
-import static javax.lang.model.element.Modifier.*;
 import org.netbeans.api.javafx.lexer.JFXTokenId;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.modules.javafx.editor.completion.JavaFXCompletionEnvironment;
@@ -57,54 +51,45 @@ import org.netbeans.modules.javafx.editor.completion.JavaFXCompletionEnvironment
  *
  * @author David Strupl
  */
-public class ModifiersTreeEnvironment extends JavaFXCompletionEnvironment<ModifiersTree> {
+public class ForExpressionEnvironment extends JavaFXCompletionEnvironment<JFXForExpression> {
     
-    private static final Logger logger = Logger.getLogger(ModifiersTreeEnvironment.class.getName());
+    private static final Logger logger = Logger.getLogger(ForExpressionEnvironment.class.getName());
     private static final boolean LOGGABLE = logger.isLoggable(Level.FINE);
 
     @Override
-    protected void inside(ModifiersTree t) throws IOException {
-        log("inside ModifiersTree " + t);
-        ModifiersTree mods = t;
-        Set<Modifier> m = EnumSet.noneOf(Modifier.class);
-        final TokenSequence<?> idTokenSequence = getController().getTreeUtilities().tokensFor(mods, getSourcePositions());
-        TokenSequence<JFXTokenId> ts = (TokenSequence<JFXTokenId>) idTokenSequence;
-        JFXTokenId lastNonWhitespaceTokenId = null;
-        while (ts.moveNext() && ts.offset() < offset) {
-            lastNonWhitespaceTokenId = ts.token().id();
-            switch (lastNonWhitespaceTokenId) {
-                case PUBLIC:
-                    m.add(PUBLIC);
-                    break;
-                case PROTECTED:
-                    m.add(PROTECTED);
-                    break;
-                case PRIVATE:
-                    m.add(PRIVATE);
-                    break;
-                case STATIC:
-                    m.add(STATIC);
-                    break;
-                case ABSTRACT:
-                    m.add(ABSTRACT);
-                    break;
+    protected void inside(JFXForExpression foe) throws IOException {
+        log("inside JFXForExpression " + foe);
+        log("  prefix: " + prefix);
+        int start = (int)sourcePositions.getStartPosition(root, foe);
+        log("  offset: " + offset);
+        log("  start: " + start);
+        TokenSequence<JFXTokenId> ts = controller.getTokenHierarchy().tokenSequence(JFXTokenId.language());
+        ts.move(start);
+        boolean afterIdentifier = false;
+        w: while (ts.moveNext()) {
+            if (ts.offset() >= offset) {
+                break;
+            }
+            switch (ts.token().id()) {
+                case WS:
+                case LINE_COMMENT:
+                case COMMENT:
+                case DOC_COMMENT:
+                    continue w;
+                case IDENTIFIER:
+                    afterIdentifier = true;
+                    break w;
+                default:
+                    // TODO:
             }
         }
-        TreePath parentPath = path.getParentPath();
-        Tree parent = parentPath.getLeaf();
-        TreePath grandParentPath = parentPath.getParentPath();
-        Tree grandParent = grandParentPath != null ? grandParentPath.getLeaf() : null;
-        if (parent.getKind() == Tree.Kind.CLASS) {
-            addClassModifiers(m);
-        } else if (parent.getKind() != Tree.Kind.VARIABLE || grandParent == null || grandParent.getKind() == Tree.Kind.CLASS) {
-            addMemberModifiers(m, false);
-        } else if (parent.getKind() == Tree.Kind.VARIABLE && grandParent.getKind() == Tree.Kind.METHOD) {
-            addMemberModifiers(m, true);
+        log("  afterIdentifier: " + afterIdentifier);
+        if (afterIdentifier) {
+            // only in here:
         } else {
-            localResult();
-            addKeywordsForStatement();
+            // check whether the identifier is ok and if yes put there in
         }
-    }   
+    }
 
     private static void log(String s) {
         if (LOGGABLE) {
