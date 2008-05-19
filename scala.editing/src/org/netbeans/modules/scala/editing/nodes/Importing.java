@@ -38,99 +38,76 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Function extends AstDef {
+public class Importing extends AstDef {
 
-    private List<TypeRef> typeParams;
-    private List<Var> params;
+    private List<Id> paths;
+    private List<TypeRef> importedTypes;
+    private boolean wild;
 
-    public Function(String name, Token idToken, AstScope bindingScope, ElementKind kind) {
-        super(name, idToken, bindingScope, kind);
+    public Importing(Token idToken, AstScope bindingScope) {
+        super(null, idToken, bindingScope, ElementKind.OTHER);
+    }
+    
+    public void setPaths(List<Id> paths) {
+        this.paths = paths;
+    }
+    
+    public List<Id> getPaths() {
+        return paths;
+    }
+    
+    public void setImportedTypes(List<TypeRef> importedTypes) {
+        this.importedTypes = importedTypes;
+    }
+    
+    public List<TypeRef> getImportedTypes() {
+        return importedTypes == null ? Collections.<TypeRef>emptyList() : importedTypes;
+    }
+    
+    public void setWild() {
+        this.wild = true;
+    }
+    
+    public boolean isWild() {
+        return wild;
     }
 
-    public void setTypeParam(List<TypeRef> typeParams) {
-        this.typeParams = typeParams;
+    public String getPackageName() {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<Id> itr = paths.iterator(); itr.hasNext();) {
+            sb.append(itr.next().getName());
+            if (itr.hasNext()) {
+                sb.append(".");
+            }
+        }
+        return sb.toString();
     }
-
-    public List<TypeRef> getTypeParam() {
-        return typeParams == null ? Collections.<TypeRef>emptyList() : typeParams;
-    }
-
-    public void setParam(List<Var> params) {
-        this.params = params;
-    }
-
-    /**
-     * @return null or params 
-     */
-    public List<Var> getParams() {
-        return params;
-    }
-
+    
     @Override
-    public boolean referredBy(AstRef ref) {
-        if (ref instanceof FunRef) {
-            FunRef funRef = (FunRef) ref;
-            // only check local call only
-            if (funRef.isLocal()) {
-                return getName().equals(funRef.getCall().getName()) && params != null && params.size() == funRef.getArgs().size();
-            }
+    public String getName() {
+        StringBuilder sb = new StringBuilder();        
+        for (Id id : paths) {
+            sb.append(id.getName()).append(".");
         }
-
-        return false;
+        if (isWild()) {
+            sb.append("_");
+            return sb.toString();
+        }
+        if (getImportedTypes().size() == 1) {
+            sb.append(getImportedTypes().get(0).getName());
+        }
+        return sb.toString();
     }
-
-    @Override
-    public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        if (!getTypeParam().isEmpty()) {
-            formatter.appendHtml("[");
-
-            for (Iterator<TypeRef> itr = getTypeParam().iterator(); itr.hasNext();) {
-                TypeRef typeParam = itr.next();
-                typeParam.htmlFormat(formatter);
-
-                if (itr.hasNext()) {
-                    formatter.appendHtml(", ");
-                }
-            }
-
-            formatter.appendHtml("]");
-        }
-
-        if (params != null) {
-            formatter.appendHtml("(");
-            if (!params.isEmpty()) {
-                formatter.parameters(true);
-
-                for (Iterator<Var> itr = getParams().iterator(); itr.hasNext();) {
-                    Var param = itr.next();
-                    param.htmlFormat(formatter);
-
-                    if (itr.hasNext()) {
-                        formatter.appendHtml(", ");
-                    }
-                }
-
-                formatter.parameters(false);
-            }
-            formatter.appendHtml(")");
-        }
-
-        if (getType() != null) {
-            formatter.appendHtml(" :");
-            getType().htmlFormat(formatter);
-        }
-    }
+        
 }

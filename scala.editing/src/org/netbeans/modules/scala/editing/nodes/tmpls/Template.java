@@ -36,94 +36,60 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
+package org.netbeans.modules.scala.editing.nodes.tmpls;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+import java.util.Collections;
+import java.util.List;
 import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.AstDef;
+import org.netbeans.modules.scala.editing.nodes.AstRef;
+import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.netbeans.modules.scala.editing.nodes.Id;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Var extends AstDef {
+public abstract class Template extends AstDef {
 
-    private boolean val;
-    private boolean implicate;
-    private AstExpr expr;
+    private boolean caseOne;
 
-    public Var(Id id, AstScope bindingScope, ElementKind kind) {
+    private List<TypeRef> extendsWith;
+    
+    public Template(Id id, AstScope bindingScope, ElementKind kind) {
         super(id.getName(), id.getIdToken(), bindingScope, kind);
-        setType(id.getType());
     }
 
-    public void setVal() {
-        val = true;
+    public void setCaseOne() {
+        this.caseOne = true;
     }
 
-    public boolean isVal() {
-        return val;
+    public boolean isCaseOne() {
+        return caseOne;
     }
-
-    public void setImplicate() {
-        implicate = true;
+    
+    public void setExtendsWith(List<TypeRef> extendsWith) {
+        this.extendsWith = extendsWith;
     }
-
-    public boolean getImplicate() {
-        return implicate;
-    }
-
-    public void setExpr(AstExpr expr) {
-        this.expr = expr;
-        getBindingScope().addExpr(expr);
+    
+    public List<TypeRef> getExtendsWith() {
+        return extendsWith == null ? Collections.<TypeRef>emptyList() : extendsWith;
     }
 
     @Override
     public boolean referredBy(AstRef ref) {
         switch (ref.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
+            case CLASS:
                 return getName().equals(ref.getName());
-            default:
-                return false;
-        }
-    }
-
-    @Override
-    public TypeRef getType() {
-        if (type != null) {
-            return type;
-        }
-
-        if (expr != null) {
-            return expr.getType();
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean mayEqual(AstDef def) {
-        switch (def.getKind()) {
             case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(def.getName());
+                if (isCaseOne()) {
+                    return getName().equals(ref.getName());
+                } else {
+                    return false;
+                }
             default:
                 return false;
-        }
-    }
-
-    @Override
-    public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        TypeRef myType = getType();
-        if (myType != null) {
-            formatter.type(true);
-            formatter.appendHtml(" :");
-            myType.htmlFormat(formatter);
-            formatter.type(false);
         }
     }
 }

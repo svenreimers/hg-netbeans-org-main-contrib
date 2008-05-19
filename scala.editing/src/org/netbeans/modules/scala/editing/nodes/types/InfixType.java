@@ -36,94 +36,62 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+package org.netbeans.modules.scala.editing.nodes.types;
+
+import java.util.List;
+import org.netbeans.api.lexer.Token;
 import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.Id;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Var extends AstDef {
-
-    private boolean val;
-    private boolean implicate;
-    private AstExpr expr;
-
-    public Var(Id id, AstScope bindingScope, ElementKind kind) {
-        super(id.getName(), id.getIdToken(), bindingScope, kind);
-        setType(id.getType());
+public class InfixType extends TypeRef {
+    
+    private List<TypeRef> types;
+    private List<Id> ops;
+    
+    public InfixType(Token idToken, ElementKind kind) {
+        super(null, idToken, kind);
     }
-
-    public void setVal() {
-        val = true;
+    
+    public void setTypes(List<TypeRef> types) {
+        this.types = types;
     }
-
-    public boolean isVal() {
-        return val;
+    
+    public List<TypeRef> getTypes() {
+        return types;
     }
-
-    public void setImplicate() {
-        implicate = true;
+    
+    public void setOps(List<Id> ops) {
+        this.ops = ops;
     }
-
-    public boolean getImplicate() {
-        return implicate;
-    }
-
-    public void setExpr(AstExpr expr) {
-        this.expr = expr;
-        getBindingScope().addExpr(expr);
+    
+    public List<Id> getOps() {
+        return ops;
     }
 
     @Override
-    public boolean referredBy(AstRef ref) {
-        switch (ref.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(ref.getName());
-            default:
-                return false;
+    public java.lang.String getName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(types.get(0).getName());
+        for (int i = 1; i < types.size(); i++) {
+            sb.append(" ").append(ops.get(i - 1).getName()).append(" ");
+            sb.append(types.get(i).getName());
         }
-    }
-
-    @Override
-    public TypeRef getType() {
-        if (type != null) {
-            return type;
-        }
-
-        if (expr != null) {
-            return expr.getType();
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean mayEqual(AstDef def) {
-        switch (def.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(def.getName());
-            default:
-                return false;
-        }
-    }
-
+        return sb.toString();
+    }    
+    
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        TypeRef myType = getType();
-        if (myType != null) {
-            formatter.type(true);
-            formatter.appendHtml(" :");
-            myType.htmlFormat(formatter);
-            formatter.type(false);
+        types.get(0).htmlFormat(formatter);
+        for (int i = 1; i < types.size(); i++) {
+            formatter.appendText(" " + ops.get(i - 1) + " ");
+            types.get(i).htmlFormat(formatter);
         }
-    }
+    }        
+
 }

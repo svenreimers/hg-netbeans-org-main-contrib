@@ -36,10 +36,8 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
+package org.netbeans.modules.scala.editing.nodes.types;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.netbeans.api.lexer.Token;
@@ -50,87 +48,43 @@ import org.netbeans.modules.gsf.api.HtmlFormatter;
  *
  * @author Caoyuan Deng
  */
-public class Function extends AstDef {
+public class CompoundType extends TypeRef {
 
-    private List<TypeRef> typeParams;
-    private List<Var> params;
+    private List<TypeRef> types;
 
-    public Function(String name, Token idToken, AstScope bindingScope, ElementKind kind) {
-        super(name, idToken, bindingScope, kind);
+    public CompoundType(Token idToken, ElementKind kind) {
+        super(null, idToken, kind);
     }
 
-    public void setTypeParam(List<TypeRef> typeParams) {
-        this.typeParams = typeParams;
+    public void setTypes(List<TypeRef> types) {
+        this.types = types;
     }
 
-    public List<TypeRef> getTypeParam() {
-        return typeParams == null ? Collections.<TypeRef>emptyList() : typeParams;
-    }
-
-    public void setParam(List<Var> params) {
-        this.params = params;
-    }
-
-    /**
-     * @return null or params 
-     */
-    public List<Var> getParams() {
-        return params;
+    public List<TypeRef> getTypes() {
+        return types;
     }
 
     @Override
-    public boolean referredBy(AstRef ref) {
-        if (ref instanceof FunRef) {
-            FunRef funRef = (FunRef) ref;
-            // only check local call only
-            if (funRef.isLocal()) {
-                return getName().equals(funRef.getCall().getName()) && params != null && params.size() == funRef.getArgs().size();
+    public String getName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(types.get(0).getName());
+        for (Iterator<TypeRef> itr = types.iterator(); itr.hasNext();) {
+            sb.append(itr.next().getName());
+            if (itr.hasNext()) {
+                sb.append(" with ");
             }
         }
-
-        return false;
+        return sb.toString();
     }
 
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        if (!getTypeParam().isEmpty()) {
-            formatter.appendHtml("[");
-
-            for (Iterator<TypeRef> itr = getTypeParam().iterator(); itr.hasNext();) {
-                TypeRef typeParam = itr.next();
-                typeParam.htmlFormat(formatter);
-
-                if (itr.hasNext()) {
-                    formatter.appendHtml(", ");
-                }
+        types.get(0).htmlFormat(formatter);
+        for (Iterator<TypeRef> itr = types.iterator(); itr.hasNext();) {
+            itr.next().htmlFormat(formatter);
+            if (itr.hasNext()) {
+                formatter.appendText(" with ");
             }
-
-            formatter.appendHtml("]");
-        }
-
-        if (params != null) {
-            formatter.appendHtml("(");
-            if (!params.isEmpty()) {
-                formatter.parameters(true);
-
-                for (Iterator<Var> itr = getParams().iterator(); itr.hasNext();) {
-                    Var param = itr.next();
-                    param.htmlFormat(formatter);
-
-                    if (itr.hasNext()) {
-                        formatter.appendHtml(", ");
-                    }
-                }
-
-                formatter.parameters(false);
-            }
-            formatter.appendHtml(")");
-        }
-
-        if (getType() != null) {
-            formatter.appendHtml(" :");
-            getType().htmlFormat(formatter);
         }
     }
 }

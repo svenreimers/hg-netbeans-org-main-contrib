@@ -78,8 +78,8 @@ import org.netbeans.modules.scala.editing.nodes.FieldRef;
 import org.netbeans.modules.scala.editing.nodes.FunRef;
 import org.netbeans.modules.scala.editing.nodes.Function;
 import org.netbeans.modules.scala.editing.nodes.IdRef;
-import org.netbeans.modules.scala.editing.nodes.Import;
-import org.netbeans.modules.scala.editing.nodes.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.Importing;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.netbeans.modules.scala.editing.nodes.Var;
 import org.netbeans.modules.scala.editing.rats.ParserScala;
 import org.openide.filesystems.FileObject;
@@ -397,8 +397,8 @@ public class ScalaCodeCompletion implements Completable {
                 }
 
                 if (closest != null) {
-                    if (closest instanceof Import) {
-                        String prefix1 = ((Import) closest).getName();
+                    if (closest instanceof Importing) {
+                        String prefix1 = ((Importing) closest).getName();
                         if (request.prefix.equals("")) {
                             prefix1 = prefix1 + ".";
                         }
@@ -415,7 +415,7 @@ public class ScalaCodeCompletion implements Completable {
                         if (funRef != null) {
                             boolean isHisArg = false;
                             int argOffset = closest.getPickOffset(th);
-                            for (AstElement arg : funRef.getParams()) {
+                            for (AstElement arg : funRef.getArgs()) {
                                 if (arg.getPickOffset(th) >= argOffset && argOffset <= arg.getPickEndOffset(th)) {
                                     isHisArg = true;
                                     break;
@@ -1839,10 +1839,10 @@ public class ScalaCodeCompletion implements Completable {
         //            }
         //        }
 
-        List<String> params = method.getParameters();
+        List<String> args = method.getArgs();
 
-        if ((params != null) && (params.size() > 0)) {
-            return new ParameterInfo(params, index, anchorOffset);
+        if (args != null && args.size() > 0) {
+            return new ParameterInfo(args, index, anchorOffset);
         }
 
         return ParameterInfo.NONE;

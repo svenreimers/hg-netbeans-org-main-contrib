@@ -36,101 +36,62 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+package org.netbeans.modules.scala.editing.nodes.types;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.Id;
 
 /**
  *
- * @author Caoyuan Deng
+ * @author dcaoyuan
  */
-public class Function extends AstDef {
-
-    private List<TypeRef> typeParams;
-    private List<Var> params;
-
-    public Function(String name, Token idToken, AstScope bindingScope, ElementKind kind) {
-        super(name, idToken, bindingScope, kind);
+public class SimpleSingletonType extends TypeRef {
+    
+    private List<Id> ids;
+    
+    public SimpleSingletonType(Token idToken, ElementKind kind) {
+        super(null, idToken, kind);
     }
-
-    public void setTypeParam(List<TypeRef> typeParams) {
-        this.typeParams = typeParams;
+    
+    public void setIds(List<Id> ids) {
+        this.ids = ids;
     }
-
-    public List<TypeRef> getTypeParam() {
-        return typeParams == null ? Collections.<TypeRef>emptyList() : typeParams;
-    }
-
-    public void setParam(List<Var> params) {
-        this.params = params;
-    }
-
-    /**
-     * @return null or params 
-     */
-    public List<Var> getParams() {
-        return params;
+    
+    public List<Id> getIds() {
+        return ids == null ? Collections.<Id>emptyList() : ids;
     }
 
     @Override
-    public boolean referredBy(AstRef ref) {
-        if (ref instanceof FunRef) {
-            FunRef funRef = (FunRef) ref;
-            // only check local call only
-            if (funRef.isLocal()) {
-                return getName().equals(funRef.getCall().getName()) && params != null && params.size() == funRef.getArgs().size();
+    public String getName() {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<Id> itr = getIds().iterator(); itr.hasNext();) {
+            sb.append(itr.next().getName());
+            if (itr.hasNext()) {
+                sb.append(".");
             }
         }
-
-        return false;
+        sb.append(".type");
+        return sb.toString();
     }
+
 
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
         super.htmlFormat(formatter);
-        if (!getTypeParam().isEmpty()) {
-            formatter.appendHtml("[");
-
-            for (Iterator<TypeRef> itr = getTypeParam().iterator(); itr.hasNext();) {
-                TypeRef typeParam = itr.next();
-                typeParam.htmlFormat(formatter);
-
-                if (itr.hasNext()) {
-                    formatter.appendHtml(", ");
-                }
+        for (Iterator<Id> itr = getIds().iterator(); itr.hasNext();) {
+            formatter.appendText(itr.next().getName());
+            if (itr.hasNext()) {
+                formatter.appendText(".");
             }
-
-            formatter.appendHtml("]");
         }
+        formatter.appendText(".type");
+        htmlFormatTypeArgs(formatter);
+    }        
 
-        if (params != null) {
-            formatter.appendHtml("(");
-            if (!params.isEmpty()) {
-                formatter.parameters(true);
-
-                for (Iterator<Var> itr = getParams().iterator(); itr.hasNext();) {
-                    Var param = itr.next();
-                    param.htmlFormat(formatter);
-
-                    if (itr.hasNext()) {
-                        formatter.appendHtml(", ");
-                    }
-                }
-
-                formatter.parameters(false);
-            }
-            formatter.appendHtml(")");
-        }
-
-        if (getType() != null) {
-            formatter.appendHtml(" :");
-            getType().htmlFormat(formatter);
-        }
-    }
 }

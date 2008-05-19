@@ -36,94 +36,63 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
+package org.netbeans.modules.scala.editing.nodes.exprs;
 
+import org.netbeans.modules.scala.editing.nodes.*;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
-import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
+import java.util.List;
+import org.netbeans.api.lexer.Token;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Var extends AstDef {
+public class InfixExpr extends AstExpr implements Postfixable {
 
-    private boolean val;
-    private boolean implicate;
-    private AstExpr expr;
+    private FunRef topFunRef;
+    private List<SimpleExpr> exprs;
+    private List<Id> ops;
+    private Id postfixOp;
 
-    public Var(Id id, AstScope bindingScope, ElementKind kind) {
-        super(id.getName(), id.getIdToken(), bindingScope, kind);
-        setType(id.getType());
+    public InfixExpr(Token[] boundsTokens) {
+        super(boundsTokens);
     }
 
-    public void setVal() {
-        val = true;
+    public void setTopFunRef(FunRef topFunRef) {
+        this.topFunRef = topFunRef;
+    }
+    
+    public FunRef getTopFunRef() {
+        return topFunRef;
+    }
+    
+    public void setExprs(List<SimpleExpr> types) {
+        this.exprs = types;
     }
 
-    public boolean isVal() {
-        return val;
+    public List<SimpleExpr> getExprs() {
+        return exprs;
     }
 
-    public void setImplicate() {
-        implicate = true;
+    public void setOps(List<Id> ops) {
+        this.ops = ops;
     }
 
-    public boolean getImplicate() {
-        return implicate;
+    public List<Id> getOps() {
+        return ops;
     }
 
-    public void setExpr(AstExpr expr) {
-        this.expr = expr;
-        getBindingScope().addExpr(expr);
+    public void setPostfixOp(Id postfixOp) {
+        this.postfixOp = postfixOp;
     }
 
-    @Override
-    public boolean referredBy(AstRef ref) {
-        switch (ref.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(ref.getName());
-            default:
-                return false;
-        }
+    public Id getPostfixOp() {
+        return postfixOp;
     }
-
+    
     @Override
     public TypeRef getType() {
-        if (type != null) {
-            return type;
-        }
-
-        if (expr != null) {
-            return expr.getType();
-        }
-
-        return null;
+        return topFunRef.getType(); // @todo
     }
 
-    @Override
-    public boolean mayEqual(AstDef def) {
-        switch (def.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(def.getName());
-            default:
-                return false;
-        }
-    }
-
-    @Override
-    public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        TypeRef myType = getType();
-        if (myType != null) {
-            formatter.type(true);
-            formatter.appendHtml(" :");
-            myType.htmlFormat(formatter);
-            formatter.type(false);
-        }
-    }
 }

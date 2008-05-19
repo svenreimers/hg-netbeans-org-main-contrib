@@ -36,94 +36,20 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+package org.netbeans.modules.scala.editing.nodes.tmpls;
+
+import org.netbeans.modules.scala.editing.nodes.*;
 import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Var extends AstDef {
-
-    private boolean val;
-    private boolean implicate;
-    private AstExpr expr;
-
-    public Var(Id id, AstScope bindingScope, ElementKind kind) {
-        super(id.getName(), id.getIdToken(), bindingScope, kind);
-        setType(id.getType());
+public class TypeAlias extends AstDef {
+    
+    public TypeAlias(Id id, AstScope bindingScope) {
+        super(id.getName(), id.getIdToken(), bindingScope, ElementKind.CLASS);
     }
 
-    public void setVal() {
-        val = true;
-    }
-
-    public boolean isVal() {
-        return val;
-    }
-
-    public void setImplicate() {
-        implicate = true;
-    }
-
-    public boolean getImplicate() {
-        return implicate;
-    }
-
-    public void setExpr(AstExpr expr) {
-        this.expr = expr;
-        getBindingScope().addExpr(expr);
-    }
-
-    @Override
-    public boolean referredBy(AstRef ref) {
-        switch (ref.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(ref.getName());
-            default:
-                return false;
-        }
-    }
-
-    @Override
-    public TypeRef getType() {
-        if (type != null) {
-            return type;
-        }
-
-        if (expr != null) {
-            return expr.getType();
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean mayEqual(AstDef def) {
-        switch (def.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(def.getName());
-            default:
-                return false;
-        }
-    }
-
-    @Override
-    public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        TypeRef myType = getType();
-        if (myType != null) {
-            formatter.type(true);
-            formatter.appendHtml(" :");
-            myType.htmlFormat(formatter);
-            formatter.type(false);
-        }
-    }
 }
