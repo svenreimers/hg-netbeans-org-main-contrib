@@ -38,6 +38,7 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import java.util.Iterator;
 import java.util.List;
 import org.netbeans.api.lexer.Token;
@@ -77,12 +78,16 @@ public class PathId extends Id {
 
     @Override
     public void setType(TypeRef type) {
+        this.type = type;
         // @Todo
         paths.get(paths.size() - 1).setType(type);
     }        
 
     @Override
     public TypeRef getType() {
+        if (type != null) {
+            return type;
+        }
         // @Todo
         return paths.get(paths.size() - 1).getType();
     }
