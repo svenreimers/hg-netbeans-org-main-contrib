@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
- *
+ * 
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * 
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,13 +20,7 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- *
- * Contributor(s):
- *
- * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
+ * 
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -37,44 +31,50 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
+ * 
+ * Contributor(s):
+ * 
+ * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.api.scala.platform;
+package org.netbeans.modules.scala.editing;
 
-import org.openide.DialogDescriptor;
-import org.openide.DialogDisplayer;
-import org.openide.util.HelpCtx;
-import org.openide.util.NbBundle;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
-import java.awt.*;
+/**
+ *
+ * @author Caoyuan Deng
+ */
+public class JavaScalaMapping {
 
-public final class PlatformsCustomizer {
+    private static final String SCALA_OBJECT = "scala.ScalaObject";
 
-    private PlatformsCustomizer () {
-
-    }
-
-
-    /**
-     * Shows platforms customizer
-     * @param  platform which should be seelcted, may be null
-     * @return boolean for future extension, currently always true
-     */
-    public static boolean showCustomizer (ScalaPlatform platform) {
-        org.netbeans.modules.scala.platform.ui.PlatformsCustomizer  customizer =
-                new org.netbeans.modules.scala.platform.ui.PlatformsCustomizer (platform);
-        javax.swing.JButton close = new javax.swing.JButton(NbBundle.getMessage(PlatformsCustomizer.class,"CTL_Close"));
-        close.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(PlatformsCustomizer.class,"AD_Close"));
-        DialogDescriptor descriptor = new DialogDescriptor (customizer,NbBundle.getMessage(PlatformsCustomizer.class,
-                "TXT_PlatformsManager"), true, new Object[] {close},close,DialogDescriptor.DEFAULT_ALIGN, new HelpCtx (PlatformsCustomizer.class),null); // NOI18N
-        Dialog dlg = null;
-        try {
-            dlg = DialogDisplayer.getDefault().createDialog (descriptor);
-            dlg.setVisible(true);
-        } finally {
-            if (dlg != null)
-                dlg.dispose();
+    public static boolean isScala(TypeElement te) {
+        if (te.getQualifiedName().toString().equals(SCALA_OBJECT)) {
+            return true;
         }
-        return true;
-    }
 
+        TypeMirror superTm = te.getSuperclass();
+        TypeElement superTe = superTm.getKind() == TypeKind.DECLARED
+                ? (TypeElement) ((DeclaredType) superTm).asElement()
+                : null;
+
+        if (superTe != null && isScala(superTe)) {
+            return true;
+        }
+
+        for (TypeMirror interfaceTm : te.getInterfaces()) {
+            TypeElement interfaceTe = interfaceTm.getKind() == TypeKind.DECLARED
+                    ? (TypeElement) ((DeclaredType) interfaceTm).asElement()
+                    : null;
+
+            if (interfaceTe != null && isScala(interfaceTe)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

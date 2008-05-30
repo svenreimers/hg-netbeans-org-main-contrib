@@ -116,11 +116,23 @@ public class JavaIndex {
             prefix = fqnPrefix.substring(lastDot + 1, fqnPrefix.length());
         }
 
+        Types theTypes = info.getTypes();
         Elements theElements = info.getElements();
         PackageElement pe = theElements.getPackageElement(pkgName);
         if (pe != null) {
             Set<IndexedElement> idxElements = new HashSet<IndexedElement>();
             for (Element e : pe.getEnclosedElements()) {
+                TypeMirror tm = e.asType();
+                TypeElement te = tm.getKind() == TypeKind.DECLARED
+                        ? (TypeElement) ((DeclaredType) tm).asElement()
+                        : null;
+                
+                if (te != null) {
+                    if (JavaScalaMapping.isScala(te)) {
+                        continue;
+                    }
+                }
+
                 if (e.getKind().isClass() || e.getKind().isInterface()) {
                     String simpleName = e.getSimpleName().toString();
                     if (JavaUtilities.startsWith(simpleName, prefix)) {
@@ -227,8 +239,14 @@ public class JavaIndex {
                 }
             }
 
-            TypeMirror typeMirror = te.asType();
-            TypeElement typeElem = typeMirror.getKind() == TypeKind.DECLARED ? (TypeElement) ((DeclaredType) typeMirror).asElement() : null;
+            boolean isScala = JavaScalaMapping.isScala(te);
+
+            if (isScala) {
+                continue;
+            }
+
+            TypeMirror tm = te.asType();
+            TypeElement typeElem = tm.getKind() == TypeKind.DECLARED ? (TypeElement) ((DeclaredType) tm).asElement() : null;
 
             if (te != null) {
                 for (Element e : theElements.getAllMembers(te)) {
@@ -254,7 +272,7 @@ public class JavaIndex {
                             if ("this".equals(simpleName) || "class".equals(simpleName) || "super".equals(simpleName)) {
                                 //results.add(JavaCompletionItem.createKeywordItem(ename, null, anchorOffset, false));
                             } else {
-                                TypeMirror tm = typeMirror.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) typeMirror, e) : e.asType();
+                                TypeMirror tm1 = tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType();
                             //results.add(JavaCompletionItem.createVariableItem((VariableElement) e, tm, anchorOffset, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), isOfSmartType(env, tm, smartTypes)));
                             }
 
@@ -278,7 +296,7 @@ public class JavaIndex {
                         case CONSTRUCTOR:
                             simpleName = e.getEnclosingElement().getSimpleName().toString();
                         case METHOD: {
-                            ExecutableType et = (ExecutableType) (typeMirror.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) typeMirror, e) : e.asType());
+                            ExecutableType et = (ExecutableType) (tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType());
 
                             StringBuilder base = new StringBuilder();
                             base.append(simpleName.toLowerCase());
@@ -301,7 +319,7 @@ public class JavaIndex {
                         case ENUM:
                         case INTERFACE:
                         case ANNOTATION_TYPE:
-                            DeclaredType dt = (DeclaredType) (typeMirror.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) typeMirror, e) : e.asType());
+                            DeclaredType dt = (DeclaredType) (tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType());
                             //results.add(JavaCompletionItem.createTypeItem((TypeElement) e, dt, anchorOffset, false, elements.isDeprecated(e), insideNew, false));
                             break;
                     }
@@ -315,11 +333,11 @@ public class JavaIndex {
                     } else if (!isFunction && !includeProperties) {
                         continue;
                     }
-                    
+
                     if (onlyConstructors && !idxElement.getKind().name().equals(ElementKind.CONSTRUCTOR.name())) {
                         continue;
                     }
-                    
+
                     if (!haveRedirected) {
                         idxElement.setSmart(true);
                     }
