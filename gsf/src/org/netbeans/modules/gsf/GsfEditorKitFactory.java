@@ -44,7 +44,6 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -65,12 +64,8 @@ import org.netbeans.editor.BaseAction;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.BaseKit;
 import org.netbeans.editor.BaseKit.InsertBreakAction;
-import org.netbeans.editor.Settings;
-import org.netbeans.editor.SettingsNames;
 import org.netbeans.editor.SyntaxSupport;
 import org.netbeans.editor.Utilities;
-import org.netbeans.editor.ext.Completion;
-import org.netbeans.editor.ext.ExtEditorUI;
 import org.netbeans.editor.ext.ExtKit;
 import org.netbeans.editor.ext.ExtKit.ToggleCommentAction;
 import org.netbeans.editor.ext.ExtSyntaxSupport;
@@ -153,22 +148,8 @@ public class GsfEditorKitFactory {
     }
     
     public class GsfEditorKit extends NbEditorKit {
-        String mimeType;
 
         public GsfEditorKit() {
-            this.mimeType = language.getMimeType();
-            Settings.addInitializer (new Settings.Initializer () {
-                public String getName() {
-                    return mimeType;
-                }
-
-                @SuppressWarnings("unchecked")
-                public void updateSettingsMap (Class kitClass, Map settingsMap) {
-                    if (kitClass != null && kitClass.equals (GsfEditorKit.class)) {
-                        settingsMap.put (SettingsNames.CODE_FOLDING_ENABLE, Boolean.TRUE);
-                    }
-                }
-            });
         }
 
         @Override
@@ -178,10 +159,8 @@ public class GsfEditorKitFactory {
 
         @Override
         public Document createDefaultDocument() {
-            Document doc = new GsfDocument(this.getClass(), language);
-
-            doc.putProperty("mimeType", mimeType); //NOI18N
-
+            Document doc = new GsfDocument(language);
+            doc.putProperty("mimeType", getContentType()); //NOI18N
             return doc;
         }
 
@@ -213,12 +192,6 @@ public class GsfEditorKitFactory {
             // XXX This appears in JavaKit, not sure why, but doing it just in case.
             //do not ask why, fire bug in the IZ:
             CodeTemplateManager.get(doc);
-        }
-
-        @Override
-        public Completion createCompletion(ExtEditorUI extEditorUI) {
-            //return new GenericCompletion(extEditorUI);
-            return null;
         }
 
         @Override
