@@ -38,6 +38,7 @@
  */
 package org.netbeans.modules.scala.editing.nodes.types;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -206,6 +207,14 @@ public class TypeRef extends AstRef {
         return typeArgsList == null ? Collections.<List<TypeRef>>emptyList() : typeArgsList;
     }
 
+    public void addTypeArgs(List<TypeRef> typeArgs) {
+        if (typeArgsList == null) {
+            typeArgsList = new ArrayList<List<TypeRef>>();
+        }
+
+        typeArgsList.add(typeArgs);
+    }
+
     public String getTypeArgsName() {
         StringBuilder sb = new StringBuilder();
         for (List<TypeRef> typeArgs : getTypeArgsList()) {
@@ -307,6 +316,38 @@ public class TypeRef extends AstRef {
         @Override
         public String getQualifiedName() {
             return qualifiedName == null ? UNRESOLVED : qualifiedName;
+        }
+    }
+
+    /** Inner class used for represent a type ref just for name usage */
+    public static class TypeName extends TypeRef {
+
+        public TypeName() {
+            super(null, null, ElementKind.CLASS);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getName());
+
+            for (List<TypeRef> typeArgs : getTypeArgsList()) {
+                sb.append("[");
+                if (typeArgs.size() == 0) {
+                    // wildcard
+                    sb.append("_");
+                } else {
+                    for (Iterator<TypeRef> itr = typeArgs.iterator(); itr.hasNext();) {
+                        sb.append(itr.next().getName());
+                        if (itr.hasNext()) {
+                            sb.append(", ");
+                        }
+                    }
+                }
+                sb.append("]");
+            }
+
+            return sb.toString();
         }
     }
 }
