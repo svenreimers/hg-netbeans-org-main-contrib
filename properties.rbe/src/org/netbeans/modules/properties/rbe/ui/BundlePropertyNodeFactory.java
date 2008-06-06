@@ -40,17 +40,12 @@
  */
 package org.netbeans.modules.properties.rbe.ui;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import org.netbeans.modules.properties.BundleStructure;
-import org.netbeans.modules.properties.Element.ItemElem;
-import org.netbeans.modules.properties.PropertiesDataObject;
-import org.netbeans.modules.properties.Util;
-import org.netbeans.modules.properties.rbe.Bundle;
-import org.netbeans.modules.properties.rbe.BundleProperty;
+import org.netbeans.modules.properties.rbe.model.BundleProperty;
+import org.netbeans.modules.properties.rbe.model.TreeItem;
+import org.netbeans.modules.properties.rbe.model.TreeVisitor;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
 
@@ -58,72 +53,57 @@ import org.openide.nodes.Node;
  * The Bundle property node factory
  * @author Denis Stepanov <denis.stepanov at gmail.com>
  */
-public class BundlePropertyNodeFactory extends ChildFactory<BundleProperty> {
+public class BundlePropertyNodeFactory extends ChildFactory<TreeItem<BundleProperty>> implements PropertyChangeListener {
 
-    private PropertiesDataObject dataObject;
+    protected RBE rbe;
 
-    public BundlePropertyNodeFactory(PropertiesDataObject dataObject) {
-        super();
-        this.dataObject = dataObject;
+    public BundlePropertyNodeFactory(RBE rbe) {
+        this.rbe = rbe;
     }
 
     @Override
-    protected boolean createKeys(List<BundleProperty> toPopulate) {
-        BundleStructure bundleStructure = dataObject.getBundleStructure();
+    protected boolean createKeys(final List<TreeItem<BundleProperty>> toPopulate) {
+        switch (rbe.getMode()) {
+            case FLAT:
+                rbe.getBundle().getPropertiesTree().accept(new TreeVisitor<TreeItem<BundleProperty>>() {
 
-        char separator = '.';
-        Bundle bundle = new Bundle();
-        Map<String, BundleProperty> mapping = new HashMap<String, BundleProperty>();
-        List<BundleProperty> rootProperties = new ArrayList<BundleProperty>();
-        for (int k = 0; k < bundleStructure.getKeyCount(); k++) {
-            String propertyName = bundleStructure.getKeys()[k];
-            BundleProperty bundleProperty = null;
-            BundleProperty childProperty = null;
-            BundleProperty rootProperty = null;
-            boolean end = false;
-            while (!end) {
-                int lastSeparator = propertyName.lastIndexOf(separator);
-                rootProperty = mapping.get(propertyName);
-                if (rootProperty != null) {
-                    end = true;
-                } else if (lastSeparator == -1) {
-                    rootProperty = new BundleProperty(propertyName, bundle);
-                    rootProperties.add(rootProperty);
-                    mapping.put(propertyName, rootProperty);
-                    end = true;
-                } else {
-                    rootProperty = new BundleProperty(propertyName.substring(lastSeparator + 1), bundle);
-                    mapping.put(propertyName, rootProperty);
-                    // Created property but it isnt root property -> continue
-                    propertyName = propertyName.substring(0, lastSeparator);
-                }
-                if (childProperty != null) {
-                    rootProperty.addChildProperty(childProperty);
-                }
-                if (bundleProperty == null) {
-                    // first created/found property is our bundle property
-                    bundleProperty = rootProperty;
-                }
-                childProperty = rootProperty;
-            }
-            for (int e = 0; e < bundleStructure.getEntryCount(); e++) {
-                Locale locale;
-                String localeSuffix = Util.getLocaleSuffix(bundleStructure.getNthEntry(e));
-                if ("".equals(localeSuffix)) {
-                    locale = new Locale("__", "", "");
-                } else {
-                    locale = new Locale(Util.getLanguage(localeSuffix), Util.getCountry(localeSuffix), Util.getVariant(localeSuffix));
-                }
-                ItemElem item = bundleStructure.getItem(e, k);
-                bundleProperty.addLocaleRepresentation(locale, item);
-            }
+                    public void preVisit(TreeItem<BundleProperty> tree) {
+                        if (tree.getValue() != null && !tree.getValue().isEmpty()) {
+                            toPopulate.add(tree);
+                        }
+                    }
+
+                    public void postVisit(TreeItem<BundleProperty> tree) {
+                    }
+
+                    public boolean isDone() {
+                        return false;
+                    }
+                });
+
+
+                break;
+            case TREE:
+                toPopulate.addAll(rbe.getBundle().getPropertiesTree().getChildren());
+                break;
         }
-        toPopulate.addAll(rootProperties);
         return true;
     }
 
     @Override
-    protected Node createNodeForKey(BundleProperty bundleProperty) {
-        return new BundlePropertyNode(bundleProperty);
+    protected Node createNodeForKey(TreeItem<BundleProperty> key) {
+        switch (rbe.getMode()) {
+            case FLAT:
+                return new FlatPropertyNode(key);
+            case TREE:
+                return new TreeItemPropertyNode(key);
+        }
+        return null;
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (TreeItem.PROPERTY_CHILDREN.equals(evt.getPropertyName())) {
+            refresh(false);
+        }
     }
 }

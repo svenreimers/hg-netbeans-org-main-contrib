@@ -38,7 +38,6 @@
  */
 package org.netbeans.modules.scala.editing;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -49,7 +48,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.Completable;
+import org.netbeans.modules.gsf.api.CodeCompletionHandler;
 import org.netbeans.modules.gsf.api.CompletionProposal;
 import org.netbeans.modules.gsf.api.ElementHandle;
 import org.netbeans.modules.gsf.api.ElementKind;
@@ -62,7 +61,10 @@ import org.netbeans.api.lexer.TokenId;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.Utilities;
+import org.netbeans.modules.gsf.api.CodeCompletionContext;
+import org.netbeans.modules.gsf.api.CodeCompletionResult;
 import org.netbeans.modules.gsf.api.OffsetRange;
+import org.netbeans.modules.gsf.spi.DefaultCompletionResult;
 import org.netbeans.modules.scala.editing.ScalaCompletionItem.FunctionItem;
 import org.netbeans.modules.scala.editing.ScalaCompletionItem.KeywordItem;
 import org.netbeans.modules.scala.editing.ScalaCompletionItem.PackageItem;
@@ -73,14 +75,13 @@ import org.netbeans.modules.scala.editing.lexer.MaybeCall;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import org.netbeans.modules.scala.editing.nodes.AstElement;
-import org.netbeans.modules.scala.editing.nodes.AstExpr;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.FieldRef;
 import org.netbeans.modules.scala.editing.nodes.FunRef;
 import org.netbeans.modules.scala.editing.nodes.Function;
 import org.netbeans.modules.scala.editing.nodes.IdRef;
-import org.netbeans.modules.scala.editing.nodes.Import;
-import org.netbeans.modules.scala.editing.nodes.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.Importing;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.netbeans.modules.scala.editing.nodes.Var;
 import org.netbeans.modules.scala.editing.rats.ParserScala;
 import org.openide.filesystems.FileObject;
@@ -123,7 +124,7 @@ import org.openide.util.NbBundle;
  * @author Tor Norbye
  * @author Caoyuan Deng
  */
-public class ScalaCodeCompletion implements Completable {
+public class ScalaCodeCompletion implements CodeCompletionHandler {
 
     private boolean caseSensitive;
     private static final String[] REGEXP_WORDS =
@@ -285,8 +286,14 @@ public class ScalaCodeCompletion implements Completable {
     public ScalaCodeCompletion() {
     }
 
-    public List<CompletionProposal> complete(CompilationInfo info, int lexOffset, String prefix,
-            NameKind kind, QueryType queryType, boolean caseSensitive, HtmlFormatter formatter) {
+    public CodeCompletionResult complete(CodeCompletionContext context) {
+        CompilationInfo info = context.getInfo();
+        int lexOffset = context.getCaretOffset();
+        String prefix = context.getPrefix();
+        NameKind kind = context.getNameKind();
+        QueryType queryType = context.getQueryType();
+        this.caseSensitive = context.isCaseSensitive();
+        HtmlFormatter formatter = context.getFormatter();
         // Temporary: case insensitive matches don't work very well for JavaScript
         if (kind == NameKind.CASE_INSENSITIVE_PREFIX) {
             kind = NameKind.PREFIX;
@@ -295,18 +302,15 @@ public class ScalaCodeCompletion implements Completable {
         if (prefix == null) {
             prefix = "";
         }
-        this.caseSensitive = caseSensitive;
 
-        final Document document;
-        try {
-            document = info.getDocument();
-        } catch (Exception e) {
-            Exceptions.printStackTrace(e);
-            return null;
+        final Document document = info.getDocument();
+        if (document == null) {
+            return CodeCompletionResult.NONE;
         }
         final BaseDocument doc = (BaseDocument) document;
 
         List<CompletionProposal> proposals = new ArrayList<CompletionProposal>();
+        DefaultCompletionResult completionResult = new DefaultCompletionResult(proposals, false);
 
         ScalaParserResult pResult = AstUtilities.getParserResult(info);
         pResult.toGlobalPhase(info);
@@ -316,7 +320,7 @@ public class ScalaCodeCompletion implements Completable {
         try {
             final int astOffset = AstUtilities.getAstOffset(info, lexOffset);
             if (astOffset == -1) {
-                return null;
+                return CodeCompletionResult.NONE;
             }
             final AstScope root = pResult.getRootScope();
             final TokenHierarchy<Document> th = pResult.getTokenHierarchy();
@@ -327,6 +331,7 @@ public class ScalaCodeCompletion implements Completable {
             // and I don't want to pass dozens of parameters from method to method; just pass
             // a request context with supporting info needed by the various completion helpers i
             CompletionRequest request = new CompletionRequest();
+            request.completionResult = completionResult;
             request.result = pResult;
             request.formatter = formatter;
             request.lexOffset = lexOffset;
@@ -344,39 +349,39 @@ public class ScalaCodeCompletion implements Completable {
 
             Token<? extends TokenId> token = ScalaLexUtilities.getToken(doc, lexOffset);
             if (token == null) {
-                return proposals;
+                return completionResult;
             }
 
             TokenId id = token.id();
             if (id == ScalaTokenId.LineComment) {
                 // TODO - Complete symbols in comments?
-                return proposals;
+                return completionResult;
             } else if (id == ScalaTokenId.BlockCommentData) {
                 try {
                     completeComments(proposals, request);
                 } catch (BadLocationException ex) {
                     Exceptions.printStackTrace(ex);
                 }
-                return proposals;
+                return completionResult;
             } else if (id == ScalaTokenId.StringLiteral) {
                 //completeStrings(proposals, request);
-                return proposals;
+                return completionResult;
             } else if (id == ScalaTokenId.REGEXP_LITERAL || id == ScalaTokenId.REGEXP_END) {
                 completeRegexps(proposals, request);
-                return proposals;
+                return completionResult;
             }
 
             TokenSequence ts = ScalaLexUtilities.getTokenSequence(th, lexOffset);
             ts.move(lexOffset);
             if (!ts.moveNext() && !ts.movePrevious()) {
-                return proposals;
+                return completionResult;
             }
 
             Token closetToken = ScalaLexUtilities.findPreviousNonWsNonComment(ts);
             if (closetToken.id() == ScalaTokenId.Import) {
                 request.prefix = "";
                 completeImport(proposals, request);
-                return proposals;
+                return completionResult;
             }
 
             if (root != null) {
@@ -398,14 +403,14 @@ public class ScalaCodeCompletion implements Completable {
                 }
 
                 if (closest != null) {
-                    if (closest instanceof Import) {
-                        String prefix1 = ((Import) closest).getName();
+                    if (closest instanceof Importing) {
+                        String prefix1 = ((Importing) closest).getName();
                         if (request.prefix.equals("")) {
                             prefix1 = prefix1 + ".";
                         }
                         request.prefix = prefix1;
                         completeImport(proposals, request);
-                        return proposals;
+                        return completionResult;
                     } else if (closest instanceof IdRef) {
                         // test if it's an arg of funRef ?
                         FunRef funRef = null;
@@ -416,7 +421,7 @@ public class ScalaCodeCompletion implements Completable {
                         if (funRef != null) {
                             boolean isHisArg = false;
                             int argOffset = closest.getPickOffset(th);
-                            for (AstElement arg : funRef.getParams()) {
+                            for (AstElement arg : funRef.getArgs()) {
                                 if (arg.getPickOffset(th) >= argOffset && argOffset <= arg.getPickEndOffset(th)) {
                                     isHisArg = true;
                                     break;
@@ -449,17 +454,17 @@ public class ScalaCodeCompletion implements Completable {
 
             if (root == null) {
                 completeKeywords(proposals, request);
-                return proposals;
+                return completionResult;
             }
 
             // Try to complete "new" RHS
             if (completeNew(proposals, request)) {
-                return proposals;
+                return completionResult;
             }
 
             if (call.getLhs() != null || request.call.getPrevCallParenPos() != -1) {
                 completeObjectMembers(proposals, request);
-                return proposals;
+                return completionResult;
             }
 
             completeKeywords(proposals, request);
@@ -467,7 +472,7 @@ public class ScalaCodeCompletion implements Completable {
             addLocals(proposals, request);
 
             if (completeObjectMembers(proposals, request)) {
-                return proposals;
+                return completionResult;
             }
 
             // @todo Try to complete methods inheried and predef's methods 
@@ -478,7 +483,7 @@ public class ScalaCodeCompletion implements Completable {
             doc.readUnlock();
         }
 
-        return proposals;
+        return completionResult;
     }
 
     private void addLocals(List<CompletionProposal> proposals, CompletionRequest request) {
@@ -886,6 +891,9 @@ public class ScalaCodeCompletion implements Completable {
     public String getPrefix(CompilationInfo info, int lexOffset, boolean upToOffset) {
         try {
             BaseDocument doc = (BaseDocument) info.getDocument();
+            if (doc == null) {
+                return null;
+            }
 
             TokenHierarchy<Document> th = TokenHierarchy.get((Document) doc);
             doc.readLock(); // Read-lock due to token hierarchy use
@@ -1148,8 +1156,6 @@ public class ScalaCodeCompletion implements Completable {
                 doc.readUnlock();
             }
         // Else: normal identifier: just return null and let the machinery do the rest
-        } catch (IOException ioe) {
-            Exceptions.printStackTrace(ioe);
         } catch (BadLocationException ble) {
             Exceptions.printStackTrace(ble);
         }
@@ -1258,23 +1264,23 @@ public class ScalaCodeCompletion implements Completable {
 
             if (typeStr == null) {
                 if (closest != null) {
-                    TypeRef typeRef = null;
+                    TypeRef type = null;
 
                     if (closest instanceof FieldRef) {
                         // dog.tal|
-                        typeRef = closest.getType();
+                        type = closest.getType();
                     } else if (closest instanceof FunRef) {
                         // dog.talk().
-                        typeRef = closest.getType();
+                        type = closest.getType();
                     } else if (closest instanceof IdRef) {
                         // dog.|
-                        typeRef = closest.getType();
+                        type = closest.getType();
                     } else {
-                        typeRef = closest.getType();
+                        type = closest.getType();
                     }
 
-                    if (typeRef != null) {
-                        typeStr = typeRef.getQualifiedName();
+                    if (type != null) {
+                        typeStr = type.getQualifiedName();
                     }
                 }
             //Node method = AstUtilities.findLocalScope(node, path);
@@ -1840,10 +1846,10 @@ public class ScalaCodeCompletion implements Completable {
         //            }
         //        }
 
-        List<String> params = method.getParameters();
+        List<String> args = method.getArgs();
 
-        if ((params != null) && (params.size() > 0)) {
-            return new ParameterInfo(params, index, anchorOffset);
+        if (args != null && args.size() > 0) {
+            return new ParameterInfo(args, index, anchorOffset);
         }
 
         return ParameterInfo.NONE;
@@ -1876,6 +1882,9 @@ public class ScalaCodeCompletion implements Completable {
 
             // Adjust offset to the left
             BaseDocument doc = (BaseDocument) info.getDocument();
+            if (doc == null) {
+                return false;
+            }
             TokenHierarchy th = TokenHierarchy.get(doc);
             int newLexOffset = ScalaLexUtilities.findSpaceBegin(doc, lexOffset);
             if (newLexOffset < lexOffset) {
@@ -1995,9 +2004,6 @@ public class ScalaCodeCompletion implements Completable {
 
             }
             anchorOffsetHolder[0] = anchorOffset;
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-            return false;
         } catch (BadLocationException ble) {
             Exceptions.printStackTrace(ble);
             return false;
@@ -2015,7 +2021,7 @@ public class ScalaCodeCompletion implements Completable {
     }
 
     protected static class CompletionRequest {
-
+        private DefaultCompletionResult completionResult;
         protected TokenHierarchy<Document> th;
         protected CompilationInfo info;
         protected AstElement element;

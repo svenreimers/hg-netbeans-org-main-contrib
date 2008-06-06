@@ -43,7 +43,8 @@ import java.util.List;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.scala.editing.nodes.TypeRef.PseudTypeRef;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef.PseudoTypeRef;
 
 /**
  *
@@ -54,12 +55,12 @@ public class FunRef extends AstRef {
     /** base may be AstExpr, FunRef, FieldRef, IdRef etc */
     private AstElement base;
     private Id call;
-    private List<? extends AstElement> params;
-    private boolean local;
+    private List<? extends AstElement> args;
+    private boolean apply;
 
     public FunRef(Token idToken, ElementKind kind) {
         super(null, idToken, kind);
-        setType(new PseudTypeRef());
+        setType(new PseudoTypeRef());
     }
 
     public void setBase(AstElement base) {
@@ -78,20 +79,24 @@ public class FunRef extends AstRef {
         return call;
     }
 
-    public void setParams(List<? extends AstElement> params) {
-        this.params = params;
+    public void setArgs(List<? extends AstElement> args) {
+        this.args = args;
     }
 
-    public List<? extends AstElement> getParams() {
-        return params == null ? Collections.<AstElement>emptyList() : params;
-    }
-
-    public void setLocal() {
-        this.local = true;
+    public List<? extends AstElement> getArgs() {
+        return args == null ? Collections.<AstElement>emptyList() : args;
     }
 
     public boolean isLocal() {
-        return local;
+        return base == null;
+    }
+    
+    public void setApply() {
+        apply = true;
+    }
+    
+    public boolean isApply() {
+        return apply;
     }
 
     @Override
@@ -107,8 +112,8 @@ public class FunRef extends AstRef {
         return sb.toString();
     }
     
-    public void setRetTypeStr(String retTypeStr) {
-        getType().setQualifiedName(retTypeStr);
+    public void setTypeByQualifiedName(String typeQualifiedName) {
+        getType().setQualifiedName(typeQualifiedName);
     }
     
     // ----- Special FunRef

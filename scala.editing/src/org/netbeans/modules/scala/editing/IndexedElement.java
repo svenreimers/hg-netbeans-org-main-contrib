@@ -44,6 +44,7 @@ import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.gsf.api.ParserFile;
 import org.netbeans.modules.gsf.spi.DefaultParserFile;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -61,12 +62,13 @@ import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.gsf.api.NameKind;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.nodes.AstElement;
-import org.netbeans.modules.scala.editing.nodes.ClassTemplate;
+import org.netbeans.modules.scala.editing.nodes.tmpls.ClassTemplate;
 import org.netbeans.modules.scala.editing.nodes.Function;
-import org.netbeans.modules.scala.editing.nodes.ObjectTemplate;
-import org.netbeans.modules.scala.editing.nodes.TraitTemplate;
-import org.netbeans.modules.scala.editing.nodes.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.tmpls.ObjectTemplate;
+import org.netbeans.modules.scala.editing.nodes.tmpls.TraitTemplate;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.netbeans.modules.scala.editing.nodes.Var;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef.PseudoTypeRef;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
@@ -123,7 +125,7 @@ public abstract class IndexedElement extends AstElement {
     public static final int OBJECT = 1 << 12;
     public static final int TRAIT = 1 << 13;
     /** This is a function with null params */
-    public static final int NULL_PARAMS = 1 << 14;
+    public static final int NULL_ARGS = 1 << 14;
     public static final int FIELD = 1 << 15;
     public static final int JAVA = 1 << 16;
     protected String fqn;
@@ -239,7 +241,7 @@ public abstract class IndexedElement extends AstElement {
         base.append(';');
         base.append(thename);
         base.append(';');
-        base.append(computeAttributes(element, th));
+        base.append(encodeAttributes(element, th));
 
         return create(element.getName(), base.toString(), "", index, false);
     }
@@ -262,6 +264,11 @@ public abstract class IndexedElement extends AstElement {
         }
 
         return signature;
+    }
+
+    @Override
+    public String toString() {
+        return getSignature() + ":" + getFilenameUrl() + ";" + decodeFlags(flags);
     }
 
     public ScalaIndex getIndex() {
@@ -458,17 +465,61 @@ public abstract class IndexedElement extends AstElement {
         return comment;
     }
 
-    public String getTypeString() {
+    @Override
+    public TypeRef getType() {
         if (getKind() == ElementKind.CLASS || getKind() == ElementKind.PACKAGE) {
             return null;
         }
-        int typeIndex = getAttributeSection(TYPE_INDEX);
-        int endIndex = attributes.indexOf(';', typeIndex);
-        if (endIndex > typeIndex) {
-            return attributes.substring(typeIndex, endIndex);
+
+        int typeIdx = getAttributeSection(TYPE_INDEX);
+        int endIdx = attributes.indexOf(';', typeIdx);
+        if (endIdx > typeIdx) {
+            String typeAttribute = attributes.substring(typeIdx, endIdx);
+            int[] posAndLevel = new int[]{0, 0};
+            TypeRef typeName = decodeType(typeAttribute, posAndLevel, null);
+
+            return typeName;
         }
 
         return null;
+    }
+
+    /** @todo decode tuple type, function type etc */
+    private TypeRef decodeType(String typeAttr, int[] posAndLevel, List<TypeRef> typeArgs) {
+        PseudoTypeRef curr = new PseudoTypeRef();
+        StringBuilder sb = new StringBuilder();
+        while (posAndLevel[0] < typeAttr.length()) {
+            char c = typeAttr.charAt(posAndLevel[0]);
+            posAndLevel[0]++;
+            if (c == '<') {
+                posAndLevel[1]++;
+                curr.setName(sb.toString());
+                typeArgs = new ArrayList<TypeRef>();
+                curr.addTypeArgs(typeArgs);
+
+                TypeRef typeArg = decodeType(typeAttr, posAndLevel, typeArgs);
+                typeArgs.add(typeArg);                
+            } else if (c == '>') {
+                posAndLevel[1]--;
+            } else if (c == ',') {
+                TypeRef typeArg = decodeType(typeAttr, posAndLevel, typeArgs);
+                if (typeArgs != null) {
+                    typeArgs.add(typeArg);                    
+                } else {
+                    //System.out.println(typeAttr);
+                }                
+            } else if (c == ' ') {
+                // strip it
+            } else {
+                sb.append(c);
+            }
+        }
+
+        if (curr.getName() == null) {
+            curr.setName(sb.toString());
+        }
+        
+        return curr;
     }
 
     public void setSmart(boolean smart) {
@@ -545,7 +596,7 @@ public abstract class IndexedElement extends AstElement {
     /** Return flag corresponding to the given encoding chars */
     public static int decode(String s, int startIndex, int defaultValue) {
         int value = 0;
-        for (int i = startIndex, n = s.length(); i < n; i++) {
+        for (int i = startIndex,  n = s.length(); i < n; i++) {
             char c = s.charAt(i);
             if (c == ';') {
                 if (i == startIndex) {
@@ -581,7 +632,7 @@ public abstract class IndexedElement extends AstElement {
             Function fun = (Function) element;
             flags = flags | FUNCTION;
             if (fun.getParams() == null) {
-                flags = flags | NULL_PARAMS;
+                flags = flags | NULL_ARGS;
             }
         }
 
@@ -660,7 +711,7 @@ public abstract class IndexedElement extends AstElement {
         return flags;
     }
 
-    public static String computeAttributes(AstElement element, TokenHierarchy th) {
+    public static String encodeAttributes(AstElement element, TokenHierarchy th) {
         OffsetRange docRange = getDocumentationOffset(element, th);
         //Map<String,String> typeMap = element.getDocProps();
 
@@ -777,11 +828,7 @@ public abstract class IndexedElement extends AstElement {
 //                type = typeMap != null ? typeMap.get(JsCommentLexer.AT_RETURN) : null; // NOI18N
 //            }
         if (type != null) {
-            if (type.isResolved()) {
-                sb.append(type.getQualifiedName());
-            } else {
-                sb.append(type.getName());
-            }
+            encodeAttributesOfType(type, sb);
         } else {
             // @Todo
         }
@@ -790,7 +837,33 @@ public abstract class IndexedElement extends AstElement {
         return sb.toString();
     }
 
-    public static String computeAttributes(javax.lang.model.element.Element jelement) {
+    /**
+     * We'll keep the sigunature as same as java's class file format for type paramters, also
+     * @see org.netbeans.modules.scala.editing.JavaUtilities#getTypeName(TypeMirror, boolean, boolean)
+     */
+    private static void encodeAttributesOfType(TypeRef type, StringBuilder sb) {
+        if (type.isResolved()) {
+            sb.append(type.getQualifiedName());
+        } else {
+            sb.append(type.getName());
+        }
+
+        List<List<TypeRef>> typeArgsList = type.getTypeArgsList();
+        for (Iterator<List<TypeRef>> itr = typeArgsList.iterator(); itr.hasNext();) {
+            sb.append("<");
+            List<TypeRef> typeArgs = itr.next();
+            for (Iterator<TypeRef> itr1 = typeArgs.iterator(); itr1.hasNext();) {
+                TypeRef typeArg = itr1.next();
+                encodeAttributesOfType(typeArg, sb);
+                if (itr1.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            sb.append(">");
+        }
+    }
+
+    public static String encodeAttributes(javax.lang.model.element.Element jelement) {
         OffsetRange docRange = OffsetRange.NONE;
 
         TypeMirror type = jelement.asType();
@@ -950,8 +1023,8 @@ public abstract class IndexedElement extends AstElement {
         return (flags & CONSTRUCTOR) != 0;
     }
 
-    public boolean isNullParams() {
-        return (flags & NULL_PARAMS) != 0;
+    public boolean isNullArgs() {
+        return (flags & NULL_ARGS) != 0;
     }
 
     public boolean isField() {
@@ -1134,18 +1207,18 @@ public abstract class IndexedElement extends AstElement {
 
         if (element instanceof IndexedFunction) {
             IndexedFunction function = (IndexedFunction) element;
-            Collection<String> parameters = function.getParameters();
+            Collection<String> args = function.getArgs();
 
-            if (!function.isNullParams()) {
+            if (!function.isNullArgs()) {
                 sb.append("("); // NOI18N
-                if ((parameters != null) && (parameters.size() > 0)) {
+                if ((args != null) && (args.size() > 0)) {
 
-                    for (Iterator<String> it = parameters.iterator(); it.hasNext();) {
+                    for (Iterator<String> it = args.iterator(); it.hasNext();) {
                         String ve = it.next();
                         int typeIndex = ve.indexOf(':');
                         if (typeIndex != -1) {
                             sb.append("<font color=\"#808080\">"); // NOI18N
-                            for (int i = typeIndex + 1, n = ve.length(); i < n; i++) {
+                            for (int i = typeIndex + 1,  n = ve.length(); i < n; i++) {
                                 char c = ve.charAt(i);
                                 if (c == '<') { // Handle types... Array<String> etc
                                     sb.append("&lt;");
@@ -1175,8 +1248,12 @@ public abstract class IndexedElement extends AstElement {
                 }
                 sb.append(")"); // NOI18N
             }
+            
+            TypeRef retType = function.getType();
 
-            sb.append(" :").append(function.getTypeString());
+            if (retType != null) {
+                sb.append(" :").append(function.getType().toString());
+            }
         }
 
         sb.append("</td>\n"); // NOI18N

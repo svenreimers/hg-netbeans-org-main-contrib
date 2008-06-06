@@ -20,7 +20,16 @@
                     <compile-dependency/>
                     <run-dependency>
                         <release-version>1</release-version>
-                        <specification-version>1.16</specification-version>
+                        <specification-version>1.18</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.netbeans.api.java.classpath</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.0</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -214,6 +223,9 @@
             <public-packages>
                 <package>org.netbeans.modules.scala.editing</package>
                 <package>org.netbeans.modules.scala.editing.nodes</package>
+                <package>org.netbeans.modules.scala.editing.nodes.exprs</package>
+                <package>org.netbeans.modules.scala.editing.nodes.tmpls</package>
+                <package>org.netbeans.modules.scala.editing.nodes.types</package>
                 <package>org.netbeans.modules.scala.editing.semantic</package>
             </public-packages>
         </data>

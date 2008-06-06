@@ -38,6 +38,8 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
+import org.netbeans.modules.scala.editing.nodes.tmpls.Template;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -68,7 +70,7 @@ public class AstElement implements ElementHandle {
     private ElementKind kind;
     private AstScope enclosingScope;
     private Set<Modifier> mods;
-    private TypeRef type;
+    protected TypeRef type;
     protected String qualifiedName;
     
     public AstElement( ElementKind kind) {
@@ -90,12 +92,13 @@ public class AstElement implements ElementHandle {
     }
 
     public String getName() {
-        if (name == null) {
-            assert false : "Should implement getName()";
-            throw new UnsupportedOperationException();
-        } else {
-            return name;
-        }
+        return name;
+//        if (name == null) {
+//            assert false : "Should implement getName()";
+//            throw new UnsupportedOperationException();
+//        } else {
+//            return name;
+//        }
     }
 
     public void setIdToken(Token idToken) {
@@ -164,7 +167,7 @@ public class AstElement implements ElementHandle {
      * @Note: enclosingScope will be set when call
      *   {@link AstScope#addDef(Def)} or {@link AstScope#addUsage(Usage)}
      */
-    protected void setEnclosingScope(AstScope enclosingScope) {
+    public void setEnclosingScope(AstScope enclosingScope) {
         this.enclosingScope = enclosingScope;
     }
 
@@ -172,7 +175,7 @@ public class AstElement implements ElementHandle {
      * @return the scope that encloses this item 
      */
     public AstScope getEnclosingScope() {
-        assert enclosingScope != null : toString() + ": Each element should set enclosing scope!, except native TypeRef";
+        assert enclosingScope != null : getName() + ": Each element should set enclosing scope!, except native TypeRef";
         return enclosingScope;
     }
 

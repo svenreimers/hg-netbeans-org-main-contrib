@@ -41,125 +41,75 @@
 package org.netbeans.modules.properties.rbe.ui;
 
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.Locale;
+import java.io.IOException;
+import java.util.Iterator;
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import org.netbeans.modules.properties.Element.ItemElem;
 import org.netbeans.modules.properties.PropertiesDataObject;
+import org.netbeans.modules.properties.PropertiesEditorSupport;
+import org.netbeans.modules.properties.PropertiesFileEntry;
+import org.openide.cookies.SaveCookie;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
-import org.openide.nodes.AbstractNode;
-import org.openide.nodes.Children;
-import org.openide.nodes.Node;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
+import org.openide.util.lookup.Lookups;
+import org.openide.util.lookup.ProxyLookup;
 import org.openide.windows.CloneableTopComponent;
 
 /**
  * The Resourcebundle editor top component
  * @author Denis Stepanov <denis.stepanov at gmail.com>
  */
-public class ResourceBundleEditorComponent extends CloneableTopComponent implements ExplorerManager.Provider, PropertyChangeListener {
+public class ResourceBundleEditorComponent extends CloneableTopComponent implements ExplorerManager.Provider {
 
     public static final String PREFERRED_ID = "ResourceBundleEditorComponent";
     /** Properties data object */
     private final PropertiesDataObject dataObject;
-    /** The Explorer manager for nodes */
-    private ExplorerManager explorer;
-    /** The UI window */
-    private UIWindow uiWindow;
-    /** The tree view */
-    ImprovedBeanTreeView treeView;
+    /** The explorer manager */
+    private ExplorerManager explorerManager;
 
+    /** The tree view */
     public ResourceBundleEditorComponent(PropertiesDataObject dataObject) {
         this.dataObject = dataObject;
+        explorerManager = new ExplorerManager();
+        associateLookup(new ProxyLookup(ExplorerUtils.createLookup(explorerManager, new ActionMap()), Lookups.singleton(dataObject)));
 
         setName(dataObject.getName() + ".properties");
         setToolTipText(NbBundle.getMessage(ResourceBundleEditorComponent.class, "CTL_ResourceBundleEditorComponent"));
-
-        treeView = new ImprovedBeanTreeView();
-        treeView.setRootVisible(false);
-
-        explorer = new ExplorerManager();
-        explorer.addPropertyChangeListener(this);
-        explorer.setRootContext(new AbstractNode(Children.create(new BundlePropertyNodeFactory(dataObject), true)));
-        associateLookup(ExplorerUtils.createLookup(explorer, new ActionMap()));
-
-        uiWindow = new UIWindow();
-        uiWindow.getTreePanel().setLayout(new BoxLayout(uiWindow.getTreePanel(), BoxLayout.PAGE_AXIS));
-        uiWindow.getRightPanel().setLayout(new BoxLayout(uiWindow.getRightPanel(), BoxLayout.PAGE_AXIS));
-        uiWindow.getTreePanel().add(treeView);
-
-        uiWindow.getCollapseAllButton().addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                collapseAll();
-            }
-        });
-
-        uiWindow.getExpandAllButton().addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                expandAll();
-            }
-        });
-
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        add(uiWindow);
+        add(new UIWindow(new RBE(dataObject)));
     }
 
-    public void expandAll() {
-        treeView.expandAll();
-    }
-
-    public void collapseAll() {
-        treeView.collapseAll();
-    }
-
-    public void propertyChange(PropertyChangeEvent evt) {
-        if (ExplorerManager.PROP_SELECTED_NODES.equals(evt.getPropertyName())) {
-            updateSelectedProperty();
-        }
-    }
-
-    protected void updateSelectedProperty() {
-        uiWindow.getRightPanel().removeAll();
-        for (Node selectedNode : explorer.getSelectedNodes()) {
-            if (selectedNode instanceof BundlePropertyNode) {
-                BundlePropertyNode bundlePropertyNode = (BundlePropertyNode) selectedNode;
-                for (Locale locale : bundlePropertyNode.getProperty().getBundle().getLocales()) {
-                    JScrollPane jScrollPane1 = new JScrollPane();
-                    JTextArea jTextArea1 = new JTextArea();
-                    jTextArea1.setLineWrap(true);
-                    jTextArea1.setWrapStyleWord(true);
-                    jTextArea1.setColumns(20);
-                    jTextArea1.setRows(5);
-                    jScrollPane1.setViewportView(jTextArea1);
-
-                    ItemElem item = bundlePropertyNode.getProperty().getLocaleRepresentation().get(locale);
-                    if (item != null) {
-                        jTextArea1.setText(
-                                "Value: " + item.getValue() + "\n" +
-                                "Comment: " + item.getComment());
-                    }
-
-                    uiWindow.getRightPanel().add(jScrollPane1);
-                }
+    @Override
+    public boolean canClose() {
+        // TODO: add some save interaction
+        SaveCookie saveCookie = dataObject.getLookup().lookup(SaveCookie.class);
+        if (saveCookie != null) {
+            try {
+                saveCookie.save();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
             }
         }
-        uiWindow.getRightPanel().updateUI();
+
+        closeEntry((PropertiesFileEntry) dataObject.getPrimaryEntry());
+        for (Iterator it = dataObject.secondaryEntries().iterator(); it.hasNext();) {
+            closeEntry((PropertiesFileEntry) it.next());
+        }
+        return true;
+    }
+
+    /** Helper method. Closes entry. */
+    private void closeEntry(PropertiesFileEntry entry) {
+        PropertiesEditorSupport editorSupport = entry.getCookie(PropertiesEditorSupport.class);
+        editorSupport.close();
     }
 
     @Override
     public Image getIcon() {
-        return Utilities.loadImage("org/netbeans/modules/rbe/resources/propertiesObject.png"); // NOI18N
-
+        return Utilities.loadImage("org/netbeans/modules/properties/rbe/resources/propertiesObject.png"); // NOI18N
     }
 
     @Override
@@ -173,6 +123,6 @@ public class ResourceBundleEditorComponent extends CloneableTopComponent impleme
     }
 
     public ExplorerManager getExplorerManager() {
-        return explorer;
+        return explorerManager;
     }
 }

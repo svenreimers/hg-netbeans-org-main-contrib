@@ -53,6 +53,7 @@ import org.netbeans.modules.gsf.api.HtmlFormatter;
 import org.netbeans.modules.gsf.api.Modifier;
 import org.netbeans.modules.scala.editing.ScalaCodeCompletion.CompletionRequest;
 import org.netbeans.modules.scala.editing.nodes.AstElement;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.openide.util.Exceptions;
 
 /**
@@ -133,11 +134,11 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
 
         if (indexedElement != null) {
-            String type = indexedElement.getTypeString();
+            TypeRef type = indexedElement.getType();
             if (type != null) {
                 formatter.appendHtml(" :"); // NOI18N
                 formatter.type(true);
-                formatter.appendText(type);
+                formatter.appendText(type.toString());
                 formatter.type(false);
             }
         }
@@ -269,42 +270,42 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
                 formatter.deprecated(false);
             }
 
-            if (!function.isNullParams()) {
-                Collection<String> parameters = function.getParameters();
+            if (!function.isNullArgs()) {
+                Collection<String> args = function.getArgs();
 
                 formatter.appendHtml("("); // NOI18N
 
-                if (parameters != null && parameters.size() > 0) {
+                if (args != null && args.size() > 0) {
 
-                    Iterator<String> itr = parameters.iterator();
+                    Iterator<String> itr = args.iterator();
 
                     while (itr.hasNext()) { // && tIt.hasNext()) {
                         formatter.parameters(true);
 
-                        String param = itr.next();
-                        int typeIdx = param.indexOf(':');
+                        String arg = itr.next();
+                        int typeIdx = arg.indexOf(':');
                         if (typeIdx != -1) {
                             if (function.isJava()) {
                                 formatter.type(true);
                                 // TODO - call JsUtils.normalizeTypeString() on this string?
-                                formatter.appendText(param, typeIdx + 1, param.length());
+                                formatter.appendText(arg, typeIdx + 1, arg.length());
                                 formatter.type(false);
 
                                 formatter.appendHtml(" ");
-                                formatter.appendText(param, 0, typeIdx);
+                                formatter.appendText(arg, 0, typeIdx);
                             } else {
-                                formatter.appendText(param, 0, typeIdx);
+                                formatter.appendText(arg, 0, typeIdx);
                                 formatter.parameters(false);
                                 formatter.appendHtml(" :");
                                 formatter.parameters(true);
 
                                 formatter.type(true);
                                 // TODO - call JsUtils.normalizeTypeString() on this string?
-                                formatter.appendText(param, typeIdx + 1, param.length());
+                                formatter.appendText(arg, typeIdx + 1, arg.length());
                                 formatter.type(false);
                             }
                         } else {
-                            formatter.appendText(param);
+                            formatter.appendText(arg);
                         }
 
                         formatter.parameters(false);
@@ -320,11 +321,11 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             }
 
             if (indexedElement != null &&
-                    indexedElement.getTypeString() != null &&
+                    indexedElement.getType() != null &&
                     indexedElement.getKind() != ElementKind.CONSTRUCTOR) {
                 formatter.appendHtml(" :");
                 formatter.type(true);
-                formatter.appendText(indexedElement.getTypeString());
+                formatter.appendText(indexedElement.getType().toString());
                 formatter.type(false);
             }
 
@@ -333,7 +334,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
         @Override
         public List<String> getInsertParams() {
-            return function.getParameters();
+            return function.getArgs();
         }
 
         @Override
@@ -343,7 +344,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             final String insertPrefix = getInsertPrefix();
             sb.append(insertPrefix);
             
-            if (function.isNullParams()) {
+            if (function.isNullArgs()) {
                 return sb.toString();
             }
             

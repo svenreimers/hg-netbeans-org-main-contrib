@@ -28,21 +28,15 @@
 
 package org.netbeans.modules.languages.ejs;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.CompletionProposal;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
-import org.netbeans.modules.gsf.api.NameKind;
-import org.netbeans.modules.gsf.api.annotations.NonNull;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenSequence;
+import org.netbeans.modules.gsf.api.CodeCompletionContext;
+import org.netbeans.modules.gsf.api.CodeCompletionResult;
 import org.netbeans.modules.javascript.editing.JsCodeCompletion;
 import org.netbeans.modules.languages.ejs.lexer.api.EJSTokenId;
-import org.openide.util.Exceptions;
 
 /**
  * EJS code completer
@@ -55,23 +49,19 @@ public class EJSCompleter extends JsCodeCompletion {
      *  @todo Pass in the line offsets? Nah, just make the completion provider figure those out.
      */
     @Override
-    public List<CompletionProposal> complete(@NonNull CompilationInfo info, int caretOffset, String prefix,
-        NameKind kind, QueryType queryType, boolean caseSensitive, HtmlFormatter formatter) {
+    public CodeCompletionResult complete(CodeCompletionContext context) {
+        CompilationInfo info = context.getInfo();
+        int caretOffset = context.getCaretOffset();
 
-        System.out.println("ldo1000000");
-        try {
-            Document doc = info.getDocument();
-        System.out.println("ldo1222222");
-            if (isWithinJavascript(doc, caretOffset)) {
-        System.out.println("ldo333333");
-                return super.complete(info, caretOffset, prefix, kind, queryType, caseSensitive, formatter);
-            }
-        } catch (IOException ex) {
-        System.out.println("ldo1444444");
-            Exceptions.printStackTrace(ex);
+        //System.out.println("ldo1000000");
+        Document doc = info.getDocument();
+        //System.out.println("ldo1222222");
+        if (doc != null && isWithinJavascript(doc, caretOffset)) {
+        //System.out.println("ldo333333");
+            return super.complete(context);
         }
-        System.out.println("ldoemptylist1000000");
-        return Collections.emptyList();
+        //System.out.println("ldoemptylist1000000");
+        return CodeCompletionResult.NONE;
     }
 
     /**
@@ -84,7 +74,7 @@ public class EJSCompleter extends JsCodeCompletion {
     public QueryType getAutoQuery(JTextComponent component, String typedText) {
         Document doc = component.getDocument();
         int caretOffset =  component.getCaret().getDot();
-        if (isWithinJavascript(component.getDocument(), caretOffset)) {
+        if (isWithinJavascript(doc, caretOffset)) {
             return super.getAutoQuery(component, typedText);
         }
         

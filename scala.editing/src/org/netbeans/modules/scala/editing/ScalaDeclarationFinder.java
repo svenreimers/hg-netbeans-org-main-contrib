@@ -56,9 +56,8 @@ import org.netbeans.modules.scala.editing.nodes.AstElement;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.FieldRef;
 import org.netbeans.modules.scala.editing.nodes.FunRef;
-import org.netbeans.modules.scala.editing.nodes.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.openide.filesystems.FileObject;
-import org.openide.util.Exceptions;
 
 /**
  * 
@@ -122,11 +121,8 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
 
     public DeclarationLocation findDeclaration(CompilationInfo info, int lexOffset) {
 
-        final Document document;
-        try {
-            document = info.getDocument();
-        } catch (Exception e) {
-            Exceptions.printStackTrace(e);
+        final Document document = info.getDocument();
+        if (document == null) {
             return DeclarationLocation.NONE;
         }
         final BaseDocument doc = (BaseDocument) document;
@@ -207,7 +203,7 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
 
         IndexedElement candidate = null;
 
-        String prefix = funRef.getCall().getName();
+        String callName = funRef.getCall().getName();
         String in = null;
         AstElement base = funRef.getBase();
         if (base != null) {
@@ -217,12 +213,11 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
             }
 
             if (in != null) {
-                Set<IndexedElement> members = index.getElements(prefix, in, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, pResult, false);
+                Set<IndexedElement> members = index.getElements(callName, in, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, pResult, false);
                 for (IndexedElement member : members) {
                     if (member instanceof IndexedFunction) {
                         IndexedFunction idxFunction = (IndexedFunction) member;
-                        // @Todo compare params' types
-                        if (idxFunction.getName().equals(prefix) && idxFunction.getParameters().size() == funRef.getParams().size()) {
+                        if (idxFunction.isReferredBy(funRef)) {
                             candidate = idxFunction;
                             break;
                         }
@@ -254,7 +249,7 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
                 Set<IndexedElement> members = index.getElements(prefix, in, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, pResult, false);
                 for (IndexedElement member : members) {
                     if (member instanceof IndexedFunction) {
-                        if (member.isNullParams()) {
+                        if (member.isNullArgs()) {
                             candidate = member;
                             break;
                         }

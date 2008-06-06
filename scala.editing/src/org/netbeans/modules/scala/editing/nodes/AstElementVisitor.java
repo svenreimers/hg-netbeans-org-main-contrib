@@ -38,6 +38,25 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
+import org.netbeans.modules.scala.editing.nodes.tmpls.ObjectTemplate;
+import org.netbeans.modules.scala.editing.nodes.tmpls.Template;
+import org.netbeans.modules.scala.editing.nodes.tmpls.ClassTemplate;
+import org.netbeans.modules.scala.editing.nodes.tmpls.TraitTemplate;
+import org.netbeans.modules.scala.editing.nodes.types.TypeAlias;
+import org.netbeans.modules.scala.editing.nodes.exprs.SimpleExpr;
+import org.netbeans.modules.scala.editing.nodes.exprs.InfixExpr;
+import org.netbeans.modules.scala.editing.nodes.exprs.ArgumentExprs;
+import org.netbeans.modules.scala.editing.nodes.exprs.BlockExpr;
+import org.netbeans.modules.scala.editing.nodes.exprs.NewExpr;
+import org.netbeans.modules.scala.editing.nodes.exprs.AssignmentExpr;
+import org.netbeans.modules.scala.editing.nodes.exprs.Postfixable;
+import org.netbeans.modules.scala.editing.nodes.types.ParamType;
+import org.netbeans.modules.scala.editing.nodes.types.InfixType;
+import org.netbeans.modules.scala.editing.nodes.types.CompoundType;
+import org.netbeans.modules.scala.editing.nodes.types.SimpleTupleType;
+import org.netbeans.modules.scala.editing.nodes.types.SimpleIdType;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.types.FunType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -120,7 +139,7 @@ public class AstElementVisitor extends AstVisitor {
                 visitPackaging(node);
             }
         } else if (size == 3) {
-            for (Object anno : that.getList(0)) {
+            for (Object annot : that.getList(0)) {
                 // @Todo
             }
 
@@ -197,16 +216,16 @@ public class AstElementVisitor extends AstVisitor {
         exit(that);
     }
 
-    public List<Import> visitImport(GNode that) {
+    public List<Importing> visitImport(GNode that) {
         enter(that);
 
-        List<Import> imports = new ArrayList<Import>();
+        List<Importing> imports = new ArrayList<Importing>();
 
         GNode firstNode = that.getGeneric(0);
         if (firstNode.getName().equals("Error")) {
             visitError(firstNode);
         } else {
-            Import first = visitImportExpr(firstNode);
+            Importing first = visitImportExpr(firstNode);
             imports.add(first);
 
             for (Object other : that.getList(1)) {
@@ -218,7 +237,7 @@ public class AstElementVisitor extends AstVisitor {
         return imports;
     }
 
-    public Import visitImportExpr(GNode that) {
+    public Importing visitImportExpr(GNode that) {
         enter(that);
 
         PathId pathId = visitStableId(that.getGeneric(0));
@@ -227,7 +246,7 @@ public class AstElementVisitor extends AstVisitor {
         scopeStack.peek().addScope(scope);
 
         // We put lastId as the idToken, so when search closest element on caret, will return this def
-        Import importDef = new Import(paths.get(paths.size() - 1).getIdToken(), scope);
+        Importing importDef = new Importing(paths.get(paths.size() - 1).getIdToken(), scope);
 
         scopeStack.peek().addDef(importDef);
 
@@ -245,7 +264,7 @@ public class AstElementVisitor extends AstVisitor {
             // latest id is imported type
             Id latest = paths.get(paths.size() - 1);
             paths.remove(latest);
-            SimpleType type = new SimpleType(latest.getName(), latest.getIdToken(), ElementKind.CLASS);
+            TypeRef type = new TypeRef(latest.getName(), latest.getIdToken(), ElementKind.CLASS);
 
             scopeStack.peek().addRef(type);
 
@@ -271,7 +290,7 @@ public class AstElementVisitor extends AstVisitor {
         TypeRef latest = null;
         GNode what = that.getGeneric(1);
         if (what.getName().equals("WildKey")) {
-            latest = new SimpleType("_", getIdToken(what), ElementKind.CLASS);
+            latest = new TypeRef("_", getIdToken(what), ElementKind.CLASS);
         } else {
             latest = visitImportSelector(what);
         }
@@ -287,19 +306,19 @@ public class AstElementVisitor extends AstVisitor {
         TypeRef type = null;
 
         Id id = visitId(that.getGeneric(0));
-        SimpleType idType = new SimpleType(id.getName(), id.getIdToken(), ElementKind.CLASS);
+        TypeRef idType = new TypeRef(id.getName(), id.getIdToken(), ElementKind.CLASS);
 
         GNode funTypeTail = that.getGeneric(1);
         if (funTypeTail != null) {
             FunType funType = new FunType();
             funType.setLhs(idType);
 
-            SimpleType tailType = null;
+            TypeRef tailType = null;
             if (funTypeTail.getName().equals("WildKey")) {
-                tailType = new SimpleType("_", getIdToken(funTypeTail), ElementKind.CLASS);
+                tailType = new TypeRef("_", getIdToken(funTypeTail), ElementKind.CLASS);
             } else {
                 Id tailId = visitId(funTypeTail);
-                tailType = new SimpleType(tailId.getName(), tailId.getIdToken(), ElementKind.CLASS);
+                tailType = new TypeRef(tailId.getName(), tailId.getIdToken(), ElementKind.CLASS);
             }
 
             funType.setRhs(tailType);
@@ -583,7 +602,7 @@ public class AstElementVisitor extends AstVisitor {
 
         GNode typeParamClauseNode = that.getGeneric(1);
         if (typeParamClauseNode != null) {
-            visitChildren(typeParamClauseNode);
+            visitTypeParamClause(typeParamClauseNode);
         }
 
         String modifier = "public";
@@ -598,9 +617,9 @@ public class AstElementVisitor extends AstVisitor {
             constructor.setIdToken(id.getIdToken());
         }
 
-        List<SimpleType> parents = visitClassTemplateOpt(that.getGeneric(5));
+        List<TypeRef> parents = visitClassTemplateOpt(that.getGeneric(5));
         classTmpl.setExtendsWith(parents);
-        for (SimpleType parent : parents) {
+        for (TypeRef parent : parents) {
             scopeStack.peek().addRef(parent);
         }
 
@@ -625,12 +644,12 @@ public class AstElementVisitor extends AstVisitor {
 
         GNode typeParamClauseNode = that.getGeneric(1);
         if (typeParamClauseNode != null) {
-            visitChildren(typeParamClauseNode);
+            visitTypeParamClause(typeParamClauseNode);
         }
 
-        List<SimpleType> parents = visitTraitTemplateOpt(that.getGeneric(2));
+        List<TypeRef> parents = visitTraitTemplateOpt(that.getGeneric(2));
         traitTmpl.setExtendsWith(parents);
-        for (SimpleType parent : parents) {
+        for (TypeRef parent : parents) {
             scopeStack.peek().addRef(parent);
         }
 
@@ -640,10 +659,10 @@ public class AstElementVisitor extends AstVisitor {
         return traitTmpl;
     }
 
-    public List<SimpleType> visitClassTemplateOpt(GNode that) {
+    public List<TypeRef> visitClassTemplateOpt(GNode that) {
         enter(that);
 
-        List<SimpleType> parents = Collections.<SimpleType>emptyList();
+        List<TypeRef> parents = Collections.<TypeRef>emptyList();
 
         if (that.size() == 2) {
             int extendsType = 0;
@@ -670,7 +689,7 @@ public class AstElementVisitor extends AstVisitor {
         return parents;
     }
 
-    public List<SimpleType> visitClassTemplate(GNode that) {
+    public List<TypeRef> visitClassTemplate(GNode that) {
         enter(that);
 
         GNode earlyDefsNode = that.getGeneric(0);
@@ -678,7 +697,7 @@ public class AstElementVisitor extends AstVisitor {
             visitChildren(earlyDefsNode);
         }
 
-        List<SimpleType> parents = visitClassParents(that.getGeneric(1));
+        List<TypeRef> parents = visitClassParents(that.getGeneric(1));
 
         GNode templateBodyNode = that.getGeneric(2);
         if (templateBodyNode != null) {
@@ -689,16 +708,16 @@ public class AstElementVisitor extends AstVisitor {
         return parents;
     }
 
-    public List<SimpleType> visitClassParents(GNode that) {
+    public List<TypeRef> visitClassParents(GNode that) {
         enter(that);
 
-        List<SimpleType> parents = new ArrayList<SimpleType>();
+        List<TypeRef> parents = new ArrayList<TypeRef>();
 
-        SimpleType extendsParent = visitConstr(that.getGeneric(0));
+        TypeRef extendsParent = visitConstr(that.getGeneric(0));
         parents.add(extendsParent);
 
         for (Object o : that.getList(1)) {
-            SimpleType withParent = visitAnnotType((GNode) o);
+            TypeRef withParent = visitAnnotType((GNode) o);
             parents.add(withParent);
         }
 
@@ -706,10 +725,10 @@ public class AstElementVisitor extends AstVisitor {
         return parents;
     }
 
-    public SimpleType visitConstr(GNode that) {
+    public TypeRef visitConstr(GNode that) {
         enter(that);
 
-        SimpleType annotType = visitAnnotType(that.getGeneric(0));
+        TypeRef annotType = visitAnnotType(that.getGeneric(0));
 
         for (Object argExprs : that.getList(1)) {
             visitArgumentExprs((GNode) argExprs);
@@ -719,10 +738,10 @@ public class AstElementVisitor extends AstVisitor {
         return annotType;
     }
 
-    public List<SimpleType> visitTraitTemplateOpt(GNode that) {
+    public List<TypeRef> visitTraitTemplateOpt(GNode that) {
         enter(that);
 
-        List<SimpleType> parents = Collections.<SimpleType>emptyList();
+        List<TypeRef> parents = Collections.<TypeRef>emptyList();
 
         if (that.size() == 2) {
             int extendsType = 0;
@@ -749,7 +768,7 @@ public class AstElementVisitor extends AstVisitor {
         return parents;
     }
 
-    public List<SimpleType> visitTraitTemplate(GNode that) {
+    public List<TypeRef> visitTraitTemplate(GNode that) {
         enter(that);
 
         GNode earlyDefsNode = that.getGeneric(0);
@@ -757,7 +776,7 @@ public class AstElementVisitor extends AstVisitor {
             visitChildren(earlyDefsNode);
         }
 
-        List<SimpleType> parents = visitTraitParents(that.getGeneric(1));
+        List<TypeRef> parents = visitTraitParents(that.getGeneric(1));
 
         GNode templateBodyNode = that.getGeneric(2);
         if (templateBodyNode != null) {
@@ -768,16 +787,16 @@ public class AstElementVisitor extends AstVisitor {
         return parents;
     }
 
-    public List<SimpleType> visitTraitParents(GNode that) {
+    public List<TypeRef> visitTraitParents(GNode that) {
         enter(that);
 
-        List<SimpleType> parents = new ArrayList<SimpleType>();
+        List<TypeRef> parents = new ArrayList<TypeRef>();
 
-        SimpleType firstParent = visitAnnotType(that.getGeneric(0));
+        TypeRef firstParent = visitAnnotType(that.getGeneric(0));
         parents.add(firstParent);
 
         for (Object o : that.getList(1)) {
-            SimpleType withParent = visitAnnotType((GNode) o);
+            TypeRef withParent = visitAnnotType((GNode) o);
             parents.add(withParent);
         }
 
@@ -904,16 +923,24 @@ public class AstElementVisitor extends AstVisitor {
         Id id = visitId(that.getGeneric(0));
         AstScope scope = new AstScope(getBoundsTokens(that));
         scopeStack.peek().addScope(scope);
-        TypeAlias type = new TypeAlias(id, scope);
+        TypeAlias typeAlias = new TypeAlias(id, scope);
 
-        scopeStack.peek().addDef(type);
+        scopeStack.peek().addDef(typeAlias);
 
         scopeStack.push(scope);
-        visitChildren(that);
+        
+        GNode typeParamClauseNode = that.getGeneric(1);
+        if (typeParamClauseNode != null) {
+            visitTypeParamClause(typeParamClauseNode);
+        }
+        
+        TypeRef alias = visitType(that.getGeneric(2));
+        typeAlias.setAliase(alias);
+        
         scopeStack.pop();
 
         exit(that);
-        return type;
+        return typeAlias;
     }
 
     public Function visitFunDcl(GNode that) {
@@ -1018,6 +1045,22 @@ public class AstElementVisitor extends AstVisitor {
         return function;
     }
 
+    public void visitTypeParamClause(GNode that) {
+        enter(that);
+        
+        visitChildren(that);
+        
+        exit(that);
+    }
+    
+    public void visitFunTypeParamClause(GNode that) {
+        enter(that);
+        
+        visitChildren(that);
+        
+        exit(that);
+    }
+    
     /**
      * @Note: null params is meaningful, it's diffrent from empty params
      * @return null or list of Var 
@@ -1099,18 +1142,18 @@ public class AstElementVisitor extends AstVisitor {
 
         Object first = that.get(0);
         GNode typeNode = null;
-        WrappedType.More more = WrappedType.More.Pure;
+        ParamType.More more = ParamType.More.Pure;
         if (first instanceof GNode) {
             typeNode = (GNode) first;
             if (that.size() == 2) {
-                more = WrappedType.More.Star;
+                more = ParamType.More.Star;
             }
         } else {
             typeNode = that.getGeneric(1);
-            more = WrappedType.More.ByName;
+            more = ParamType.More.ByName;
         }
         TypeRef toWrap = visitType(typeNode);
-        WrappedType type = new WrappedType(toWrap.getIdToken(), ElementKind.CLASS);
+        ParamType type = new ParamType(toWrap.getIdToken(), ElementKind.CLASS);
         type.setWrappedType(toWrap);
         type.setMore(more);
 
@@ -1140,6 +1183,13 @@ public class AstElementVisitor extends AstVisitor {
         List<Var> vars = new ArrayList<Var>();
 
         AstScope currScope = scopeStack.peek();
+        
+        ElementKind kind = ElementKind.VARIABLE;
+        AstDef enclodingDef = currScope.getBindingDef();
+        if (enclodingDef != null && enclodingDef instanceof Template) {
+            kind = ElementKind.FIELD;
+        }
+        
         AstScope scope = new AstScope(getBoundsTokens(that));
         scopeStack.peek().addScope(scope);
         scopeStack.push(scope);
@@ -1148,7 +1198,7 @@ public class AstElementVisitor extends AstVisitor {
         TypeRef type = visitType(that.getGeneric(1));
 
         for (Id id : ids) {
-            Var val = new Var(id, scope, ElementKind.FIELD);
+            Var val = new Var(id, scope, kind);
             val.setVal();
             val.setType(type);
             scope.addRef(type);
@@ -1168,6 +1218,13 @@ public class AstElementVisitor extends AstVisitor {
         List<Var> vars = new ArrayList<Var>();
 
         AstScope currScope = scopeStack.peek();
+        
+        ElementKind kind = ElementKind.VARIABLE;
+        AstDef enclodingDef = currScope.getBindingDef();
+        if (enclodingDef != null && enclodingDef instanceof Template) {
+            kind = ElementKind.FIELD;
+        }
+        
         AstScope scope = new AstScope(getBoundsTokens(that));
         scopeStack.peek().addScope(scope);
         scopeStack.push(scope);
@@ -1176,7 +1233,7 @@ public class AstElementVisitor extends AstVisitor {
         TypeRef type = visitType(that.getGeneric(1));
 
         for (Id id : ids) {
-            Var var = new Var(id, scope, ElementKind.FIELD);
+            Var var = new Var(id, scope, kind);
             var.setType(type);
             scope.addRef(type);
 
@@ -1195,6 +1252,13 @@ public class AstElementVisitor extends AstVisitor {
         List<Var> vars = new ArrayList<Var>();
 
         AstScope currScope = scopeStack.peek();
+        
+        ElementKind kind = ElementKind.VARIABLE;
+        AstDef enclodingDef = currScope.getBindingDef();
+        if (enclodingDef != null && enclodingDef instanceof Template) {
+            kind = ElementKind.FIELD;
+        }
+        
         AstScope scope = new AstScope(getBoundsTokens(that));
         scopeStack.peek().addScope(scope);
         scopeStack.push(scope);
@@ -1203,7 +1267,7 @@ public class AstElementVisitor extends AstVisitor {
         List<Id> ids = (List<Id>) patDef[0];
         AstExpr expr = (AstExpr) patDef[1];
         for (Id id : ids) {
-            Var var = new Var(id, scope, ElementKind.FIELD);
+            Var var = new Var(id, scope, kind);
             var.setVal();
             var.setExpr(expr);
 
@@ -1222,6 +1286,13 @@ public class AstElementVisitor extends AstVisitor {
         List<Var> vars = new ArrayList<Var>();
 
         AstScope currScope = scopeStack.peek();
+        
+        ElementKind kind = ElementKind.VARIABLE;
+        AstDef enclodingDef = currScope.getBindingDef();
+        if (enclodingDef != null && enclodingDef instanceof Template) {
+            kind = ElementKind.FIELD;
+        }
+        
         AstScope scope = new AstScope(getBoundsTokens(that));
         scopeStack.peek().addScope(scope);
         scopeStack.push(scope);
@@ -1231,7 +1302,7 @@ public class AstElementVisitor extends AstVisitor {
             List<Id> ids = visitIds(what);
             TypeRef type = visitType(that.getGeneric(1));
             for (Id id : ids) {
-                Var var = new Var(id, scope, ElementKind.FIELD);
+                Var var = new Var(id, scope, kind);
                 var.setType(type);
                 scope.addRef(type);
 
@@ -1244,7 +1315,7 @@ public class AstElementVisitor extends AstVisitor {
             AstExpr expr = (AstExpr) patDef[1];
             scope = new AstScope(getBoundsTokens(that));
             for (Id id : ids) {
-                Var var = new Var(id, scope, ElementKind.FIELD);
+                Var var = new Var(id, scope, kind);
                 var.setExpr(expr);
 
                 currScope.addDef(var);
@@ -1278,6 +1349,18 @@ public class AstElementVisitor extends AstVisitor {
 
         exit(that);
         return new Object[]{ids, expr};
+    }
+    
+    public void visitCaseClauses(GNode that) {
+        enter(that);
+        
+        visitCaseClause(that.getGeneric(0)); // first
+        
+        for (Object o : that.getList(1)) {
+            visitCaseClause((GNode) o);
+        }
+        
+        exit(that);
     }
 
     public void visitCaseClause(GNode that) {
@@ -1545,11 +1628,9 @@ public class AstElementVisitor extends AstVisitor {
             } else if (modifierNode.getName().equals("AccessModifier")) {
                 modifier = visitAccessModifier(modifierNode);
             }
-        } else if (what instanceof String) {
-            modifier = (String) what;
+        } else {
+            modifier = "abstract";
         }
-
-        visitChildren(that);
 
         exit(that);
         return modifier;
@@ -1673,10 +1754,8 @@ public class AstElementVisitor extends AstVisitor {
         if (what.getName().equals("ParenExpr")) {
             args = visitParenExpr(what);
         } else {
-            // BlockExpr
-            visitChildren(what);
-            // @Todo
-            args = Collections.<AstExpr>emptyList();
+            BlockExpr arg = visitBlockExpr(what);
+            args = Collections.<AstExpr>singletonList(arg);
         }
 
         ArgumentExprs argExprs = new ArgumentExprs(ElementKind.OTHER);
@@ -1700,6 +1779,23 @@ public class AstElementVisitor extends AstVisitor {
 
         exit(that);
         return exprs;
+    }
+    
+    public BlockExpr visitBlockExpr(GNode that) {
+        enter(that);
+        
+        GNode what = that.getGeneric(0);
+        if (what.getName().equals("CaseClauses")) {
+            visitCaseClauses(what);
+        } else if (what.getName().equals("Block")) {
+            visitBlock(what);
+        }
+        
+        // @todo
+        BlockExpr expr = new BlockExpr(getBoundsTokens(that));
+        
+        exit(that);
+        return expr;
     }
 
     public List<AstExpr> visitExprs(GNode that) {
@@ -1764,23 +1860,6 @@ public class AstElementVisitor extends AstVisitor {
         return expr;
     }
 
-    public AstExpr visitNotFunExpr(GNode that) {
-        enter(that);
-
-        /**
-         * all other sub node has been specify a generic node's name via '@',
-         * except pure PostfixExpr
-         */
-        AstExpr expr = visitPostfixExpr(that.getGeneric(0));
-        /* Since NotFunExpr can be dispatched to here by visitChildren, bypassing
-         * visitExpr, we should add to scope here 
-         */
-        scopeStack.peek().addExpr(expr);
-
-        exit(that);
-        return expr;
-    }
-
     public AstExpr visitAssignmentExpr(GNode that) {
         enter(that);
 
@@ -1791,6 +1870,22 @@ public class AstElementVisitor extends AstVisitor {
         lhs.setType(rhs.getType());
         expr.setLhs(lhs);
         expr.setRhs(rhs);
+
+        exit(that);
+        return expr;
+    }
+
+    public AstExpr visitNotFunExpr(GNode that) {
+        enter(that);
+
+        /**
+         * all other sub node has been specify a generic node's name via '@',
+         * except pure PostfixExpr
+         */
+        AstExpr expr = visitPostfixExpr(that.getGeneric(0));
+        /* Since NotFunExpr can be dispatched to here by visitChildren, bypassing
+         * visitExpr, we should add to scope in visitPostfixExpr or visitInfixExpr
+         */
 
         exit(that);
         return expr;
@@ -1818,6 +1913,9 @@ public class AstElementVisitor extends AstVisitor {
 
         SimpleExpr first = visitPrefixExpr(that.getGeneric(0));
 
+        // Should add expr to scope here
+        scopeStack.peek().addExpr(first);
+
         Pair others = that.getList(1);
         if (!others.isEmpty()) {
             List<SimpleExpr> exprs = new ArrayList<SimpleExpr>();
@@ -1827,10 +1925,14 @@ public class AstElementVisitor extends AstVisitor {
             List<InfixOpExprs> infixOpExprsList = new ArrayList<InfixOpExprs>();
 
             SimpleExpr lExpr = first;
-            for (Object other : others) {
-                GNode otherNode = (GNode) other;
+            for (int i = 0; i < others.size(); i++) {
+                GNode otherNode = (GNode) others.get(i);
+
                 Id op = visitId(otherNode.getGeneric(0));
                 SimpleExpr rExpr = visitPrefixExpr(otherNode.getGeneric(1));
+
+                // Should add expr to scope here
+                scopeStack.peek().addExpr(rExpr);
 
                 ops.add(op);
                 exprs.add(rExpr);
@@ -1850,25 +1952,25 @@ public class AstElementVisitor extends AstVisitor {
                 int precedence = 0;
                 String opName = op.getName();
                 if (opName.equals("*") || opName.equals("/") || opName.equals("%")) {
-                    precedence = 1;
+                    precedence = 1 * 10000 + i;
                 } else if (opName.equals("+") || opName.equals("-")) {
-                    precedence = 2;
+                    precedence = 2 * 10000 + i;
                 } else if (opName.equals(":")) {
-                    precedence = 3;
+                    precedence = 3 * 10000 + i;
                 } else if (opName.equals("=") || opName.equals("!")) {
-                    precedence = 4;
+                    precedence = 4 * 10000 + i;
                 } else if (opName.equals("<") || opName.equals(">")) {
-                    precedence = 5;
+                    precedence = 5 * 10000 + i;
                 } else if (opName.equals("&")) {
-                    precedence = 6;
+                    precedence = 6 * 10000 + i;
                 } else if (opName.equals("^")) {
-                    precedence = 7;
+                    precedence = 7 * 10000 + i;
                 } else if (opName.equals("|")) {
-                    precedence = 8;
+                    precedence = 8 * 10000 + i;
                 } else if (Character.isISOControl(opName.charAt(0))) {
-                    precedence = 0;
+                    precedence = 0 * 10000 + i;
                 } else {
-                    precedence = 9;
+                    precedence = 9 * 10000 + i;
                 }
 
                 InfixOpExprs opExprs = new InfixOpExprs();
@@ -1887,35 +1989,27 @@ public class AstElementVisitor extends AstVisitor {
 
             Collections.sort(infixOpExprsList, InfixOpExprsComparator.getInstance());
 
+            AstElement currLhs = infixOpExprsList.get(0).lhs;
             FunRef lastFunRef = null;
-            while (!infixOpExprsList.isEmpty()) {
-                InfixOpExprs currInfixOpExprs = infixOpExprsList.get(0);
-
+            for (InfixOpExprs currInfixOpExprs : infixOpExprsList) {
                 Id callId = currInfixOpExprs.op;
                 lastFunRef = new FunRef(callId.getIdToken(), ElementKind.CALL);
-                lastFunRef.setBase(currInfixOpExprs.lhs);
+                lastFunRef.setBase(currLhs);
                 lastFunRef.setCall(callId);
-                lastFunRef.setParams(Collections.<AstElement>singletonList(currInfixOpExprs.rhs));
-                
-                scopeStack.peek().addRef(lastFunRef);
-                
-                infixOpExprsList.remove(0);
+                lastFunRef.setArgs(Collections.<AstElement>singletonList(currInfixOpExprs.rhs));
 
-                for (InfixOpExprs infixOpExprs : infixOpExprsList) {
-                    if (infixOpExprs.lhs == currInfixOpExprs.rhs) {
-                        infixOpExprs.lhs = lastFunRef;
-                    }
-                    if (infixOpExprs.rhs == currInfixOpExprs.lhs) {
-                        infixOpExprs.rhs = lastFunRef;
-                    }
-                }
+                currLhs = lastFunRef;
+
+                scopeStack.peek().addRef(lastFunRef);
             }
-            
+
             infixExpr.setTopFunRef(lastFunRef);
 
             expr = infixExpr;
+            scopeStack.peek().addExpr(infixExpr);
         } else {
             expr = first;
+            // has been added to scope 
         }
 
         exit(that);
@@ -2020,48 +2114,54 @@ public class AstElementVisitor extends AstVisitor {
             Id firstId = paths.get(0);
 
             if (argExprs != null) {
+                // dog.sound.concat(arg0)
                 // Function ref, we should fetch last id of Paths as call name of funRef
                 Id callId = paths.get(paths.size() - 1);
-                FunRef funRef = new FunRef(callId.getIdToken(), ElementKind.CALL);
-                if (paths.size() > 1) {
-                    paths.remove(callId);
-                    funRef.setBase(pathId);
-                    funRef.setCall(callId);
-                } else {
-                    funRef.setCall(callId);
-                    funRef.setLocal();
-                }
+                paths.remove(callId);
 
-                funRef.setParams(argExprs.getArgs());
+                FunRef funRef = new FunRef(callId.getIdToken(), ElementKind.CALL);
+
+                if (paths.size() > 0) {
+                    // Cannot resolve the ref here, should be done when global type inference
+                    funRef.setBase(pathId);
+                }
+                
+                funRef.setCall(callId);
+
+                funRef.setArgs(argExprs.getArgs());
+
+                expr.setBase(funRef);
 
                 scopeStack.peek().addRef(funRef);
 
-                if (!funRef.isLocal()) {
-                    IdRef idRef = new IdRef(firstId.getName(), firstId.getIdToken(), ElementKind.VARIABLE);
-
-                    scopeStack.peek().addRef(idRef);
-                }
-
                 currBase = funRef;
             } else {
+                // dog.sound
                 // Similest case, only one PathId
                 IdRef idRef = new IdRef(firstId.getName(), firstId.getIdToken(), ElementKind.VARIABLE);
 
                 scopeStack.peek().addRef(idRef);
 
-                currBase = idRef;
-
                 if (paths.size() > 1) {
                     // first's field
                     Id fieldId = paths.get(paths.size() - 1);
-                    FieldRef fieldRef = new FieldRef(fieldId.getIdToken());
                     paths.remove(fieldId);
+
+                    FieldRef fieldRef = new FieldRef(fieldId.getIdToken());
+
+                    // Cannot resolve the ref here, should be done when global type inference
                     fieldRef.setBase(pathId);
                     fieldRef.setField(fieldId);
+
+                    expr.setBase(fieldRef);
 
                     scopeStack.peek().addRef(fieldRef);
 
                     currBase = fieldRef;
+                } else {
+                    expr.setBase(idRef);
+
+                    currBase = idRef;
                 }
             }
 
@@ -2118,7 +2218,7 @@ public class AstElementVisitor extends AstVisitor {
             // apply call
             ArgumentExprs argExprs = visitArgumentExprs(what);
             ApplyFunRef apply = new ApplyFunRef();
-            apply.setParams(argExprs.getArgs());
+            apply.setArgs(argExprs.getArgs());
             // base not set yet, should be set later by SimpleExpr
             ref = apply;
         } else {
@@ -2136,7 +2236,7 @@ public class AstElementVisitor extends AstVisitor {
 
                 FunRef funRef = new FunRef(id.getIdToken(), ElementKind.CALL);
                 funRef.setCall(id);
-                funRef.setParams(argExprs.getArgs());
+                funRef.setArgs(argExprs.getArgs());
                 // base not set yet, should be set later by SimpleExpr
                 ref = funRef;
             } else {
@@ -2157,7 +2257,7 @@ public class AstElementVisitor extends AstVisitor {
 
         GNode what = that.getGeneric(0);
         if (what.getName().equals("ClassTemplate")) {
-            List<SimpleType> parents = visitClassTemplate(what);
+            List<TypeRef> parents = visitClassTemplate(what);
             expr.setParents(parents);
         } else if (what.getName().equals("TemplateBody")) {
             // TemplateBody
@@ -2286,20 +2386,20 @@ public class AstElementVisitor extends AstVisitor {
         return type;
     }
 
-    public SimpleType visitAnnotType(GNode that) {
+    public TypeRef visitAnnotType(GNode that) {
         enter(that);
 
         Pair annotations = that.getList(0);
-        SimpleType type = visitSimpleType(that.getGeneric(1));
+        TypeRef type = visitSimpleType(that.getGeneric(1));
 
         exit(that);
         return type;
     }
 
-    public SimpleType visitSimpleType(GNode that) {
+    public TypeRef visitSimpleType(GNode that) {
         enter(that);
 
-        SimpleType type = null;
+        TypeRef type = null;
 
         if (that.getName().equals("SimpleIdType")) {
             type = visitSimpleIdType(that);
@@ -2359,7 +2459,7 @@ public class AstElementVisitor extends AstVisitor {
         return types;
     }
 
-    public SimpleType visitSimpleIdType(GNode that) {
+    public TypeRef visitSimpleIdType(GNode that) {
         enter(that);
 
         PathId id = visitStableId(that.getGeneric(0));
@@ -2373,7 +2473,7 @@ public class AstElementVisitor extends AstVisitor {
         return type;
     }
 
-    public SimpleType visitSimpleSingletonType(GNode that) {
+    public TypeRef visitSimpleSingletonType(GNode that) {
         enter(that);
 
         PathId id = visitPath(that.getGeneric(0));
@@ -2387,7 +2487,7 @@ public class AstElementVisitor extends AstVisitor {
         return type;
     }
 
-    public SimpleType visitSimpleTupleType(GNode that) {
+    public TypeRef visitSimpleTupleType(GNode that) {
         enter(that);
 
         List<TypeRef> types = visitTypes(that.getGeneric(0));
