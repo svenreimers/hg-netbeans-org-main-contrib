@@ -253,7 +253,12 @@ public class TypeRef extends AstRef {
 
         AstDef def = getEnclosingScope().findDef(this);
         if (def != null) {
-            qualifiedName = def.getQualifiedName();
+            if (def instanceof TypeAlias) {
+                qualifiedName = ((TypeAlias) def).getAlias().getQualifiedName();
+            } else {
+                // should be Template
+                qualifiedName = def.getQualifiedName();
+            }
             return qualifiedName;
         }
 
@@ -298,14 +303,12 @@ public class TypeRef extends AstRef {
 
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
         if (getName() != null) {
             formatter.appendText(getName());
+            htmlFormatTypeArgs(formatter);
         }
     }
 
-    
-    
     public void htmlFormatTypeArgs(HtmlFormatter formatter) {
         for (List<TypeRef> typeArgs : getTypeArgsList()) {
             formatter.appendText("[");
