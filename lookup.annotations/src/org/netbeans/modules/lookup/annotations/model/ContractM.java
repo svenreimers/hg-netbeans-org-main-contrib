@@ -36,33 +36,43 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes.types;
 
-import org.netbeans.modules.scala.editing.nodes.*;
-import org.netbeans.modules.gsf.api.ElementKind;
+package org.netbeans.modules.lookup.annotations.model;
 
 /**
  *
- * @author Caoyuan Deng
+ * @author Jaroslav Bachorik
  */
-public class TypeAlias extends AstDef {
+public class ContractM {
+    private String contractClass;
 
-    private TypeRef alias;
-
-    public TypeAlias(Id id, AstScope bindingScope) {
-        super(id.getName(), id.getIdToken(), bindingScope, ElementKind.CLASS);
+    public ContractM(String className) {
+        contractClass = className;
     }
-
-    public void setAliase(TypeRef alias) {
-        this.alias = alias;
-    }
-
-    public TypeRef getAlias() {
-        return alias;
+    
+    public String getContractClass() {
+        return contractClass;
     }
 
     @Override
-    public String getQualifiedName() {
-        return alias.getQualifiedName();
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ContractM other = (ContractM) obj;
+        if (this.contractClass != other.contractClass && (this.contractClass == null || !this.contractClass.equals(other.contractClass))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 41 * hash + (this.contractClass != null ? this.contractClass.hashCode() : 0);
+        return hash;
     }
 }

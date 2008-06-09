@@ -38,67 +38,13 @@
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
  */
-package org.netbeans.modules.properties.rbe.model;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+package org.netbeans.modules.properties.rbe.model.visitor;
 
 /**
- * The Bundle property
+ * The Visitable tree
  * @author Denis Stepanov <denis.stepanov at gmail.com>
  */
-public class BundleProperty implements Comparable<BundleProperty> {
+public interface VisitableTree<T extends Comparable<T>> {
 
-    /** The property bundle */
-    private Bundle bundle;
-    /** The name of the property */
-    private String name;
-    /** The key of the property */
-    private String key;
-    /** Locale properties */
-    private Map<Locale, LocaleProperty> localeProperties;
-
-    public BundleProperty(Bundle bundle, String name, String fullname) {
-        this.name = name;
-        this.key = fullname;
-        this.bundle = bundle;
-        this.localeProperties = new HashMap<Locale, LocaleProperty>(bundle.getLocales().size());
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public Bundle getBundle() {
-        return bundle;
-    }
-
-    public LocaleProperty getLocalProperty(Locale locale) {
-        return localeProperties.get(locale);
-    }
-
-    public boolean isEmpty() {
-        return localeProperties.isEmpty();
-    }
-
-    void addLocaleProperty(Locale locale, LocaleProperty value) {
-        localeProperties.put(locale, value);
-    }
-
-    void removeLocaleProperty(Locale locale) {
-        localeProperties.remove(locale);
-    }
-
-    public int compareTo(BundleProperty o) {
-        return this.key.compareTo(o.key);
-    }
+    void accept(TreeVisitor<T> visitor);
 }

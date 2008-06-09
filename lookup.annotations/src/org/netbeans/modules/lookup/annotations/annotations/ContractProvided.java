@@ -36,69 +36,13 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes.tmpls;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
-import org.netbeans.modules.scala.editing.nodes.AstScope;
-import org.netbeans.modules.scala.editing.nodes.Id;
-import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+package org.netbeans.modules.lookup.annotations.annotations;
 
 /**
- *
- * @author Caoyuan Deng
+ * 
+ * @author Jaroslav Bachorik
  */
-public class ClassTemplate extends Template {
-
-    private List<TypeParam> typeParams;
-
-    public ClassTemplate(Id id, AstScope bindingScope) {
-        super(id, bindingScope, ElementKind.CLASS);
-    }
-
-    public void setTypeParams(List<TypeParam> typeParams) {
-        this.typeParams = typeParams;
-    }
-
-    public List<TypeParam> getTypeParams() {
-        return typeParams == null ? Collections.<TypeParam>emptyList() : typeParams;
-    }
-
-    public void assignTypeParams(List<TypeRef> typeArgs) {
-        assert getTypeParams().size() == typeArgs.size();
-        List<TypeParam> _typeParams = getTypeParams();
-        for (int i = 0 ; i < _typeParams.size(); i++) {
-            TypeParam typeParam = _typeParams.get(i);
-            TypeRef typeArg = typeArgs.get(i);
-            typeParam.setValue(typeArg);
-        }
-    }
-    
-    @Override
-    public String getBinaryName() {
-        return getName();
-    }
-
-    @Override
-    public void htmlFormat(HtmlFormatter formatter) {
-        formatter.appendText(getName());
-        if (!getTypeParams().isEmpty()) {
-            formatter.appendText("[");
-
-            for (Iterator<TypeParam> itr = getTypeParams().iterator(); itr.hasNext();) {
-                TypeParam typeParam = itr.next();
-                typeParam.htmlFormat(formatter);
-
-                if (itr.hasNext()) {
-                    formatter.appendHtml(", ");
-                }
-            }
-
-            formatter.appendText("]");
-        }
-    }
+public @interface ContractProvided {
+    public Class<?> value();
 }
