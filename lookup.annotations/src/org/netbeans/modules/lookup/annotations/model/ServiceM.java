@@ -36,28 +36,54 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes.types;
 
-import org.netbeans.modules.scala.editing.nodes.*;
-import org.netbeans.modules.gsf.api.ElementKind;
+package org.netbeans.modules.lookup.annotations.model;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
- * @author Caoyuan Deng
+ * @author Jaroslav Bachorik
  */
-public class TypeAlias extends AstDef {
-
-    private TypeRef alias;
-
-    public TypeAlias(Id id, AstScope bindingScope) {
-        super(id.getName(), id.getIdToken(), bindingScope, ElementKind.CLASS);
+public class ServiceM {
+    private String serviceClass;
+    private Set<ContractM> contracts;
+    
+    public ServiceM(String className) {
+        serviceClass = className;
+        contracts = new HashSet<ContractM>();
+    }
+    
+    public String getServiceClass() {
+        return serviceClass;
+    }
+    
+    public Set<ContractM> getContracts() {
+        return contracts;
     }
 
-    public void setAliase(TypeRef alias) {
-        this.alias = alias;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ServiceM other = (ServiceM) obj;
+        if (this.serviceClass != other.serviceClass && (this.serviceClass == null || !this.serviceClass.equals(other.serviceClass))) {
+            return false;
+        }
+        return true;
     }
 
-    public TypeRef getAlias() {
-        return alias;
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + (this.serviceClass != null ? this.serviceClass.hashCode() : 0);
+        return hash;
     }
+    
+    
 }

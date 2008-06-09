@@ -38,8 +38,15 @@
  */
 package org.netbeans.modules.scala.editing.nodes.tmpls;
 
-import org.netbeans.modules.scala.editing.nodes.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.netbeans.modules.gsf.api.ElementKind;
+import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.netbeans.modules.scala.editing.nodes.Id;
+import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
  *
@@ -47,8 +54,33 @@ import org.netbeans.modules.gsf.api.ElementKind;
  */
 public class TraitTemplate extends Template {
 
+    private List<TypeParam> typeParams;
+
     public TraitTemplate(Id id, AstScope bindingScope) {
         super(id, bindingScope, ElementKind.MODULE);
+    }
+
+    public void setTypeParams(List<TypeParam> typeParams) {
+        this.typeParams = typeParams;
+    }
+
+    public List<TypeParam> getTypeParams() {
+        return typeParams == null ? Collections.<TypeParam>emptyList() : typeParams;
+    }
+    
+    public void assignTypeParams(List<TypeRef> typeArgs) {
+        assert getTypeParams().size() == typeArgs.size();
+        List<TypeParam> _typeParams = getTypeParams();
+        for (int i = 0 ; i < _typeParams.size(); i++) {
+            TypeParam typeParam = _typeParams.get(i);
+            TypeRef typeArg = typeArgs.get(i);
+            typeParam.setValue(typeArg);
+        }
+    }        
+
+    @Override
+    public boolean isCaseOne() {
+        return false;
     }
 
     @Override
@@ -57,7 +89,21 @@ public class TraitTemplate extends Template {
     }
 
     @Override
-    public boolean isCaseOne() {
-        return false;
+    public void htmlFormat(HtmlFormatter formatter) {
+        formatter.appendText(getName());
+        if (!getTypeParams().isEmpty()) {
+            formatter.appendText("[");
+
+            for (Iterator<TypeParam> itr = getTypeParams().iterator(); itr.hasNext();) {
+                TypeParam typeParam = itr.next();
+                typeParam.htmlFormat(formatter);
+
+                if (itr.hasNext()) {
+                    formatter.appendHtml(", ");
+                }
+            }
+
+            formatter.appendText("]");
+        }
     }
 }

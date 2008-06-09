@@ -54,6 +54,7 @@ import org.netbeans.modules.scala.editing.nodes.AstDef;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.AstRef;
 import org.netbeans.modules.scala.editing.nodes.IdRef;
+import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
@@ -172,8 +173,16 @@ public class ScalaSemanticAnalyzer implements SemanticAnalyzer {
                     highlights.put(idRange, ColoringAttributes.FIELD_SET);
                 }
             } else if (ref instanceof TypeRef) {
+                String name = ref.getName();
+                if (name != null && name.equals("_")) {
+                    continue;
+                }
+                
                 if (!((TypeRef) ref).isResolved()) {
-                    highlights.put(idRange, ColoringAttributes.UNUSED_SET); // UNDEFINED without default color yet
+                    AstDef def = scope.findDef(ref);
+                    if (!(def instanceof TypeParam)) {
+                        highlights.put(idRange, ColoringAttributes.UNUSED_SET); // UNDEFINED without default color yet
+                    }
                 }
             }
         }
