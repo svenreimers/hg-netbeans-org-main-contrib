@@ -38,55 +38,13 @@
  */
 package org.netbeans.modules.scala.editing.nodes.types;
 
-import java.util.Collections;
 import java.util.List;
-import org.netbeans.modules.scala.editing.nodes.AstScope;
-import org.netbeans.modules.scala.editing.nodes.Id;
 
 /**
  *
- * @author Caoyuan Deng
+ * @author dcaoyuan
  */
-public class TypeParam extends TypeDef {
+public interface WithTypeParams {
 
-    private String bound;
-    private TypeRef boundType;
-    private String variant;
-    private List<TypeParam> params;
-
-    public TypeParam(Id id, AstScope bindingScope) {
-        super(id, bindingScope);
-    }
-
-    public void setBound(String bound) {
-        this.bound = bound;
-    }
-
-    public String getBound() {
-        return bound;
-    }
-
-    public void setBoundType(TypeRef boundType) {
-        this.boundType = boundType;
-    } 
-    
-    public TypeRef getBoundType() {
-        return boundType;
-    }
-    
-    public void setVariant(String variant) {
-        this.variant = variant;
-    }
-
-    public String getVariant() {
-        return variant;
-    }
-    
-    public void setParams(List<TypeParam> params) {
-        this.params = params;
-    }
-    
-    public List<TypeParam> getParams() {
-        return params == null ? Collections.<TypeParam>emptyList() : params;
-    }
+    List<TypeParam> getTypeParams();
 }

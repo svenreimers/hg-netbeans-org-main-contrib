@@ -36,57 +36,42 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editing.nodes.types;
+package org.netbeans.modules.scala.editing;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import org.netbeans.modules.gsf.api.Modifier;
+import org.netbeans.modules.scala.editing.nodes.AstDef;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
-import org.netbeans.modules.scala.editing.nodes.Id;
+import org.netbeans.modules.scala.editing.nodes.tmpls.ClassTemplate;
 
 /**
  *
- * @author Caoyuan Deng
+ * @author dcaoyuan
  */
-public class TypeParam extends TypeDef {
+public class ScalaStubGenerator {
 
-    private String bound;
-    private TypeRef boundType;
-    private String variant;
-    private List<TypeParam> params;
+    public static String generator(AstScope root) {
+        StringBuilder sb = new StringBuilder();
 
-    public TypeParam(Id id, AstScope bindingScope) {
-        super(id, bindingScope);
+        
+        List<AstDef> templates = new ArrayList<AstDef>();
+        
+        return sb.toString();
     }
 
-    public void setBound(String bound) {
-        this.bound = bound;
-    }
+    private void scan(AstScope scope, StringBuilder sb) {
+        for (AstDef def : scope.getDefs()) {
+            if (def instanceof ClassTemplate) {
+                
+            }
+        }
 
-    public String getBound() {
-        return bound;
-    }
-
-    public void setBoundType(TypeRef boundType) {
-        this.boundType = boundType;
-    } 
-    
-    public TypeRef getBoundType() {
-        return boundType;
     }
     
-    public void setVariant(String variant) {
-        this.variant = variant;
-    }
-
-    public String getVariant() {
-        return variant;
-    }
-    
-    public void setParams(List<TypeParam> params) {
-        this.params = params;
-    }
-    
-    public List<TypeParam> getParams() {
-        return params == null ? Collections.<TypeParam>emptyList() : params;
+    private void generateClass(ClassTemplate tp, StringBuilder sb) {
+        for (Modifier mod : tp.getModifiers()) {
+            
+        }
     }
 }
