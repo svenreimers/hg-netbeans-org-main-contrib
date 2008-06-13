@@ -84,15 +84,15 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
     }
 
     public String getName() {
-        return element.getName();
+        return element.getSimpleName().toString();
     }
 
     public String getInsertPrefix() {
         return getName();
 //            if (getKind() == ElementKind.PACKAGE) {
-//                return getName() + ".";
+//                return getSimpleName() + ".";
 //            } else {
-//                return getName();
+//                return getSimpleName();
 //            }
     }
 
@@ -230,22 +230,27 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
     protected static class FunctionItem extends ScalaCompletionItem {
 
-        private IndexedFunction function;
-
+        IndexedFunction function;
+        
         FunctionItem(AstElement element, CompletionRequest request) {
             super(element, request);
             assert element.getKind() == ElementKind.METHOD;
             function = (IndexedFunction) IndexedElement.create(element, request.th, request.index);
         }
 
-        FunctionItem(IndexedFunction element, CompletionRequest request) {
+        FunctionItem(IndexedElement element, CompletionRequest request) {
             super(request, element);
-            this.function = element;
+            function = (IndexedFunction) element;
         }
 
         @Override
         public String getInsertPrefix() {
             return getName();
+        }
+        
+        @Override
+        public org.netbeans.modules.gsf.api.ElementKind getKind() {
+            return org.netbeans.modules.gsf.api.ElementKind.METHOD;
         }
 
         @Override
@@ -254,13 +259,13 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             HtmlFormatter formatter = request.formatter;
             formatter.reset();
             boolean strike = false;
-            if (!strike && function.isDeprecated()) {
+            if (!strike && element.isDeprecated()) {
                 strike = true;
             }
             if (strike) {
                 formatter.deprecated(true);
             }
-            boolean emphasize = !function.isInherited();
+            boolean emphasize = !element.isInherited();
             if (emphasize) {
                 formatter.emphasis(true);
             }
@@ -273,6 +278,8 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             if (strike) {
                 formatter.deprecated(false);
             }
+            
+            
 
             if (!function.isNullArgs()) {
                 Collection<String> args = function.getArgs();
@@ -289,25 +296,15 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
                         String arg = itr.next();
                         int typeIdx = arg.indexOf(':');
                         if (typeIdx != -1) {
-                            if (function.isJava()) {
-                                formatter.type(true);
-                                // TODO - call JsUtils.normalizeTypeString() on this string?
-                                formatter.appendText(arg, typeIdx + 1, arg.length());
-                                formatter.type(false);
+                            formatter.appendText(arg, 0, typeIdx);
+                            formatter.parameters(false);
+                            formatter.appendHtml(" :");
+                            formatter.parameters(true);
 
-                                formatter.appendHtml(" ");
-                                formatter.appendText(arg, 0, typeIdx);
-                            } else {
-                                formatter.appendText(arg, 0, typeIdx);
-                                formatter.parameters(false);
-                                formatter.appendHtml(" :");
-                                formatter.parameters(true);
-
-                                formatter.type(true);
-                                // TODO - call JsUtils.normalizeTypeString() on this string?
-                                formatter.appendText(arg, typeIdx + 1, arg.length());
-                                formatter.type(false);
-                            }
+                            formatter.type(true);
+                            // TODO - call JsUtils.normalizeTypeString() on this string?
+                            formatter.appendText(arg, typeIdx + 1, arg.length());
+                            formatter.type(false);
                         } else {
                             formatter.appendText(arg);
                         }
@@ -347,11 +344,11 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
             final String insertPrefix = getInsertPrefix();
             sb.append(insertPrefix);
-            
+
             if (function.isNullArgs()) {
                 return sb.toString();
             }
-            
+
             List<String> params = getInsertParams();
             String startDelimiter = "(";
             String endDelimiter = ")";
@@ -432,8 +429,8 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         //    HtmlFormatter formatter = request.formatter;
         //    formatter.reset();
         //    formatter.name(kind, true);
-        //    //formatter.appendText(getName());
-        //    formatter.appendHtml(getName());
+        //    //formatter.appendText(getSimpleName());
+        //    formatter.appendHtml(getSimpleName());
         //    formatter.name(kind, false);
         //
         //    return formatter.getText();
@@ -508,8 +505,8 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         //    HtmlFormatter formatter = request.formatter;
         //    formatter.reset();
         //    formatter.name(kind, true);
-        //    //formatter.appendText(getName());
-        //    formatter.appendHtml(getName());
+        //    //formatter.appendText(getSimpleName());
+        //    formatter.appendHtml(getSimpleName());
         //    formatter.name(kind, false);
         //
         //    return formatter.getText();
@@ -570,8 +567,13 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
 
         @Override
+        public org.netbeans.modules.gsf.api.ElementKind getKind() {
+            return org.netbeans.modules.gsf.api.ElementKind.PACKAGE;
+        }
+
+        @Override
         public String getName() {
-            String name = element.getName();
+            String name = element.getSimpleName().toString();
             int lastDot = name.lastIndexOf('.');
             if (lastDot > 0) {
                 name = name.substring(lastDot + 1, name.length());
@@ -616,8 +618,13 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
 
         @Override
+        public org.netbeans.modules.gsf.api.ElementKind getKind() {
+            return org.netbeans.modules.gsf.api.ElementKind.CLASS;
+        }
+
+        @Override
         public String getName() {
-            String name = element.getName();
+            String name = element.getSimpleName().toString();
             int lastDot = name.lastIndexOf('.');
             if (lastDot > 0) {
                 name = name.substring(lastDot + 1, name.length());
