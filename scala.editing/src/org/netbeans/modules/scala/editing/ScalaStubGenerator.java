@@ -36,21 +36,42 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.scala.editing;
 
-package org.netbeans.modules.scala.editing.nodes;
-
-import org.netbeans.api.lexer.Token;
-import org.netbeans.modules.gsf.api.ElementKind;
+import java.util.ArrayList;
+import java.util.List;
+import javax.lang.model.element.Modifier;
+import org.netbeans.modules.scala.editing.nodes.AstDef;
+import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.netbeans.modules.scala.editing.nodes.tmpls.ClassTemplate;
 
 /**
- * Id may be AstDefinition or AstUsage, so extends AstElement
- * 
- * @author Caoyuan Deng
+ *
+ * @author dcaoyuan
  */
-public class Id extends AstElement {
+public class ScalaStubGenerator {
 
-    public Id(String name, Token idToken, ElementKind kind) {
-        super(name, idToken, kind);
-    }
+    public static String generator(AstScope root) {
+        StringBuilder sb = new StringBuilder();
+
         
+        List<AstDef> templates = new ArrayList<AstDef>();
+        
+        return sb.toString();
+    }
+
+    private void scan(AstScope scope, StringBuilder sb) {
+        for (AstDef def : scope.getDefs()) {
+            if (def instanceof ClassTemplate) {
+                
+            }
+        }
+
+    }
+    
+    private void generateClass(ClassTemplate tp, StringBuilder sb) {
+        for (Modifier mod : tp.getModifiers()) {
+            
+        }
+    }
 }
