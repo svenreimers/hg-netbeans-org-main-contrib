@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import javax.lang.model.element.TypeElement;
 import javax.swing.SwingUtilities;
 import org.netbeans.modules.gsfpath.api.classpath.ClassPath;
 import org.netbeans.napi.gsfret.source.ClasspathInfo;
@@ -58,7 +59,6 @@ import org.netbeans.modules.java.api.common.ant.UpdateHelper;
 import org.netbeans.modules.scala.editing.ScalaMimeResolver;
 import org.netbeans.modules.scala.editing.ScalaParserResult;
 import org.netbeans.modules.scala.editing.SourceUtils;
-import org.netbeans.modules.scala.editing.nodes.AstElement;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.tmpls.ObjectTemplate;
 import org.netbeans.modules.scala.editing.nodes.Packaging;
@@ -148,11 +148,11 @@ public class MainClassUpdater extends FileChangeAdapter implements PropertyChang
                             }
                         });
 
-                        Collection<AstElement> main = SourceUtils.getMainClasses(_current);
+                        Collection<TypeElement> main = SourceUtils.getMainClasses(_current);
                         String newMainClass = null;
                         if (!main.isEmpty()) {
-                            AstElement mainHandle = main.iterator().next();
-                            newMainClass = mainHandle.getQualifiedName();
+                            TypeElement mainHandle = main.iterator().next();
+                            newMainClass = mainHandle.getQualifiedName().toString();
                         }
                         if (newMainClass != null && !newMainClass.equals(oldMainClass) && helper.requestUpdate() &&
                                 // XXX ##84806: ideally should update nbproject/configs/*.properties in this case:
@@ -253,7 +253,7 @@ public class MainClassUpdater extends FileChangeAdapter implements PropertyChang
                             }
                             ObjectTemplate mainClass = null;
                             for (ObjectTemplate obj : objs) {
-                                if (obj.getQualifiedName().equals(mainClassName)) {
+                                if (obj.getQualifiedName().toString().equals(mainClassName)) {
                                     mainClass = obj;
                                     break;
                                 }

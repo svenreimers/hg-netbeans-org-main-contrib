@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.ParserResult;
 import org.netbeans.modules.gsf.api.IndexDocument;
 import org.netbeans.modules.gsf.api.IndexDocumentFactory;
 import org.netbeans.modules.scala.editing.nodes.AstDef;
-import org.netbeans.modules.scala.editing.nodes.AstElement;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.Importing;
 import org.netbeans.modules.scala.editing.nodes.tmpls.Template;
@@ -330,7 +329,7 @@ public class ScalaIndexer implements Indexer {
 
                 StringBuilder fqn = new StringBuilder();
 
-                String qName = template.getQualifiedName();
+                String qName = template.getQualifiedName().toString();
                 fqn.append(qName.toLowerCase());
                 fqn.append(';');
                 fqn.append(';');
@@ -339,10 +338,10 @@ public class ScalaIndexer implements Indexer {
                 fqn.append(IndexedElement.encodeAttributes(template, pResult.getTokenHierarchy()));
 
                 List<TypeRef> extendsWith = template.getExtendsWith();
-                String clz = template.getQualifiedName();
+                String clz = template.getQualifiedName().toString();
                 if (extendsWith.size() > 0) {
                     for (TypeRef parent : extendsWith) {
-                        String superClz = parent.getQualifiedName();
+                        String superClz = parent.getQualifiedName().toString();
                         document.addPair(FIELD_EXTENDS_NAME, clz.toLowerCase() + ";" + clz + ";" + superClz, true); // NOI18N
                     }
 
@@ -440,7 +439,7 @@ public class ScalaIndexer implements Indexer {
             }
         }
 
-        private void indexFunction(AstElement element, IndexDocument document) {
+        private void indexFunction(AstDef element, IndexDocument document) {
             String attributes = IndexedElement.encodeAttributes(element, pResult.getTokenHierarchy());
 
             String in = element.getIn();
@@ -480,7 +479,7 @@ public class ScalaIndexer implements Indexer {
 //            }
         }
 
-        private void indexField(AstElement element, IndexDocument document) {
+        private void indexField(AstDef element, IndexDocument document) {
             String attributes = IndexedElement.encodeAttributes(element, pResult.getTokenHierarchy());
 
             String in = element.getIn();

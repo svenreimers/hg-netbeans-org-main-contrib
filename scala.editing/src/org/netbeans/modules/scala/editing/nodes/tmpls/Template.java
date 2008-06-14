@@ -41,25 +41,59 @@ package org.netbeans.modules.scala.editing.nodes.tmpls;
 import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import org.netbeans.modules.scala.editing.nodes.AstDef;
 import org.netbeans.modules.scala.editing.nodes.AstRef;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.AstId;
 import org.netbeans.modules.scala.editing.nodes.IdRef;
+import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public abstract class Template extends AstDef {
+public abstract class Template extends AstDef implements TypeElement {
 
     private boolean caseOne;
-
     private List<TypeRef> extendsWith;
-    
+    private List<TypeParam> typeParameters;
+
     protected Template(AstId id, AstScope bindingScope, ElementKind kind) {
         super(id.getSimpleName(), id.getPickToken(), bindingScope, kind);
+    }
+
+    public List<? extends TypeMirror> getInterfaces() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public NestingKind getNestingKind() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public TypeMirror getSuperclass() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setTypeParams(List<TypeParam> typeParams) {
+        this.typeParameters = typeParams;
+    }
+
+    public List<? extends TypeParam> getTypeParameters() {
+        return typeParameters == null ? Collections.<TypeParam>emptyList() : typeParameters;
+    }
+
+    public void assignTypeParams(List<TypeRef> typeArgs) {
+        assert getTypeParameters().size() == typeArgs.size();
+        List<? extends TypeParam> _typeParams = getTypeParameters();
+        for (int i = 0; i < _typeParams.size(); i++) {
+            TypeParam typeParam = _typeParams.get(i);
+            TypeRef typeArg = typeArgs.get(i);
+            typeParam.setValue(typeArg);
+        }
     }
 
     public void setCaseOne() {
@@ -69,11 +103,11 @@ public abstract class Template extends AstDef {
     public boolean isCaseOne() {
         return caseOne;
     }
-    
+
     public void setExtendsWith(List<TypeRef> extendsWith) {
         this.extendsWith = extendsWith;
     }
-    
+
     public List<TypeRef> getExtendsWith() {
         return extendsWith == null ? Collections.<TypeRef>emptyList() : extendsWith;
     }
@@ -82,12 +116,12 @@ public abstract class Template extends AstDef {
     public boolean referredBy(AstRef ref) {
         if (ref instanceof TypeRef) {
             return getSimpleName().equals(ref.getSimpleName());
-        } else if (ref instanceof IdRef){
+        } else if (ref instanceof IdRef) {
             if (isCaseOne()) {
                 return getSimpleName().equals(ref.getSimpleName());
             }
-        } 
-        
+        }
+
         return false;
     }
 }
