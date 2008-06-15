@@ -38,23 +38,28 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.VariableElement;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
-import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Var extends AstDef {
+public class Var extends AstDef implements VariableElement {
 
     private boolean val;
     private boolean implicate;
     private AstExpr expr;
 
-    public Var(Id id, AstScope bindingScope, ElementKind kind) {
-        super(id.getName(), id.getIdToken(), bindingScope, kind);
-        setType(id.getType());
+    public Var(AstId id, AstScope bindingScope, ElementKind kind) {
+        super(id.getSimpleName().toString(), id.getPickToken(), bindingScope, kind);
+        setType(id.asType());
+    }
+
+    public Object getConstantValue() {
+        return null;
     }
 
     public void setVal() {
@@ -80,24 +85,21 @@ public class Var extends AstDef {
 
     @Override
     public boolean referredBy(AstRef ref) {
-        switch (ref.getKind()) {
-            case VARIABLE:
-            case PARAMETER:
-            case FIELD:
-                return getName().equals(ref.getName());
-            default:
-                return false;
+        if (ref instanceof IdRef) {
+            return getSimpleName().equals(ref.getSimpleName());
         }
+        
+        return false;
     }
 
     @Override
-    public TypeRef getType() {
+    public TypeRef asType() {
         if (type != null) {
             return type;
         }
 
         if (expr != null) {
-            return expr.getType();
+            return expr.asType();
         }
 
         return null;
@@ -106,10 +108,10 @@ public class Var extends AstDef {
     @Override
     public boolean mayEqual(AstDef def) {
         switch (def.getKind()) {
-            case VARIABLE:
+            case LOCAL_VARIABLE:
             case PARAMETER:
             case FIELD:
-                return getName().equals(def.getName());
+                return getSimpleName().equals(def.getSimpleName());
             default:
                 return false;
         }
@@ -118,7 +120,7 @@ public class Var extends AstDef {
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
         super.htmlFormat(formatter);
-        TypeRef myType = getType();
+        TypeRef myType = asType();
         if (myType != null) {
             formatter.type(true);
             formatter.appendHtml(" :");

@@ -40,8 +40,8 @@ package org.netbeans.modules.scala.editing;
 
 import java.util.Collections;
 import java.util.Set;
-import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.Modifier;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
@@ -70,7 +70,7 @@ public class IndexedPackage extends IndexedElement {
     }
 
     @Override
-    public TypeRef getType() {
+    public TypeRef asType() {
         return null;
     }
 

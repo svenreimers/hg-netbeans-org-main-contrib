@@ -26,11 +26,17 @@ import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 import java.util.prefs.BackingStoreException;
 import javax.swing.JOptionPane;
 import javax.xml.namespace.QName;
@@ -55,6 +61,9 @@ import org.openide.loaders.DataLoaderPool;
 import org.openide.loaders.DataObject;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
+import org.openide.windows.IOProvider;
+import org.openide.windows.InputOutput;
+import org.openide.windows.OutputWriter;
 import org.xml.sax.SAXException;
 
 /**
@@ -73,9 +82,8 @@ public class EncoderTestPerformerImpl implements EncoderTestPerformer, ActionLis
     
     public static final QName TOP_PROPERTY_ELEMENT = new QName(EncodingConst.URI, EncodingConst.TOP_FLAG);
     private static final XmlBoolean XML_BOOLEAN_TRUE = XmlBoolean.Factory.newValue(Boolean.TRUE);
-            
+    private static final String VERBOSE_LOGGING_PKG_NAME = "com.sun.encoder.custom";;
     private TesterPanel testerPanel;
-    private File xsdFile;
     private DialogDescriptor dialogDescriptor;
     private Dialog dialog;
     private EncoderTestTask mEncoderTestTask;
@@ -92,8 +100,16 @@ public class EncoderTestPerformerImpl implements EncoderTestPerformer, ActionLis
     }
     
     private void showDialog() {
-        testerPanel = new TesterPanel(metaFile.getAbsolutePath());
         try {
+            QName[] qnames = getTopElementDecls(metaFile);
+            if (qnames.length == 0) {
+                // i.e. no top element(s) are selected in the XSD
+                // show dialog to ask user to fix the XSD file before testing
+                JOptionPane.showMessageDialog(null,
+                        _bundle.getString("test_panel.lbl.no_top_element_in_xsd"));
+                return;
+            }
+            testerPanel = new TesterPanel(metaFile.getAbsolutePath());
             testerPanel.setTopElementDecls(getTopElementDecls(metaFile), null);
         } catch (XmlException ex) {
             ErrorManager.getDefault().notify(ex);
@@ -183,6 +199,27 @@ public class EncoderTestPerformerImpl implements EncoderTestPerformer, ActionLis
     }
     
     private void process() {               
+
+        // if verbose mode is checked, then output debug information
+        final boolean isVerbose = testerPanel.isVerbose();
+        ByteArrayOutputStream byteArrOS = null;
+        Handler logHandler = null;
+        Logger logger4Verbose = null;
+        Level origLevel = null;
+
+        if (isVerbose) {
+            logger4Verbose = Logger.getLogger(VERBOSE_LOGGING_PKG_NAME);
+            origLevel = logger4Verbose.getLevel();
+            logger4Verbose.setLevel(Level.FINE);
+
+            // craete a StreamHandler based on ByteArrayOutputStream
+            byteArrOS = new ByteArrayOutputStream();
+            logHandler = new StreamHandler(byteArrOS, new SimpleFormatter());
+            logHandler.setLevel(Level.FINE);
+            // add to logger
+            logger4Verbose.addHandler(logHandler);
+        }
+
         //verify the input first
         QName rootElement = testerPanel.getSelectedTopElementDecl();
         if (rootElement == null) {
@@ -210,6 +247,11 @@ public class EncoderTestPerformerImpl implements EncoderTestPerformer, ActionLis
             return;
         }
 
+        /**
+         * if outputFile already exists and "overwrite" is unchecked, then
+         * output file name is based on the given base name with "_1" suffixed
+         * and with the same file extension.
+         */
         if (outputFile.exists()) {
             if (!testerPanel.isOverwrite()) {
                 String ext = FileUtil.getExtension(outputFile.getAbsolutePath());   
@@ -287,6 +329,33 @@ public class EncoderTestPerformerImpl implements EncoderTestPerformer, ActionLis
             }
         } catch (IOException ex) {
             ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex);
+        }
+
+        if (isVerbose) {
+            if (logHandler != null && byteArrOS != null && logger4Verbose != null) {
+                // flush the Handler.
+                logHandler.flush();
+                InputOutput io = IOProvider.getDefault()
+                        .getIO("Encoder Test [" + metaFile.getName() + "]", true);
+                // Ensure this I/O output pane is visible.
+                io.select();
+                // now writes to the output pane.
+                OutputWriter writer = io.getOut();
+                writer.println(byteArrOS.toString());
+                try {
+                    byteArrOS.close();
+                } catch (IOException ex) {
+                    // ignore
+                }
+
+                // make sure to close the writer of I/O output pane.
+                writer.close();
+                // close and remove the Handler.
+                logHandler.close();
+                logger4Verbose.removeHandler(logHandler);
+                // reset to its original logging level
+                logger4Verbose.setLevel(origLevel);
+            }
         }
     }
 }

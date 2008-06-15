@@ -45,14 +45,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.lang.model.element.Modifier;
 import org.netbeans.modules.gsf.api.Indexer;
 import org.netbeans.modules.gsf.api.ParserFile;
 import org.netbeans.modules.gsf.api.ParserResult;
 import org.netbeans.modules.gsf.api.IndexDocument;
 import org.netbeans.modules.gsf.api.IndexDocumentFactory;
-import org.netbeans.modules.gsf.api.Modifier;
 import org.netbeans.modules.scala.editing.nodes.AstDef;
-import org.netbeans.modules.scala.editing.nodes.AstElement;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
 import org.netbeans.modules.scala.editing.nodes.Importing;
 import org.netbeans.modules.scala.editing.nodes.tmpls.Template;
@@ -91,8 +90,6 @@ public class ScalaIndexer implements Indexer {
     static final String FIELD_EXTENDS_NAME = "extends"; //NOI18N
     static final String FIELD_CLASS_NAME = "class"; //NOI18N
     static final String FIELD_CASE_INSENSITIVE_CLASS_NAME = "class-ig"; //NOI18N
-    static final String FIELD_REQUIRE = "require"; //NOI18N
-    static final String FIELD_REQUIRES = "requires"; //NOI18N
     static final String FIELD_IMPORT = "import"; //NOI18N
     static final String FIELD_METHOD_NAME = "method"; //NOI18N
     /** Attributes: "i" -> private, "o" -> protected, ", "s" - static/notinstance, "d" - documented */
@@ -332,7 +329,7 @@ public class ScalaIndexer implements Indexer {
 
                 StringBuilder fqn = new StringBuilder();
 
-                String qName = template.getQualifiedName();
+                String qName = template.getQualifiedName().toString();
                 fqn.append(qName.toLowerCase());
                 fqn.append(';');
                 fqn.append(';');
@@ -341,10 +338,10 @@ public class ScalaIndexer implements Indexer {
                 fqn.append(IndexedElement.encodeAttributes(template, pResult.getTokenHierarchy()));
 
                 List<TypeRef> extendsWith = template.getExtendsWith();
-                String clz = template.getQualifiedName();
+                String clz = template.getQualifiedName().toString();
                 if (extendsWith.size() > 0) {
                     for (TypeRef parent : extendsWith) {
-                        String superClz = parent.getQualifiedName();
+                        String superClz = parent.getQualifiedName().toString();
                         document.addPair(FIELD_EXTENDS_NAME, clz.toLowerCase() + ";" + clz + ";" + superClz, true); // NOI18N
                     }
 
@@ -367,7 +364,7 @@ public class ScalaIndexer implements Indexer {
                         } else {
                             List<TypeRef> importedTypes = importExpr.getImportedTypes();
                             for (TypeRef type : importedTypes) {
-                                importAttr.append(type.getName()).append(";");
+                                importAttr.append(type.getSimpleName()).append(";");
                                 
                                 importPkgs.add(pkgName);
                                 document.addPair(FIELD_IMPORT, importAttr.toString(), true);
@@ -413,7 +410,7 @@ public class ScalaIndexer implements Indexer {
 
                     switch (child.getKind()) {
                         case CLASS:
-                        case MODULE: {
+                        case INTERFACE: {
                             if (child instanceof Template) {
                                 analyzeTemplate((Template) child);
                             }
@@ -442,11 +439,11 @@ public class ScalaIndexer implements Indexer {
             }
         }
 
-        private void indexFunction(AstElement element, IndexDocument document) {
+        private void indexFunction(AstDef element, IndexDocument document) {
             String attributes = IndexedElement.encodeAttributes(element, pResult.getTokenHierarchy());
 
             String in = element.getIn();
-            String name = element.getName();
+            String name = element.getSimpleName().toString();
             StringBuilder base = new StringBuilder();
             base.append(name.toLowerCase());
             base.append(';');
@@ -482,11 +479,11 @@ public class ScalaIndexer implements Indexer {
 //            }
         }
 
-        private void indexField(AstElement element, IndexDocument document) {
+        private void indexField(AstDef element, IndexDocument document) {
             String attributes = IndexedElement.encodeAttributes(element, pResult.getTokenHierarchy());
 
             String in = element.getIn();
-            String name = element.getName();
+            String name = element.getSimpleName().toString();
             StringBuilder base = new StringBuilder();
             base.append(name.toLowerCase());
             base.append(';');

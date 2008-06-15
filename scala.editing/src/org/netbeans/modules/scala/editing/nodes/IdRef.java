@@ -39,9 +39,8 @@
 
 package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.netbeans.api.lexer.Token;
-import org.netbeans.modules.gsf.api.ElementKind;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 
 /**
  *
@@ -49,20 +48,19 @@ import org.netbeans.modules.gsf.api.ElementKind;
  */
 public class IdRef extends AstRef {
     
-    public IdRef(String name, Token idToken, ElementKind kind) {
-        super(name, idToken, kind);
+    public IdRef(CharSequence name, Token pickToken) {
+        super(name, pickToken);
     }
 
     @Override
-    public TypeRef getType() {
+    public TypeRef asType() {
         if (type != null) {
             return type;
         }
         
         AstDef def = getEnclosingScope().findDef(this);
         if (def != null) {
-            type = def.getType();
-            setKind(def.getKind());
+            type = def.asType();
             return type;
         }
         

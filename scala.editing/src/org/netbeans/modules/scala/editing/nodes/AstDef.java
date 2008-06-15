@@ -38,44 +38,85 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ElementVisitor;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
-import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
 import org.netbeans.modules.gsf.api.OffsetRange;
 
 /**
- *
+ * Represents a program element such as a package, class, or method. Each element 
+ * represents a static, language-level construct (and not, for example, a runtime 
+ * construct of the virtual machine). 
+ * 
  * @author Caoyuan Deng
  */
-public class AstDef extends AstElement {
+public abstract class AstDef extends AstNode implements Element {
 
+    private ElementKind kind;
     private AstScope bindingScope;
-    private Token[] docBoundsTokens;
 
-    public AstDef(String name, Token idToken, AstScope bindingScope, ElementKind kind) {
-        super(name, idToken, kind);
-        this.bindingScope = bindingScope;
-        this.bindingScope.setBindingDef(this);
+    protected AstDef(CharSequence name, Token pickToken, AstScope bindingScope, ElementKind kind) {
+        super(name, pickToken);
+        this.kind = kind;
+        if (bindingScope != null) {
+            this.bindingScope = bindingScope;
+            this.bindingScope.setBindingDef(this);
+        }
+    }
+
+    public <R, P> R accept(ElementVisitor<R, P> arg0, P arg1) {
+        return arg0.visit(this, arg1);
+    }
+
+    public List<? extends AstDef> getEnclosedElements() {
+        if (bindingScope != null) {
+            return bindingScope.getDefs();
+        } else {
+            return Collections.<AstDef>emptyList();
+        }
+    }
+
+    public AstDef getEnclosingElement() {
+        return getEnclosingScope().getBindingDef();        
+    }
+
+    public <A extends Annotation> A getAnnotation(Class<A> arg0) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public List<? extends AnnotationMirror> getAnnotationMirrors() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setKind(ElementKind kind) {
+        this.kind = kind;
+    }
+
+    public ElementKind getKind() {
+        return kind;
+    }
+
+    @Override
+    public String toString() {
+        return getSimpleName() + "(kind=" + getKind() + ", type=" + asType() + ")";
     }
 
     public AstScope getBindingScope() {
         assert bindingScope != null : toString() + ": Each definition should set binding scope!";
         return bindingScope;
     }
-    
-    public void setDocBoundsToken(Token[] docBoundsTokens) {
-        this.docBoundsTokens = docBoundsTokens;
-    }
-    
-    public Token[] getDocBoundsTokens() {
-        return docBoundsTokens;
-    }
-    
+
     public int getBoundsOffset(TokenHierarchy th) {
         return getBindingScope().getBoundsOffset(th);
     }
-    
+
     public int getBoundsEndOffset(TokenHierarchy th) {
         return getBindingScope().getBoundsEndOffset(th);
     }
@@ -83,18 +124,18 @@ public class AstDef extends AstElement {
     public OffsetRange getRange(TokenHierarchy th) {
         return getBindingScope().getRange(th);
     }
-    
+
     public boolean referredBy(AstRef ref) {
-        return getName().equals(ref.getName());
+        return getSimpleName().equals(ref.getSimpleName());
     }
 
     public boolean mayEqual(AstDef def) {
-        return this.getName().equals(def.getName());
+        return getSimpleName().equals(def.getSimpleName());
     }
-    
+
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
         super.htmlFormat(formatter);
-        formatter.appendText(getName());
+        formatter.appendText(getSimpleName().toString());
     }
 }

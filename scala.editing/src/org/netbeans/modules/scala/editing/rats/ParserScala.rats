@@ -121,8 +121,8 @@ transient generic XmlEmptyElemTagP = XmlLt XmlEmptyTagName XmlWs? XmlSlashGt ;
 transient generic XmlSTagP = XmlLt XmlSTagName XmlWs? XmlGt ;
 
 /* @DocError in ScalaReference: ScalaExpr ::= '{' expr '}' */
-transient generic ScalaExpr     = void:"{":sep !(void:"{":sep ) Block    void:"}":sep !(void:"}":sep );
-transient generic ScalaPatterns = void:"{":sep !(void:"{":sep ) Patterns void:"}":sep !(void:"}":sep );
+transient generic ScalaExpr     = void:"{":sep !( void:"{":sep ) Block    void:"}":sep !( void:"}":sep );
+transient generic ScalaPatterns = void:"{":sep !( void:"{":sep ) Patterns void:"}":sep !( void:"}":sep );
 
 
 // ----- Literal
@@ -197,15 +197,15 @@ generic CompoundType =
 generic AnnotType = Annotation* SimpleType ;
 
 generic SimpleType = 
-  Path void:".":sep void:"type":key                 TypeArgs* ( void:"#":key Id )* @SimpleSingletonType
-/ StableId                                          TypeArgs* ( void:"#":key Id )* @SimpleIdType
-/ void:"(":sep Types ( void:",":sep )? void:")":sep TypeArgs* ( void:"#":key Id )* @SimpleTupleType
+  Path void:".":sep void:"type":key                 TypeArgs? ( void:"#":key Id )* @SimpleSingletonType
+/ StableId                                          TypeArgs? ( void:"#":key Id )* @SimpleIdType
+/ void:"(":sep Types ( void:",":sep )? void:")":sep TypeArgs? ( void:"#":key Id )* @SimpleTupleType
 ;
 
-/* @DocError in ScalaReference: TypeArgs can be [_] */
-transient generic TypeArgs = void:"[":sep ( Types / "_":key ) void:"]":sep ;
+transient generic TypeArgs = void:"[":sep Types void:"]":sep ;
 
-transient generic Types = Type ( void:",":sep Type )* ;
+/* @DocError in ScalaReference: Type in Types can be "_" */
+transient generic Types = ( Type / WildKey) ( void:",":sep ( Type / WildKey) )* ;
 
 transient generic Refinement = N? void:"{":sep RefineStat? ( SEMI RefineStat? )* void:"}":sep ;
 
@@ -225,11 +225,11 @@ generic Expr =
 / NotFunExpr;
 
 generic NotFunExpr = 
-  void:"if"    :key void:"(":sep ENTER_NL_DISABLE Expr EXIT_NL_DISABLE void:")":sep N* Expr ( SEMI? void:"else":key Expr )? @IfExpr
-/ void:"while" :key void:"(":sep ENTER_NL_DISABLE Expr EXIT_NL_DISABLE void:")":sep N* Expr                                 @WhileExpr
+  void:"if"    :key void:"(":sep ENTER_NL_DISABLE Expr EXIT_NL_DISABLE void:")":sep N* Expr ( SEMI? void:"else":key Expr )?                  @IfExpr
+/ void:"while" :key void:"(":sep ENTER_NL_DISABLE Expr EXIT_NL_DISABLE void:")":sep N* Expr                                                  @WhileExpr
 / void:"try"   :key void:"{":sep Block void:"}":sep ( void:"catch":key void:"{":sep CaseClauses void:"}":sep )? ( void:"finally":key Expr )? @TryExpr
-/ void:"do"    :key Expr SEMI? void:"while":key void:"(":sep ENTER_NL_DISABLE Expr EXIT_NL_DISABLE void:")":sep             @DoExpr
-/ void:"for"   :key ( void:"(":sep Enumerators void:")":sep / void:"{":sep Enumerators void:"}":sep ) N* ( void:"yield":key )? Expr @ForExpr
+/ void:"do"    :key Expr SEMI? void:"while":key void:"(":sep ENTER_NL_DISABLE Expr EXIT_NL_DISABLE void:")":sep                              @DoExpr
+/ void:"for"   :key ( void:"(":sep Enumerators void:")":sep / void:"{":sep Enumerators void:"}":sep ) N* ( void:"yield":key )? Expr          @ForExpr
 / void:"throw" :key Expr         @ThrowExpr
 / void:"return":key Expr?        @ReturnExpr
 / SimpleExpr   void:"=":key Expr @AssignmentExpr
@@ -398,7 +398,7 @@ transient generic FunTypeParamClause = void:"[":sep TypeParam ( void:",":sep Typ
 
 transient generic VariantTypeParam = ( "+":op / "-":op )? TypeParam ;
 
-transient generic TypeParam = ( Id / "_":key ) TypeParamClause? ( void:">:":key Type )? ( void:"<:":key Type )? ( void:"<%":key Type )? ;
+transient generic TypeParam = ( Id / WildKey ) TypeParamClause? ( void:">:":key Type )? ( void:"<:":key Type )? ( void:"<%":key Type )? ;
 
 transient generic ParamClauses = ParamClause* ( N? void:"(":sep void:"implicit":key Params void:")":sep )? ;
 

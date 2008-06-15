@@ -38,26 +38,50 @@
  */
 package org.netbeans.modules.scala.editing.nodes.tmpls;
 
-import org.netbeans.modules.scala.editing.nodes.*;
-import org.netbeans.modules.gsf.api.ElementKind;
+import java.util.Iterator;
+import javax.lang.model.element.ElementKind;
+import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.netbeans.modules.scala.editing.nodes.AstId;
+import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
+import org.netbeans.modules.scala.editing.nodes.types.WithTypeParams;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class TraitTemplate extends Template {
+public class TraitTemplate extends Template implements WithTypeParams {
 
-    public TraitTemplate(Id id, AstScope bindingScope) {
-        super(id, bindingScope, ElementKind.MODULE);
-    }
-
-    @Override
-    public String getBinaryName() {
-        return getName();
+    public TraitTemplate(AstId id, AstScope bindingScope) {
+        super(id, bindingScope, ElementKind.INTERFACE);
     }
 
     @Override
     public boolean isCaseOne() {
         return false;
+    }
+
+    @Override
+    public String getBinaryName() {
+        return getSimpleName().toString();
+    }
+
+    @Override
+    public void htmlFormat(HtmlFormatter formatter) {
+        formatter.appendText(getSimpleName().toString());
+        if (!getTypeParameters().isEmpty()) {
+            formatter.appendText("[");
+
+            for (Iterator<? extends TypeParam> itr = getTypeParameters().iterator(); itr.hasNext();) {
+                TypeParam typeParam = itr.next();
+                typeParam.htmlFormat(formatter);
+
+                if (itr.hasNext()) {
+                    formatter.appendHtml(", ");
+                }
+            }
+
+            formatter.appendText("]");
+        }
     }
 }

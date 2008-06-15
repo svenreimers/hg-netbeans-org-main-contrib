@@ -38,44 +38,76 @@
  */
 package org.netbeans.modules.scala.editing.nodes;
 
-import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
 import org.netbeans.api.lexer.Token;
-import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
+import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
+import org.netbeans.modules.scala.editing.nodes.types.WithTypeParams;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class Function extends AstDef {
+public class Function extends AstDef implements WithTypeParams, ExecutableElement {
 
-    private List<TypeRef> typeParams;
-    private List<Var> params;
+    private List<TypeParam> typeParameters;
+    private List<Var> parameters;
 
-    public Function(String name, Token idToken, AstScope bindingScope, ElementKind kind) {
-        super(name, idToken, bindingScope, kind);
+    public Function(CharSequence name, Token pickToken, AstScope bindingScope, boolean isConstructor) {
+        super(name, pickToken, bindingScope, ElementKind.METHOD);
+        if (isConstructor) {
+            setKind(ElementKind.CONSTRUCTOR);
+        }
+    }
+        
+    public AnnotationValue getDefaultValue() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void setTypeParam(List<TypeRef> typeParams) {
-        this.typeParams = typeParams;
+    public List<? extends TypeMirror> getThrownTypes() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public List<TypeRef> getTypeParam() {
-        return typeParams == null ? Collections.<TypeRef>emptyList() : typeParams;
+    public boolean isVarArgs() {
+        /** @todo */
+        return false;
     }
 
-    public void setParam(List<Var> params) {
-        this.params = params;
+    public TypeRef getReturnType() {
+        return type;
     }
 
-    /**
-     * @return null or params 
-     */
-    public List<Var> getParams() {
-        return params;
+    public List<? extends TypeParam> getTypeParameters() {
+        return typeParameters == null ? Collections.<TypeParam>emptyList() : typeParameters;
+    }        
+    
+    public void setTypeParameters(List<TypeParam> typeParameters) {
+        this.typeParameters = typeParameters;
+    }
+
+    public void assignTypeParameters(List<TypeRef> typeArgs) {
+        assert getTypeParameters().size() == typeArgs.size();
+        List<? extends TypeParam> _typeParams = getTypeParameters();
+        for (int i = 0 ; i < _typeParams.size(); i++) {
+            TypeParam typeParam = _typeParams.get(i);
+            TypeRef typeArg = typeArgs.get(i);
+            typeParam.setValue(typeArg);
+        }
+    }        
+    
+    public void setParameters(List<Var> parameters) {
+        this.parameters = parameters;
+    }
+
+    public List<Var> getParameters() {
+        return parameters == null ? Collections.<Var>emptyList() : parameters;
     }
 
     @Override
@@ -84,7 +116,9 @@ public class Function extends AstDef {
             FunRef funRef = (FunRef) ref;
             // only check local call only
             if (funRef.isLocal()) {
-                return getName().equals(funRef.getCall().getName()) && params != null && params.size() == funRef.getArgs().size();
+                return getSimpleName().equals(funRef.getCall().getSimpleName()) && 
+                        parameters != null && 
+                        parameters.size() == funRef.getArgs().size();
             }
         }
 
@@ -94,11 +128,11 @@ public class Function extends AstDef {
     @Override
     public void htmlFormat(HtmlFormatter formatter) {
         super.htmlFormat(formatter);
-        if (!getTypeParam().isEmpty()) {
+        if (!getTypeParameters().isEmpty()) {
             formatter.appendHtml("[");
 
-            for (Iterator<TypeRef> itr = getTypeParam().iterator(); itr.hasNext();) {
-                TypeRef typeParam = itr.next();
+            for (Iterator<? extends TypeParam> itr = getTypeParameters().iterator(); itr.hasNext();) {
+                TypeParam typeParam = itr.next();
                 typeParam.htmlFormat(formatter);
 
                 if (itr.hasNext()) {
@@ -109,12 +143,12 @@ public class Function extends AstDef {
             formatter.appendHtml("]");
         }
 
-        if (params != null) {
+        if (parameters != null) {
             formatter.appendHtml("(");
-            if (!params.isEmpty()) {
+            if (!parameters.isEmpty()) {
                 formatter.parameters(true);
 
-                for (Iterator<Var> itr = getParams().iterator(); itr.hasNext();) {
+                for (Iterator<Var> itr = getParameters().iterator(); itr.hasNext();) {
                     Var param = itr.next();
                     param.htmlFormat(formatter);
 
@@ -128,9 +162,9 @@ public class Function extends AstDef {
             formatter.appendHtml(")");
         }
 
-        if (getType() != null) {
+        if (asType() != null) {
             formatter.appendHtml(" :");
-            getType().htmlFormat(formatter);
+            asType().htmlFormat(formatter);
         }
     }
 }

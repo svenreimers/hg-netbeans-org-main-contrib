@@ -38,8 +38,6 @@
  */
 package org.netbeans.modules.scala.editing;
 
-import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.Modifier;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.gsf.api.ParserFile;
 import org.netbeans.modules.gsf.spi.DefaultParserFile;
@@ -51,7 +49,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
@@ -59,16 +60,19 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.editor.BaseDocument;
+import org.netbeans.modules.gsf.api.ElementHandle;
 import org.netbeans.modules.gsf.api.NameKind;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
-import org.netbeans.modules.scala.editing.nodes.AstElement;
+import org.netbeans.modules.scala.editing.nodes.AstDef;
 import org.netbeans.modules.scala.editing.nodes.tmpls.ClassTemplate;
 import org.netbeans.modules.scala.editing.nodes.Function;
 import org.netbeans.modules.scala.editing.nodes.tmpls.ObjectTemplate;
 import org.netbeans.modules.scala.editing.nodes.tmpls.TraitTemplate;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef;
 import org.netbeans.modules.scala.editing.nodes.Var;
+import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
 import org.netbeans.modules.scala.editing.nodes.types.TypeRef.PseudoTypeRef;
+import org.netbeans.modules.scala.editing.nodes.types.WithTypeParams;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
@@ -80,7 +84,7 @@ import org.openide.util.NbBundle;
  * @author Tor Norbye
  * @author Caoyuan Deng
  */
-public abstract class IndexedElement extends AstElement {
+public abstract class IndexedElement extends AstDef {
 
     protected static final int NAME_INDEX = 0;
     protected static final int IN_INDEX = 1;
@@ -90,7 +94,7 @@ public abstract class IndexedElement extends AstElement {
     protected static final int NODE_INDEX = 5;
     protected static final int DOC_START_INDEX = 6;
     protected static final int DOC_END_INDEX = 7;
-    protected static final int BROWSER_INDEX = 8;
+    protected static final int TYPE_PARAMS_INDEX = 8;
     protected static final int TYPE_INDEX = 9;
     // ------------- Flags/attributes -----------------
 
@@ -146,7 +150,7 @@ public abstract class IndexedElement extends AstElement {
     private Set<Modifier> modifiers;
 
     IndexedElement(String fqn, String name, String in, ScalaIndex index, String fileUrl, String attributes, int flags, ElementKind kind) {
-        super(null, null);
+        super(null, null, null, null);
         this.fqn = fqn;
         this.name = name;
         this.in = in;
@@ -158,7 +162,7 @@ public abstract class IndexedElement extends AstElement {
     }
 
     static IndexedElement create(String attributes, String fileUrl, String fqn, String name, String in, int attrIndex, ScalaIndex index, boolean createPackage) {
-        int flags = IndexedElement.decode(attributes, attrIndex, 0);
+        int flags = IndexedElement.decodeFlags(attributes, attrIndex, 0);
 
         if (createPackage) {
             IndexedPackage pkg = new IndexedPackage(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.PACKAGE);
@@ -176,7 +180,7 @@ public abstract class IndexedElement extends AstElement {
             IndexedType type = new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.CLASS);
             return type;
         } else if ((flags & TRAIT) != 0) {
-            IndexedType type = new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.MODULE);
+            IndexedType type = new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.INTERFACE);
             return type;
         } else if ((flags & FIELD) != 0) {
             IndexedField field = new IndexedField(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.FIELD);
@@ -219,7 +223,7 @@ public abstract class IndexedElement extends AstElement {
             int nextDot = elementName.indexOf('.', name.length());
             if (nextDot != -1) {
                 String pkg = elementName.substring(0, nextDot);
-                IndexedPackage indexedElement = new IndexedPackage(null, pkg, fqn, index, fileUrl, signature, IndexedElement.decode(signature, inEndIdx, 0), ElementKind.PACKAGE);
+                IndexedPackage indexedElement = new IndexedPackage(null, pkg, fqn, index, fileUrl, signature, IndexedElement.decodeFlags(signature, inEndIdx, 0), ElementKind.PACKAGE);
                 return indexedElement;
             }
         }
@@ -229,21 +233,21 @@ public abstract class IndexedElement extends AstElement {
         return indexedElement;
     }
 
-    static IndexedElement create(AstElement element, TokenHierarchy th, ScalaIndex index) {
+    static IndexedElement create(AstDef element, TokenHierarchy th, ScalaIndex index) {
         String in = element.getIn();
-        String thename = element.getName();
+        String sName = element.getSimpleName().toString();
         StringBuilder base = new StringBuilder();
-        base.append(thename.toLowerCase());
+        base.append(sName.toLowerCase());
         base.append(';');
         if (in != null) {
             base.append(in);
         }
         base.append(';');
-        base.append(thename);
+        base.append(sName);
         base.append(';');
         base.append(encodeAttributes(element, th));
 
-        return create(element.getName(), base.toString(), "", index, false);
+        return create(element.getSimpleName().toString(), base.toString(), "", index, false);
     }
 
     public void setJavaInfo(javax.lang.model.element.Element javaElement, org.netbeans.api.java.source.CompilationInfo javaInfo) {
@@ -287,8 +291,8 @@ public abstract class IndexedElement extends AstElement {
     }
 
     @Override
-    public String getName() {
-        return name;
+    public Name getSimpleName() {
+        return new AstName(name);
     }
 
     @Override
@@ -311,7 +315,7 @@ public abstract class IndexedElement extends AstElement {
                 case CLASS:
                     return ElementKind.CLASS;
                 case INTERFACE:
-                    return ElementKind.MODULE;
+                    return ElementKind.INTERFACE;
                 default:
                     return ElementKind.OTHER;
             }
@@ -378,7 +382,6 @@ public abstract class IndexedElement extends AstElement {
         return new DefaultParserFile(getFileObject(), null, platform);
     }
 
-    @Override
     public FileObject getFileObject() {
         if (fileObject != null) {
             return fileObject;
@@ -416,7 +419,7 @@ public abstract class IndexedElement extends AstElement {
         } else {
             int OffsetIndex = getAttributeSection(NODE_INDEX);
             if (OffsetIndex != -1) {
-                offset = IndexedElement.decode(attributes, OffsetIndex, -1);
+                offset = IndexedElement.decodeFlags(attributes, OffsetIndex, -1);
             }
         }
         return offset;
@@ -426,8 +429,8 @@ public abstract class IndexedElement extends AstElement {
         int docOffsetIndex = getAttributeSection(DOC_START_INDEX);
         int docEndOffsetIndex = getAttributeSection(DOC_END_INDEX);
         if (docOffsetIndex != -1 && docEndOffsetIndex != -1) {
-            int docOffset = decode(attributes, docOffsetIndex, -1);
-            int docEndOffset = decode(attributes, docEndOffsetIndex, -1);
+            int docOffset = decodeFlags(attributes, docOffsetIndex, -1);
+            int docEndOffset = decodeFlags(attributes, docEndOffsetIndex, -1);
             return new OffsetRange(docOffset, docEndOffset);
         }
         return OffsetRange.NONE;
@@ -466,7 +469,7 @@ public abstract class IndexedElement extends AstElement {
     }
 
     @Override
-    public TypeRef getType() {
+    public TypeRef asType() {
         if (getKind() == ElementKind.CLASS || getKind() == ElementKind.PACKAGE) {
             return null;
         }
@@ -482,44 +485,6 @@ public abstract class IndexedElement extends AstElement {
         }
 
         return null;
-    }
-
-    /** @todo decode tuple type, function type etc */
-    private TypeRef decodeType(String typeAttr, int[] posAndLevel, List<TypeRef> typeArgs) {
-        PseudoTypeRef curr = new PseudoTypeRef();
-        StringBuilder sb = new StringBuilder();
-        while (posAndLevel[0] < typeAttr.length()) {
-            char c = typeAttr.charAt(posAndLevel[0]);
-            posAndLevel[0]++;
-            if (c == '<') {
-                posAndLevel[1]++;
-                curr.setName(sb.toString());
-                typeArgs = new ArrayList<TypeRef>();
-                curr.addTypeArgs(typeArgs);
-
-                TypeRef typeArg = decodeType(typeAttr, posAndLevel, typeArgs);
-                typeArgs.add(typeArg);                
-            } else if (c == '>') {
-                posAndLevel[1]--;
-            } else if (c == ',') {
-                TypeRef typeArg = decodeType(typeAttr, posAndLevel, typeArgs);
-                if (typeArgs != null) {
-                    typeArgs.add(typeArg);                    
-                } else {
-                    //System.out.println(typeAttr);
-                }                
-            } else if (c == ' ') {
-                // strip it
-            } else {
-                sb.append(c);
-            }
-        }
-
-        if (curr.getName() == null) {
-            curr.setName(sb.toString());
-        }
-        
-        return curr;
     }
 
     public void setSmart(boolean smart) {
@@ -589,14 +554,14 @@ public abstract class IndexedElement extends AstElement {
     }
 
     /** Return a string (suitable for persistence) encoding the given flags */
-    public static String encode(int flags) {
+    public static String encodeFlags(int flags) {
         return Integer.toString(flags, 16);
     }
 
     /** Return flag corresponding to the given encoding chars */
-    public static int decode(String s, int startIndex, int defaultValue) {
+    public static int decodeFlags(String s, int startIndex, int defaultValue) {
         int value = 0;
-        for (int i = startIndex,  n = s.length(); i < n; i++) {
+        for (int i = startIndex, n = s.length(); i < n; i++) {
             char c = s.charAt(i);
             if (c == ';') {
                 if (i == startIndex) {
@@ -618,7 +583,7 @@ public abstract class IndexedElement extends AstElement {
     }
 
     /** Return the flags corresponding to the given AST element */
-    public static int computeFlags(AstElement element) {
+    public static int computeFlags(AstDef element) {
         int flags = 0;
 
         if (element instanceof ClassTemplate) {
@@ -631,7 +596,7 @@ public abstract class IndexedElement extends AstElement {
         } else if (element instanceof Function) {
             Function fun = (Function) element;
             flags = flags | FUNCTION;
-            if (fun.getParams() == null) {
+            if (fun.getParameters() == null) {
                 flags = flags | NULL_ARGS;
             }
         }
@@ -652,9 +617,9 @@ public abstract class IndexedElement extends AstElement {
             flags = flags | STATIC;
         }
 
-        if (element.getModifiers().contains(Modifier.DEPRECATED)) {
-            flags = flags | DEPRECATED;
-        }
+//        if (element.getModifiers().contains(Modifier.DEPRECATED)) {
+//            flags = flags | DEPRECATED;
+//        }
 
         if (element.getModifiers().contains(Modifier.PRIVATE)) {
             flags = flags | PRIVATE;
@@ -711,8 +676,7 @@ public abstract class IndexedElement extends AstElement {
         return flags;
     }
 
-    public static String encodeAttributes(AstElement element, TokenHierarchy th) {
-        OffsetRange docRange = getDocumentationOffset(element, th);
+    public static String encodeAttributes(AstDef element, TokenHierarchy th) {
         //Map<String,String> typeMap = element.getDocProps();
 
         // Look up compatibility
@@ -751,10 +715,11 @@ public abstract class IndexedElement extends AstElement {
 //                    flags = flags | IndexedElement.NODOC;
 //                }
 //            }
+        OffsetRange docRange = ScalaLexUtilities.getDocumentationRange(element, th);
         if (docRange != OffsetRange.NONE) {
             flags = flags | DOCUMENTED;
         }
-        sb.append(IndexedElement.encode(flags));
+        sb.append(IndexedElement.encodeFlags(flags));
 
         // Parameters
         sb.append(';');
@@ -763,11 +728,11 @@ public abstract class IndexedElement extends AstElement {
         if (element instanceof Function) {
             Function function = (Function) element;
 
-            List<Var> params = function.getParams();
+            List<Var> params = function.getParameters();
             if (params != null) {
                 int argIndex = 0;
                 for (Var param : params) {
-                    String paramName = param.getName();
+                    String paramName = param.getSimpleName().toString();
                     if (argIndex == 0 && "super".equals(paramName)) { // NOI18N
                         // Prototype inserts these as the first param to handle inheritance/super
 
@@ -778,9 +743,9 @@ public abstract class IndexedElement extends AstElement {
                         sb.append(',');
                     }
                     sb.append(paramName);
-                    TypeRef paramType = param.getType();
+                    TypeRef paramType = param.asType();
                     if (paramType != null) {
-                        String typeName = paramType.getName();
+                        String typeName = paramType.getSimpleName().toString();
                         if (typeName != null) {
                             sb.append(':');
                             sb.append(typeName);
@@ -795,14 +760,14 @@ public abstract class IndexedElement extends AstElement {
         sb.append(';');
         index++;
         assert index == NODE_INDEX;
-        sb.append(IndexedElement.encode(element.getPickOffset(th)));
+        sb.append(IndexedElement.encodeFlags(element.getPickOffset(th)));
 
         // Documentation offset
         sb.append(';');
         index++;
         assert index == DOC_START_INDEX;
         if (docRange != OffsetRange.NONE) {
-            sb.append(IndexedElement.encode(docRange.getStart()));
+            sb.append(IndexedElement.encodeFlags(docRange.getStart()));
         }
 
         // Documentation end offset
@@ -810,25 +775,27 @@ public abstract class IndexedElement extends AstElement {
         index++;
         assert index == DOC_END_INDEX;
         if (docRange != OffsetRange.NONE) {
-            sb.append(IndexedElement.encode(docRange.getEnd()));
+            sb.append(IndexedElement.encodeFlags(docRange.getEnd()));
         }
 
-        // Browser compatibility
+        // TypeParams
         sb.append(';');
         index++;
-        assert index == BROWSER_INDEX;
-        sb.append(compatibility);
+        assert index == TYPE_PARAMS_INDEX;
+        if (element instanceof WithTypeParams) {
+            encodeTypeParams(((WithTypeParams) element).getTypeParameters(), sb);
+        }
 
-        // Types
+        // Type
         sb.append(';');
         index++;
         assert index == TYPE_INDEX;
-        TypeRef type = element.getType();
+        TypeRef type = element.asType();
 //            if (type == null) {
 //                type = typeMap != null ? typeMap.get(JsCommentLexer.AT_RETURN) : null; // NOI18N
 //            }
         if (type != null) {
-            encodeAttributesOfType(type, sb);
+            encodeType(type, sb);
         } else {
             // @Todo
         }
@@ -840,22 +807,23 @@ public abstract class IndexedElement extends AstElement {
     /**
      * We'll keep the sigunature as same as java's class file format for type paramters, also
      * @see org.netbeans.modules.scala.editing.JavaUtilities#getTypeName(TypeMirror, boolean, boolean)
+     * @param type to be encoded
+     * @param StringBuilder for attributes
      */
-    private static void encodeAttributesOfType(TypeRef type, StringBuilder sb) {
+    private static void encodeType(TypeRef type, StringBuilder sb) {
         if (type.isResolved()) {
             sb.append(type.getQualifiedName());
         } else {
-            sb.append(type.getName());
+            sb.append(type.getSimpleName());
         }
 
-        List<List<TypeRef>> typeArgsList = type.getTypeArgsList();
-        for (Iterator<List<TypeRef>> itr = typeArgsList.iterator(); itr.hasNext();) {
+        List<TypeRef> typeArgs = type.getTypeArgs();
+        if (typeArgs.size() > 0) {
             sb.append("<");
-            List<TypeRef> typeArgs = itr.next();
-            for (Iterator<TypeRef> itr1 = typeArgs.iterator(); itr1.hasNext();) {
-                TypeRef typeArg = itr1.next();
-                encodeAttributesOfType(typeArg, sb);
-                if (itr1.hasNext()) {
+            for (Iterator<TypeRef> itr = typeArgs.iterator(); itr.hasNext();) {
+                TypeRef typeArg = itr.next();
+                encodeType(typeArg, sb);
+                if (itr.hasNext()) {
                     sb.append(",");
                 }
             }
@@ -863,6 +831,67 @@ public abstract class IndexedElement extends AstElement {
         }
     }
 
+    /** @todo decode tuple type, function type etc */
+    private TypeRef decodeType(String typeAttr, int[] posAndLevel, List<TypeRef> typeArgs) {
+        PseudoTypeRef curr = new PseudoTypeRef();
+        StringBuilder sb = new StringBuilder();
+        while (posAndLevel[0] < typeAttr.length()) {
+            char c = typeAttr.charAt(posAndLevel[0]);
+            posAndLevel[0]++;
+            if (c == '<') {
+                posAndLevel[1]++;
+                curr.setSimpleName(sb.toString());
+                typeArgs = new ArrayList<TypeRef>();
+                curr.setTypeArgs(typeArgs);
+
+                TypeRef typeArg = decodeType(typeAttr, posAndLevel, typeArgs);
+                typeArgs.add(typeArg);
+            } else if (c == '>') {
+                posAndLevel[1]--;
+            } else if (c == ',') {
+                TypeRef typeArg = decodeType(typeAttr, posAndLevel, typeArgs);
+                if (typeArgs != null) {
+                    typeArgs.add(typeArg);
+                } else {
+                    //System.out.println(typeAttr);
+                }
+            } else if (c == ' ') {
+                // strip it
+            } else {
+                sb.append(c);
+            }
+        }
+
+        if (curr.getSimpleName() == null) {
+            curr.setSimpleName(sb);
+        }
+
+        return curr;
+    }    
+    
+    private static void encodeTypeParams(List<? extends TypeParam> typeParams, StringBuilder sb) {
+        if (!typeParams.isEmpty()) {
+            sb.append("[");
+            for (Iterator<? extends TypeParam> itr = typeParams.iterator(); itr.hasNext();) {
+                TypeParam typeParam = itr.next();
+                sb.append(typeParam.getSimpleName());
+                if (typeParam.getVariant() != null) {
+                    sb.append(typeParam.getVariant());
+                }
+                if (typeParam.getBound() != null) {
+                    sb.append(typeParam.getBound());
+                    encodeType(typeParam.getBoundType(), sb);
+                }
+                                
+                encodeTypeParams(typeParam.getParams(), sb);
+                if (itr.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            sb.append("]");
+        }
+    }
+        
     public static String encodeAttributes(javax.lang.model.element.Element jelement) {
         OffsetRange docRange = OffsetRange.NONE;
 
@@ -909,7 +938,7 @@ public abstract class IndexedElement extends AstElement {
         if (docRange != OffsetRange.NONE) {
             flags = flags | DOCUMENTED;
         }
-        sb.append(IndexedElement.encode(flags));
+        sb.append(IndexedElement.encodeFlags(flags));
 
         // Parameters
         sb.append(';');
@@ -950,14 +979,14 @@ public abstract class IndexedElement extends AstElement {
         index++;
         assert index == NODE_INDEX;
         int offset = 0; // will compute lazily
-        sb.append(encode(offset));
+        sb.append(encodeFlags(offset));
 
         // Documentation offset
         sb.append(';');
         index++;
         assert index == DOC_START_INDEX;
         if (docRange != OffsetRange.NONE) {
-            sb.append(IndexedElement.encode(docRange.getStart()));
+            sb.append(IndexedElement.encodeFlags(docRange.getStart()));
         }
 
         // Documentation end offset
@@ -965,16 +994,16 @@ public abstract class IndexedElement extends AstElement {
         index++;
         assert index == DOC_END_INDEX;
         if (docRange != OffsetRange.NONE) {
-            sb.append(IndexedElement.encode(docRange.getEnd()));
+            sb.append(IndexedElement.encodeFlags(docRange.getEnd()));
         }
 
         // Browser compatibility
         sb.append(';');
         index++;
-        assert index == BROWSER_INDEX;
+        assert index == TYPE_PARAMS_INDEX;
         sb.append(compatibility);
 
-        // Types
+        // Type
         sb.append(';');
         index++;
         assert index == TYPE_INDEX;
@@ -988,15 +1017,6 @@ public abstract class IndexedElement extends AstElement {
         sb.append(';');
 
         return sb.toString();
-    }
-
-    private static OffsetRange getDocumentationOffset(AstElement element, TokenHierarchy th) {
-        int astOffset = element.getPickOffset(th);
-        // XXX This is wrong; I should do a
-        //int lexOffset = LexUtilities.getLexerOffset(result, astOffset);
-        // but I don't have the CompilationInfo in the ParseResult handed to the indexer!!
-        int lexOffset = astOffset;
-        return ScalaLexUtilities.getDocCommentRangeBefore(th, lexOffset);
     }
 
     public boolean isDocumented() {
@@ -1202,7 +1222,7 @@ public abstract class IndexedElement extends AstElement {
         }
         // TODO - share this between Navigator implementation and here...
         sb.append("<b>"); // NOI18N
-        sb.append(element.getName());
+        sb.append(element.getSimpleName());
         sb.append("</b>"); // NOI18N
 
         if (element instanceof IndexedFunction) {
@@ -1218,7 +1238,7 @@ public abstract class IndexedElement extends AstElement {
                         int typeIndex = ve.indexOf(':');
                         if (typeIndex != -1) {
                             sb.append("<font color=\"#808080\">"); // NOI18N
-                            for (int i = typeIndex + 1,  n = ve.length(); i < n; i++) {
+                            for (int i = typeIndex + 1, n = ve.length(); i < n; i++) {
                                 char c = ve.charAt(i);
                                 if (c == '<') { // Handle types... Array<String> etc
                                     sb.append("&lt;");
@@ -1248,11 +1268,11 @@ public abstract class IndexedElement extends AstElement {
                 }
                 sb.append(")"); // NOI18N
             }
-            
-            TypeRef retType = function.getType();
+
+            TypeRef retType = function.asType();
 
             if (retType != null) {
-                sb.append(" :").append(function.getType().toString());
+                sb.append(" :").append(function.asType().toString());
             }
         }
 
