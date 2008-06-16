@@ -46,6 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.NameKind;
@@ -257,41 +260,41 @@ public class ScalaTypeInferencer {
             return;
         }
 
-        Set<IndexedElement> members = index.getElements(callName, baseTypeQName, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, null, false);
-        for (IndexedElement member : members) {
-            if (member instanceof IndexedFunction) {
-                IndexedFunction idxFunction = (IndexedFunction) member;
+        Set<GsfElement> members = index.getMembers(callName, baseTypeQName, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, null, false);
+        for (GsfElement member : members) {
+            if (member instanceof ExecutableElement) {
+                ExecutableElement mFunction = (ExecutableElement) member;
 
-                if (idxFunction.isReferredBy(funRef)) {
-                    TypeRef idxRetType = idxFunction.asType();
-                    String idxRetTypeStr = idxRetType == null ? null : idxRetType.getSimpleName().toString();
-                    if (idxRetTypeStr == null) {
-                        idxRetTypeStr = "void";
+                if (AstDef.isReferredBy(mFunction, funRef)) {
+                    TypeMirror mRetType = mFunction.asType();
+                    String mRetTypeSName = mRetType == null ? null : TypeRef.simpleNameOf(mRetType);
+                    if (mRetTypeSName == null) {
+                        mRetTypeSName = "void";
                     }
-                    if (idxRetTypeStr.equals("void")) {
+                    if (mRetTypeSName.equals("void")) {
                         funRef.setType(new PseudoTypeRef("void"));
                         break;
                     }
 
-                    int lastDot = idxRetTypeStr.lastIndexOf('.');
+                    int lastDot = mRetTypeSName.lastIndexOf('.');
                     if (lastDot == -1) {
                         /** try to find pkg of idxRetTypeStr */
-                        String hisIn = idxFunction.getIn();
-                        if (hisIn != null) {
-                            int pkgNameEnd = hisIn.lastIndexOf('.');
+                        String itsIn = member.getIn();
+                        if (itsIn != null) {
+                            int pkgNameEnd = itsIn.lastIndexOf('.');
                             if (pkgNameEnd != -1) {
-                                String hisPkgName = hisIn.substring(0, pkgNameEnd);
-                                Set<String> importPkgs = getImportPkgs(index, hisIn);
-                                idxRetTypeStr = globalInferTypeRef(index, idxRetTypeStr, hisPkgName, importPkgs);
+                                String hisPkgName = itsIn.substring(0, pkgNameEnd);
+                                Set<String> importPkgs = getImportPkgs(index, itsIn);
+                                mRetTypeSName = globalInferTypeRef(index, mRetTypeSName, hisPkgName, importPkgs);
                             } else {
-                                System.out.println("found idx function without package: " + idxFunction.getSimpleName().toString());
+                                System.out.println("found idx function without package: " + mFunction.getSimpleName().toString());
                             }
                         } else {
                             // @todo
                             }
                     }
 
-                    funRef.setType(new PseudoTypeRef(idxRetTypeStr));
+                    funRef.setType(new PseudoTypeRef(mRetTypeSName));
                     break;
                 }
             }
@@ -364,39 +367,39 @@ public class ScalaTypeInferencer {
             AstId field = fieldRef.getField();
             String fieldName = field.getSimpleName().toString();
 
-            Set<IndexedElement> members = index.getElements(fieldName, baseTypeQName, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, null, false);
-            for (IndexedElement member : members) {
+            Set<GsfElement> members = index.getMembers(fieldName, baseTypeQName, NameKind.PREFIX, ScalaIndex.ALL_SCOPE, null, false);
+            for (GsfElement member : members) {
                 boolean isCandicate = false;
-                String idxRetTypeStr = null;
+                String mRetTypeSName = null;
 
-                if (member instanceof IndexedFunction) {
-                    IndexedFunction idxFunction = (IndexedFunction) member;
-                    if (idxFunction.isNullArgs()) {
+                if (member instanceof ExecutableElement) {
+                    ExecutableElement mfunction = (ExecutableElement) member;
+                    if (mfunction.getParameters().size() == 0) {
                         isCandicate = true;
-                        TypeRef idxRetType = idxFunction.asType();
-                        if (idxRetType != null) {
-                            idxRetTypeStr = idxRetType.getSimpleName().toString();
+                        TypeMirror mRetType = mfunction.asType();
+                        if (mRetType != null) {
+                            mRetTypeSName = TypeRef.simpleNameOf(mRetType);
                         }
                     }
-                } else if (member instanceof IndexedField) {
-                    IndexedField idxField = (IndexedField) member;
+                } else if (member instanceof VariableElement) {
+                    VariableElement mField = (VariableElement) member;
                     isCandicate = true;
-                    TypeRef idxRetType = idxField.asType();
-                    if (idxRetType != null) {
-                        idxRetTypeStr = idxRetType.getSimpleName().toString();
+                    TypeMirror mRetType = mField.asType();
+                    if (mRetType != null) {
+                        mRetTypeSName = TypeRef.simpleNameOf(mRetType);
                     }
                 }
 
                 if (isCandicate) {
-                    if (idxRetTypeStr == null) {
-                        idxRetTypeStr = "Unit";
+                    if (mRetTypeSName == null) {
+                        mRetTypeSName = "Unit";
                     }
-                    if (idxRetTypeStr.equals("Unit")) {
+                    if (mRetTypeSName.equals("Unit")) {
                         fieldRef.setType(new PseudoTypeRef("Unit"));
                         break;
                     }
 
-                    int lastDot = idxRetTypeStr.lastIndexOf('.');
+                    int lastDot = mRetTypeSName.lastIndexOf('.');
                     if (lastDot == -1) {
                         /** try to find pkg of idxRetTypeStr */
                         String hisIn = member.getIn();
@@ -405,16 +408,16 @@ public class ScalaTypeInferencer {
                             if (pkgNameEnd != -1) {
                                 String hisPkgName = hisIn.substring(0, pkgNameEnd);
                                 Set<String> importPkgs = getImportPkgs(index, hisIn);
-                                idxRetTypeStr = globalInferTypeRef(index, idxRetTypeStr, hisPkgName, importPkgs);
+                                mRetTypeSName = globalInferTypeRef(index, mRetTypeSName, hisPkgName, importPkgs);
                             } else {
-                                System.out.println("found idx element without package: " + member.getSimpleName());
+                                System.out.println("found idx element without package: " + member.toString());
                             }
                         } else {
                             // @todo
                         }
                     }
 
-                    fieldRef.setType(new PseudoTypeRef(idxRetTypeStr));
+                    fieldRef.setType(new PseudoTypeRef(mRetTypeSName));
                     break;
                 }
             }
