@@ -43,7 +43,6 @@ import org.netbeans.modules.gsf.api.ParserFile;
 import org.netbeans.modules.gsf.spi.DefaultParserFile;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,7 +59,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.editor.BaseDocument;
-import org.netbeans.modules.gsf.api.NameKind;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.nodes.AstDef;
 import org.netbeans.modules.scala.editing.nodes.tmpls.ClassTemplate;
@@ -165,25 +163,20 @@ public class IndexedElement extends AstDef {
         int flags = IndexedElement.decodeFlags(attributes, attrIndex, 0);
 
         if (createPackage) {
-            IndexedPackage pkg = new IndexedPackage(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.PACKAGE);
-            return pkg;
+            return new IndexedElement(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.PACKAGE);
         }
 
         if ((flags & FUNCTION) != 0) {
             ElementKind kind = (flags & CONSTRUCTOR) != 0 ? ElementKind.CONSTRUCTOR : ElementKind.METHOD;
-            IndexedFunction function = new IndexedFunction(fqn, name, in, index, fileUrl, attributes, flags, kind);
-            return function;
+            return new IndexedElement(fqn, name, in, index, fileUrl, attributes, flags, kind);
         } else if ((flags & CLASS) != 0) {
-            IndexedType type = new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.CLASS);
-            return type;
+            return new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.CLASS);
         } else if ((flags & OBJECT) != 0) {
-            IndexedType type = new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.CLASS);
-            return type;
+            return new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.CLASS);
         } else if ((flags & TRAIT) != 0) {
-            IndexedType type = new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.INTERFACE);
-            return type;
+            return new IndexedType(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.INTERFACE);
         } else if ((flags & PACKAGE) != 0){
-            return new IndexedPackage(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.PACKAGE);
+            return new IndexedElement(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.PACKAGE);
         } else {
             return new IndexedElement(fqn, name, in, index, fileUrl, attributes, flags, ElementKind.OTHER);
         }
@@ -220,7 +213,7 @@ public class IndexedElement extends AstDef {
             int nextDot = elementName.indexOf('.', name.length());
             if (nextDot != -1) {
                 String pkg = elementName.substring(0, nextDot);
-                IndexedPackage indexedElement = new IndexedPackage(null, pkg, fqn, index, fileUrl, attributes, IndexedElement.decodeFlags(attributes, inEndIdx, 0), ElementKind.PACKAGE);
+                IndexedElement indexedElement = new IndexedElement(null, pkg, fqn, index, fileUrl, attributes, IndexedElement.decodeFlags(attributes, inEndIdx, 0), ElementKind.PACKAGE);
                 return indexedElement;
             }
         }
@@ -407,7 +400,7 @@ public class IndexedElement extends AstDef {
     }
 
     int getOffset() {
-        if (this instanceof IndexedPackage) {
+        if (this.getKind() == ElementKind.PACKAGE) {
             return -1;
         }
         int offset = 0;
@@ -415,6 +408,7 @@ public class IndexedElement extends AstDef {
             try {
                 offset = JavaUtilities.getOffset(javaInfo, javaElement);
             } catch (IOException ex) {
+                ex.printStackTrace();
             }
         } else {
             int OffsetIndex = getAttributeSection(NODE_INDEX);
@@ -516,31 +510,12 @@ public class IndexedElement extends AstDef {
                 queryName = queryType;
                 queryType = null;
             }
-            Set<IndexedElement> elements = getIndex().getAllElements(queryName, queryType, NameKind.EXACT_NAME, ScalaIndex.ALL_SCOPE, null);
-            for (IndexedElement e : elements) {
-                if (e.isDocumented()) {
-                    return e;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public IndexedElement findRealFileElement() {
-        if (isDocOnly()) {
-            String queryName = null;
-            String queryType = getFqn();
-            if (queryType.indexOf('.') == -1) {
-                queryName = queryType;
-                queryType = null;
-            }
-            Set<IndexedElement> elements = getIndex().getAllElements(queryName, queryType, NameKind.EXACT_NAME, ScalaIndex.ALL_SCOPE, null);
-            for (IndexedElement e : elements) {
-                if (!e.isDocOnly()) {
-                    return e;
-                }
-            }
+//            Set<IndexedElement> elements = getIndex().getAllElements(queryName, queryType, NameKind.EXACT_NAME, ScalaIndex.ALL_SCOPE, null);
+//            for (IndexedElement e : elements) {
+//                if (e.isDocumented()) {
+//                    return e;
+//                }
+//            }
         }
 
         return null;
@@ -1235,6 +1210,7 @@ public class IndexedElement extends AstDef {
         sb.append(element.getSimpleName());
         sb.append("</b>"); // NOI18N
 
+        /*
         if (element instanceof IndexedFunction) {
             IndexedFunction function = (IndexedFunction) element;
             Collection<String> args = function.getArgs();
@@ -1284,7 +1260,7 @@ public class IndexedElement extends AstDef {
             if (retType != null) {
                 sb.append(" :").append(function.asType().toString());
             }
-        }
+        } */
 
         sb.append("</td>\n"); // NOI18N
         sb.append("</tr></table>"); // NOI18N
