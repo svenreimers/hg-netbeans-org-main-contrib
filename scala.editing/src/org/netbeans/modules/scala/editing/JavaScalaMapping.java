@@ -38,12 +38,17 @@
  */
 package org.netbeans.modules.scala.editing;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.netbeans.modules.scala.editing.nodes.types.Type;
 
 /**
  *
@@ -56,6 +61,47 @@ public class JavaScalaMapping {
         Class,
         Object,
         Trait
+    }
+    private static Map<Character, String> ScalaToJavaOpName = new HashMap<Character, String>();
+    private static Map<String, Character> JavaToScalaOpName = new HashMap<String, Character>();
+
+
+    static {
+        ScalaToJavaOpName.put('$', "$");
+        ScalaToJavaOpName.put('~', "$tilde");
+        ScalaToJavaOpName.put('=', "$eq");
+        ScalaToJavaOpName.put('<', "$less");
+        ScalaToJavaOpName.put('>', "$greater");
+        ScalaToJavaOpName.put('!', "$bang");
+        ScalaToJavaOpName.put('#', "$hash");
+        ScalaToJavaOpName.put('%', "$percent");
+        ScalaToJavaOpName.put('^', "$up");
+        ScalaToJavaOpName.put('&', "$amp");
+        ScalaToJavaOpName.put('|', "$bar");
+        ScalaToJavaOpName.put('*', "$times");
+        ScalaToJavaOpName.put('/', "$div");
+        ScalaToJavaOpName.put('\\', "$bslash");
+        ScalaToJavaOpName.put('+', "$plus");
+        ScalaToJavaOpName.put('-', "$minus");
+        ScalaToJavaOpName.put(':', "$colon");
+
+        JavaToScalaOpName.put("$", '$');
+        JavaToScalaOpName.put("$tilde", '~');
+        JavaToScalaOpName.put("$eq", '=');
+        JavaToScalaOpName.put("$less", '<');
+        JavaToScalaOpName.put("$greater", '>');
+        JavaToScalaOpName.put("$bang", '!');
+        JavaToScalaOpName.put("$hash", '#');
+        JavaToScalaOpName.put("$percent", '%');
+        JavaToScalaOpName.put("$up", '^');
+        JavaToScalaOpName.put("$amp", '&');
+        JavaToScalaOpName.put("$bar", '|');
+        JavaToScalaOpName.put("$times", '*');
+        JavaToScalaOpName.put("$div", '/');
+        JavaToScalaOpName.put("$bslash", '\\');
+        JavaToScalaOpName.put("$plus", '+');
+        JavaToScalaOpName.put("$minus", '-');
+        JavaToScalaOpName.put("$colon", ':');
     }
     private static final String SCALA_OBJECT = "scala.ScalaObject";
     private static final String SCALA_OBJECT_MODULE = "MODULE$";
@@ -121,5 +167,103 @@ public class JavaScalaMapping {
         }
 
         return false;
+    }
+
+    public static String scalaOpNameToJava(String name) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            String s = ScalaToJavaOpName.get(c);
+            if (s != null) {
+                sb.append(s);
+            } else {
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public static String javaOpNameToScala(String name) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c == '$') {
+                int j;
+                for (j = i + 1; j < name.length(); j++) {
+                    if (name.charAt(j) == '$') {
+                        break;
+                    }
+                }
+
+                if (j > i) {
+                    String seg = name.substring(i, j);
+                    Character c1 = JavaToScalaOpName.get(seg);
+                    if (c1 != null) {
+                        sb.append(c1);
+                    } else {
+                        sb.append(seg);
+                    }
+                } else {
+                    sb.append(c);
+                }
+
+                i = j - 1;
+            } else {
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public static int isFunctionType(TypeMirror functionType) {
+        int paramNum = -1;
+        String funQName = Type.qualifiedNameOf(functionType);
+        int lastDot = funQName.lastIndexOf('.');
+        if (lastDot != -1) {
+            String pkgName = funQName.substring(0, lastDot);
+            String funSName = funQName.substring(lastDot + 1, funQName.length());
+            if (pkgName.equals("scala")) {
+                if (funSName.startsWith("Function")) {
+                    String paramNumStr = funSName.substring(8, funSName.length());
+                    try {
+                        paramNum = Integer.parseInt(paramNumStr);
+                    } catch (Exception ex) {
+                        paramNum = -1;
+                    }
+                }
+            }
+        }
+
+        return paramNum;
+    }
+
+    public static String classFunctionToScalaSName(TypeMirror type, int paramNum, List<VariableElement> params) {
+        StringBuilder sb = new StringBuilder();
+
+        if (paramNum != -1) {
+            // last one is return type
+            //assert paramNum == params.size();
+            DeclaredType declType = (DeclaredType) type;
+            if (paramNum == 0) {
+            } else if (paramNum == 1) {
+                sb.append("=> ");
+                sb.append(Type.simpleNameOf(params.get(0).asType()));
+            } else {
+                sb.append("(");
+                for (int i = 0; i < params.size() - 1; i++) {
+                    sb.append(Type.simpleNameOf(params.get(i).asType()));
+                    if (i < params.size() - 2) {
+                        sb.append(", ");
+                    }
+                }
+                sb.append(")");
+                sb.append(" => _");
+                //sb.append(Type.simpleNameOf(params.get(params.size() - 1).asType()));
+            }
+        }
+
+        return sb.toString();
     }
 }

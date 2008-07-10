@@ -40,14 +40,8 @@ package org.netbeans.modules.scala.editing;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
 import javax.swing.ImageIcon;
 import javax.swing.text.BadLocationException;
 import org.netbeans.editor.Utilities;
@@ -56,31 +50,25 @@ import org.netbeans.modules.gsf.api.ElementHandle;
 import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
 import org.netbeans.modules.gsf.api.Modifier;
-import org.netbeans.modules.java.source.JavaSourceAccessor;
 import org.netbeans.modules.scala.editing.ScalaCodeCompletion.CompletionRequest;
-import org.netbeans.modules.scala.editing.nodes.types.Type;
-import org.netbeans.modules.scala.editing.nodes.types.TypeParam;
 import org.openide.util.Exceptions;
+import scala.tools.nsc.symtab.Symbols.Symbol;
+import scala.tools.nsc.symtab.Types.MethodType;
+import scala.tools.nsc.symtab.Types.Type;
 
 /**
  * 
  * @author Caoyuan Deng 
  */
-public abstract class ScalaCompletionItem implements CompletionProposal {
+public abstract class ScalaCompletionProposal implements CompletionProposal {
 
     private static ImageIcon keywordIcon;
     protected CompletionRequest request;
-    protected GsfElement element;
-    protected IndexedElement indexedElement;
+    protected ScalaElement element;
 
-    private ScalaCompletionItem(GsfElement element, CompletionRequest request) {
-        this.element = element;
+    private ScalaCompletionProposal(ScalaElement element, CompletionRequest request) {
         this.request = request;
-    }
-
-    private ScalaCompletionItem(CompletionRequest request, IndexedElement element) {
-        this(new GsfElement(element, request.fileObject, request.info), request);
-        this.indexedElement = element;
+        this.element = element;
     }
 
     public int getAnchorOffset() {
@@ -93,11 +81,6 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
     public String getInsertPrefix() {
         return getName();
-//            if (getKind() == ElementKind.PACKAGE) {
-//                return getSimpleName() + ".";
-//            } else {
-//                return getSimpleName();
-//            }
     }
 
     public String getSortText() {
@@ -108,7 +91,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         return element;
     }
 
-    public org.netbeans.modules.gsf.api.ElementKind getKind() {
+    public ElementKind getKind() {
         return getElement().getKind();
     }
 
@@ -117,35 +100,28 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
     }
 
     public String getLhsHtml() {
-        org.netbeans.modules.gsf.api.ElementKind kind = getKind();
         HtmlFormatter formatter = request.formatter;
         formatter.reset();
-        boolean emphasize = (kind != org.netbeans.modules.gsf.api.ElementKind.PACKAGE && indexedElement != null) ? !indexedElement.isInherited() : false;
+
+        boolean emphasize = !element.isInherited();
+        boolean strike = element.isDeprecated();
+
         if (emphasize) {
             formatter.emphasis(true);
         }
-        boolean strike = indexedElement != null && indexedElement.isDeprecated();
         if (strike) {
             formatter.deprecated(true);
         }
+        ElementKind kind = getKind();
         formatter.name(kind, true);
         formatter.appendText(getName());
         formatter.name(kind, false);
+
         if (strike) {
             formatter.deprecated(false);
         }
         if (emphasize) {
             formatter.emphasis(false);
-        }
-
-        if (indexedElement != null) {
-            TypeMirror type = indexedElement.asType();
-            if (type != null) {
-                formatter.appendHtml(" :"); // NOI18N
-                formatter.type(true);
-                formatter.appendText(type.toString());
-                formatter.type(false);
-            }
         }
 
         return formatter.getText();
@@ -154,50 +130,15 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
     public String getRhsHtml() {
         HtmlFormatter formatter = request.formatter;
         formatter.reset();
-
-
-        if (element.getKind() == ElementKind.PACKAGE || element.getKind() == ElementKind.CLASS) {
-            if (element.getElement() instanceof IndexedElement) {
-                String origin = ((IndexedElement) element.getElement()).getOrigin();
-                if (origin != null) {
-                    formatter.appendText(origin);
-                    return formatter.getText();
-                }
-            }
-
-            return null;
+        Symbol symbol = element.getSymbol();
+        Type retType = symbol.info().resultType();
+        if (retType != null && !symbol.isConstructor()) {
+            formatter.type(true);
+            formatter.appendText(retType.toString());
+            formatter.type(false);
         }
-
-        String in = element.getIn();
-
-        if (in != null) {
-            formatter.appendText(in);
-            return formatter.getText();
-        } else if (element.getElement() instanceof IndexedElement) {
-            IndexedElement ie = (IndexedElement) element.getElement();
-            String filename = ie.getFilenameUrl();
-            if (filename != null) {
-                if (filename.indexOf("jsstubs") == -1) { // NOI18N
-
-                    int index = filename.lastIndexOf('/');
-                    if (index != -1) {
-                        filename = filename.substring(index + 1);
-                    }
-                    formatter.appendText(filename);
-                    return formatter.getText();
-                } else {
-                    String origin = ie.getOrigin();
-                    if (origin != null) {
-                        formatter.appendText(origin);
-                        return formatter.getText();
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        return null;
+        
+        return formatter.getText();
     }
 
     public Set<Modifier> getModifiers() {
@@ -214,7 +155,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
     public boolean isSmart() {
         return false;
-    //return indexedElement != null ? indexedElement.isSmart() : true;
+        //return indexedElement != null ? indexedElement.isSmart() : true;
     }
 
     public List<String> getInsertParams() {
@@ -230,19 +171,14 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         return null;
     }
 
-    protected static class FunctionItem extends ScalaCompletionItem {
+    protected static class FunctionProposal extends ScalaCompletionProposal {
 
-        private ExecutableElement function;
+        private MethodType function;
 
-        FunctionItem(GsfElement element, CompletionRequest request) {
+        FunctionProposal(ScalaElement element, CompletionRequest request) {
             super(element, request);
-            assert element.getElement() instanceof ExecutableElement;
-            function = (ExecutableElement) element.getElement();
-        }
-
-        FunctionItem(IndexedElement element, CompletionRequest request) {
-            super(request, element);
-        //function = (IndexedFunction) element;
+            Symbol symbol = element.getSymbol();
+            function = (MethodType) symbol.info();
         }
 
         @Override
@@ -251,46 +187,45 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
 
         @Override
-        public org.netbeans.modules.gsf.api.ElementKind getKind() {
-            return org.netbeans.modules.gsf.api.ElementKind.METHOD;
+        public ElementKind getKind() {
+            return ElementKind.METHOD;
         }
 
         @Override
         public String getLhsHtml() {
-            JavaSourceAccessor.getINSTANCE().lockJavaCompiler();
-
-            org.netbeans.modules.gsf.api.ElementKind kind = getKind();
             HtmlFormatter formatter = request.formatter;
             formatter.reset();
-            boolean strike = false;
-            if (!strike && element.isDeprecated()) {
-                strike = true;
-            }
+            
+            boolean strike = element.isDeprecated();
+            boolean emphasize = !element.isInherited();
             if (strike) {
                 formatter.deprecated(true);
             }
-            boolean emphasize = !element.isInherited();
             if (emphasize) {
                 formatter.emphasis(true);
             }
+            
+            ElementKind kind = getKind();
             formatter.name(kind, true);
             formatter.appendText(getName());
             formatter.name(kind, false);
+
             if (emphasize) {
                 formatter.emphasis(false);
             }
             if (strike) {
                 formatter.deprecated(false);
             }
-            List<? extends TypeParameterElement> typeParams = function.getTypeParameters();
+
+            scala.List typeParams = function.typeParams();
             if (!typeParams.isEmpty()) {
                 formatter.appendHtml("[");
+                int size = typeParams.size();
+                for (int i = 0; i < size; i++) {
+                    Type typeParam = (Type) typeParams.apply(i);
+                    formatter.appendText(typeParam.typeSymbol().nameString());
 
-                for (Iterator<? extends TypeParameterElement> itr = typeParams.iterator(); itr.hasNext();) {
-                    TypeParameterElement typeParam = itr.next();
-                    TypeParam.htmlFormat(typeParam, formatter);
-
-                    if (itr.hasNext()) {
+                    if (i < size - 1) {
                         formatter.appendText(", "); // NOI18N
                     }
                 }
@@ -298,74 +233,45 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
                 formatter.appendHtml("]");
             }
 
+            scala.List paramTypes = function.paramTypes();
 
-            List<? extends VariableElement> params = function.getParameters();
-            if (!params.isEmpty()) {
+            if (!paramTypes.isEmpty()) {
                 formatter.appendHtml("("); // NOI18N
 
-                for (Iterator<? extends VariableElement> itr = params.iterator(); itr.hasNext();) { // && tIt.hasNext()) {
+                int size = paramTypes.size();
+                for (int i = 0; i < size; i++) { // && tIt.hasNext()) {
+                    Type param = (Type) paramTypes.apply(i);
+
                     formatter.parameters(true);
-
-                    VariableElement param = itr.next();
-
-                    formatter.appendText(param.getSimpleName().toString());
+                    formatter.appendText("a" + Integer.toString(i));
                     formatter.parameters(false);
-                    formatter.appendHtml(" :");
+                    formatter.appendText(" :");
                     formatter.parameters(true);
-                    
-                    TypeMirror paramType = param.asType();
-//                    int funParamNum = JavaScalaMapping.isFunctionType(paramType);
-//                    if (funParamNum != -1) {
-//                        List<? extends AnnotationMirror> annots = function.getAnnotationMirrors();
-//
-//                        List<VariableElement> funParams = new ArrayList<VariableElement>(funParamNum);
-//                        for (int i = 0; i < funParamNum; i++) {
-//                            if (itr.hasNext()) {
-//                                funParams.add(itr.next());
-//                            }
-//                        }
-//                        formatter.appendText(JavaScalaMapping.classFunctionToScalaSName(paramType, funParamNum, funParams));
-//                    } else {
-                        if (param.asType() != null) {
-                            formatter.type(true);
-                            Type.htmlFormat(formatter, paramType, true);
-                            formatter.type(false);
-                        }
-//                    }
-
+                    formatter.appendText(param.toString());
                     formatter.parameters(false);
 
-                    if (itr.hasNext()) {
+                    if (i < size - 1) {
                         formatter.appendText(", "); // NOI18N
                     }
-
                 }
 
                 formatter.appendHtml(")"); // NOI18N
             }
-
-            TypeMirror retType = function.getReturnType();
-            if (retType != null && element.getKind() != ElementKind.CONSTRUCTOR) {
-                formatter.appendHtml(" :");
-                formatter.type(true);
-                Type.htmlFormat(formatter, retType, true);
-                formatter.type(false);
-            }
-
-            JavaSourceAccessor.getINSTANCE().unlockJavaCompiler();
 
             return formatter.getText();
         }
 
         @Override
         public List<String> getInsertParams() {
-            List<? extends VariableElement> params = function.getParameters();
-            if (!params.isEmpty()) {
-                List<String> insertParams = new ArrayList<String>();
-                for (VariableElement param : params) {
-                    insertParams.add(param.getSimpleName().toString());
+            scala.List paramTypes = function.paramTypes();
+            if (!paramTypes.isEmpty()) {
+                int size = paramTypes.size();
+                List<String> result = new ArrayList<String>(size);
+                for (int i = 0; i < size; i++) { // && tIt.hasNext()) {
+                    Type param = (Type) paramTypes.apply(i);
+                    result.add(param.toString().toLowerCase());
                 }
-                return insertParams;
+                return result;
             } else {
                 return Collections.<String>emptyList();
             }
@@ -378,8 +284,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             final String insertPrefix = getInsertPrefix();
             sb.append(insertPrefix);
 
-
-            if (function.getParameters().isEmpty()) {
+            if (function.paramTypes().isEmpty()) {
                 return sb.toString();
             }
 
@@ -425,7 +330,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             // Facilitate method parameter completion on this item
             try {
                 ScalaCodeCompletion.callLineStart = Utilities.getRowStart(request.doc, request.anchor);
-                ScalaCodeCompletion.callMethod = function;
+            //ScalaCodeCompletion.callMethod = function;
             } catch (BadLocationException ble) {
                 Exceptions.printStackTrace(ble);
             }
@@ -434,13 +339,13 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
     }
 
-    protected static class KeywordItem extends ScalaCompletionItem {
+    protected static class KeywordProposal extends ScalaCompletionProposal {
 
         private static final String KEYWORD = "org/netbeans/modules/scala/editing/resources/scala16x16.png"; //NOI18N
         private final String keyword;
         private final String description;
 
-        KeywordItem(String keyword, String description, CompletionRequest request) {
+        KeywordProposal(String keyword, String description, CompletionRequest request) {
             super(null, request);
             this.keyword = keyword;
             this.description = description;
@@ -452,30 +357,29 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
 
         @Override
-        public org.netbeans.modules.gsf.api.ElementKind getKind() {
-            return org.netbeans.modules.gsf.api.ElementKind.KEYWORD;
+        public ElementKind getKind() {
+            return ElementKind.KEYWORD;
         }
 
-        //@Override
-        //public String getLhsHtml() {
-        //    // Override so we can put HTML contents in
-        //    ElementKind kind = getKind();
-        //    HtmlFormatter formatter = request.formatter;
-        //    formatter.reset();
-        //    formatter.name(kind, true);
-        //    //formatter.appendText(getSimpleName());
-        //    formatter.appendHtml(getSimpleName());
-        //    formatter.name(kind, false);
-        //
-        //    return formatter.getText();
-        //}
+        @Override
+        public String getLhsHtml() {
+            HtmlFormatter formatter = request.formatter;
+            formatter.reset();
+
+            ElementKind kind = getKind();
+            formatter.name(kind, true);
+            formatter.appendHtml(getName());
+            formatter.name(kind, false);
+        
+            return formatter.getText();
+        }
+
         @Override
         public String getRhsHtml() {
             if (description != null) {
                 HtmlFormatter formatter = request.formatter;
                 formatter.reset();
-                //formatter.appendText(description);
-                formatter.appendHtml(description);
+                formatter.appendText(description);
 
                 return formatter.getText();
             } else {
@@ -509,13 +413,13 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
     }
 
-    protected static class TagItem extends ScalaCompletionItem {
+    protected static class TagProposal extends ScalaCompletionProposal {
 
         private final String tag;
         private final String description;
         private final org.netbeans.modules.gsf.api.ElementKind kind;
 
-        TagItem(String keyword, String description, CompletionRequest request, org.netbeans.modules.gsf.api.ElementKind kind) {
+        TagProposal(String keyword, String description, CompletionRequest request, org.netbeans.modules.gsf.api.ElementKind kind) {
             super(null, request);
             this.tag = keyword;
             this.description = description;
@@ -528,7 +432,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
 
         @Override
-        public org.netbeans.modules.gsf.api.ElementKind getKind() {
+        public ElementKind getKind() {
             return kind;
         }
 
@@ -578,26 +482,18 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
     }
 
-    protected static class PlainItem extends ScalaCompletionItem {
+    protected static class PlainProposal extends ScalaCompletionProposal {
 
-        PlainItem(GsfElement element, CompletionRequest request) {
-            super(element, request);
-        }
-
-        PlainItem(CompletionRequest request, IndexedElement element) {
-            super(request, element);
+        PlainProposal(ScalaElement symbol, CompletionRequest request) {
+            super(symbol, request);
         }
     }
 
-    protected static class PackageItem extends ScalaCompletionItem {
+    protected static class PackageItem extends ScalaCompletionProposal {
 
-        PackageItem(GsfElement element, CompletionRequest request) {
-            super(element, request);
+        PackageItem(ScalaElement symbol, CompletionRequest request) {
+            super(symbol, request);
 
-        }
-
-        PackageItem(CompletionRequest request, IndexedElement element) {
-            super(request, element);
         }
 
         @Override
@@ -607,7 +503,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
         @Override
         public String getName() {
-            String name = element.getElement().getSimpleName().toString();
+            String name = element.getName();
             int lastDot = name.lastIndexOf('.');
             if (lastDot > 0) {
                 name = name.substring(lastDot + 1, name.length());
@@ -617,21 +513,19 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
         @Override
         public String getLhsHtml() {
-            org.netbeans.modules.gsf.api.ElementKind kind = getKind();
+            ElementKind kind = getKind();
             HtmlFormatter formatter = request.formatter;
             formatter.reset();
-            boolean strike = indexedElement != null && indexedElement.isDeprecated();
-            if (strike) {
-                formatter.deprecated(true);
-            }
             formatter.name(kind, true);
             formatter.appendText(getName());
             formatter.name(kind, false);
-            if (strike) {
-                formatter.deprecated(false);
-            }
 
             return formatter.getText();
+        }
+
+        @Override
+        public String getRhsHtml() {
+            return null;
         }
 
         @Override
@@ -640,25 +534,21 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
         }
     }
 
-    protected static class TypeItem extends ScalaCompletionItem {
+    protected static class TypeProposal extends ScalaCompletionProposal {
 
-        TypeItem(GsfElement element, CompletionRequest request) {
+        TypeProposal(ScalaElement element, CompletionRequest request) {
             super(element, request);
 
         }
 
-        TypeItem(CompletionRequest request, IndexedElement element) {
-            super(request, element);
-        }
-
         @Override
-        public org.netbeans.modules.gsf.api.ElementKind getKind() {
-            return org.netbeans.modules.gsf.api.ElementKind.CLASS;
+        public ElementKind getKind() {
+            return ElementKind.CLASS;
         }
 
         @Override
         public String getName() {
-            String name = element.getElement().getSimpleName().toString();
+            String name = element.getName();
             int lastDot = name.lastIndexOf('.');
             if (lastDot > 0) {
                 name = name.substring(lastDot + 1, name.length());
@@ -671,7 +561,7 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
             org.netbeans.modules.gsf.api.ElementKind kind = getKind();
             HtmlFormatter formatter = request.formatter;
             formatter.reset();
-            boolean strike = indexedElement != null && indexedElement.isDeprecated();
+            boolean strike = element.isDeprecated();
             if (strike) {
                 formatter.deprecated(true);
             }
@@ -684,6 +574,11 @@ public abstract class ScalaCompletionItem implements CompletionProposal {
 
             return formatter.getText();
         }
-    }
 
+        @Override
+        public String getRhsHtml() {
+            return null;
+        }
+
+    }
 }

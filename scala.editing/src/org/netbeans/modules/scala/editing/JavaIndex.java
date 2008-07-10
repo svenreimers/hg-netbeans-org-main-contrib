@@ -38,9 +38,13 @@
  */
 package org.netbeans.modules.scala.editing;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -60,20 +64,29 @@ import org.netbeans.api.java.source.ClassIndex.SearchScope;
 import org.netbeans.api.java.source.CompilationInfo;
 import org.netbeans.api.java.source.ElementHandle;
 import org.netbeans.modules.java.source.JavaSourceAccessor;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileStateInvalidException;
 import org.openide.util.Exceptions;
-
 /**
  *
  * @author Caoyuan Deng
  */
 public class JavaIndex {
 
+    public static final Map<String, List<? extends Element>> TypeQNameToMemebersCache = new HashMap<String, List<? extends Element>>();
     public static final Set<SearchScope> ALL_SCOPE = EnumSet.allOf(SearchScope.class);
     public static final Set<SearchScope> SOURCE_SCOPE = EnumSet.of(SearchScope.SOURCE);
     private final ClassIndex index;
     private final CompilationInfo info;
     private final ScalaIndex scalaIndex;
+
+    public static JavaIndex get(FileObject fo, ScalaIndex scalaIndex) {
+        CompilationInfo info = JavaUtilities.getCompilationInfoForScalaFile(fo);
+
+        ClassIndex index = info.getClasspathInfo().getClassIndex();
+
+        return new JavaIndex(index, info, scalaIndex);
+    }
 
     private JavaIndex(ClassIndex index, CompilationInfo info, ScalaIndex scalaIndex) {
         this.index = index;
@@ -81,29 +94,22 @@ public class JavaIndex {
         this.scalaIndex = scalaIndex;
     }
 
-    public static JavaIndex get(org.netbeans.modules.gsf.api.CompilationInfo gsfInfo, ScalaIndex scalaIndex) {
-        CompilationInfo info = JavaUtilities.getCompilationInfoForScalaFile(gsfInfo.getFileObject());
-
-        ClassIndex index = info.getClasspathInfo().getClassIndex();
-
-        return new JavaIndex(index, info, scalaIndex);
-    }
-
-    public Set<IndexedElement> getPackages(String fqnPrefix) {
+    public Set<GsfElement> getPackages(String fqnPrefix) {
         Set<String> pkgNames = index.getPackageNames(fqnPrefix, true, ALL_SCOPE);
-        Set<IndexedElement> idxElements = new HashSet<IndexedElement>();
+        Set<GsfElement> gsfElements = new HashSet<GsfElement>();
         int flags = 0 | IndexedElement.PACKAGE;
         for (String pkgName : pkgNames) {
             if (pkgName.length() > 0) {
-                
+
                 IndexedElement idxElement = new IndexedElement(pkgName, pkgName, "", "", flags, null, scalaIndex, ElementKind.PACKAGE);
-                idxElements.add(idxElement);
+                GsfElement gsfElement = new GsfElement(idxElement, null, info);
+                gsfElements.add(gsfElement);
             }
         }
-        return idxElements;
+        return gsfElements;
     }
 
-    public Set<IndexedElement> getPackageContent(String fqnPrefix) {
+    public Set<GsfElement> getPackageContent(String fqnPrefix) {
         String pkgName = null;
         String prefix = null;
 
@@ -126,11 +132,11 @@ public class JavaIndex {
             Set<Element> foundElements = new HashSet<Element>();
             Set<String> scalaElementNames = new HashSet<String>();
 
-            Set<IndexedElement> idxElements = new HashSet<IndexedElement>();
+            Set<GsfElement> gsfElements = new HashSet<GsfElement>();
 
             for (Element e : pe.getEnclosedElements()) {
                 String sName = e.getSimpleName().toString();
-                
+
                 TypeMirror tm = e.asType();
                 TypeElement te = tm.getKind() == TypeKind.DECLARED
                         ? (TypeElement) ((DeclaredType) tm).asElement()
@@ -144,14 +150,16 @@ public class JavaIndex {
                                 scalaElementNames.add(sName + "$class");
                                 break;
                             case Object:
-                                int dollor = sName.lastIndexOf('$');
-                                if (dollor != -1) {
-                                    scalaElementNames.add(sName.substring(0, dollor));
-                                }
+                                // This class should be end with '$', and there should be a compain class without '$'
+                                scalaElementNames.add(sName);
+                                //int dollor = sName.lastIndexOf('$');
+                                //if (dollor != -1) {
+                                //    scalaElementNames.add(sName.substring(0, dollor));
+                                //}
                                 break;
                         }
-                        
-                        continue;
+
+                    //continue;
                     }
                 }
 
@@ -167,7 +175,7 @@ public class JavaIndex {
             for (Element e : foundElements) {
                 String sName = e.getSimpleName().toString();
                 String qName = pkgName + "." + sName;
-                
+
                 if (scalaElementNames.contains(sName)) {
                     continue;
                 }
@@ -177,18 +185,18 @@ public class JavaIndex {
 
                 IndexedElement idxElement = IndexedElement.create(qName, sName, in, attrs, null, scalaIndex, false);
                 idxElement.setJavaInfo(e, info);
-                idxElements.add(idxElement);
+                GsfElement gsfElement = new GsfElement(idxElement, null, info);
+                gsfElements.add(gsfElement);
             }
 
-            return idxElements;
+            return gsfElements;
         }
-        return Collections.<IndexedElement>emptySet();
+        return Collections.<GsfElement>emptySet();
     }
- 
+
     public Set<GsfElement> getDeclaredTypes(String type, NameKind kind,
             Set<SearchScope> scope, ScalaParserResult context) {
 
-        //final Set<GsfElement> idxElements = includeDuplicates ? new DuplicateElementSet() : new HashSet<IndexedElement>();
         final Set<GsfElement> gsfElements = new HashSet<GsfElement>();
 
         JavaSourceAccessor.getINSTANCE().lockJavaCompiler();
@@ -233,7 +241,7 @@ public class JavaIndex {
 
             TypeMirror tm = te.asType();
             TypeElement typeElem = tm.getKind() == TypeKind.DECLARED ? (TypeElement) ((DeclaredType) tm).asElement() : null;
-            
+
             if (te != null) {
                 GsfElement gsfElement = new GsfElement(typeElem, null, info);
                 gsfElements.add(gsfElement);
@@ -245,16 +253,12 @@ public class JavaIndex {
         JavaSourceAccessor.getINSTANCE().unlockJavaCompiler();
         return gsfElements;
     }
-    
-    
-    public Set<GsfElement> getMembers(String name, String type, NameKind kind,
+
+    public Set<GsfElement> getMembers(String memberName, String typeQName, NameKind kind,
             Set<SearchScope> scope, ScalaParserResult context,
-            boolean onlyConstructors, boolean includeMethods, boolean includeProperties, boolean includeDuplicates) {
+            boolean onlyConstructors, boolean includeMethods, boolean includeFields, boolean includeDuplicates) {
 
-        final Set<GsfElement> gsfElements = new HashSet<GsfElement>();
-        //final Set<GsfElement> idxElements = includeDuplicates ? new DuplicateElementSet() : new HashSet<GsfElement>();
-
-        JavaSourceAccessor.getINSTANCE().lockJavaCompiler();
+        final Set<GsfElement> gsfElements = includeDuplicates ? new DuplicateElementSet() : new HashSet<GsfElement>();
 
         NameKind originalKind = kind;
         if (kind == NameKind.SIMPLE_NAME) {
@@ -279,167 +283,266 @@ public class JavaIndex {
             }
         }
 
-        Set<String> seenTypes = new HashSet<String>();
-        seenTypes.add(type);
         boolean haveRedirected = false;
-        boolean inherited = type == null;
+        boolean inherited = typeQName == null;
 
-        if (type == null || type.length() == 0) {
-            type = "Object";
+        if (typeQName == null || typeQName.length() == 0) {
+            typeQName = "java.lang.Object";
         }
 
-        String pkgName = "";
-        String fqn;
-        if (type != null && type.length() > 0) {
-            int lastDot = type.lastIndexOf('.');
-            if (lastDot > 0) {
-                pkgName = type.substring(0, lastDot);
-                type = type.substring(lastDot + 1, type.length());
-            }
-
-            fqn = type + "." + name;
-        } else {
-            fqn = name;
-        }
-
-        String lcfqn = fqn.toLowerCase();
-
-        /** always use NameKind.SIMPLE_NAME search index.getDeclaredTypes */
         kind = NameKind.SIMPLE_NAME;
 
         Elements theElements = info.getElements();
         Types theTypes = info.getTypes();
 
-        Set<ElementHandle<TypeElement>> dclTypes = index.getDeclaredTypes(type, kind, scope);
+        boolean isScala = false;
 
-        for (ElementHandle<TypeElement> teHandle : dclTypes) {
-            GsfElement gsfElement = null;
-
-            TypeElement te = teHandle.resolve(info);
-
-            PackageElement pe = theElements.getPackageOf(te);
-            if (pe != null) {
-                if (!pkgName.equals("")) {
-                    if (!pe.getQualifiedName().toString().equals(pkgName)) {
-                        continue;
-                    }
-                }
-            }
-
-            boolean isScala = JavaScalaMapping.isScala(te);
-
-            if (isScala) {
-                continue;
-            }
-
-            TypeMirror tm = te.asType();
-            TypeElement typeElem = tm.getKind() == TypeKind.DECLARED ? (TypeElement) ((DeclaredType) tm).asElement() : null;
-            
-            if (te != null) {
-                for (Element e : theElements.getAllMembers(te)) {
-
-                    if (e.getModifiers().contains(Modifier.PRIVATE)) {
-                        continue;
-                    }
-
-                    String simpleName = e.getSimpleName().toString();
-                    if (!JavaUtilities.startsWith(simpleName, name)) {
-                        continue;
-                    }
-
-                    String in = pe.getQualifiedName().toString() + "." + e.getEnclosingElement().getSimpleName().toString();
-
-                    switch (e.getKind()) {
-                        case EXCEPTION_PARAMETER:
-                        case LOCAL_VARIABLE:
-                        case PARAMETER:
-                            break;
-                        case ENUM_CONSTANT:
-                        case FIELD: {
-                            if ("this".equals(simpleName) || "class".equals(simpleName) || "super".equals(simpleName)) {
-                                //results.add(JavaCompletionItem.createKeywordItem(ename, null, anchorOffset, false));
-                            } else {
-                                TypeMirror tm1 = tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType();
-                            //results.add(JavaCompletionItem.createVariableItem((VariableElement) e, tm, anchorOffset, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), isOfSmartType(env, tm, smartTypes)));
-                            }
-
-                            StringBuilder base = new StringBuilder();
-                            base.append(simpleName.toLowerCase());
-                            base.append(';');
-                            if (in != null) {
-                                base.append(in);
-                            }
-                            base.append(';');
-                            base.append(simpleName);
-                            base.append(';');
-
-                            String attrs = IndexedElement.encodeAttributes(e);
-                            base.append(attrs);
-
-                            gsfElement = new GsfElement(e, null, info);
-                            //idxElement.setJavaInfo(e, info);
-                            break;
-                        }
-                        case CONSTRUCTOR:
-                            simpleName = e.getEnclosingElement().getSimpleName().toString();
-                        case METHOD: {
-                            ExecutableType et = (ExecutableType) (tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType());
-                            
-                            StringBuilder base = new StringBuilder();
-                            base.append(simpleName.toLowerCase());
-                            base.append(';');
-                            if (in != null) {
-                                base.append(in);
-                            }
-                            base.append(';');
-                            base.append(simpleName);
-                            base.append(';');
-
-                            String attrs = IndexedElement.encodeAttributes(e);
-                            base.append(attrs);
-
-                            gsfElement = new GsfElement(e, null, info);
-                            break;
-                        }
-                        case CLASS:
-                        case ENUM:
-                        case INTERFACE:
-                        case ANNOTATION_TYPE:
-                            DeclaredType dt = (DeclaredType) (tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType());
-                            //results.add(JavaCompletionItem.createTypeItem((TypeElement) e, dt, anchorOffset, false, elements.isDeprecated(e), insideNew, false));
-                            break;
-                    }
-
-                    if (gsfElement == null) {
-                        continue;
-                    }
-                    boolean isMethod = gsfElement.getElement() instanceof ExecutableElement;
-                    if (isMethod && !includeMethods) {
-                        continue;
-                    } else if (!isMethod && !includeProperties) {
-                        continue;
-                    }
-
-                    if (onlyConstructors && !gsfElement.getKind().name().equals(ElementKind.CONSTRUCTOR.name())) {
-                        continue;
-                    }
-
-                    if (!haveRedirected) {
-                        gsfElement.setSmart(true);
-                    }
-
-                    inherited = typeElem != e.getEnclosingElement();
-                    if (!inherited) {
-                        gsfElement.setInherited(false);
-                    }
-                    gsfElements.add(gsfElement);
-                }
-            }
-
+        TypeElement te = null;
+        TypeElement namedTe = theElements.getTypeElement(typeQName);
+        if (namedTe != null) {
+            te = ElementHandle.<TypeElement>create(namedTe).resolve(info);
         }
 
+        if (te != null) {
+            isScala = JavaScalaMapping.isScala(te);
+        }
 
-        JavaSourceAccessor.getINSTANCE().unlockJavaCompiler();
+        TypeElement companionTe = null;
+        TypeElement namedCompanionTe = theElements.getTypeElement(typeQName + "$");
+        if (namedCompanionTe != null) {
+            companionTe = ElementHandle.<TypeElement>create(namedCompanionTe).resolve(info);
+        }
+
+        if (companionTe != null) {
+            isScala = isScala || JavaScalaMapping.isScala(companionTe);
+            te = companionTe;
+        }
+
+        if (te == null) {
+            return gsfElements;
+        }
+
+//        File f = new File("/Users/dcaoyuan/my-project/scala-test/Foo.class");
+
+
+//        try {
+//            byte[] data = ClassFile.getBytesFromFile(f);
+//            // construct a reader for the classfile content
+//            ByteArrayReader reader = new ByteArrayReader(data);
+//            // parse the classfile
+//            scala.tools.scalap.Classfile clazz = new scala.tools.scalap.Classfile(reader);
+//            // check if there is a Scala signature attribute
+//            scala.List attrs = clazz.attribs();
+//            for (scala.tools.scalap.Classfile.Attribute h = (scala.tools.scalap.Classfile.Attribute) attrs.head(); attrs.tail() != null; attrs = attrs.tail()) {
+//                if (h.toString().equals("ScalaSig")) {
+//                    ScalaAttribute scalaAttrs = new ScalaAttribute(h.reader());
+//                    EntityTable symtab = new EntityTable(scalaAttrs);
+//                    Entity[] entitys = symtab.table();
+//                    for (Entity en : entitys) {
+//                        System.out.println(en.toString());
+//                    }
+//                }
+//
+//            }
+//        } catch (IOException ex) {
+//            Exceptions.printStackTrace(ex);
+//        }
+//        Object h = attrs.head();
+//        val attrib = clazz.attribs.find(a => a.toString() == "ScalaSignature")
+//      attrib match {
+//        // if the attribute is found, we have to extract the scope
+//        // from the attribute
+//        case Some(a) =>
+//          processScalaAttribute(args, a.reader)
+//        // It must be a Java class
+//        case None =>
+//          processJavaClassFile(clazz)
+//      }
+
+
+//        try {
+//            final Global global = new Global(new Settings());
+//            UnPickler unpickler = new UnPickler() {
+//                @Override
+//                public Global global() {
+//                    return global;
+//                }
+//            };
+//
+//            ClassfileParser cfParser = new ClassfileParser() {
+//
+//                @Override
+//                public Global global() {
+//                    return global;
+//                }
+//            };
+//
+//            Global.Run run = global.new Run();
+//
+//
+//            AbstractFile file = AbstractFile$.MODULE$.getFile("/Users/dcaoyuan/my-project/scala-test/Foo.class");
+//
+//
+//
+//
+//            ClassFile cFile = new ClassFile("/Users/dcaoyuan/my-project/scala-test/Foo.class", false);
+//            AttributeMap am = cFile.getAttributes();
+//            byte[] scalaSig = am.get("ScalaSig");
+            //SymbolL
+//            Symbol NO_SYMBOL = new Symbol(null, NoPosition, ) {
+//
+//                @Override
+//                public Symbol cloneSymbolImpl(Symbol arg0) {
+//                    throw new UnsupportedOperationException("Not supported yet.");
+//                }
+//            }
+//            if (scalaSig != null) {
+//                unpickler.unpickle(scalaSig, 0, global.NoSymbol(), global.NoSymbol(), "");
+//                global.reporter();
+//                ScalaAttribute scalaAttr = null;
+//                try {
+//                    scalaAttr = new ScalaAttribute(new ByteArrayReader(scalaSig));
+//                } catch (Exception ex) {
+//                    ex.printStackTrace();
+//                }
+//                if (scalaAttr != null) {
+//                    AttribEntry[] attrs = scalaAttr.readTable();
+//
+//                    //EntityTable symtab = new EntityTable(scalaAttr);
+//                    //Entity[] entitys = symtab.table();
+//                    //for (Entity en : entitys) {
+//                    //    System.out.println(en.toString());
+//                    //}
+//                }
+//
+//                System.out.println("here");
+//            }
+//
+//        } catch (Exception ex) {
+//            Exceptions.printStackTrace(ex);
+//        }
+
+        //index.getResources(element, searchKind, scope)
+        //FileObject classFo = org.netbeans.api.java.source.SourceUtils.getFile(ElementHandle.create(te), info.getClasspathInfo());
+
+        //Set<FileObject> fos = index.getResources(ElementHandle.create(te), Collections.singleton(ClassIndex.SearchKind.IMPLEMENTORS), scope);
+
+        TypeMirror tm = te.asType();
+        TypeElement typeElem = tm.getKind() == TypeKind.DECLARED ? (TypeElement) ((DeclaredType) tm).asElement() : null;
+
+        List<? extends Element> elements = null;
+        if (te != null) {
+            elements = theElements.getAllMembers(te);
+        }
+
+        if (elements != null) {
+            for (Element e : elements) {
+
+                if (e.getModifiers().contains(Modifier.PRIVATE)) {
+                    continue;
+                }
+
+                String sName = e.getSimpleName().toString();
+                if (!JavaUtilities.startsWith(sName, memberName)) {
+                    continue;
+                }
+
+                GsfElement gsfElement = null;
+
+                //String in = pe.getQualifiedName().toString() + "." + e.getEnclosingElement().getSimpleName().toString();
+
+                switch (e.getKind()) {
+                    case EXCEPTION_PARAMETER:
+                    case LOCAL_VARIABLE:
+                    case PARAMETER:
+                        break;
+                    case ENUM_CONSTANT:
+                    case FIELD: {
+                        if ("this".equals(sName) || "class".equals(sName) || "super".equals(sName)) {
+                            //results.add(JavaCompletionItem.createKeywordItem(ename, null, anchorOffset, false));
+                            } else {
+                            TypeMirror tm1 = tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType();
+                        //results.add(JavaCompletionItem.createVariableItem((VariableElement) e, tm, anchorOffset, typeElem != e.getEnclosingElement(), elements.isDeprecated(e), isOfSmartType(env, tm, smartTypes)));
+                        }
+
+//                            StringBuilder base = new StringBuilder();
+//                            base.append(simpleName.toLowerCase());
+//                            base.append(';');
+//                            if (in != null) {
+//                                base.append(in);
+//                            }
+//                            base.append(';');
+//                            base.append(simpleName);
+//                            base.append(';');
+//
+//                            String attrs = IndexedElement.encodeAttributes(e);
+//                            base.append(attrs);
+
+                        gsfElement = new GsfElement(e, null, info);
+                        //idxElement.setJavaInfo(e, info);
+                        break;
+                    }
+                    case CONSTRUCTOR:
+                        sName = e.getEnclosingElement().getSimpleName().toString();
+                    case METHOD: {
+                        ExecutableType et = (ExecutableType) (tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType());
+
+//                            StringBuilder base = new StringBuilder();
+//                            base.append(simpleName.toLowerCase());
+//                            base.append(';');
+//                            if (in != null) {
+//                                base.append(in);
+//                            }
+//                            base.append(';');
+//                            base.append(simpleName);
+//                            base.append(';');
+//
+//                            String attrs = IndexedElement.encodeAttributes(e);
+//                            base.append(attrs);
+
+                        gsfElement = new GsfElement(e, null, info);
+                        break;
+                    }
+                    case CLASS:
+                    case ENUM:
+                    case INTERFACE:
+                    case ANNOTATION_TYPE:
+                        DeclaredType dt = (DeclaredType) (tm.getKind() == TypeKind.DECLARED ? theTypes.asMemberOf((DeclaredType) tm, e) : e.asType());
+                        //results.add(JavaCompletionItem.createTypeItem((TypeElement) e, dt, anchorOffset, false, elements.isDeprecated(e), insideNew, false));
+                        break;
+                }
+
+                if (gsfElement == null) {
+                    continue;
+                }
+
+                if (isScala) {
+                    gsfElement.setScalaFromClass();
+                }
+
+                boolean isMethod = gsfElement.getElement() instanceof ExecutableElement;
+                if (isMethod && !includeMethods) {
+                    continue;
+                } else if (!isMethod && !includeFields) {
+                    continue;
+                }
+
+                if (onlyConstructors && te.getKind() != ElementKind.CONSTRUCTOR) {
+                    continue;
+                }
+
+                if (!haveRedirected) {
+                    gsfElement.setSmart(true);
+                }
+
+                inherited = typeElem != e.getEnclosingElement();
+                if (inherited) {
+                    gsfElement.setInherited(true);
+                }
+                gsfElements.add(gsfElement);
+            }
+        }
+
         return gsfElements;
-    }    
+    }
 }

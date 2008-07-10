@@ -65,9 +65,19 @@ import org.netbeans.modules.gsf.api.TranslatedSource;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import org.netbeans.modules.scala.editing.nodes.AstNodeVisitor;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
+import org.netbeans.modules.scala.editing.ScalaTreeVisitor;
 import org.netbeans.modules.scala.editing.rats.ParserScala;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
+import scala.Nil$;
+import scala.tools.nsc.CompilationUnits.CompilationUnit;
+import scala.tools.nsc.Global;
+import scala.tools.nsc.ast.Trees.Tree;
+import scala.tools.nsc.io.AbstractFile;
+import scala.tools.nsc.io.PlainFile;
+import scala.tools.nsc.reporters.Reporter;
+import scala.tools.nsc.util.BatchSourceFile;
+import scala.tools.nsc.util.Position;
 import xtc.parser.ParseError;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
@@ -85,6 +95,7 @@ public class ScalaParser implements Parser {
 
     private static float[] profile = new float[]{0.0f, 0.0f};
     private final PositionManager positions = createPositionManager();
+    private Global global;
 
     public ScalaParser() {
     }
@@ -131,8 +142,8 @@ public class ScalaParser implements Parser {
             long time = System.currentTimeMillis() - start;
             profile[0] += time / 1000.0f;
             profile[1] += 1.0f;
-            //System.out.println("Parsing time: " + time / 1000.0f + "s");
-            //System.out.println("Average parsing time: " + profile[0] / profile[1] + "s");
+        //System.out.println("Parsing time: " + time / 1000.0f + "s");
+        //System.out.println("Average parsing time: " + profile[0] / profile[1] + "s");
         }
     }
 
@@ -304,7 +315,7 @@ public class ScalaParser implements Parser {
 
         switch (sanitizing) {
             case NEVER:
-                return createParseResult(context.file, null, null, context.th);
+                return createParseResult(context.file, null, null, context.th, null);
 
             case NONE:
 
@@ -354,11 +365,11 @@ public class ScalaParser implements Parser {
             case MISSING_END:
             default:
                 // We're out of tricks - just return the failed parse result
-                return createParseResult(context.file, null, null, context.th);
+                return createParseResult(context.file, null, null, context.th, null);
         }
     }
 
-    protected ScalaParserResult parseBuffer(final Context context, final Sanitize sanitizing) {
+    protected ScalaParserResult parseBuffer_old(final Context context, final Sanitize sanitizing) {
         boolean sanitizedSource = false;
         String source = context.source;
 
@@ -466,18 +477,137 @@ public class ScalaParser implements Parser {
 
         if (rootScope != null) {
             context.sanitized = sanitizing;
-            ScalaParserResult r = createParseResult(context.file, rootScope, null, context.th);
-            r.setSanitized(context.sanitized, context.sanitizedRange, context.sanitizedContents);
-            r.setSource(source);
-            return r;
+            ScalaParserResult pResult = createParseResult(context.file, rootScope, null, context.th, null);
+            pResult.setSanitized(context.sanitized, context.sanitizedRange, context.sanitizedContents);
+            pResult.setSource(source);
+            return pResult;
         } else {
             return sanitize(context, sanitizing);
         }
     }
 
-    private ScalaParserResult createParseResult(ParserFile file, AstScope rootScope, ParserResult.AstTreeNode ast, TokenHierarchy th) {
+    protected ScalaParserResult parseBuffer(final Context context, final Sanitize sanitizing) {
+        boolean sanitizedSource = false;
+        String source = context.source;
 
-        return new ScalaParserResult(this, file, rootScope, ast, th);
+        if (!((sanitizing == Sanitize.NONE) || (sanitizing == Sanitize.NEVER))) {
+            boolean ok = sanitizeSource(context, sanitizing);
+
+            if (ok) {
+                assert context.sanitizedSource != null;
+                sanitizedSource = true;
+                source = context.sanitizedSource;
+            } else {
+                // Try next trick
+                return sanitize(context, sanitizing);
+            }
+        }
+
+        if (sanitizing == Sanitize.NONE) {
+            context.errorOffset = -1;
+        }
+
+        TokenHierarchy th = null;
+        BaseDocument doc = null;
+        /** If this file is under editing, always get th from incrementally lexed th via opened document */
+        JTextComponent target = EditorRegistry.lastFocusedComponent();
+        if (target != null) {
+            doc = (BaseDocument) target.getDocument();
+            if (doc != null) {
+                FileObject fo = NbEditorUtilities.getFileObject(doc);
+                if (fo == context.file.getFileObject()) {
+                    th = TokenHierarchy.get(doc);
+                }
+            }
+        }
+
+        if (th == null) {
+            th = TokenHierarchy.create(source, ScalaTokenId.language());
+        }
+
+        context.th = th;
+
+        final boolean ignoreErrors = sanitizedSource;
+
+        // ParserScala
+        Reader in = new StringReader(source);
+        String fileName = context.file != null ? context.file.getNameExt() : "<current>";
+
+        ParserScala parser = new ParserScala(in, fileName);
+        context.parser = parser;
+
+        AstScope rootScope = AstScope.emptyScope();
+
+        // Scala global parser
+        Reporter reporter = new ErrorReporter(context, sanitizing);
+        global = ScalaGlobal.getGlobal(context.file.getFileObject());
+        global.reporter_$eq(reporter);
+        Global.Run run = global.new Run();
+
+        scala.List srcFiles = Nil$.MODULE$;
+        AbstractFile srcFile = new PlainFile(context.file.getFile());
+        BatchSourceFile sf = new BatchSourceFile(srcFile, source.toCharArray());
+        srcFiles = srcFiles.$colon$colon(sf);
+
+        if (doc != null) {
+            // Read-lock due to Token hierarchy use
+            doc.readLock();
+        }
+        try {
+            Result r = parser.pCompilationUnit(0);
+            if (r.hasValue()) {
+                SemanticValue v = (SemanticValue) r;
+                GNode node = (GNode) v.value;
+
+                AstNodeVisitor visitor = new AstNodeVisitor(node, th);
+                visitor.visit(node);
+                rootScope = visitor.getRootScope();
+            } else {
+                ParseError error = r.parseError();
+            }
+
+            run.compileSources(srcFiles);
+        } catch (AssertionError ex) {
+            // avoid scala nsc's assert error
+        } catch (java.lang.Error ex) {
+            // avoid scala nsc's exceptions
+        } catch (IllegalArgumentException ex) {
+            // An internal exception thrown by ParserScala, just catch it and notify
+            notifyError(context, "SYNTAX_ERROR", ex.getMessage(),
+                    0, 0, sanitizing, Severity.ERROR, new Object[]{ex});
+        } catch (Exception ex) {
+            // Scala's global throws too many exceptions
+        } finally {
+            if (doc != null) {
+                doc.readUnlock();
+            }
+        }
+
+        //CompilationUnit unit = run.currentUnit(); it could be null when complie successfully?
+        ScalaTreeVisitor treeVisitor = null;
+        scala.Iterator units = run.units();
+        while (units.hasNext()) {
+            CompilationUnit unit = (CompilationUnit) units.next();
+            Tree tree = unit.body();
+            treeVisitor = new ScalaTreeVisitor(tree);
+            break;
+        }
+
+        if (rootScope != null) {
+            context.sanitized = sanitizing;
+            ScalaParserResult pResult = createParseResult(context.file, rootScope, null, context.th, treeVisitor);
+            pResult.setSanitized(context.sanitized, context.sanitizedRange, context.sanitizedContents);
+            pResult.setSource(source);
+            return pResult;
+        } else {
+            return sanitize(context, sanitizing);
+        }
+    }
+    private static long version;
+
+    private ScalaParserResult createParseResult(ParserFile file,
+            AstScope rootScope, ParserResult.AstTreeNode ast, TokenHierarchy th, ScalaTreeVisitor treeVisitor) {
+        return new ScalaParserResult(this, file, rootScope, ast, th, treeVisitor);
     }
 
     private List<Integer> computeLinesOffset(String source) {
@@ -520,6 +650,10 @@ public class ScalaParser implements Parser {
 
     public PositionManager getPositionManager() {
         return positions;
+    }
+
+    public Global getGlobal() {
+        return global;
     }
 
     /** Attempts to sanitize the input buffer */
@@ -587,6 +721,26 @@ public class ScalaParser implements Parser {
 
         public int getErrorOffset() {
             return errorOffset;
+        }
+    }
+
+    private class ErrorReporter extends Reporter {
+
+        private Context context;
+        private Sanitize sanitizing;
+
+        public ErrorReporter(Context context, Sanitize sanitizing) {
+            this.context = context;
+            this.sanitizing = sanitizing;
+        }
+
+        @Override
+        public void info0(Position pos, String msg, Severity severity, boolean force) {
+            int offset = ScalaUtils.getOffset(pos);
+            org.netbeans.modules.gsf.api.Severity sev = org.netbeans.modules.gsf.api.Severity.ERROR;
+
+            notifyError(context, "SYNTAX_ERROR", msg,
+                    offset, offset + 1, sanitizing, sev, new Object[]{offset, msg});
         }
     }
 }

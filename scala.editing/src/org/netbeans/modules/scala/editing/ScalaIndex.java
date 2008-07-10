@@ -58,6 +58,7 @@ import org.netbeans.modules.gsf.api.Index.SearchScope;
 import org.netbeans.modules.gsf.api.NameKind;
 import org.netbeans.modules.scala.editing.nodes.AstElement;
 import org.netbeans.modules.scala.editing.nodes.tmpls.Template;
+import org.netbeans.napi.gsfret.source.ClasspathInfo;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.URLMapper;
@@ -101,6 +102,30 @@ public class ScalaIndex {
         return set;
     }
 
+    public static ScalaIndex get(CompilationInfo info) {
+        Index index = info.getIndex(ScalaMimeResolver.MIME_TYPE);
+        ScalaIndex scalaIndex = new ScalaIndex(index, null, info);
+
+        JavaIndex javaIndex = JavaIndex.get(info.getFileObject(), scalaIndex);
+
+        scalaIndex.setJavaIndex(javaIndex);
+
+        return scalaIndex;
+    }
+
+    public static ScalaIndex get(FileObject fo) {
+        ClasspathInfo cpInfo = ClasspathInfo.create(fo);
+        Index index = cpInfo.getClassIndex(ScalaMimeResolver.MIME_TYPE);
+
+        ScalaIndex scalaIndex = new ScalaIndex(index, null, null);
+
+        JavaIndex javaIndex = JavaIndex.get(fo, scalaIndex);
+
+        scalaIndex.setJavaIndex(javaIndex);
+
+        return scalaIndex;
+    }
+
     /** Creates a new instance of ScalaIndex */
     private ScalaIndex(Index index, JavaIndex javaIndex, CompilationInfo info) {
         this.info = info;
@@ -110,17 +135,6 @@ public class ScalaIndex {
 
     private void setJavaIndex(JavaIndex javaIndex) {
         this.javaIndex = javaIndex;
-    }
-
-    public static ScalaIndex get(CompilationInfo info) {
-        Index index = info.getIndex(ScalaMimeResolver.MIME_TYPE);
-        ScalaIndex scalaIndex = new ScalaIndex(index, null, info);
-
-        JavaIndex javaIndex = JavaIndex.get(info, scalaIndex);
-
-        scalaIndex.setJavaIndex(javaIndex);
-
-        return scalaIndex;
     }
 
     private boolean search(String key, String name, NameKind kind, Set<SearchResult> result,
@@ -285,20 +299,20 @@ public class ScalaIndex {
             NameKind kind, Set<Index.SearchScope> scope, ScalaParserResult context,
             boolean onlyConstructors) {
 
-        Set<GsfElement> gsfElements = getMembers(prefix, type, kind, scope, context, onlyConstructors, true, true, false);
-        // Is there at least one non-inheried member?
-        boolean ofScala = false;
-        for (GsfElement gsfElement : gsfElements) {
-            if (!gsfElement.isInherited()) {
-                ofScala = true;
-                break;
-            }
-        }
+//        boolean ofScala = false;
+//        Set<GsfElement> gsfElements = getMembers(prefix, type, kind, scope, context, onlyConstructors, true, true, false);
+//        // Is there at least one non-inheried member?
+//        for (GsfElement gsfElement : gsfElements) {
+//            if (!gsfElement.isInherited()) {
+//                ofScala = true;
+//                break;
+//            }
+//        }
 
         /** @TODO we need a better way to check if it's of scala */
-        if (!ofScala) {
-            gsfElements = javaIndex.getMembers(prefix, type, toJavaNameKind(kind), toJavaSearchScope(scope), context, onlyConstructors, true, true, false);
-        }
+//        if (!ofScala) {
+        Set<GsfElement> gsfElements = javaIndex.getMembers(prefix, type, toJavaNameKind(kind), toJavaSearchScope(scope), context, onlyConstructors, true, true, false);
+//        }
 
         if (gsfElements.size() == 0) {
             gsfElements = javaIndex.getMembers(prefix, "java.lang.Object", toJavaNameKind(kind), toJavaSearchScope(scope), context, onlyConstructors, true, true, false);
@@ -307,23 +321,23 @@ public class ScalaIndex {
         return gsfElements;
     }
 
-    public Set<IndexedElement> getPackageContent(String fqnPrefix, NameKind kind, Set<SearchScope> scope) {
+    public Set<GsfElement> getPackageContent(String fqnPrefix, NameKind kind, Set<SearchScope> scope) {
 
-        Set<IndexedElement> idxElements = getTypesByQualifiedName(fqnPrefix, kind, scope, null, false, false, true);
+        Set<GsfElement> gsfElements = getTypesByQualifiedName(fqnPrefix, kind, scope, null, false, false, true);
 
-        idxElements.addAll(javaIndex.getPackageContent(fqnPrefix));
+        gsfElements.addAll(javaIndex.getPackageContent(fqnPrefix));
 
-        return idxElements;
+        return gsfElements;
     }
 
-    public Set<IndexedElement> getPackagesAndContent(String fqnPrefix, NameKind kind, Set<SearchScope> scope) {
+    public Set<GsfElement> getPackagesAndContent(String fqnPrefix, NameKind kind, Set<SearchScope> scope) {
 
-        Set<IndexedElement> idxElements = getTypesByQualifiedName(fqnPrefix, kind, scope, null, false, false, false);
+        //Set<IndexedElement> idxElements = getTypesByQualifiedName(fqnPrefix, kind, scope, null, false, false, false);
+        Set<GsfElement> gsfElements = javaIndex.getPackages(fqnPrefix);
+        //idxElements.addAll(javaIndex.getPackages(fqnPrefix));
+        gsfElements.addAll(javaIndex.getPackageContent(fqnPrefix));
 
-        idxElements.addAll(javaIndex.getPackages(fqnPrefix));
-        idxElements.addAll(javaIndex.getPackageContent(fqnPrefix));
-
-        return idxElements;
+        return gsfElements;
     }
 
     public Set<IndexedElement> getImportedTypes(List<String> importedPkg, String ofPackage) {
@@ -484,7 +498,7 @@ public class ScalaIndex {
         return gsfElements;
     }
 
-    private Set<IndexedElement> getTypesByQualifiedName(String fqnPrefix, NameKind kind,
+    private Set<GsfElement> getTypesByQualifiedName(String fqnPrefix, NameKind kind,
             Set<SearchScope> scope, ScalaParserResult context,
             boolean onlyConstructors, boolean includeDuplicates, boolean onlyContent) {
 
@@ -507,7 +521,7 @@ public class ScalaIndex {
             //terms = FQN_BASE_LOWER;
         }
 
-        final Set<IndexedElement> elements = includeDuplicates ? new DuplicateElementSet() : new HashSet<IndexedElement>();
+        final Set<GsfElement> elements = includeDuplicates ? new DuplicateElementSet() : new HashSet<GsfElement>();
         String searchUrl = null;
         if (context != null) {
             try {
@@ -568,6 +582,10 @@ public class ScalaIndex {
                 if (!IndexedElement.isTemplate(flags)) {
                     continue;
                 }
+                
+                String fileUrl = map.getPersistentUrl();
+
+                FileObject fo = ScalaIndex.getFileObject(fileUrl);
 
                 IndexedElement element = null;
 
@@ -595,8 +613,10 @@ public class ScalaIndex {
                     }
                 }
 
+                map.getPersistentUrl();
                 if (element != null) {
-                    elements.add(element);
+                    GsfElement gsfElement = new GsfElement(element, fo, null);
+                    elements.add(gsfElement);
                 }
 
             }
@@ -630,7 +650,7 @@ public class ScalaIndex {
             // TODO - do some heuristics to deal with relative paths here,
             // e.g.   <script src="../../foo.js"></script>
 
-            for (int i = 0,  n = imports.size(); i <
+            for (int i = 0,   n = imports.size(); i <
                     n; i++) {
                 String imp = imports.get(i);
                 if (imp.indexOf("../") != -1) {

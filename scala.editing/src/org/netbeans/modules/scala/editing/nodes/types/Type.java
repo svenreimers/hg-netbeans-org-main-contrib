@@ -41,6 +41,7 @@ package org.netbeans.modules.scala.editing.nodes.types;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -167,14 +168,14 @@ public class Type extends AstMirror implements DeclaredType {
                     String qName = importing.getPackageName() + "." + sName;
                     importedType.setElement(new BasicTypeElement(sName, new BasicName(qName)));
                 }
-                
+
                 if (importedType.getSimpleName().toString().equals(getSimpleName().toString())) {
                     element = (TypeElement) importedType.asElement();
                     break;
                 }
             }
         }
-        
+
         return element;
     }
 
@@ -211,11 +212,22 @@ public class Type extends AstMirror implements DeclaredType {
         if (type instanceof Type) {
             return ((Type) type).getSimpleName().toString();
         } else if (type instanceof BasicType) {
-            return ((BasicType) type).getSimpleName().toString();
+            Name sName = ((BasicType) type).getSimpleName();
+            if (sName == null) {
+                return null;
+            } else {
+                return sName.toString();
+            }
         } else {
-            return type.getKind() == TypeKind.DECLARED
-                    ? ((DeclaredType) type).asElement().getSimpleName().toString()
-                    : type.getKind().name().toLowerCase();
+            if (type.getKind() == TypeKind.DECLARED) {
+                return ((DeclaredType) type).asElement().getSimpleName().toString();
+            } else {
+                if (type.getKind() == TypeKind.WILDCARD) {
+                    return "_";
+                } else {
+                    return type.getKind().name().toLowerCase();
+                }
+            }
         }
     }
 
@@ -258,6 +270,29 @@ public class Type extends AstMirror implements DeclaredType {
                 return null;
             } else {
                 return (TypeElement) predType.asElement();
+            }
+        }
+    }
+
+    public static void htmlFormat(HtmlFormatter formatter, TypeMirror type, boolean usingSimpleName) {
+        if (usingSimpleName) {
+            formatter.appendText(simpleNameOf(type));
+        } else {
+            formatter.appendText(qualifiedNameOf(type));
+        }
+        if (type.getKind() == TypeKind.DECLARED) {
+            DeclaredType dclType = (DeclaredType) type;
+            List<? extends TypeMirror> typeArgs = dclType.getTypeArguments();
+            if (!typeArgs.isEmpty()) {
+                formatter.appendText("[");
+                for (Iterator<? extends TypeMirror> itr = typeArgs.iterator(); itr.hasNext();) {
+                    TypeMirror typeArg = itr.next();
+                    htmlFormat(formatter, typeArg, usingSimpleName);
+                    if (itr.hasNext()) {
+                        formatter.appendHtml(",");
+                    }
+                }
+                formatter.appendText("]");
             }
         }
     }
