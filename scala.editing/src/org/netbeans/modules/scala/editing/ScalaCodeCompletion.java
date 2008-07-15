@@ -1710,8 +1710,9 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             comment = ((GsfElement) element).getDocComment();
         } else if (element instanceof ScalaElement) {
             ScalaElement element1 = (ScalaElement) element;
-            sigFormatter.appendText(element1.getSymbol().nameString());
-            sigFormatter.appendText(element1.getSymbol().infoString(element1.getSymbol().tpe()));
+            sigFormatter.appendText(element1.getSymbol().defString());
+            //sigFormatter.appendText(element1.getSymbol().nameString());
+            //sigFormatter.appendText(element1.getSymbol().infoString(element1.getSymbol().tpe()));
             comment = element1.getDocComment();
         }
 
@@ -2035,17 +2036,17 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 
             ScalaElement element = null;
             CompletionProposal proposal = null;
-            if (member.isPublic() || member.isProtectedLocal() || member.isPrivateLocal()) {
+            if (member.isPublic() || member.isProtectedLocal()) {
                 if (member.isConstructor()) {
                     continue;
                 }
 
                 if (member.isMethod()) {
-                    element = new ScalaElement(member, request.global);
+                    element = new ScalaElement(member, request.info, request.global);
                     proposal = new FunctionProposal(element, request);
                 } else if (member.isVariable()) {
                 } else if (member.isValue()) {
-                    element = new ScalaElement(member, request.global);
+                    element = new ScalaElement(member, request.info, request.global);
                     proposal = new PlainProposal(element, request);
                 }
             }
@@ -2054,8 +2055,13 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                 boolean inherited = true;
                 Symbol resTypeSymbol = resType.typeSymbol();
                 Symbol enclClassSymbol = element.getSymbol().enclClass();
-                if (resTypeSymbol.fullNameString().equals(enclClassSymbol.fullNameString())) {
-                    inherited = false;
+                try {
+                    if (resTypeSymbol.fullNameString().equals(enclClassSymbol.fullNameString())) {
+                        inherited = false;
+                    }
+                } catch (java.lang.Error e) {
+                    // java.lang.Error: no-symbol does not have owner
+                    //         at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1565)
                 }
                 element.setInherited(inherited);
 

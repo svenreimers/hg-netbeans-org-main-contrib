@@ -42,7 +42,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.Enumeration;
 import java.util.Map;
+import java.util.Properties;
 import java.util.WeakHashMap;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.project.FileOwnerQuery;
@@ -54,107 +56,121 @@ import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.JarFileSystem;
 import org.openide.util.Exceptions;
-import scala.Nil;
+import scala.Nil$;
+import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
 import scala.tools.nsc.Settings;
+import scala.tools.nsc.util.BatchSourceFile;
 
 /**
  *
- * @author dcaoyuan
+ * @author Caoyuan Deng
  */
 public class ScalaGlobal {
 
-    private static Map<Project, Reference<Global>> projectToGlobal =
-            new WeakHashMap<Project, Reference<Global>>();
+    private static Map<FileObject, Reference<Global>> projectDirToGlobal =
+            new WeakHashMap<FileObject, Reference<Global>>();
 
     public static Global getGlobal(FileObject fo) {
         Global global = null;
 
         Project project = FileOwnerQuery.getOwner(fo);
+        FileObject prjDir = null;
         if (project != null) {
-            Reference<Global> globalRef = projectToGlobal.get(project);
-            if (globalRef != null) {
-                global = globalRef.get();
-                if (global != null) {
-                    return global;
-                } else {
-                    projectToGlobal.remove(global);
+            prjDir = project.getProjectDirectory();
+            if (prjDir != null) {
+                Reference<Global> globalRef = projectDirToGlobal.get(prjDir);
+                if (globalRef != null) {
+                    global = globalRef.get();
+                    if (global != null) {
+                        return global;
+                    } else {
+                        projectDirToGlobal.remove(global);
+                    }
                 }
             }
-
         }
-
-        final boolean onlyPresentation = false;
 
         final Settings settings = new Settings(null);
         settings.verbose().value_$eq(false);
-        settings.classpath().tryToSet(Nil.$colon$colon("").$colon$colon("-classpath"));
-        settings.bootclasspath().tryToSet(Nil.$colon$colon("").$colon$colon("-bootclasspath"));
+
+        settings.classpath().tryToSet(Nil$.MODULE$.$plus("-classpath").$plus(""));
+        settings.bootclasspath().tryToSet(Nil$.MODULE$.$plus("-bootclasspath").$plus(""));
+        settings.sourcepath().tryToSet(Nil$.MODULE$.$plus("-sourcepath").$plus(""));
 
         if (global == null) {
             global = new Global(settings) {
 
                 @Override
                 public boolean onlyPresentation() {
-                    return onlyPresentation;
+                    return true;
                 }
 
                 @Override
                 public void logError(String msg, Throwable t) {
-                    Exceptions.printStackTrace(t);
+                    //Exceptions.printStackTrace(t);
                 }
             };
-            
-            projectToGlobal.put(project, new WeakReference<Global>(global));
+
+            projectDirToGlobal.put(prjDir, new WeakReference<Global>(global));
         }
 
         if (project != null) {
             // add project's src and out path
-            FileObject prjFo = project.getProjectDirectory();
-            FileObject srcFo = null;
-            FileObject outFo = null;
-            if (prjFo != null) {
+
+            FileObject srcDir = null;
+            FileObject outDir = null;
+            if (prjDir != null) {
                 try {
-                    srcFo = prjFo.getFileObject("src");
-                    if (srcFo == null) {
-                        srcFo = prjFo.createFolder("src");
+                    srcDir = prjDir.getFileObject("src");
+                    if (srcDir == null) {
+                        srcDir = prjDir.createFolder("src");
                     }
-                    FileObject buildFo = prjFo.getFileObject("build");
+                    FileObject buildFo = prjDir.getFileObject("build");
                     if (buildFo == null) {
-                        buildFo = prjFo.createFolder("build");
+                        buildFo = prjDir.createFolder("build");
                     }
                     FileObject classesFo = buildFo.getFileObject("classes");
                     if (classesFo == null) {
                         classesFo = buildFo.createFolder("classes");
                     }
-                    outFo = prjFo.getFileObject("build/classes");
+                    outDir = prjDir.getFileObject("build/classes");
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);
                 }
 
-                String srcPath = srcFo == null ? "" : FileUtil.toFile(srcFo).getAbsolutePath();
-                if (outFo != null) {
-                    String outFoPath = FileUtil.toFile(outFo).getAbsolutePath();
-                    settings.outdir().tryToSet(Nil.$colon$colon(outFoPath).$colon$colon("-d"));
-                    global.classPath().library(outFoPath, srcPath);
+                String srcPath = srcDir == null ? "" : FileUtil.toFile(srcDir).getAbsolutePath();
+                if (outDir != null) {
+                    String outPath = FileUtil.toFile(outDir).getAbsolutePath();
+                    global.classPath().output(outPath, srcPath);
                 }
             }
 
             // add boot, compiler classpath
             ClassPathProvider cpp = project.getLookup().lookup(ClassPathProvider.class);
             if (cpp != null) {
-                addToGlobalClassPath(global, cpp.findClassPath(fo, ClassPath.BOOT));
-                addToGlobalClassPath(global, cpp.findClassPath(fo, ClassPath.COMPILE));
-                addToGlobalClassPath(global, cpp.findClassPath(fo, ClassPath.EXECUTE));
+                ClassPath bootCp = cpp.findClassPath(fo, ClassPath.BOOT);
+                ClassPath compileCp = cpp.findClassPath(fo, ClassPath.COMPILE);
+                if (bootCp == null || compileCp == null) {
+                    bootCp = ClassPath.getClassPath(fo, ClassPath.BOOT);
+                    compileCp = ClassPath.getClassPath(fo, ClassPath.COMPILE);
+                }
+                addToGlobalClassPath(global, bootCp);
+                addToGlobalClassPath(global, compileCp);
             }
         }
 
+        System.out.println(global.settings().scala$tools$nsc$Settings$$allsettings());
         return global;
     }
 
     private static void addToGlobalClassPath(Global global, ClassPath cp) {
-        String sources = "";
+        if (cp == null) {
+            return;
+        }
+
         for (ClassPath.Entry entry : cp.entries()) {
+            String sources = "";
             File rootFile = null;
             try {
                 FileObject entryRoot = entry.getRoot();
@@ -174,6 +190,37 @@ public class ScalaGlobal {
                 String path = rootFile.getAbsolutePath();
                 global.classPath().library(path, sources);
             }
+        }
+    }
+
+    public static CompilationUnit compileSource(final Global global, BatchSourceFile srcFile) {
+        Global.Run run = global.new Run();
+
+        scala.List srcFiles = Nil$.MODULE$.$colon$colon(srcFile);
+        try {
+            run.compileSources(srcFiles);
+        } catch (Exception ex) {
+            // just ignore all ex
+        }
+
+        scala.Iterator units = run.units();
+        while (units.hasNext()) {
+            CompilationUnit unit = (CompilationUnit) units.next();
+            if (unit.source() == srcFile) {
+                return unit;
+            }
+        }
+
+        return null;
+    }
+
+    private static void printProperties(Properties props) {
+        System.out.println("===========================");
+        Enumeration keys = props.keys();
+        while (keys.hasMoreElements()) {
+            String key = (String) keys.nextElement();
+            String value = (String) props.get(key);
+            System.out.println(key + ": " + value);
         }
     }
 }

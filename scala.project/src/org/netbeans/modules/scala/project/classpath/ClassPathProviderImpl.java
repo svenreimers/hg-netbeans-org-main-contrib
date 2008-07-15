@@ -47,47 +47,44 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import org.netbeans.modules.gsfpath.api.classpath.ClassPath;
+import org.netbeans.api.java.classpath.ClassPath;
+import org.netbeans.api.java.classpath.ClassPath.Entry;
+import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.scala.platform.ScalaPlatform;
 import org.netbeans.modules.java.api.common.SourceRoots;
-import org.netbeans.modules.gsfpath.spi.classpath.ClassPathFactory;
-import org.netbeans.modules.gsfpath.spi.classpath.ClassPathProvider;
-import org.netbeans.modules.gsfpath.spi.classpath.PathResourceImplementation;
-import org.netbeans.modules.scala.editing.ScalaLanguage;
+import org.netbeans.spi.java.classpath.ClassPathFactory;
+import org.netbeans.spi.java.classpath.ClassPathProvider;
+import org.netbeans.spi.java.classpath.PathResourceImplementation;
+import org.netbeans.spi.java.classpath.support.ClassPathSupport;
+import org.netbeans.spi.java.project.classpath.support.ProjectClassPathSupport;
 import org.netbeans.spi.project.support.ant.AntProjectHelper;
 import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
+import org.openide.util.Mutex;
 import org.openide.util.WeakListeners;
 
 /**
  * Defines the various class paths for a J2SE project.
  */
 public final class ClassPathProviderImpl implements ClassPathProvider, PropertyChangeListener {
-
+    private static final String SCALA_BOOT_CLASSPATH = "scala.boot.classpath";     // NOI18N
+    private static final String SCALAC_CLASS_PATH = "scala.classpath";        // NOI18N
+    private static final String SCALAC_EXT_PATH = "scala.ext.dirs";            //NOI18N
     private static final String BUILD_CLASSES_DIR = "build.classes.dir"; // NOI18N
-
     private static final String DIST_JAR = "dist.jar"; // NOI18N
-
     private static final String BUILD_TEST_CLASSES_DIR = "build.test.classes.dir"; // NOI18N
-
     private static final String JAVAC_CLASSPATH = "javac.classpath";    //NOI18N
-
     private static final String JAVAC_TEST_CLASSPATH = "javac.test.classpath";  //NOI18N
-
     private static final String RUN_CLASSPATH = "run.classpath";    //NOI18N
-
     private static final String RUN_TEST_CLASSPATH = "run.test.classpath";  //NOI18N
-
     private final AntProjectHelper helper;
     private final File projectDirectory;
     private final PropertyEvaluator evaluator;
     private final SourceRoots sourceRoots;
     private final SourceRoots testSourceRoots;
-    private final ClassPath[] cache = new ClassPath[9];
+    private final ClassPath[] cache = new ClassPath[8];
     private final Map<String, FileObject> dirCache = new HashMap<String, FileObject>();
     private final BootClassPathImplementation bootClassPathImpl;
 
@@ -103,16 +100,23 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
         evaluator.addPropertyChangeListener(WeakListeners.propertyChange(this, evaluator));
     }
 
-    private synchronized FileObject getDir(String propname) {
-        FileObject fo = (FileObject) this.dirCache.get(propname);
-        if (fo == null || !fo.isValid()) {
-            String prop = evaluator.getProperty(propname);
-            if (prop != null) {
-                fo = helper.resolveFileObject(prop);
-                this.dirCache.put(propname, fo);
+    private FileObject getDir(final String propname) {
+        return ProjectManager.mutex().readAccess(new Mutex.Action<FileObject>() {
+
+            public FileObject run() {
+                synchronized (ClassPathProviderImpl.this) {
+                    FileObject fo = (FileObject) ClassPathProviderImpl.this.dirCache.get(propname);
+                    if (fo == null || !fo.isValid()) {
+                        String prop = evaluator.getProperty(propname);
+                        if (prop != null) {
+                            fo = helper.resolveFileObject(prop);
+                            ClassPathProviderImpl.this.dirCache.put(propname, fo);
+                        }
+                    }
+                    return fo;
+                }
             }
-        }
-        return fo;
+        });
     }
 
     private FileObject[] getPrimarySrcPath() {
@@ -188,54 +192,48 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
             // Not a source file.
             return null;
         }
+
         ClassPath cp = cache[2 + type];
         if (cp == null) {
             List<PathResourceImplementation> resources = new ArrayList<PathResourceImplementation>();
 
-            ScalaPlatform platform = bootClassPathImpl.findActivePlatform();
-            if (platform != null) {
-                ClassPath platformSourcesCp = platform.getSourceFolders();
-                for (ClassPath.Entry entry : platformSourcesCp.entries()) {
-                    resources.add(org.netbeans.modules.gsfpath.spi.classpath.support.ClassPathSupport.createResource(entry.getURL()));
-                }
-            }
-
-            /** 
-             * @Note
-             * We should add scalaStubsFo to compileTimeClassPath to get index query including it, 
-             * that's GSF's implementation 
+            /**@TODO
+             * hacking for get scala platform's classpath and source path,
+             * should get them from project's classpath or properties.
              */
-            FileObject scalaStubsFo = ScalaLanguage.getScalaStubFo();
-            if (scalaStubsFo != null) {
-                try {
-                    resources.add(org.netbeans.modules.gsfpath.spi.classpath.support.ClassPathSupport.createResource(scalaStubsFo.getURL()));
-                } catch (FileStateInvalidException ex) {
-                    Exceptions.printStackTrace(ex);
+            ScalaPlatform scalaPlatform = bootClassPathImpl.findActiveScalaPlatform();
+            if (scalaPlatform != null) {
+                /**
+                 * we are not sure the initial order of gsf classpath and java classpath,
+                 * we here just call scalaPlatform.getStandardLibraries() to initial SCALAC_CLASS_PATH
+                 */
+                ClassPath scalaStdCp = scalaPlatform.getStandardLibraries();
+                for (Entry entry : scalaStdCp.entries()) {
+                    resources.add(ClassPathSupport.createResource(entry.getURL()));
                 }
             }
-            cp = org.netbeans.modules.gsfpath.spi.classpath.support.ClassPathSupport.createClassPath(resources);
 
-
-            /** 
-             * @Todo: should use property to gain classpath? otherwise how to sync with
-             * active platform's change?
             if (type == 0) {
-            cp = ClassPathFactory.createClassPath(
-            ProjectClassPathSupport.createPropertyBasedClassPathImplementation(
-            projectDirectory, evaluator, new String[] {JAVAC_CLASSPATH})); // NOI18N
+                cp = ClassPathFactory.createClassPath(
+                        ProjectClassPathSupport.createPropertyBasedClassPathImplementation(
+                        projectDirectory, evaluator, new String[]{JAVAC_CLASSPATH, SCALAC_CLASS_PATH})); // NOI18N
+            } else {
+                cp = ClassPathFactory.createClassPath(
+                        ProjectClassPathSupport.createPropertyBasedClassPathImplementation(
+                        projectDirectory, evaluator, new String[]{JAVAC_TEST_CLASSPATH, SCALAC_CLASS_PATH})); // NOI18N
             }
-            else {
-            cp = ClassPathFactory.createClassPath(
-            ProjectClassPathSupport.createPropertyBasedClassPathImplementation(
-            projectDirectory, evaluator, new String[] {JAVAC_TEST_CLASSPATH})); // NOI18N
+
+            for (ClassPath.Entry entry : cp.entries()) {
+                resources.add(ClassPathSupport.createResource(entry.getURL()));
             }
-             */
+            cp = ClassPathSupport.createClassPath(resources);
+            
             cache[2 + type] = cp;
         }
         return cp;
     }
 
-    private ClassPath getRunTimeClasspath(FileObject file) {
+    private synchronized ClassPath getRunTimeClasspath(FileObject file) {
         int type = getType(file);
         if (type < 0 || type > 4) {
             // Unregistered file, or in a JAR.
@@ -246,12 +244,22 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
         } else if (type > 1) {
             type -= 2;            //Compiled source transform into source
         }
-        return getRunTimeClasspath(type);
-    }
-    
-    private synchronized ClassPath getRunTimeClasspath(final int type) {     
         ClassPath cp = cache[4 + type];
         if (cp == null) {
+            List<PathResourceImplementation> resources = new ArrayList<PathResourceImplementation>();
+
+            ScalaPlatform scalaPlatform = bootClassPathImpl.findActiveScalaPlatform();
+            if (scalaPlatform != null) {
+                /**
+                 * we are not sure the initial order of gsf classpath and java classpath,
+                 * we here just call scalaPlatform.getStandardLibraries() to initial SCALAC_CLASS_PATH
+                 */
+                ClassPath scalaStdLibsCp = scalaPlatform.getStandardLibraries();
+                for (ClassPath.Entry entry : scalaStdLibsCp.entries()) {
+                    resources.add(ClassPathSupport.createResource(entry.getURL()));
+                }
+            }
+
             if (type == 0) {
                 cp = ClassPathFactory.createClassPath(
                         ProjectClassPathSupport.createPropertyBasedClassPathImplementation(
@@ -267,6 +275,12 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
                         ProjectClassPathSupport.createPropertyBasedClassPathImplementation(
                         projectDirectory, evaluator, new String[]{DIST_JAR})); // NOI18N
             }
+
+            for (ClassPath.Entry entry : cp.entries()) {
+                resources.add(ClassPathSupport.createResource(entry.getURL()));
+            }
+            cp = ClassPathSupport.createClassPath(resources);
+
             cache[4 + type] = cp;
         }
         return cp;
@@ -297,42 +311,14 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
     }
 
     private synchronized ClassPath getBootClassPath() {
-        if (bootClassPathImpl == null) {
-        }
-
         ClassPath cp = cache[7];
         if (cp == null) {
-            cp = ClassPathFactory.createClassPath(bootClassPathImpl);
+            cp = ClassPathFactory.createClassPath(new BootClassPathImplementation(evaluator));
             cache[7] = cp;
         }
         return cp;
     }
 
-    private synchronized ClassPath getBootSourcesClassPath() {
-        ClassPath cp = cache[8];
-        if (cp == null) {
-            ScalaPlatform platform = bootClassPathImpl.findActivePlatform();
-            if (platform != null) {
-                cp = platform.getSourceFolders();
-            }
-            cache[8] = cp;
-        }
-        return cp;
-    }
-    
-    /**
-     * Since GSF can not indexing binary boot/compilt classpath, when finding type is BOOT/COMPILE,
-     * such as when create/get index of Source's ClassPathInfo @see 
-     *   org.netbeans.napi.gsfret.source.Source#forFileObject(FileObject), and
-     *   org.netbeans.napi.gsfret.source.ClasspathInfo#create(FileObject, Object, boolean, boolean)
-     * we should provide platform libs' sources' classpath instead of binary classpath, same as doing
-     * in J2SEProject as: 
-     *   GlobalPathRegistry.getDefault().register(ClassPath.BOOT, cpProvider.getProjectSourcesClassPaths(ClassPath.BOOT));
-     * 
-     * @param file
-     * @param type
-     * @return
-     */
     public ClassPath findClassPath(FileObject file, String type) {
         if (type.equals(ClassPath.COMPILE)) {
             return getCompileTimeClasspath(file);
@@ -341,12 +327,12 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
         } else if (type.equals(ClassPath.SOURCE)) {
             return getSourcepath(file);
         } else if (type.equals(ClassPath.BOOT)) {
-            return getBootSourcesClassPath();
+            return getBootClassPath();
         } else {
             return null;
         }
     }
-    
+
     /**
      * Returns array of all classpaths of the given type in the project.
      * The result is used for example for GlobalPathRegistry registrations.
@@ -372,34 +358,12 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
     }
 
     /**
-     * Returns array of all sources classpaths of the given type in the project.
-     * The result is used for example for GlobalPathRegistry registrations.
-     */
-    public ClassPath[] getProjectSourcesClassPaths(String type) {
-        if (ClassPath.BOOT.equals(type)) {
-            return new ClassPath[]{getBootSourcesClassPath()};
-        }
-        if (ClassPath.COMPILE.equals(type)) {
-            /** @Todo should return source classpath */
-            return new ClassPath[]{};
-        }
-        if (ClassPath.SOURCE.equals(type)) {
-            ClassPath[] l = new ClassPath[2];
-            l[0] = getSourcepath(0);
-            l[1] = getSourcepath(1);
-            return l;
-        }
-        assert false;
-        return null;
-    }
-
-    /**
      * Returns the given type of the classpath for the project sources
      * (i.e., excluding tests roots).
      */
     public ClassPath getProjectSourcesClassPath(String type) {
         if (ClassPath.BOOT.equals(type)) {
-            return getBootSourcesClassPath();
+            return getBootClassPath();
         }
         if (ClassPath.COMPILE.equals(type)) {
             return getCompileTimeClasspath(0);
@@ -407,9 +371,7 @@ public final class ClassPathProviderImpl implements ClassPathProvider, PropertyC
         if (ClassPath.SOURCE.equals(type)) {
             return getSourcepath(0);
         }
-        if (ClassPath.EXECUTE.equals(type)) {
-            return getRunTimeClasspath(0);            
-        }
+        assert false;
         return null;
     }
 

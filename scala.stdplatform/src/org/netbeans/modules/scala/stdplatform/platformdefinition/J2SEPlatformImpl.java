@@ -48,11 +48,11 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.File;
 
-import org.netbeans.modules.gsfpath.api.classpath.ClassPath;
+import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.scala.platform.ScalaPlatform;
 import org.netbeans.api.scala.platform.Specification;
-import org.netbeans.modules.gsfpath.spi.classpath.PathResourceImplementation;
-import org.netbeans.modules.gsfpath.spi.classpath.support.ClassPathSupport;
+import org.netbeans.spi.java.classpath.PathResourceImplementation;
+import org.netbeans.spi.java.classpath.support.ClassPathSupport;
 import org.netbeans.spi.project.support.ant.PropertyUtils;
 import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.FileObject;
@@ -72,6 +72,7 @@ public class J2SEPlatformImpl extends ScalaPlatform {
     protected static final String PLAT_PROP_ARCH_FOLDER="scala.platform.arch.folder";       //NOI18N
     protected static final String SYSPROP_BOOT_CLASSPATH = "scala.boot.class.path";     // NOI18N
     protected static final String SYSPROP_SCALA_CLASS_PATH = "scala.class.path";        // NOI18N
+    protected static final String SYSPROP_SCALA_SOURCE_PATH = "scala.source.path";        // NOI18N
     protected static final String SYSPROP_JAVA_EXT_PATH = "scala.ext.dirs";            //NOI18N
     protected static final String SYSPROP_USER_DIR = "user.dir";                      //NOI18N
 
