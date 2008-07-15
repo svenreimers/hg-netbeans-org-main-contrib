@@ -40,6 +40,7 @@
  */
 package org.netbeans.modules.scala.editing;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -65,7 +66,6 @@ import org.netbeans.modules.gsf.api.TranslatedSource;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import org.netbeans.modules.scala.editing.nodes.AstNodeVisitor;
 import org.netbeans.modules.scala.editing.nodes.AstScope;
-import org.netbeans.modules.scala.editing.ScalaTreeVisitor;
 import org.netbeans.modules.scala.editing.rats.ParserScala;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
@@ -73,8 +73,6 @@ import scala.Nil$;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Tree;
-import scala.tools.nsc.io.AbstractFile;
-import scala.tools.nsc.io.PlainFile;
 import scala.tools.nsc.reporters.Reporter;
 import scala.tools.nsc.util.BatchSourceFile;
 import scala.tools.nsc.util.Position;
@@ -531,9 +529,11 @@ public class ScalaParser implements Parser {
 
         // ParserScala
         Reader in = new StringReader(source);
-        String fileName = context.file != null ? context.file.getNameExt() : "<current>";
+        File ioFile = context.file != null ? context.file.getFile() : null;
+        // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
+        String filePath = ioFile != null ? ioFile.getAbsolutePath() : "<current>";
 
-        ParserScala parser = new ParserScala(in, fileName);
+        ParserScala parser = new ParserScala(in, filePath);
         context.parser = parser;
 
         AstScope rootScope = AstScope.emptyScope();
@@ -544,10 +544,8 @@ public class ScalaParser implements Parser {
         global.reporter_$eq(reporter);
         Global.Run run = global.new Run();
 
-        scala.List srcFiles = Nil$.MODULE$;
-        AbstractFile srcFile = new PlainFile(context.file.getFile());
-        BatchSourceFile sf = new BatchSourceFile(srcFile, source.toCharArray());
-        srcFiles = srcFiles.$colon$colon(sf);
+        BatchSourceFile srcFile = new BatchSourceFile(filePath, source.toCharArray());
+        scala.List srcFiles = Nil$.MODULE$.$colon$colon(srcFile);
 
         if (doc != null) {
             // Read-lock due to Token hierarchy use
@@ -588,9 +586,11 @@ public class ScalaParser implements Parser {
         scala.Iterator units = run.units();
         while (units.hasNext()) {
             CompilationUnit unit = (CompilationUnit) units.next();
-            Tree tree = unit.body();
-            treeVisitor = new ScalaTreeVisitor(tree);
-            break;
+            if (unit.source() == srcFile) {
+                Tree tree = unit.body();
+                treeVisitor = new ScalaTreeVisitor(tree);
+                break;
+            }
         }
 
         if (rootScope != null) {

@@ -41,35 +41,38 @@
 package org.netbeans.modules.scala.project.classpath;
 
 import java.beans.PropertyChangeEvent;
-import org.netbeans.modules.gsfpath.spi.classpath.ClassPathImplementation;
-import org.netbeans.modules.gsfpath.spi.classpath.PathResourceImplementation;
-import org.netbeans.modules.gsfpath.spi.classpath.support.ClassPathSupport;
-import org.netbeans.api.scala.platform.ScalaPlatform;
-import org.netbeans.api.scala.platform.ScalaPlatformManager;
-import org.netbeans.modules.gsfpath.api.classpath.ClassPath;
+import org.netbeans.spi.java.classpath.ClassPathImplementation;
+import org.netbeans.spi.java.classpath.PathResourceImplementation;
+import org.netbeans.spi.java.classpath.support.ClassPathSupport;
+import org.netbeans.api.java.classpath.ClassPath;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.netbeans.modules.scala.project.J2SEProjectUtil;
+import org.netbeans.api.java.platform.JavaPlatform;
+import org.netbeans.api.java.platform.JavaPlatformManager;
+import org.netbeans.api.scala.platform.ScalaPlatform;
+import org.netbeans.api.scala.platform.ScalaPlatformManager;
 import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.openide.util.WeakListeners;
 
-final public class BootClassPathImplementation implements ClassPathImplementation, PropertyChangeListener {
+final class BootClassPathImplementation implements ClassPathImplementation, PropertyChangeListener {
 
-    private static final String PLATFORM_ACTIVE = "platform.active";        //NOI18N
-
-    private static final String ANT_NAME = "scala.platform.ant.name";             //NOI18N
-
-    private static final String J2SE = "std";                              //NOI18N
+    private static final String PLATFORM_ACTIVE = "java.platform.active";       //NOI18N
+    private static final String ANT_NAME = "java.platform.ant.name";            //NOI18N
+    private static final String J2SE = "j2se";                                  //NOI18N
+    private static final String SCALA_PLATFORM_ACTIVE = "platform.active";      //NOI18N
 
     private final PropertyEvaluator evaluator;
-    private ScalaPlatformManager platformManager;
+    private JavaPlatformManager platformManager;
+    private ScalaPlatformManager scalaPlatformManager;
     //name of project active platform
     private String activePlatformName;
+    private String activeScalaPlatformName;
     //active platform is valid (not broken reference)
     private boolean isActivePlatformValid;
+    private boolean isActiveScalaPlatformValid;
     private List<PathResourceImplementation> resourcesCache;
     private PropertyChangeSupport support = new PropertyChangeSupport(this);
     private long eventId;
@@ -88,8 +91,8 @@ final public class BootClassPathImplementation implements ClassPathImplementatio
             }
             currentId = eventId;
         }
-
-        ScalaPlatform jp = findActivePlatform();
+        
+        JavaPlatform jp = findActivePlatform ();
         final List<PathResourceImplementation> result = new ArrayList<PathResourceImplementation>();
         if (jp != null) {
             //TODO: May also listen on CP, but from Platform it should be fixed.            
@@ -99,65 +102,93 @@ final public class BootClassPathImplementation implements ClassPathImplementatio
                 result.add(ClassPathSupport.createResource(entry.getURL()));
             }
         }
-
+        
+        ScalaPlatform sp = findActiveScalaPlatform();
+        if (sp != null) {
+            final ClassPath cp = sp.getBootstrapLibraries();
+            assert cp != null : cp;
+            for (ClassPath.Entry entry : cp.entries()) {
+                result.add(ClassPathSupport.createResource(entry.getURL()));
+            }
+        }
+        
         synchronized (this) {
             if (currentId == eventId) {
                 if (this.resourcesCache == null) {
                     this.resourcesCache = Collections.unmodifiableList(result);
                 }
                 return this.resourcesCache;
-            } else {
-                return Collections.unmodifiableList(result);
             }
-        }
+            else {
+                return Collections.unmodifiableList (result);
+            }           
+        }       
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        this.support.addPropertyChangeListener(listener);
+        this.support.addPropertyChangeListener (listener);
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-        this.support.removePropertyChangeListener(listener);
+        this.support.removePropertyChangeListener (listener);
     }
 
-    public ScalaPlatform findActivePlatform() {
+    protected JavaPlatform findActivePlatform () {
         if (this.platformManager == null) {
-            this.platformManager = ScalaPlatformManager.getDefault();
+            this.platformManager = JavaPlatformManager.getDefault();
             this.platformManager.addPropertyChangeListener(WeakListeners.propertyChange(this, this.platformManager));
-        }
+        }                
         this.activePlatformName = evaluator.getProperty(PLATFORM_ACTIVE);
-        final ScalaPlatform activePlatform = J2SEProjectUtil.getActivePlatform(this.activePlatformName);
+        final JavaPlatform activePlatform = platformManager.getDefaultPlatform();
+        //final JavaPlatform activePlatform = J2SEProjectUtil.getActivePlatform (this.activePlatformName);
         this.isActivePlatformValid = activePlatform != null;
         return activePlatform;
     }
-
+    
+    protected ScalaPlatform findActiveScalaPlatform () {
+        if (this.scalaPlatformManager == null) {
+            this.scalaPlatformManager = ScalaPlatformManager.getDefault();
+            this.scalaPlatformManager.addPropertyChangeListener(WeakListeners.propertyChange(this, this.platformManager));
+        }                
+        this.activeScalaPlatformName = evaluator.getProperty(SCALA_PLATFORM_ACTIVE);
+        final ScalaPlatform activePlatform = scalaPlatformManager.getDefaultPlatform();
+        //final JavaPlatform activePlatform = J2SEProjectUtil.getActivePlatform (this.activePlatformName);
+        this.isActiveScalaPlatformValid = activePlatform != null;
+        return activePlatform;
+    }
+    
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getSource() == this.evaluator && evt.getPropertyName().equals(PLATFORM_ACTIVE)) {
             //Active platform was changed
-            resetCache();
-        } else if (evt.getSource() == this.platformManager && ScalaPlatformManager.PROP_INSTALLED_PLATFORMS.equals(evt.getPropertyName()) && activePlatformName != null) {
+            resetCache ();
+        }
+        else if (evt.getSource() == this.platformManager && JavaPlatformManager.PROP_INSTALLED_PLATFORMS.equals(evt.getPropertyName()) && activePlatformName != null) {
             //Platform definitions were changed, check if the platform was not resolved or deleted
+            /** @Commented by Caoyuan todo
             if (this.isActivePlatformValid) {
-                if (J2SEProjectUtil.getActivePlatform(this.activePlatformName) == null) {
+                if (J2SEProjectUtil.getActivePlatform (this.activePlatformName) == null) {
                     //the platform was not removed
                     this.resetCache();
                 }
-            } else {
-                if (J2SEProjectUtil.getActivePlatform(this.activePlatformName) != null) {
+            }
+            else {
+                if (J2SEProjectUtil.getActivePlatform (this.activePlatformName) != null) {
                     this.resetCache();
                 }
             }
+            */
         }
     }
-
+    
     /**
      * Resets the cache and firesPropertyChange
      */
-    private void resetCache() {
+    private void resetCache () {
         synchronized (this) {
             resourcesCache = null;
             eventId++;
         }
         support.firePropertyChange(PROP_RESOURCES, null, null);
     }
+    
 }

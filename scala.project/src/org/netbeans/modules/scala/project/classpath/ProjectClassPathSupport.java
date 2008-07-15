@@ -40,7 +40,7 @@
 package org.netbeans.modules.scala.project.classpath;
 
 import java.io.File;
-import org.netbeans.modules.gsfpath.spi.classpath.ClassPathImplementation;
+import org.netbeans.spi.java.classpath.ClassPathImplementation;
 import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 
 /**
