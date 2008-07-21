@@ -39,16 +39,26 @@
 package org.netbeans.modules.scala.editing.ast;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
+import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.HtmlFormatter;
+import org.netbeans.modules.gsf.api.Modifier;
 import org.netbeans.modules.gsf.api.OffsetRange;
+import org.netbeans.modules.scala.editing.NbUtilities;
+import org.netbeans.modules.scala.editing.ScalaGlobal;
+import org.netbeans.modules.scala.editing.ScalaUtils;
+import org.openide.filesystems.FileObject;
 import scala.tools.nsc.symtab.Symbols.Symbol;
+import scala.tools.nsc.symtab.Symbols.TypeSymbol;
+import scala.tools.nsc.symtab.Types.Type;
 
 /**
- * Element with AstNode information
+ * AST Definition
  * 
  * Represents a program element such as a package, class, or method. Each element 
  * represents a static, language-level construct (and not, for example, a runtime 
@@ -56,17 +66,33 @@ import scala.tools.nsc.symtab.Symbols.Symbol;
  * 
  * @author Caoyuan Deng
  */
-public class AstDef extends AstItem {
+public class AstDef extends AstItem implements ScalaElementHandle {
 
     private ElementKind kind;
     private AstScope bindingScope;
+    private Set<Modifier> modifiers;
+    private FileObject fo;
 
-    protected AstDef(Symbol symbol, Token pickToken, AstScope bindingScope, ElementKind kind) {
+    protected AstDef(Symbol symbol, Token pickToken, AstScope bindingScope, ElementKind kind, FileObject fo) {
         super(symbol, pickToken);
         this.kind = kind;
         if (bindingScope != null) {
             this.bindingScope = bindingScope;
             this.bindingScope.setBindingDef(this);
+        }
+        this.fo = fo;
+    }
+
+    public Type getType() {
+        return getSymbol().tpe();
+    }
+
+    @Override
+    public String getName() {
+        if (getKind() == ElementKind.CONSTRUCTOR) {
+            return getSymbol().enclClass().nameString();
+        } else {
+            return super.getName();
         }
     }
 
@@ -92,7 +118,7 @@ public class AstDef extends AstItem {
 
     @Override
     public String toString() {
-        return getSimpleName() + "(kind=" + getKind() + ", type=" + getSymbol().tpe() + ")";
+        return "Def: " + getName() + " (idToken=" + getIdToken() + ", kind=" + getKind() + ", type=" + getSymbol().tpe() + ")";
     }
 
     public AstScope getBindingScope() {
@@ -113,45 +139,220 @@ public class AstDef extends AstItem {
     }
 
     public boolean isReferredBy(AstRef ref) {
-        return getSimpleName().toString().equals(ref.getSimpleName().toString());
-    }
-
-    public boolean mayEqual(AstDef def) {
-        return getSimpleName().equals(def.getSimpleName());
-    }
-
-    @Override
-    public void htmlFormat(HtmlFormatter formatter) {
-        super.htmlFormat(formatter);
-        formatter.appendText(getSimpleName().toString());
-    }
-
-    public static boolean isReferredBy(AstDef def, AstRef ref) {
-        if (def.getKind() == ElementKind.METHOD) {
-//            ExecutableElement function = (ExecutableElement) def;
-//            FunctionCall funCall = (FunctionCall) ref;
-//            List<? extends VariableElement> params = function.getParameters();
-//            // only check local call only
-//            if (funCall.isLocal()) {
-//                return def.getSimpleName().toString().equals(funCall.getCall().getSimpleName().toString()) &&
-//                        params != null &&
-//                        params.size() == funCall.getArgs().size();
-//            } else {
-//                boolean containsVariableLengthArg = Function.isVarArgs(function);
-//                if (def.getSimpleName().toString().equals(funCall.getCall().getSimpleName().toString()) || def.getSimpleName().toString().equals("apply") && funCall.isLocal()) {
-//                    if (params.size() == funCall.getArgs().size() || containsVariableLengthArg) {
-//                        return true;
-//                    }
-//                }
-//
-//                return false;
-//            }
-        } else {
-            if (def.getSimpleName().equals(ref.getSimpleName())) {
+        if (ref.getName().equals(getName())) {
+            if ((getSymbol().isClass() || getSymbol().isModule()) && ref.isSameNameAsEnclClass()) {
                 return true;
             }
+
+            return ref.getSymbol() == getSymbol();
         }
 
         return false;
+    }
+
+    public boolean mayEqual(AstDef def) {
+        return this == def;
+    //return getName().equals(def.getName());
+    }
+
+    public String getDocComment() {
+        BaseDocument srcDoc = getDoc();
+        if (srcDoc == null) {
+            return null;
+        }
+        
+        TokenHierarchy th = TokenHierarchy.get(srcDoc);
+        if (th == null) {
+            return null;
+        }
+
+        return ScalaUtils.getDocComment(srcDoc, getIdOffset(th));
+    }
+
+    public BaseDocument getDoc() {
+        FileObject srcFo = getFileObject();
+        if (srcFo != null) {
+            return NbUtilities.getDocument(srcFo, true);
+        } else {
+            return null;
+        }
+    }
+
+    public void htmlFormat(HtmlFormatter formatter) {
+        formatter.appendText(getName());
+        //htmlFormat(formatter, this, false);
+        switch (getKind()) {
+            case PACKAGE:
+            case CLASS:
+            case MODULE:
+                break;
+            default:
+                //Type resType = getType().resultType();
+                formatter.appendText(" : ");
+                formatter.appendText(toString(getType()));
+            //formatter.appendText(resType.toString());
+            //htmlFormat(formatter, resType, true);
+        }
+    }
+
+    public Set<Modifier> getModifiers() {
+        if (modifiers != null) {
+            return modifiers;
+        }
+
+        modifiers = new HashSet<Modifier>();
+
+        Symbol symbol = getSymbol();
+        if (symbol.isPublic()) {
+            modifiers.add(Modifier.PUBLIC);
+        }
+
+        if (symbol.isPrivateLocal()) {
+            modifiers.add(Modifier.PRIVATE);
+        }
+
+        if (symbol.isProtectedLocal()) {
+            modifiers.add(Modifier.PROTECTED);
+        }
+
+        // java.lang.Error: no-symbol does not have owner
+        // at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1565)
+        // at scala.tools.nsc.symtab.Symbols$Symbol.isStatic(Symbols.scala:312)
+        //if (symbol.isStatic()) {
+        //    modifiers.add(Modifier.STATIC);
+        //}
+
+        return modifiers;
+    }
+
+    public FileObject getFileObject() {
+        return fo;
+    }
+
+    public String getPackageName() {
+        Symbol packaging = getSymbol().enclosingPackage();
+        if (packaging != null) {
+            return packaging.fullNameString();
+        }
+        return null;
+    }
+
+    public String getQualifiedName() {
+        String pkgName = getPackageName();
+        if (pkgName == null) {
+            return getName();
+        } else {
+            return new StringBuilder().append(pkgName).append(".").append(getName()).toString();
+        }
+    }
+
+    public boolean isInherited() {
+        return false;
+    }
+
+    public boolean isDeprecated() {
+        return false;
+    }
+
+    public boolean isEmphasize() {
+        return false;
+    }
+
+    public static String htmlFormat(HtmlFormatter formatter, ScalaElementHandle handle, boolean withKind) {
+        Symbol symbol = handle.getSymbol();
+
+        boolean strike = handle.isDeprecated();
+        boolean emphasize = !handle.isEmphasize();
+        if (strike) {
+            formatter.deprecated(true);
+        }
+        if (emphasize) {
+            formatter.emphasis(true);
+        }
+
+        if (withKind) {
+            ElementKind kind = handle.getKind();
+            formatter.name(kind, true);
+            formatter.appendText(handle.getName());
+            formatter.name(kind, false);
+        } else {
+            formatter.appendText(handle.getName());
+        }
+
+        if (emphasize) {
+            formatter.emphasis(false);
+        }
+        if (strike) {
+            formatter.deprecated(false);
+        }
+
+        Type type = symbol.tpe();
+        htmlFormat(formatter, type, false);
+
+        return formatter.getText();
+    }
+
+    public static String htmlFormat(HtmlFormatter formatter, Type type, boolean alsoName) {
+        if (alsoName) {
+            formatter.appendText(type.typeSymbol().nameString());
+        }
+
+        scala.List typeParams = type.typeParams();
+        if (!typeParams.isEmpty()) {
+            formatter.appendHtml("[");
+            int size = typeParams.size();
+            for (int i = 0; i < size; i++) {
+                TypeSymbol typeParam = (TypeSymbol) typeParams.apply(i);
+                formatter.appendText(typeParam.nameString());
+
+                if (i < size - 1) {
+                    formatter.appendText(", "); // NOI18N
+                }
+            }
+
+            formatter.appendHtml("]");
+        }
+
+        scala.List paramTypes = type.paramTypes();
+        if (!paramTypes.isEmpty()) {
+            formatter.appendHtml("("); // NOI18N
+
+            int size = paramTypes.size();
+            for (int i = 0; i < size; i++) {
+                Type param = (Type) paramTypes.apply(i);
+
+                formatter.parameters(true);
+                formatter.appendText("a" + Integer.toString(i));
+                formatter.parameters(false);
+                formatter.appendText(": ");
+                htmlFormat(formatter, param, true);
+
+                if (i < size - 1) {
+                    formatter.appendText(", "); // NOI18N
+                }
+            }
+
+            formatter.appendHtml(")"); // NOI18N
+        }
+
+        return formatter.getText();
+    }
+
+    public static String toString(Type type) {
+        String str = null;
+        try {
+            str = type.toString();
+        } catch (java.lang.AssertionError ex) {
+            // ignore assert ex from scala
+            ScalaGlobal.reset();
+        } catch (Throwable ex) {
+            ScalaGlobal.reset();
+        }
+
+        if (str == null) {
+            str = type.termSymbol().nameString();
+        }
+
+        return str;
     }
 }

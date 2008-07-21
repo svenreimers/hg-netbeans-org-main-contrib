@@ -48,12 +48,12 @@ import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.OccurrencesFinder;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.editor.BaseDocument;
+import org.netbeans.modules.scala.editing.ast.AstDef;
+import org.netbeans.modules.scala.editing.ast.AstItem;
+import org.netbeans.modules.scala.editing.ast.AstRef;
+import org.netbeans.modules.scala.editing.ast.AstRootScope;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
-import org.netbeans.modules.scala.editing.nodes.AstNode;
-import org.netbeans.modules.scala.editing.nodes.AstElement;
-import org.netbeans.modules.scala.editing.nodes.AstMirror;
-import org.netbeans.modules.scala.editing.nodes.AstScope;
 
 /**
  *
@@ -104,7 +104,7 @@ public class ScalaOccurrencesFinder implements OccurrencesFinder {
             return;
         }
 
-        AstScope rootScope = result.getRootScope();
+        AstRootScope rootScope = result.getRootScope();
         if (rootScope == null) {
             return;
         }
@@ -118,13 +118,14 @@ public class ScalaOccurrencesFinder implements OccurrencesFinder {
 
         final TokenHierarchy th = TokenHierarchy.get(document);
         
-        AstNode closest = rootScope.findElementOrMirror(th, caretPosition);
+        // we'll find item by offset of item's idToken, so, use caretPosition directly
+        AstItem item = rootScope.findItemAt(th, caretPosition);
 
         int astOffset = AstUtilities.getAstOffset(info, caretPosition);
         if (astOffset == -1) {
             return;
         }
-
+        
 //        AstPath path = new AstPath(root, astOffset);
 //        Node closest = path.leaf();        
 
@@ -133,7 +134,7 @@ public class ScalaOccurrencesFinder implements OccurrencesFinder {
         OffsetRange blankRange = result.getSanitizedRange();
 
         if (blankRange.containsInclusive(astOffset)) {
-            closest = null;
+            item = null;
         }
 
         // JRuby sometimes gives me some "weird" sections. For example,
@@ -144,7 +145,7 @@ public class ScalaOccurrencesFinder implements OccurrencesFinder {
         // rather than give a parse error on obj, it marks the whole region from
         // . to the end of Scanf as a CallNode, which is a weird highlight.
         // We don't want occurrences highlights that span lines.
-        if (closest != null && (closest instanceof AstElement || closest instanceof AstMirror)) {
+        if (item != null && (item instanceof AstDef || item instanceof AstRef)) {
             BaseDocument doc = (BaseDocument) info.getDocument();
             if (doc == null) {
                 // Document was just closed
@@ -153,7 +154,7 @@ public class ScalaOccurrencesFinder implements OccurrencesFinder {
             try {
                 doc.readLock();
                 int length = doc.getLength();
-                OffsetRange astRange = ScalaLexUtilities.getRangeOfToken(th, closest.getPickToken());
+                OffsetRange astRange = ScalaLexUtilities.getRangeOfToken(th, item.getIdToken());
                 OffsetRange lexRange = ScalaLexUtilities.getLexerOffsets(info, astRange);
                 int lexStartPos = lexRange.getStart();
                 int lexEndPos   = lexRange.getEnd();
@@ -216,12 +217,12 @@ public class ScalaOccurrencesFinder implements OccurrencesFinder {
             }
         }
 
-        if (closest != null) {
-            List<AstNode> _occurrences = rootScope.findOccurrences(closest);
-            for (AstNode node : _occurrences) {
-                highlights.put(ScalaLexUtilities.getRangeOfToken(th, node.getPickToken()), ColoringAttributes.MARK_OCCURRENCES);
+        if (item != null) {
+            List<? extends AstItem> _occurrences = rootScope.findOccurrences(item);
+            for (AstItem _item : _occurrences) {
+                highlights.put(ScalaLexUtilities.getRangeOfToken(th, _item.getIdToken()), ColoringAttributes.MARK_OCCURRENCES);
             }
-            closest = null;
+            item = null;
         }
 
         if (isCancelled()) {

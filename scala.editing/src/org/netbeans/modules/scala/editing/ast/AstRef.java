@@ -36,10 +36,10 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.scala.editing.ast;
 
 import org.netbeans.api.lexer.Token;
+import org.netbeans.modules.gsf.api.ElementKind;
 import scala.tools.nsc.symtab.Symbols.Symbol;
 
 /**
@@ -50,9 +50,34 @@ import scala.tools.nsc.symtab.Symbols.Symbol;
  * @author Caoyuan Deng
  */
 public class AstRef extends AstItem {
-    
-    protected AstRef(Symbol symbol, Token pickToken) {
-        super(symbol, pickToken);
+
+    protected AstRef(Symbol symbol, Token idToken) {
+        super(symbol, idToken);
     }
-    
+
+    public ElementKind getKind() {
+        Symbol symbol = getSymbol();
+        if (symbol.isClass() || symbol.isTrait() || symbol.isModule()) {
+            return ElementKind.CLASS;
+        } else {
+            return ElementKind.OTHER;
+        }
+    }
+
+    public boolean isOccurence(AstRef ref) {
+        if (ref.getName().equals(getName())) {
+            if (isSameNameAsEnclClass() || ref.isSameNameAsEnclClass()) {
+                return getSymbol().enclClass() == ref.getSymbol().enclClass();
+            }
+            
+            return ref.getSymbol() == getSymbol();
+        }
+        
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "Ref: " + getName() + " (idToken=" + getIdToken() + ", type=" + getSymbol().tpe() + ")";
+    }
 }

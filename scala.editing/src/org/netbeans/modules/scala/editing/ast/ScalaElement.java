@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.swing.text.BadLocationException;
+import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.ElementHandle;
@@ -59,13 +60,14 @@ import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Tree;
 import scala.tools.nsc.io.AbstractFile;
 import scala.tools.nsc.symtab.Symbols.Symbol;
+import scala.tools.nsc.symtab.Types.Type;
 import scala.tools.nsc.util.BatchSourceFile;
 
 /**
  *
  * @author Caoyuan Deng
  */
-public class ScalaElement implements ElementHandle {
+public class ScalaElement implements ScalaElementHandle {
 
     private Symbol symbol;
     private final Global global;
@@ -99,6 +101,10 @@ public class ScalaElement implements ElementHandle {
     public Symbol getSymbol() {
         return symbol;
     }
+    
+    public Type getType() {
+        return getSymbol().tpe();
+    }    
 
     public FileObject getFileObject() {
         if (fo == null) {
@@ -235,6 +241,10 @@ public class ScalaElement implements ElementHandle {
                 try {
                     char[] text = srcDoc.getChars(0, srcDoc.getLength());
                     BatchSourceFile srcFile = new BatchSourceFile(path, text);
+                    TokenHierarchy th = TokenHierarchy.get(doc);
+                    if (th == null) {
+                        return;
+                    }
 
                     /**
                      * @Note by compiling the related source file, this symbol will
@@ -246,10 +256,10 @@ public class ScalaElement implements ElementHandle {
                     CompilationUnit unit = ScalaGlobal.compileSource(global, srcFile);
                     if (unit != null) {
                         final Tree tree = unit.body();
-                        ScalaTreeVisitor visitor = new ScalaTreeVisitor(tree);
-                        int _offset = visitor.findOffet(symbol);
-                        if (_offset >= 0) {
-                            offset = _offset;
+                        AstRootScope root = new AstTreeVisitor(tree, th, srcFile).getRootScope();                        
+                        AstDef def = root.findDefMatched(symbol);
+                        if (def != null) {
+                            offset = def.getIdOffset(th);
                         }
                     }
                 } catch (BadLocationException ex) {
@@ -285,6 +295,10 @@ public class ScalaElement implements ElementHandle {
         return inherited;
     }
 
+    public boolean isEmphasize() {
+        return !isInherited();
+    }
+    
     public void setSmart(boolean smart) {
         this.smart = smart;
     }

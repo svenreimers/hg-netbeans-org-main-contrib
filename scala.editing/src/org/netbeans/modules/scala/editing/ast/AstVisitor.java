@@ -93,7 +93,6 @@ import scala.tools.nsc.ast.Trees.Typed;
 import scala.tools.nsc.ast.Trees.UnApply;
 import scala.tools.nsc.ast.Trees.ValDef;
 import scala.tools.nsc.symtab.Symbols.Symbol;
-import scala.tools.nsc.symtab.Types.Type;
 import scala.tools.nsc.util.BatchSourceFile;
 import scala.tools.nsc.util.Position;
 
@@ -103,21 +102,23 @@ import scala.tools.nsc.util.Position;
  */
 public abstract class AstVisitor {
 
-    private int indentLevel;
-    private TokenHierarchy th;
-    private BatchSourceFile sourceFile;
-    protected AstScope rootScope;
+    protected boolean debug;
+    protected int indentLevel;
+    protected BatchSourceFile sourceFile;
+    protected TokenHierarchy th;
+    protected AstRootScope rootScope;
     protected Stack<Tree> astPath = new Stack<Tree>();
-    protected Stack<AstScope> scopeStack = new Stack<AstScope>();
+    protected Stack<AstScope> scopes = new Stack<AstScope>();
 
     public AstVisitor(Tree rootTree, TokenHierarchy th, BatchSourceFile sourceFile) {
         this.th = th;
-        this.rootScope = new AstScope(getBoundsTokens(rootTree, sourceFile.length()));
-        scopeStack.push(rootScope);
+        this.sourceFile = sourceFile;
+        this.rootScope = new AstRootScope(getBoundsTokens(offset(rootTree), sourceFile.length()));
+        scopes.push(rootScope);
         visit(rootTree);
     }
 
-    public AstScope getRootScope() {
+    public AstRootScope getRootScope() {
         return rootScope;
     }
 
@@ -153,6 +154,11 @@ public abstract class AstVisitor {
 
     protected void visit(Tree tree) {
         if (tree == null) {
+            return;
+        }
+
+        if (offset(tree) == -1) {
+            /** It may be EmptyTree, emptyValDef$, or remote TypeTree which present an inferred Type etc */
             return;
         }
 
@@ -384,6 +390,11 @@ public abstract class AstVisitor {
     }
 
     // ---- Helper methods
+    protected Tree getParent() {
+        assert astPath.size() >= 2;
+        return astPath.get(astPath.size() - 2);
+    }
+
     protected String getAstPathString() {
         StringBuilder sb = new StringBuilder();
 
@@ -400,6 +411,8 @@ public abstract class AstVisitor {
     protected void enter(Tree tree) {
         indentLevel++;
         astPath.push(tree);
+        
+        if (debug) debugPrintAstPath(tree);        
     }
 
     protected void exit(Tree node) {
@@ -409,16 +422,23 @@ public abstract class AstVisitor {
 
     protected int offset(Tree tree) {
         Option offsetOpt = tree.pos().offset();
-        return offsetOpt.isDefined() ? (Integer) offsetOpt.get() : -1;
+        return offset(offsetOpt);
     }
 
     protected int offset(Symbol symbol) {
         Option offsetOpt = symbol.pos().offset();
-        return offsetOpt.isDefined() ? (Integer) offsetOpt.get() : -1;
+        return offset(offsetOpt);
+    }
+    
+    protected int offset(Option intOption) {
+        return intOption.isDefined() ? (Integer) intOption.get() : -1;
     }
 
-    protected Token[] getBoundsTokens(Tree tree, int endOffset) {
-        int offset = offset(tree);
+    protected Token[] getBoundsTokens(int offset, int endOffset) {
+        return new Token[]{getBoundsToken(offset), getBoundsEndToken(endOffset)};
+    }
+
+    protected Token getBoundsToken(int offset) {
         if (offset == -1) {
             return null;
         }
@@ -435,6 +455,20 @@ public abstract class AstVisitor {
             startToken = ts.offsetToken();
         }
 
+        if (startToken == null) {
+            System.out.println("null start token(" + offset + ")");
+        }
+
+        return startToken;
+    }
+
+    protected Token getBoundsEndToken(int endOffset) {
+        if (endOffset == -1) {
+            return null;
+        }
+
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, endOffset);
+
         ts.move(endOffset);
         if (!ts.movePrevious() && !ts.moveNext()) {
             assert false : "Should not happen!";
@@ -444,7 +478,7 @@ public abstract class AstVisitor {
             endToken = ts.offsetToken();
         }
 
-        return new Token[]{startToken, endToken};
+        return endToken;
     }
 
     /**
@@ -454,18 +488,23 @@ public abstract class AstVisitor {
      */
     protected Token getIdToken(Tree tree) {
         Symbol symbol = tree.symbol();
-        int offset = symbol.namePos(sourceFile);
+        if (symbol == null) {
+            return null;
+        }
+        
+        /** Do not use symbol.nameString() here, for example, a constructor Dog()'s nameString maybe "this" */
+        String name = symbol.idString();
+        int offset = offset(tree);
         TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, offset);
         ts.move(offset);
         if (!ts.moveNext() && !ts.movePrevious()) {
             assert false : "Should not happen!";
         }
 
-        String name = symbol.nameString().trim();
         Token token;
-        if (name.equals("this")) {
+        if (tree instanceof This) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.This);
-        } else if (name.equals("super")) {
+        } else if (tree instanceof Super) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Super);
         } else if (name.endsWith("expected")) {
             token = ts.token();
@@ -482,20 +521,15 @@ public abstract class AstVisitor {
         return token;
     }
 
-    protected void printSingleTree(Tree tree) {
+    protected void debugPrintAstPath(Tree tree) {
+        Token idToken = getIdToken(tree);
+        String idTokenStr = idToken == null ? "<null>" : idToken.text().toString();
+        
+        Symbol symbol = tree.symbol();
+        String symbolStr = symbol == null ? "<null>" : symbol.toString();
+        
         Position pos = tree.pos();
-        if (pos.offset() != null) {
-            Type type = tree.tpe();
-            String name = "";
-            String symTypeName = "";
-            Symbol sym = tree.symbol();
-            if (sym != null) {
-                name = sym.nameString();
-                symTypeName = sym.tpe().termSymbol().nameString();
-            }
 
-
-            System.out.println("(" + pos.line() + ":" + pos.column() + ") name=" + name + ", symTypeName=" + symTypeName + ", type=" + type + " tree: " + tree.getClass().getCanonicalName());
-        }
+        System.out.println("AstPath: " + getAstPathString() + "(" + offset(pos.line()) + ":" + offset(pos.column()) + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
     }
 }

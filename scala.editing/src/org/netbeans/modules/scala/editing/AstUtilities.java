@@ -38,14 +38,15 @@
  */
 package org.netbeans.modules.scala.editing;
 
+import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.gsf.api.ParserResult;
 import org.netbeans.modules.gsf.api.TranslatedSource;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.Utilities;
-import org.netbeans.modules.scala.editing.nodes.AstScope;
-import xtc.tree.Node;
+import org.netbeans.modules.scala.editing.ast.AstDef;
+import org.netbeans.modules.scala.editing.ast.AstRootScope;
 
 /**
  *
@@ -88,7 +89,7 @@ public class AstUtilities {
         return lexicalRange;
     }
 
-    public static AstScope getRoot(CompilationInfo info) {
+    public static AstRootScope getRoot(CompilationInfo info) {
         return getRoot(info, ScalaMimeResolver.MIME_TYPE);
     }
 
@@ -102,40 +103,34 @@ public class AstUtilities {
         }
     }
 
-    public static AstScope getRoot(CompilationInfo info, String mimeType) {
-        ParserResult result = info.getEmbeddedResult(mimeType, 0);
+    public static AstRootScope getRoot(CompilationInfo info, String mimeType) {
+        ParserResult pResult = info.getEmbeddedResult(mimeType, 0);
 
-        if (result == null) {
+        if (pResult == null) {
             return null;
         }
 
-        return getRoot(result);
+        return getRoot(pResult);
     }
 
-    public static AstScope getRoot(ParserResult r) {
-        assert r instanceof ScalaParserResult;
-
-        ScalaParserResult result = (ScalaParserResult) r;
-
-        return result.getRootScope();
+    public static AstRootScope getRoot(ParserResult pResult) {
+        assert pResult instanceof ScalaParserResult;
+        return ((ScalaParserResult) pResult).getRootScope();
     }
 
     /**
      * Return a range that matches the given node's source buffer range
      */
     @SuppressWarnings("unchecked")
-    public static OffsetRange getRange(CompilationInfo info, Node node) {
+    public static OffsetRange getRange(TokenHierarchy th, AstDef def) {
         OffsetRange range = OffsetRange.NONE;
 
-//        Span span = node.getSpan();
-//        try {
-//            BaseDocument doc = (BaseDocument) info.getDocument();
-//            int begin = getOffset(doc, span.getBegin().getLine(), span.getBegin().column() + 1);
-//            int end = getOffset(doc, span.getEnd().getLine(), span.getEnd().column() + 1);
-//            range = new OffsetRange(begin, end);
-//        } catch (IOException ex) {
-//            Exceptions.printStackTrace(ex);
-//        }
+        int offset = def.getBoundsOffset(th);
+        int endOffset = def.getBoundsEndOffset(th);
+        if (endOffset > offset) {
+            range = new OffsetRange(offset, endOffset);
+        }
+        
         return range;
     }
 
@@ -150,4 +145,6 @@ public class AstUtilities {
         offset += (columnNumber - 1);
         return offset;
     }
+
+
 }
