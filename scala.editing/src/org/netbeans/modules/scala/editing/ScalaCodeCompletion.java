@@ -409,7 +409,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                     Symbol symbol = call.base.getSymbol();
                     if (symbol.nameString().equals("<none>")) {
                         // this maybe an object, which can not be resolved by scala's compiler
-                        symbol = ErrorRecoverGlobal.recoverObject(global.settings(), pResult, doc, call.base);
+                        symbol = ErrorRecoverGlobal.resolveObject(global.settings(), pResult, doc, call.base);
                     }
 
                     if (call.select != null) {
@@ -429,6 +429,17 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                 for (Iterator<Token> itr = importPrefix.iterator(); itr.hasNext();) {
                     sb.append(itr.next().text().toString().trim());
                 }
+
+                /** @todo, we may get a lot of "error: error while loading TopScope$ ....... " likeness when try to get pkgSymbol's members
+                int lastDot = sb.lastIndexOf(".");
+                String pkgQName = lastDot == -1 ? sb.toString() : sb.substring(0, lastDot);
+                Symbol pkgSymbol = ErrorRecoverGlobal.resolvePackage(global.settings(), pResult, doc, pkgQName);
+                if (pkgSymbol != null) {
+                request.prefix = lastDot == -1 ? "" : sb.substring(lastDot + 1, sb.length());
+                completeSymbolMembers(pkgSymbol, proposals, request);
+                return completionResult;
+                }
+                 */
                 request.prefix = sb.toString();
                 completeImport(proposals, request);
                 return completionResult;
@@ -2021,6 +2032,9 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                     } else if (member.isValue()) {
                         element = new ScalaElement(member, request.info, request.global);
                         proposal = new PlainProposal(element, request);
+                    } else if (member.isClass() || member.isTrait() || member.isModule() || member.isPackage()) {
+                        element = new ScalaElement(member, request.info, request.global);
+                        proposal = new PlainProposal(element, request);
                     }
                 }
 
@@ -2058,9 +2072,11 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
     private void findCall(AstRootScope rootScope, TokenSequence ts, TokenHierarchy th, Call call, int times) {
         assert rootScope != null;
 
+        boolean caretFollowingDot = false;
         Token idToken = null;
         Token closest = ScalaLexUtilities.findPreviousNonWsNonComment(ts);
         if (closest.id() == ScalaTokenId.Dot) {
+            caretFollowingDot = true;
             if (ts.movePrevious()) {
                 Token prev = ScalaLexUtilities.findPreviousNonWs(ts);
                 if (prev != null && prev.id() == ScalaTokenId.RParen) {
@@ -2076,11 +2092,16 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         if (idToken != null) {
             AstItem item = rootScope.findItemAt(idToken);
             if (times == 0) {
+                if (caretFollowingDot) {
+                    call.base = item;
+                    return;
+                }
+
                 Token prev = null;
                 if (ts.movePrevious()) {
                     prev = ScalaLexUtilities.findPreviousNonWsNonComment(ts);
                 }
-                
+
                 if (prev != null && prev.id() == ScalaTokenId.Dot) {
                     call.select = item;
                     findCall(rootScope, ts, th, call, times + 1);
