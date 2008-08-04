@@ -56,9 +56,14 @@ public class AstRootScope extends AstScope {
     private Map<Token, AstItem> idTokenToItem = new HashMap<Token, AstItem>();
     private List<Token> tokens;
     private boolean tokensSorted;
+    private AstExpr exprContainer = new AstExpr();
 
     public AstRootScope(Token... boundsTokens) {
         super(boundsTokens);
+    }
+
+    protected AstExpr getExprContainer() {
+        return exprContainer;
     }
 
     public boolean contains(Token idToken) {
@@ -82,17 +87,13 @@ public class AstRootScope extends AstScope {
 
     @Override
     public AstItem findItemAt(TokenHierarchy th, int offset) {
-        if (!tokensSorted) {
-            tokens = Arrays.asList(idTokenToItem.keySet().toArray(new Token[idTokenToItem.size()]));
-            Collections.sort(tokens, new TokenComparator(th));
-            tokensSorted = true;
-        }
+        List<Token> _tokens = getSortedToken(th);
 
         int lo = 0;
-        int hi = tokens.size() - 1;
+        int hi = _tokens.size() - 1;
         while (lo <= hi) {
             int mid = (lo + hi) >> 1;
-            Token middle = tokens.get(mid);
+            Token middle = _tokens.get(mid);
             if (offset < middle.offset(th)) {
                 hi = mid - 1;
             } else if (offset > middle.offset(th) + middle.length()) {
@@ -105,6 +106,16 @@ public class AstRootScope extends AstScope {
         return null;
     }
 
+    private List<Token> getSortedToken(TokenHierarchy th) {
+        if (!tokensSorted) {
+            tokens = Arrays.asList(idTokenToItem.keySet().toArray(new Token[idTokenToItem.size()]));
+            Collections.sort(tokens, new TokenComparator(th));
+            tokensSorted = true;
+        }
+
+        return tokens == null ? Collections.<Token>emptyList() : tokens;
+    }
+    
     public AstItem findItemAt(Token token) {
         return idTokenToItem.get(token);
     }
@@ -120,7 +131,7 @@ public class AstRootScope extends AstScope {
     }
 
     protected void debugPrintTokens(TokenHierarchy th) {
-        for (Token token : tokens) {
+        for (Token token : getSortedToken(th)) {
             System.out.println("AstItem: " + idTokenToItem.get(token));
         }
     }

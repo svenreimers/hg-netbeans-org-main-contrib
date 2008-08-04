@@ -106,16 +106,21 @@ public abstract class AstVisitor {
     protected int indentLevel;
     protected BatchSourceFile sourceFile;
     protected TokenHierarchy th;
-    protected AstRootScope rootScope;
     protected Stack<Tree> astPath = new Stack<Tree>();
+    protected AstRootScope rootScope;
     protected Stack<AstScope> scopes = new Stack<AstScope>();
+    protected Stack<AstExpr> exprs = new Stack<AstExpr>();
 
     public AstVisitor(Tree rootTree, TokenHierarchy th, BatchSourceFile sourceFile) {
         this.th = th;
         this.sourceFile = sourceFile;
         this.rootScope = new AstRootScope(getBoundsTokens(offset(rootTree), sourceFile.length()));
         scopes.push(rootScope);
+        exprs.push(rootScope.getExprContainer());
         visit(rootTree);
+        if (debug) {
+            rootScope.getExprContainer().print();
+        }
     }
 
     public AstRootScope getRootScope() {
@@ -147,7 +152,7 @@ public abstract class AstVisitor {
                 }
                  */
             } else {
-                System.out.println("Try to visit: " + tree + " class=" + tree.getClass().getCanonicalName());
+                System.out.println("Try to visit unknown: " + tree + " class=" + tree.getClass().getCanonicalName());
             }
         }
     }
@@ -390,7 +395,7 @@ public abstract class AstVisitor {
     }
 
     // ---- Helper methods
-    protected Tree getParent() {
+    protected Tree getCurrentParent() {
         assert astPath.size() >= 2;
         return astPath.get(astPath.size() - 2);
     }
@@ -422,12 +427,6 @@ public abstract class AstVisitor {
         astPath.pop();
     }
 
-    protected void expr() {
-        if (debug) {
-            System.out.println("!!!!!!!!!");
-        }
-    }
-
     protected int offset(Tree tree) {
         Option offsetOpt = tree.pos().offset();
         return offset(offsetOpt);
@@ -440,53 +439,6 @@ public abstract class AstVisitor {
 
     protected int offset(Option intOption) {
         return intOption.isDefined() ? (Integer) intOption.get() : -1;
-    }
-
-    protected Token[] getBoundsTokens(int offset, int endOffset) {
-        return new Token[]{getBoundsToken(offset), getBoundsEndToken(endOffset)};
-    }
-
-    protected Token getBoundsToken(int offset) {
-        if (offset == -1) {
-            return null;
-        }
-
-        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, offset);
-
-        ts.move(offset);
-        if (!ts.moveNext() && !ts.movePrevious()) {
-            assert false : "Should not happen!";
-        }
-
-        Token startToken = ScalaLexUtilities.findNextNonWs(ts);
-        if (startToken.isFlyweight()) {
-            startToken = ts.offsetToken();
-        }
-
-        if (startToken == null) {
-            System.out.println("null start token(" + offset + ")");
-        }
-
-        return startToken;
-    }
-
-    protected Token getBoundsEndToken(int endOffset) {
-        if (endOffset == -1) {
-            return null;
-        }
-
-        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, endOffset);
-
-        ts.move(endOffset);
-        if (!ts.movePrevious() && !ts.moveNext()) {
-            assert false : "Should not happen!";
-        }
-        Token endToken = ScalaLexUtilities.findPreviousNonWs(ts);
-        if (endToken.isFlyweight()) {
-            endToken = ts.offsetToken();
-        }
-
-        return endToken;
     }
 
     /**
@@ -526,10 +478,83 @@ public abstract class AstVisitor {
             token = ts.offsetToken();
         }
 
+        // root expr is just a container
+        if (!exprs.peek().isRoot()) {
+            exprs.peek().addToken(token);
+        }
+
         return token;
     }
 
+    protected Token[] getBoundsTokens(int offset, int endOffset) {
+        return new Token[]{getBoundsToken(offset), getBoundsEndToken(endOffset)};
+    }
+
+    protected Token getBoundsToken(int offset) {
+        if (offset == -1) {
+            return null;
+        }
+
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, offset);
+
+        ts.move(offset);
+        if (!ts.moveNext() && !ts.movePrevious()) {
+            assert false : "Should not happen!";
+        }
+
+        Token startToken = ScalaLexUtilities.findPreviousNonWsNonComment(ts);
+        if (startToken.isFlyweight()) {
+            startToken = ts.offsetToken();
+        }
+
+        if (startToken == null) {
+            System.out.println("null start token(" + offset + ")");
+        }
+
+        return startToken;
+    }
+
+    protected Token getBoundsEndToken(int endOffset) {
+        if (endOffset == -1) {
+            return null;
+        }
+
+        TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, endOffset);
+
+        ts.move(endOffset);
+        if (!ts.movePrevious() && !ts.moveNext()) {
+            assert false : "Should not happen!";
+        }
+        Token endToken = ScalaLexUtilities.findPreviousNonWsNonComment(ts);
+        if (endToken.isFlyweight()) {
+            endToken = ts.offsetToken();
+        }
+
+        return endToken;
+    }
+
+    protected void info(String message) {
+        if (!debug) {
+            return;
+        }
+
+        System.out.println(message);
+    }
+
+    protected void info(String message, AstItem item) {
+        if (!debug) {
+            return;
+        }
+
+        System.out.print(message);
+        System.out.println(item);
+    }
+
     protected void debugPrintAstPath(Tree tree) {
+        if (!debug) {
+            return;
+        }
+
         Token idToken = getIdToken(tree);
         String idTokenStr = idToken == null ? "<null>" : idToken.text().toString();
 
@@ -540,4 +565,5 @@ public abstract class AstVisitor {
 
         System.out.println(getAstPathString() + "(" + offset(pos.line()) + ":" + offset(pos.column()) + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
     }
+
 }
