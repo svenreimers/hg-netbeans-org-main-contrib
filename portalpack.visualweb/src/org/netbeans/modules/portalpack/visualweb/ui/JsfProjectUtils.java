@@ -49,6 +49,7 @@ import java.io.OutputStreamWriter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.netbeans.api.java.classpath.ClassPath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -60,7 +61,6 @@ import org.openide.util.Mutex;
 import org.openide.util.Utilities;
 import org.openide.ErrorManager;
 
-import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.java.project.classpath.ProjectClassPathModifier;
 import org.netbeans.spi.java.queries.SourceLevelQueryImplementation;
@@ -309,12 +309,12 @@ public class JsfProjectUtils {
         if (isWebProject(project)) {
             
             //Comment the following section to compile against NB 6.5
-            AuxiliaryConfiguration ac = (AuxiliaryConfiguration) project.getLookup().lookup(AuxiliaryConfiguration.class);
+          /*  AuxiliaryConfiguration ac = (AuxiliaryConfiguration) project.getLookup().lookup(AuxiliaryConfiguration.class);
             if (ac == null) {
                 return false;
-            } 
+            }*/ 
             //Uncomment the following line to compile against NB 6.5
-            //AuxiliaryConfiguration ac = ProjectUtils.getAuxiliaryConfiguration(project);
+            AuxiliaryConfiguration ac = ProjectUtils.getAuxiliaryConfiguration(project);
             
             Element auxElement = ac.getConfigurationFragment(JsfProjectConstants.RAVE_AUX_NAME, JsfProjectConstants.RAVE_AUX_NAMESPACE, true);
             if (auxElement != null) {
