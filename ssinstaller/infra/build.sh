@@ -39,7 +39,7 @@
 ################################################################################
 # build-private.sh should define the following properties
 ################################################################################
-#BUILD_NUMBER=
+BUILD_NUMBER=0
 #
 #OUTPUT_DIR=
 #
@@ -72,14 +72,29 @@ cd ${DIRNAME}
 ################################################################################
 # load the properties
 source build-private.sh
-source ../../../../build-private.sh 
+#source ../../../../build-private.sh 
 
 
+CACHE_DIR=${OUTPUT_DIR}/cache
 INSTALLED_BITS="file://$CACHE_DIR/packages"
 NB_BUILDS_HOST="file://$CACHE_DIR/packages/nb"
+NB_FILES_PREFIX=netbeans-6.1
 
-rm -rf $CACHE_DIR/packages
+#rm -rf $OUTPUT_DIR
+#
 bash copy-packages.sh $CACHE_DIR/packages $SUNSTUDIO_BITS_ROOT
+
+case $DISTRS in 
+    intel-S2)
+    	CURRENT_PLATFORM=solaris-x86
+    ;;
+    sparc-S2)
+        CURRENT_PLATFORM=solaris-sparc
+    ;;
+    intel-Linux)
+        CURRENT_PLATFORM=linux
+    ;;
+esac
 
 cd ${DIRNAME}
 ################################################################################
@@ -103,7 +118,9 @@ run() {
             \"-Dbuild.number=${BUILD_NUMBER}\" \
 	    \"-Dss.name=sunstudio\"\
 	    \"-Dss.version=${SS_VERSION}\"\
+	    \"-Dproducts.xml=${PRODUCTS_XML_FILE}\"\
             \"-Doutput.dir=${OUTPUT_DIR}\" \
+            \"-Dcurrent.platform.name=${CURRENT_PLATFORM}\" \
             \"-Dbinary.cache.host=${BINARY_CACHE_HOST}\" \
             \"-Dinstalled.bits.dir=${INSTALLED_BITS}\" \
             \"-Dnb.builds.host=${NB_BUILDS_HOST}\" \
@@ -135,8 +152,10 @@ run() {
             \"-Dbuild.number=${BUILD_NUMBER}\" \
 	    \"-Dss.name=sunstudio\"\
 	    \"-Dss.version=${SS_VERSION}\"\
-            \"-Doutput.dir=${OUTPUT_DIR}\" \
-            \"-Dbundles.url=${BUNDLES_ULR}\" \
+            \"-Dproducts.xml=${PRODUCTS_XML_FILE}\"\
+	    \"-Doutput.dir=${OUTPUT_DIR}\" \
+            \"-Dbundles.url=${BUNDLES_URL}\" \
+            \"-Dcurrent.platform.name=${CURRENT_PLATFORM}\" \
             \"-Dbinary.cache.host=${BINARY_CACHE_HOST}\" \
             \"-Dnb.builds.host=${NB_BUILDS_HOST}\" \
             \"-Dnb.files.prefix=${NB_FILES_PREFIX}\" \
