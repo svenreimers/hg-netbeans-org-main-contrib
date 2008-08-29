@@ -192,29 +192,18 @@
             debug="true"/>
 
 <!-- Added by Igor Nikiforov -->
-<!-- This addition is provided in order to have qn ability to use SSI-engine utility classes
-     in custom SSI ant build task.  
+<!-- This addition is provided in order to have an ability to use SSI-engine utility classes
+     in custom SSI ant build task. We do not need to build all classes from SSI, but only utility ones
+     and theirs dependences. 
 -->
-        <subant buildpath="${nbi.netbeans.dir}/infra/engine" target="release-all" failonerror="true" output="core.engine.unofficial.build.output">
-            <property 
-                name="basedir" 
-                value="${nbi.netbeans.dir}/infra/engine"/>                          
-            <property 
-                name="environment.properties" 
-                value="${environment.properties}"/>            
-            <property 
-                name="core.engine.dist.file" 
-                value="${nbi.core.dir}/infra/build/engine/dist/${engine.dist.file.name}"/>
-            <property 
-                name="dont.build.custom.tasks"
-                value="true" /> 
-        </subant>
-        <copy todir="${custom.tasks.cls}">
-            <fileset dir="${nbi.netbeans.dir}/infra/engine/build/ssinstaller/engine/build/classes">
-                <include name="**/*.*"/>
-            </fileset>
-        </copy>
+        <javac 
+            srcdir="${nbi.netbeans.dir}/engine/src" 
+	    excludes="**/wizard/**" 
+            destdir="${custom.tasks.cls}"
+            classpath="${nbi.core.dir}/engine/build"
+            debug="true"/>
 <!-- End of addition -->
+
         <javac 
             srcdir="${custom.tasks.src.3}" 
             destdir="${custom.tasks.cls}"
@@ -434,18 +423,18 @@ ss.bundle.files.prefix=${ss.bundle.files.prefix}
         <!-- C/C++ bundles -->
         <create-bundle root="${output.dir}/registry-temp" 
                        platform="${current.platform.name}" 
-                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-bundled.sh"
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-bundled-${ss.platform.name}.sh"
 		       componentlist="native.lst">
 	    <component uid="ss-base" version="1.0.0.0.0"/>            
 	    <component uid="nb-base" version="${nb.full.version}"/>
 	    <component uid="nb-extra" version="${nb.full.version}"/>	
 	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
         </create-bundle>
-        <!-- <delete file="${output.dir}/registry-temp/bundles.list" /> -->
+        <delete file="${output.dir}/registry-temp/bundles.list" /> 
 
         <create-bundle root="${output.dir}/registry-temp" 
                        platform="${current.platform.name}" 
-                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-external.sh"
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-external-${ss.platform.name}.sh"
                        componentlist="native.lst">
             <component uid="ss-base" version="1.0.0.0.0"/>
 	    <component uid="nb-base" version="${nb.full.version}"/>

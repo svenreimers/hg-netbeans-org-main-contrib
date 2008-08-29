@@ -41,7 +41,9 @@ package org.netbeans.modules.autoproject.java;
 
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.autoproject.java.actions.ActionProviderImpl;
+import org.netbeans.spi.java.project.support.LookupMergerSupport;
 import org.netbeans.spi.project.LookupProvider;
+import org.netbeans.spi.project.ui.support.UILookupMergerSupport;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 
@@ -58,12 +60,12 @@ public class LookupProviderImpl implements LookupProvider {
         assert p != null;
         ClassPathProviderImpl cpp = new ClassPathProviderImpl(p);
         return Lookups.fixed(
-                cpp,
+                LookupMergerSupport.createClassPathProviderMerger(cpp),
                 new SourceForBinaryImpl(p),
                 new ProjectInformationImpl(p),
                 new SourcesImpl(p),
                 new SourceLevelQueryImpl(p),
-                new OpenHook(p, cpp),
+                UILookupMergerSupport.createProjectOpenHookMerger(new OpenHook(p, cpp)),
                 new ActionProviderImpl(p));
         // XXX consider adding:
         // AntArtifactProvider

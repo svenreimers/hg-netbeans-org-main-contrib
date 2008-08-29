@@ -39,7 +39,7 @@
 ################################################################################
 # build-private.sh should define the following properties
 ################################################################################
-#BUILD_NUMBER=
+BUILD_NUMBER=0
 #
 #OUTPUT_DIR=
 #
@@ -69,11 +69,6 @@
 DIRNAME=`dirname $0`
 cd ${DIRNAME}
 
-################################################################################
-# load the properties
-source build-private.sh
-#source ../../../../build-private.sh 
-
 
 CACHE_DIR=${OUTPUT_DIR}/cache
 INSTALLED_BITS="file://$CACHE_DIR/packages"
@@ -82,7 +77,7 @@ NB_FILES_PREFIX=netbeans-6.1
 
 #rm -rf $OUTPUT_DIR
 #
-#bash copy-packages.sh $CACHE_DIR/packages $SUNSTUDIO_BITS_ROOT
+bash copy-packages.sh $CACHE_DIR/packages $SUNSTUDIO_BITS_ROOT
 
 case $DISTRS in 
     intel-S2)
@@ -121,7 +116,8 @@ run() {
 	    \"-Dproducts.xml=${PRODUCTS_XML_FILE}\"\
             \"-Doutput.dir=${OUTPUT_DIR}\" \
             \"-Dcurrent.platform.name=${CURRENT_PLATFORM}\" \
-            \"-Dbinary.cache.host=${BINARY_CACHE_HOST}\" \
+            \"-Dss.platform.name=${DISTRS}\" \
+	    \"-Dbinary.cache.host=${BINARY_CACHE_HOST}\" \
             \"-Dinstalled.bits.dir=${INSTALLED_BITS}\" \
             \"-Dnb.builds.host=${NB_BUILDS_HOST}\" \
             \"-Dnb.files.prefix=${NB_FILES_PREFIX}\" \
@@ -156,7 +152,8 @@ run() {
 	    \"-Doutput.dir=${OUTPUT_DIR}\" \
             \"-Dbundles.url=${BUNDLES_URL}\" \
             \"-Dcurrent.platform.name=${CURRENT_PLATFORM}\" \
-            \"-Dbinary.cache.host=${BINARY_CACHE_HOST}\" \
+            \"-Dss.platform.name=${DISTRS}\" \
+	    \"-Dbinary.cache.host=${BINARY_CACHE_HOST}\" \
             \"-Dnb.builds.host=${NB_BUILDS_HOST}\" \
             \"-Dnb.files.prefix=${NB_FILES_PREFIX}\" \
             \"-Dnb.locales=${LOCALES}\" \
