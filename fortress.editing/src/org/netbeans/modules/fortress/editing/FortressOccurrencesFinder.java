@@ -52,6 +52,7 @@ import org.netbeans.modules.fortress.editing.lexer.FortressTokenId;
 import org.netbeans.modules.fortress.editing.visitors.Scope;
 import org.netbeans.modules.fortress.editing.visitors.Signature;
 import org.netbeans.modules.gsf.api.ElementKind;
+import org.openide.filesystems.FileObject;
 
 /**
  *
@@ -61,6 +62,7 @@ public class FortressOccurrencesFinder implements OccurrencesFinder {
 
     private boolean cancelled;
     private int caretPosition;
+    private FileObject file;
     private Map<OffsetRange, ColoringAttributes> occurrences;
 
     public FortressOccurrencesFinder() {
@@ -91,6 +93,13 @@ public class FortressOccurrencesFinder implements OccurrencesFinder {
 
         if (isCancelled()) {
             return;
+        }
+
+        FileObject currentFile = info.getFileObject();
+        if (currentFile != file) {
+            // Ensure that we don't reuse results from a different file
+            occurrences = null;
+            file = currentFile;
         }
 
         FortressParserResult result = AstUtilities.getParserResult(info);
