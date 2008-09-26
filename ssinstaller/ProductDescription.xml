@@ -145,6 +145,7 @@
             <svr source="SPROgc"/>
             <svr source="SPROgcx"/>
             <svr source="SPROidext"/>
+            <svr source="SPROatd"/>
             <svr source="SPROudchk"/>
             <svr source="SPROl90"/>
             <svr source="SPROl90s"/>
@@ -171,7 +172,6 @@
             <svr source="SPROpnsn"/>
             <svr source="SPROprfan"/>
             <svr source="SPROprflb"/>
-            <svr source="SPROsbe"/>
             <svr source="SPROsbld"/>
             <svr source="SPROsbldx"/>
             <svr source="SPROscl"/>
@@ -188,7 +188,6 @@
             <svr source="SPROsslnk"/>
             <svr source="SPROtdemo"/>
             <svr source="SPROutool"/>
-            <svr source="SPROidext"/>
             <svr source="SPROlklnt"/>
             <svr source="SPROmrmp"/>
             <svr source="SPROsysprp"/>
@@ -202,6 +201,7 @@
             <svr source="SPROgc"/>
             <svr source="SPROgcx"/>
             <svr source="SPROidext"/>
+	    <svr source="SPROatd"/>
             <svr source="SPROipl"/>
             <svr source="SPROiplg"/>
             <svr source="SPROiplx"/>
@@ -239,7 +239,6 @@
             <svr source="SPROplck"/>
             <svr source="SPROprfan"/>
             <svr source="SPROprflb"/>           
-            <svr source="SPROsbe"/>
             <svr source="SPROsbld"/>
             <svr source="SPROsbldx"/>
             <svr source="SPROscl"/>
