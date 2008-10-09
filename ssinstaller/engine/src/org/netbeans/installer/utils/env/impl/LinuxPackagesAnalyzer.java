@@ -37,39 +37,28 @@
 package org.netbeans.installer.utils.env.impl;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import org.netbeans.installer.utils.LogManager;
+import org.netbeans.installer.utils.env.PackageDescr;
 
-public abstract class LinuxPackagesAnalyzer implements Iterable<String> {
+public abstract class LinuxPackagesAnalyzer extends AbstractPackageAnalyzer {
     
-    private final int FIELDS_COUNT = 4;
-    
-    protected File dataFile = null;
-    private Map<String, String> versions = new HashMap<String, String>();
-    private Map<String, String> archictectures = new HashMap<String, String>();
-    private Map<String, Long> sizes = new HashMap<String, Long>();
-   
-    public boolean containsPackageInfo(String packageName) {
-        return versions.containsKey(packageName);
-    }
-    
-    private void initPackagesInfo() {
+    private final int FIELDS_COUNT = 5;
+        
+    protected  void initPackagesInfo() {
         BufferedReader output = null;
         try {
             output = new BufferedReader(new FileReader(dataFile));
             String line = null;
             while((line = output.readLine()) != null) {
+                LogManager.log(line);
                 String[] fields = line.trim().split(" ");
                 if (fields.length == FIELDS_COUNT) {
-                    versions.put(fields[0].trim(), fields[1].trim());
-                    sizes.put(fields[0].trim(), Long.parseLong(fields[2].trim()));
-                    archictectures.put(fields[0].trim(), fields[3].trim());
+                    installedPackages.put(fields[0].trim(),
+                            new PackageDescr(fields[0].trim(), fields[1].trim(), fields[4].trim(),  fields[3].trim(), Long.parseLong(fields[2].trim())));
+                   
                 }
             }
         } catch (FileNotFoundException ex) {
@@ -84,41 +73,6 @@ public abstract class LinuxPackagesAnalyzer implements Iterable<String> {
             }
         }
     }
-    
-    public String getPackageVersion(String packageName) {
-        if (dataFile != null) {
-            if (versions.isEmpty()) initPackagesInfo();
-            return versions.get(packageName);
-        }
-        return null;
-    }
-    
-    public String getPackageArchitecture(String packageName) {
-        if (dataFile != null) {
-            if (archictectures.isEmpty()) initPackagesInfo();
-            return archictectures.get(packageName);
-        }
-        return null;
-    }
 
-    public Long getPackageSize(String packageName) {
-        if (dataFile != null) {
-            if (sizes.isEmpty()) initPackagesInfo();
-            return sizes.get(packageName);
-        }
-        return null;
-    }    
-    
-    public Iterator<String> iterator() {
-        if (dataFile != null && versions.isEmpty()) initPackagesInfo();
-        return versions.keySet().iterator();
-    }
-    
-    public boolean isActual() {
-        if (dataFile != null) {
-            if (archictectures.isEmpty()) initPackagesInfo();
-            return !versions.isEmpty();
-        }
-        return false;        
-    }
+ 
 }

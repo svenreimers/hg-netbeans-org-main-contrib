@@ -54,6 +54,7 @@ public class TreeCreator implements Visitor {
 
     private TreeASTNodeAdapter parentNode;
 
+
     class TreeASTNodeAdapter implements TreeNode {
 
         TreeASTNodeAdapter parent;
@@ -204,7 +205,7 @@ public class TreeCreator implements Visitor {
 
     public void visit(ASTError astError) {
         TreeASTNodeAdapter adapter = new TreeASTNodeAdapter(parentNode, "ASTError", 
-                astError.getStartOffset(), astError.getStartOffset());
+                astError.getStartOffset(), astError.getEndOffset());
         parentNode.addChild(adapter);
     }
 
@@ -1169,15 +1170,42 @@ public class TreeCreator implements Visitor {
         TreeASTNodeAdapter adapter = new TreeASTNodeAdapter(parentNode, 
                 "PHPDocComment", node.getStartOffset(), node.getEndOffset());
         parentNode.addChild(adapter);
-        adapter.addChild(new TreeASTNodeAdapter(adapter, node.getDescription()));
+        /*adapter.addChild(new TreeASTNodeAdapter(adapter, node.getDescription()));
         if (node.getTags() != null) {
             for (PHPDocTag tag : node.getTags()) {
                 adapter.addChild(new TreeASTNodeAdapter(adapter, 
                         tag.getKind() + " " + tag.getValue()));
             }
-        }
+        }*/
         TreeASTNodeAdapter helpParent = parentNode;
         parentNode = adapter;
+        for(PHPDocTag tag: node.getTags()){
+            tag.accept(this);
+        }
         parentNode = helpParent;
+
+        /*TreeASTNodeAdapter adapter = new TreeASTNodeAdapter(parentNode,
+                "Block (isCurly: " + block.isCurly() + ")",
+                block.getStartOffset(), block.getEndOffset());
+        parentNode.addChild(adapter);
+        TreeASTNodeAdapter helpParent = parentNode;
+        parentNode = adapter;
+        for (Statement statement : block.getStatements()) {
+            statement.accept(this);
+        }
+        parentNode = helpParent;*/
+    }
+
+    public void visit(PHPDocTag node) {
+        TreeASTNodeAdapter adapter = new TreeASTNodeAdapter(parentNode,
+                node.getKind().name(), node.getStartOffset(), node.getEndOffset());
+        parentNode.addChild(adapter);
+    }
+
+    public void visit(PHPDocPropertyTag node) {
+        TreeASTNodeAdapter adapter = new TreeASTNodeAdapter(parentNode,
+                node.getKind().name() + " " + node.getFieldName() + ": " + node.getFieldType() ,
+                node.getStartOffset(), node.getEndOffset());
+        parentNode.addChild(adapter);
     }
 }

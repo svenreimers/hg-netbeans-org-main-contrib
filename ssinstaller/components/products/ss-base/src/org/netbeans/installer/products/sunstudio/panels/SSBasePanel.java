@@ -36,7 +36,17 @@
 
 package org.netbeans.installer.products.sunstudio.panels;
 
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.io.File;
+import org.netbeans.installer.product.components.Product;
+import org.netbeans.installer.utils.LogManager;
 import org.netbeans.installer.utils.ResourceUtils;
+import org.netbeans.installer.utils.StringUtils;
+import org.netbeans.installer.utils.SystemUtils;
+import org.netbeans.installer.utils.env.ExistingSunStudioChecker;
+import org.netbeans.installer.utils.helper.Platform;
+import org.netbeans.installer.utils.helper.swing.NbiCheckBox;
 import org.netbeans.installer.wizard.components.panels.DestinationPanel;
 import org.netbeans.installer.wizard.components.panels.DestinationPanel.DestinationPanelUi;
 import org.netbeans.installer.wizard.ui.SwingUi;
@@ -56,24 +66,27 @@ public class SSBasePanel extends DestinationPanel {
         setProperty(DESTINATION_LABEL_TEXT_PROPERTY,
                 DEFAULT_DESTINATION_LABEL_TEXT
                  // while packages are in SUNWspo / sunstudioceres
-                + " ( product will located in "+ Utils.getMainDirectory() + " subdirectory )");
+                + " ( Sun Studion will located in "+ Utils.getMainDirectory() + " subdirectory )");
         setProperty(DESTINATION_BUTTON_TEXT_PROPERTY,
                 DEFAULT_DESTINATION_BUTTON_TEXT);
-  
+          
     }
     
     @Override
     public WizardUi getWizardUi() {
         if (wizardUi == null) {
             wizardUi = new SSBaseDestinationPanelUi(this);
-        }
-        
+        }        
         return wizardUi;
     }
-    
+
+
     @Override
     public void initialize() {
-        super.initialize();                
+        super.initialize();
+	if (!SystemUtils.getCurrentPlatform().isCompatibleWith(Platform.LINUX)) {
+            Utils.getSSBase().setProperty(Utils.getSPROsslnkPropertyName(), "true");
+	}
     }
         
     /////////////////////////////////////////////////////////////////////////////////
@@ -97,12 +110,11 @@ public class SSBasePanel extends DestinationPanel {
     
     private static class SSBaseDestinationPanelSwingUi extends DestinationPanelSwingUi {
        // protected SSBasePanel panel;
-        
+        private NbiCheckBox createSymLinks = null;
         /*
         private NbiTextField alternateRoot;
         private NbiButton alternateRootButton;
-        private NbiCheckBox copySystemPrequesties;
-        private NbiCheckBox createSymLinks;
+        private NbiCheckBox copySystemPrequesties;        
         private NbiCheckBox installPatches;
         private NbiCheckBox currentZoneOnly;
         
@@ -113,18 +125,40 @@ public class SSBasePanel extends DestinationPanel {
                 final SwingContainer container) {
             super(panel, container);            
             this.panel = panel;            
-          //  initComponents();
+            initComponents();
         }
         
-        // protected ////////////////////////////////////////////////////////////////
-        @Override
-        protected void initialize() {
-            super.initialize();
+        // protected ////////////////////////////////////////////////////////////////        
+        private void initComponents() {
+            if (SystemUtils.getCurrentPlatform().isCompatibleWith(Platform.SOLARIS)) {
+                createSymLinks = new NbiCheckBox();
+                createSymLinks.setText(CREATE_SYMLINKS_CHECKBOX_TEXT);
+                createSymLinks.setSelected(Boolean.parseBoolean(
+                        component.getWizard().getProperty(CREATE_SYMLINKS_PROPERTY)));                
+                GridBagConstraints constraints = new GridBagConstraints();
+                constraints.gridx = 0;
+                constraints.gridy = GridBagConstraints.RELATIVE;
+                constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+                constraints.insets = new Insets(11, 11, 11, 11);
+                add(createSymLinks, constraints);                
+            }
         }
         
         @Override
         protected void saveInput() {
-            super.saveInput();                        
+            super.saveInput();
+            // configure NB prerequisite
+            Product nbProduct = Utils.getNBExtra();
+          //  nbProduct.setStatus(Status.NOT_INSTALLED);
+            String nbLocation =  component.getWizard().getProperty(
+                        Product.INSTALLATION_LOCATION_PROPERTY);
+            nbLocation = nbLocation + File.separator + Utils.getNBDirectory();
+            nbProduct.setInstallationLocation(new File(nbLocation));
+            nbProduct.setParent(Utils.getSSBase());                        
+            if (createSymLinks != null ) {
+                 component.getWizard().setProperty(CREATE_SYMLINKS_PROPERTY,
+                         Boolean.toString(createSymLinks.isSelected()));
+            }
         }
         
         @Override
@@ -136,6 +170,19 @@ public class SSBasePanel extends DestinationPanel {
                     && errorMessage.startsWith(component.
                     getProperty(DestinationPanel.ERROR_NOT_EMPTY_PROPERTY))) {
                 errorMessage = null;
+            }
+            ExistingSunStudioChecker checker = ExistingSunStudioChecker.getInstance();
+            final File file = new File(getDestinationField().getText().trim());
+            if (checker.getAllowedDirectory() != null) {                 
+                 if (!file.equals(new File(checker.getAllowedDirectory()))) {
+                     errorMessage = StringUtils.format(ONLY_ONE_LOCATION_ALLOWED_TEXT,
+                             checker.getAllowedDirectory());
+                 }
+            }
+            for (String dirName : checker.getRestrictedDirectories()) {
+                if (file.equals(new File (dirName))) {
+                    errorMessage = ALREADY_INSTALLED_LOCATION_TEXT;
+                }
             }
             return errorMessage;
         }
@@ -158,5 +205,19 @@ public class SSBasePanel extends DestinationPanel {
     public static final String DEFAULT_DESTINATION_BUTTON_TEXT =
             ResourceUtils.getString(SSBasePanel.class,
             "NBP.destination.button.text"); // NOI18N
+    
+    public static final String ONLY_ONE_LOCATION_ALLOWED_TEXT =
+            ResourceUtils.getString(SSBasePanel.class,
+            "NBP.destination.only.location.allowed");//NOI18N 
+    
+    public static final String ALREADY_INSTALLED_LOCATION_TEXT =
+            ResourceUtils.getString(SSBasePanel.class,
+            "NBP.destination.already.installed");//NOI18N 
+    public static final String CREATE_SYMLINKS_CHECKBOX_TEXT =
+            ResourceUtils.getString(SSBasePanel.class,
+            "NBP.create.symlinks.text");//NOI18N 
+
+    public static final String CREATE_SYMLINKS_PROPERTY =
+            Utils.getSPROsslnkPropertyName();
 
 }

@@ -36,14 +36,22 @@
 
 package org.netbeans.installer.wizard.components.sequences;
 
+
+import java.io.File;
+import java.util.List;
 import org.netbeans.installer.product.Registry;
+import org.netbeans.installer.product.components.Product;
 import org.netbeans.installer.utils.ResourceUtils;
+import org.netbeans.installer.utils.StringUtils;
+import org.netbeans.installer.utils.SystemUtils;
 import org.netbeans.installer.utils.env.CheckStatus;
+import org.netbeans.installer.utils.env.ExistingSunStudioChecker;
 import org.netbeans.installer.utils.env.SystemCheckCategory;
 import org.netbeans.installer.utils.helper.ExecutionMode;
-import org.netbeans.installer.utils.helper.UiMode;
 import org.netbeans.installer.utils.silent.SilentLogManager;
+import org.netbeans.installer.wizard.Utils;
 import org.netbeans.installer.wizard.components.WizardSequence;
+import org.netbeans.installer.wizard.components.panels.sunstudio.ExistingSunStudioPanel;
 import org.netbeans.installer.wizard.components.panels.sunstudio.SystemCheckPanel;
 
 public class SystemCheckSequence extends WizardSequence {
@@ -51,13 +59,30 @@ public class SystemCheckSequence extends WizardSequence {
     private final String CRITICAL_ERROR_MESSAGE = ResourceUtils.getString(SystemCheckSequence.class, "SCS.error.message"); // NOI18N
     
     private SystemCheckPanel systemCheckPanel = null;
+    private ExistingSunStudioPanel existingSunStudioPanel = null;
 
     public SystemCheckSequence() {
         systemCheckPanel = new SystemCheckPanel();
+        existingSunStudioPanel = new ExistingSunStudioPanel();
     }
 
     @Override
     public void executeForward() {
+        if (ExecutionMode.getCurrentExecutionMode().equals(ExecutionMode.CREATE_BUNDLE)) {
+            super.executeForward();
+            return;
+        } else {
+            if (SystemUtils.isLinux()) {
+                final List<Product> toInstall = Registry.getInstance().getProductsToInstall();
+                final String wrongBaseDir = "/usr/local";
+                for(Product product: toInstall) {
+                    String path = product.getInstallationLocation().getAbsolutePath();
+                    if (path.startsWith(wrongBaseDir)) {
+                        product.setInstallationLocation(new File(path.replace(wrongBaseDir, "/opt/sun")));
+                    }
+                }
+            }
+        }
         if (SilentLogManager.isLogManagerActive()) {
             for(SystemCheckCategory problem: SystemCheckCategory.getProblemCategories()) {
                 String shortMessage = problem.getShortErrorMessage();
@@ -67,10 +92,44 @@ public class SystemCheckSequence extends WizardSequence {
                 SilentLogManager.forceLog(CheckStatus.ERROR, CRITICAL_ERROR_MESSAGE);
                 getWizard().getFinishHandler().cancel();
             }
+            ExistingSunStudioChecker checker = ExistingSunStudioChecker.getInstance();
+            if (checker.isSunStudioInstallationFound()) {                
+                for (String version : checker.getInstalledVersions()) {
+                    SilentLogManager.forceLog(
+                            checker.getResolutionForVersion(version) == checker.INSTALLATION_BLOCKED ?
+                                CheckStatus.ERROR : CheckStatus.WARNING, "Sun Studio " + version
+                            + " was found in " + StringUtils.asString(checker.getBaseDirsForVersion(version)));
+                }
+                if (!checker.isInstallationPossible()) {
+                    SilentLogManager.forceLog(CheckStatus.ERROR, "Installation is not possible");
+                    getWizard().getFinishHandler().cancel();
+                }
+                File defaultDirectory = Utils.getSSBase().getInstallationLocation();
+                if (checker.getAllowedDirectory() != null && !defaultDirectory.equals(new File(checker.getAllowedDirectory()))) {
+                    SilentLogManager.forceLog(CheckStatus.ERROR, "Installation is not possible. Sun Studio could" +
+                            " be installed only in " + checker.getAllowedDirectory() + " However installation location is " + defaultDirectory.getAbsolutePath());
+                    getWizard().getFinishHandler().cancel();
+                }
+                
+                if (checker.getRestrictedDirectories() != null) {
+                    for (String dir : checker.getRestrictedDirectories()) {
+                        if (defaultDirectory.equals(new File(dir)))  {
+                            SilentLogManager.forceLog(CheckStatus.ERROR, "Installation is not possible. Sun Studio could not "
+                            + " be installed in defualt folder " + dir);
+                            getWizard().getFinishHandler().cancel();
+                        }
+                    }                    
+                }
+            }            
         } else {
-            if (SystemCheckCategory.hasProblemCategories() && System.getProperty(Registry.FORCE_UNINSTALL_PROPERTY) == null) {
+            if (Registry.getInstance().getProductsToInstall().size() > 0) {
                 getChildren().clear();
-                addChild(systemCheckPanel);
+                if (SystemCheckCategory.hasProblemCategories()) {
+                    addChild(systemCheckPanel);
+                }
+                if (ExistingSunStudioChecker.getInstance().isSunStudioInstallationFound()) {
+                    addChild(existingSunStudioPanel);
+                }
             }            
         }
         super.executeForward();

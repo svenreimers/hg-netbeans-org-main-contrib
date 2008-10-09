@@ -324,6 +324,7 @@ ss.bundle.files.prefix=${ss.bundle.files.prefix}
 
     <target name="build-netbeans">
     	<antcall target="build-groups"/>
+	
         <ant dir="${nbi.netbeans.dir}/infra/products/nb-extra" target="release-all">
             <property 
                 name="basedir" 
@@ -346,7 +347,8 @@ ss.bundle.files.prefix=${ss.bundle.files.prefix}
                 name="release.parent.platforms"
                 value=""/>
         </ant>
-    <ant dir="${nbi.netbeans.dir}/infra/products/nb-base" target="release-all">
+        <!--
+	<ant dir="${nbi.netbeans.dir}/infra/products/nb-base" target="release-all">
             <property 
                 name="basedir" 
                 value="${nbi.netbeans.dir}/infra/products/nb-base"/>
@@ -368,7 +370,7 @@ ss.bundle.files.prefix=${ss.bundle.files.prefix}
                 name="release.parent.platforms"
                 value=""/>
         </ant>
-
+	-->
 
 	<antcall target="build-products"/>
 	<!-- java -cp engine/build/ssinstaller/engine/build/classes buildhelper.Main products.xml products/native 
@@ -426,23 +428,22 @@ ss.bundle.files.prefix=${ss.bundle.files.prefix}
                        target="${output.dir}/bundles/${ss.bundle.files.prefix}-bundled-${ss.platform.name}.sh"
 		       componentlist="native.lst">
 	    <component uid="ss-base" version="1.0.0.0.0"/>            
-	    <component uid="nb-base" version="${nb.full.version}"/>
 	    <component uid="nb-extra" version="${nb.full.version}"/>	
 	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
         </create-bundle>
+	<chmod file="${output.dir}/bundles/${ss.bundle.files.prefix}-bundled-${ss.platform.name}.sh" perm="ugo+rx"/>
         <delete file="${output.dir}/registry-temp/bundles.list" /> 
-
+<!--
         <create-bundle root="${output.dir}/registry-temp" 
                        platform="${current.platform.name}" 
                        target="${output.dir}/bundles/${ss.bundle.files.prefix}-external-${ss.platform.name}.sh"
                        componentlist="native.lst">
             <component uid="ss-base" version="1.0.0.0.0"/>
-	    <component uid="nb-base" version="${nb.full.version}"/>
 	    <component uid="nb-extra" version="${nb.full.version}"/>
             <property name="nbi.product.bundled.data.all.location" value="${bundles.url}" />
 	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
         </create-bundle>
-        <delete file="${output.dir}/registry-temp/bundles.list" />
+-->     <delete file="${output.dir}/registry-temp/bundles.list" />
     </target>
     
     
@@ -532,6 +533,46 @@ ss.bundle.files.prefix=${ss.bundle.files.prefix}
     
 -->
 
+    </target>
+
+    <target name="rebuild-engine" depends="-init">
+       
+        <echo message="BUILDING SUN STUDIO INSTALLER ENGINE =================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/engine" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/engine"/>                          
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>            
+            <property 
+                name="core.engine.dist.file" 
+                value="${nbi.core.dir}/infra/build/engine/dist/${engine.dist.file.name}"/>
+        </ant>
+  <!--
+	<ant dir="${nbi.netbeans.dir}/infra/products/ss-base" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/ss-base"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="tools-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+   -->
     </target>
 
     <target name="prepare-output-dir">

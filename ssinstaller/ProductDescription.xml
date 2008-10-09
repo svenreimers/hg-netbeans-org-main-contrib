@@ -145,6 +145,7 @@
             <svr source="SPROgc"/>
             <svr source="SPROgcx"/>
             <svr source="SPROidext"/>
+            <svr source="SPROatd"/>
             <svr source="SPROudchk"/>
             <svr source="SPROl90"/>
             <svr source="SPROl90s"/>
@@ -166,13 +167,11 @@
             <svr source="SPROmride"/>
             <svr source="SPROmrpan"/>
             <svr source="SPROmrpgn"/>
-            <svr source="SPROmrsbe"/>
             <svr source="SPROmrstd"/>
             <svr source="SPROmrtcv"/>
             <svr source="SPROpnsn"/>
             <svr source="SPROprfan"/>
             <svr source="SPROprflb"/>
-            <svr source="SPROsbe"/>
             <svr source="SPROsbld"/>
             <svr source="SPROsbldx"/>
             <svr source="SPROscl"/>
@@ -186,6 +185,7 @@
             <svr source="SPROstl4y"/>
             <svr source="SPROsunms"/>
             <svr source="SPROsvc"/>
+            <svr source="SPROsslnk"/>
             <svr source="SPROtdemo"/>
             <svr source="SPROutool"/>
             <svr source="SPROlklnt"/>
@@ -201,6 +201,7 @@
             <svr source="SPROgc"/>
             <svr source="SPROgcx"/>
             <svr source="SPROidext"/>
+	    <svr source="SPROatd"/>
             <svr source="SPROipl"/>
             <svr source="SPROiplg"/>
             <svr source="SPROiplx"/>
@@ -232,14 +233,12 @@
             <svr source="SPROmride"/>
             <svr source="SPROmrpan"/>
             <svr source="SPROmrpgn"/>
-            <svr source="SPROmrsbe"/>
             <svr source="SPROmrstd"/>
             <svr source="SPROmrtcv"/>
             <svr source="SPROpnsn"/>
             <svr source="SPROplck"/>
             <svr source="SPROprfan"/>
             <svr source="SPROprflb"/>           
-            <svr source="SPROsbe"/>
             <svr source="SPROsbld"/>
             <svr source="SPROsbldx"/>
             <svr source="SPROscl"/>
@@ -260,6 +259,7 @@
             <svr source="SPROsysprp"/>
         </block>
         <block platform="linux">
+	    <rpm source="sun-atd-12.0-1.x86_64.rpm"/> 
             <rpm source="sun-dwrfb-12.0-1.i386.rpm"/>
             <rpm source="sun-lang-12.0-1.i386.rpm"/>
             <rpm source="sun-rtm-12.0-1.i386.rpm"/>
@@ -269,7 +269,7 @@
             <rpm source="sun-rtmx-12.0-1.x86_64.rpm"/>            
             <rpm source="sun-l90-12.0-1.i386.rpm"/>
             <rpm source="sun-l90s-12.0-1.i386.rpm"/>
-            <rpm source="sun-idext-12.0-1.i386.rpm"/>
+            <rpm source="sun-idext-12.0-1.x86_64.rpm"/>
             <rpm source="sun-l90sx-12.0-1.x86_64.rpm"/>
             <rpm source="sun-l90x-12.0-1.x86_64.rpm"/>
             <rpm source="sun-langx-12.0-1.x86_64.rpm"/>

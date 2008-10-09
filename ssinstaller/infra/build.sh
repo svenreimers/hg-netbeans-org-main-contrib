@@ -75,9 +75,12 @@ INSTALLED_BITS="file://$CACHE_DIR/packages"
 NB_BUILDS_HOST="file://$CACHE_DIR/packages/nb"
 NB_FILES_PREFIX=netbeans-6.1
 
+TARGET=build
 #rm -rf $OUTPUT_DIR
 #
-bash copy-packages.sh $CACHE_DIR/packages $SUNSTUDIO_BITS_ROOT
+if [ -z "$REBUILD" ]; then
+    bash copy-packages.sh $CACHE_DIR/packages || exit 1
+fi
 
 case $DISTRS in 
     intel-S2)
@@ -95,7 +98,7 @@ cd ${DIRNAME}
 ################################################################################
 # define the temp file location
 TEMP_FILE=${WORK_DIR}/temp.sh.tmp
-
+USE_PACK200=false
 ################################################################################
 # define the log file location and create the directory for logs
 #LOGS_DIR=${DIRNAME}/logs
@@ -109,7 +112,7 @@ export ANT_OPTS
 run() {
     ################################################################################
     # run the build
-    ant build \
+    ant ${TARGET} \
             \"-Dbuild.number=${BUILD_NUMBER}\" \
 	    \"-Dss.name=sunstudio\"\
 	    \"-Dss.version=${SS_VERSION}\"\

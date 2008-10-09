@@ -59,12 +59,12 @@ import org.netbeans.modules.gsf.api.SourceFileReader;
 import org.netbeans.modules.gsf.api.TranslatedSource;
 import org.netbeans.modules.gsf.spi.DefaultParseListener;
 import org.netbeans.modules.gsf.spi.DefaultParserFile;
+import org.netbeans.modules.gsf.spi.GsfUtilities;
 import org.netbeans.modules.java.preprocessorbridge.spi.VirtualSourceProvider;
 import org.netbeans.modules.scala.editing.ast.AstDef;
 import org.netbeans.modules.scala.editing.ast.AstRootScope;
 import org.netbeans.modules.scala.editing.ast.AstScope;
 import org.netbeans.modules.scala.editing.ast.ScalaElement;
-import org.netbeans.modules.scala.util.NbUtilities;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
@@ -144,7 +144,7 @@ public class ScalaVirtualSourceProvider implements VirtualSourceProvider {
                     new SourceFileReader() {
 
                         public CharSequence read(ParserFile file) throws IOException {
-                            Document doc = NbUtilities.getBaseDocument(fo, true);
+                            Document doc = GsfUtilities.getDocument(fo, true);
 
                             if (doc == null) {
                                 return "";
