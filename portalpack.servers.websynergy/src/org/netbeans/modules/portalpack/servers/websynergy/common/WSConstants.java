@@ -37,41 +37,15 @@
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.widgets;
-
-import java.awt.Image;
-import org.netbeans.api.visual.model.ObjectScene;
-import org.netbeans.api.visual.widget.Widget;
+package org.netbeans.modules.portalpack.servers.websynergy.common;
 
 /**
  *
  * @author satyaranjan
  */
-public class LocalMethodsWidget implements TabWidget{
- private OperationsWidget operationsWidget;
-    private ObjectScene scene;
-    
-    public LocalMethodsWidget(ObjectScene scene) {
-        this.scene = scene;
-    }
-    
-    public String getTitle() {
-        return "Local Methods";
-    }
+public class WSConstants {
 
-    public Image getIcon() {
-        return null;
-    }
+    public static String WS_1_0 = "ws_1_0";
+    public static String WS_1_0_URI_PREFIX = "websynergy_1_0";
 
-    public Widget getComponentWidget() {
-        
-        if(operationsWidget == null) {
-            operationsWidget = new OperationsWidget(scene, null);
-        }
-        return operationsWidget;
-    }
-
-    public Object hashKey() {
-        return hashKey();
-    }
 }

@@ -71,8 +71,9 @@ public class ExistingSunStudioChecker {
     List<PackageDescr> packagesToInstall;
     
     List<PackageDescr> conflictedPackages;
-    public final String VERSION = "12.0";
+    public final String VERSION = "2008.11";
     public final String VERSION_11 = "11.0";
+    public final String VERSION_12 = "12.0";
     private ExistingSunStudioChecker() {
         conflictedPackages = new ArrayList<PackageDescr>();       
         packagesToInstall = new ArrayList<PackageDescr>();
@@ -94,8 +95,10 @@ public class ExistingSunStudioChecker {
             for (PackageDescr packageToInstall : packagesToInstall) {
                 // special for Linux
                 if (SystemUtils.isLinux() && installedPackage.getName().equals(packageToInstall.getName())) {
-                    conflictedPackages.add(installedPackage);
-                    LogManager.log(installedPackage.getName());
+                    if (!Utils.getSSBase().getStatus().equals(Status.INSTALLED) || !installedPackage.getVersion().equals(VERSION)) {                    
+                        conflictedPackages.add(installedPackage);
+                        LogManager.log(installedPackage.getName());
+                    }
                 }                
                 // special for Solaris
                 if (SystemUtils.isSolaris() && (installedPackage.getName().equals(packageToInstall.getName())
@@ -128,7 +131,8 @@ public class ExistingSunStudioChecker {
         for (String version : getInstalledVersions()) {
             LogManager.log("Checking version: '" + version + "'" );
             // if Sun Studio 11 is already installed then only local zone could be used.
-            if (version.equals(VERSION_11)) {
+            if (version.equals(VERSION_11)
+                    || version.equals(VERSION_12)) {
                 return true;
             }
         }
@@ -199,7 +203,6 @@ public class ExistingSunStudioChecker {
     }
     
     public int getResolutionForVersion(String version) {        
-        if (SystemUtils.isLinux()) return INSTALLATION_BLOCKED;
         if (version.equals(VERSION)) {            
             return getBaseDirsForVersion(version).size() == 1 
                     ? ONLY_THIS_LOCATION_USED : INSTALLATION_BLOCKED;
@@ -218,7 +221,7 @@ public class ExistingSunStudioChecker {
         return result;
     }
     
-    public String getAllowedDirectory() {        
+    public String getAllowedDirectory() {  
         for (PackageDescr descr : conflictedPackages) {
             if (descr.getVersion().equals(getCurrentVersion())) {
                 return descr.getBaseDirectory();

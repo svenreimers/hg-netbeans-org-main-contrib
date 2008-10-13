@@ -37,44 +37,36 @@
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.widgets;
+package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view;
 
-import java.awt.Image;
 import org.netbeans.api.visual.model.ObjectScene;
-import org.netbeans.api.visual.widget.Scene;
-import org.netbeans.api.visual.widget.Widget;
+import org.netbeans.modules.portalpack.websynergy.servicebuilder.design.javamodel.Utils;
+import org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.widgets.TableWidget;
+import org.netbeans.modules.portalpack.websynergy.servicebuilder.helper.ServiceBuilderHelper;
 
 /**
  *
  * @author satyaranjan
  */
-public class FinderMethodsWidget implements TabWidget{
-
-    private OperationsWidget operationsWidget;
-    private ObjectScene scene;
+public class RemoteMethodWidget extends LocalMethodsWidget{
     
-    public FinderMethodsWidget(ObjectScene scene) {
-        this.scene = scene;
-    }
-    
-    public String getTitle() {
-        return "Finders";
-    }
-
-    public Image getIcon() {
-        return null;
-    }
-
-    public Widget getComponentWidget() {
+    public RemoteMethodWidget(ObjectScene scene,TableWidget entityTable,ServiceBuilderHelper helper) {
         
-        if(operationsWidget == null) {
-            operationsWidget = new OperationsWidget(scene, null);
-        }
-        return operationsWidget;
+        super(scene, entityTable, helper);
     }
 
-    public Object hashKey() {
-        return this.hashKey();
+    @Override
+    public String getTitle() {
+        return "Remote Methods";
     }
 
+    @Override
+    protected String getImplClass(String entityName, String packageName) {
+        String className = Utils.getRemoteServiceClass(entityName);
+        className = packageName + ".service.impl." + className;
+        return className;
+    }
+    
+    
+    
 }

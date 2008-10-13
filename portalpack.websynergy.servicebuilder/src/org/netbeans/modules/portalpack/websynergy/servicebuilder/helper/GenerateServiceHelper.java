@@ -38,6 +38,7 @@
  */
 package org.netbeans.modules.portalpack.websynergy.servicebuilder.helper;
 
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.java.project.JavaProjectConstants;
@@ -67,11 +69,14 @@ import org.netbeans.modules.portalpack.servers.core.util.PSConfigObject;
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.LibrariesHelper;
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.ServiceBuilderConstant;
 import org.netbeans.modules.web.api.webmodule.WebModule;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
+import org.openide.util.NbBundle;
 import org.openide.util.Task;
 import org.openide.util.TaskListener;
 
@@ -84,6 +89,7 @@ public class GenerateServiceHelper {
     private static Logger logger = Logger.getLogger(ServiceBuilderConstant.LOGGER_NAME);
     private static String BUILD_FILE_NAME = "build-service.xml";
     private static String LR_PREFIX = "liferay";
+    private static String WS_PREFIX = "websynergy";
    // private static String SB_DIR = System.getProperty("netbeans.user") + File.separator + "servicebuilder";
     private static GenerateServiceHelper instance;
 
@@ -153,14 +159,27 @@ public class GenerateServiceHelper {
 
     }
 
-    public static boolean generateService(FileObject serviceXml) {
+    public static boolean generateService(FileObject serviceXml,final AbstractAction action) {
 
         final Project project = getProject(serviceXml);
         final WebModule wm = getWebModule(project);
         
+        if(wm == null) {
+            NotifyDescriptor nd = new NotifyDescriptor.Message(NbBundle.getMessage(GenerateServiceHelper.class,"MSG_NOT_A_WEB_PROJECT"),NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return false;
+        }
+        
         //copy libs if not exists
         LibrariesHelper.getDefault().copyLibs(false);
         PSConfigObject psconfig = getSelectedServerProperties(project);
+        
+        if(psconfig == null) {
+            
+            NotifyDescriptor nd = new NotifyDescriptor.Message(NbBundle.getMessage(GenerateServiceHelper.class,"MSG_NO_RUNTIME"),NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return false;
+        }
 
         final Properties props = getServerAntProperties(psconfig);
         setAdditionalProperties(project, props);
@@ -208,6 +227,8 @@ public class GenerateServiceHelper {
                                 ex.printStackTrace();
                             }
                                  
+                            if(action != null)
+                                action.actionPerformed(new ActionEvent(this, 1, "reload"));
                             // }
                             
                         }
@@ -380,7 +401,8 @@ public class GenerateServiceHelper {
 
         String serverID = jmp.getServerInstanceID();
 
-        if (serverID == null || !serverID.startsWith(LR_PREFIX)) {
+        if (serverID == null || (!serverID.startsWith(LR_PREFIX)
+                             && !serverID.startsWith(WS_PREFIX))) {
             return null;
         }
         PSConfigObject pc = PSConfigObject.getPSConfigObject(serverID);

@@ -18,9 +18,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	public static final String WHERE = "Where";	// NOI18N
 	public static final String DBINDEX = "DbIndex";	// NOI18N
 	public static final String FINDER_COLUMN = "FinderColumn";	// NOI18N
-	public static final String FINDERCOLUMNNAME = "FinderColumnName";	// NOI18N
-	public static final String FINDERCOLUMNCASESENSITIVE = "FinderColumnCaseSensitive";	// NOI18N
-	public static final String FINDERCOLUMNCOMPARATOR = "FinderColumnComparator";	// NOI18N
 
 	private static final org.netbeans.modules.schema2beans.Version baseBeanRuntimeVersion = new org.netbeans.modules.schema2beans.Version(5, 0, 0);
 	private java.util.List _Comments = new java.util.ArrayList();	// List<java.lang.String>
@@ -28,13 +25,10 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	private java.lang.String _ReturnType;
 	private java.lang.String _Where;
 	private java.lang.String _DbIndex;
-	private java.util.List _FinderColumn = new java.util.ArrayList();	// List<String>
-	private java.util.List _FinderColumnName = new java.util.ArrayList();	// List<java.lang.String>
-	private java.util.List _FinderColumnCaseSensitive = new java.util.ArrayList();	// List<java.lang.String>
-	private java.util.List _FinderColumnComparator = new java.util.ArrayList();	// List<java.lang.String>
+	private java.util.List _FinderColumn = new java.util.ArrayList();	// List<FinderColumn>
 	private org.netbeans.modules.schema2beans.BaseBean parent;
 	private java.beans.PropertyChangeSupport eventListeners;
-	private java.util.Map propByName = new java.util.HashMap(11, 1.0f);
+	private java.util.Map propByName = new java.util.HashMap(8, 1.0f);
 	private java.util.List beanPropList = null;	// List<org.netbeans.modules.schema2beans.BeanProp>
 
 	/**
@@ -56,20 +50,17 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	/**
 	 * Required parameters constructor
 	 */
-	public Finder(java.lang.String name, java.lang.String returnType, String[] finderColumn, java.lang.String[] finderColumnName) {
+	public Finder(java.lang.String name, java.lang.String returnType, org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn[] finderColumn) {
 		super(null, baseBeanRuntimeVersion);
 		_Name = name;
 		_ReturnType = returnType;
 		if (finderColumn!= null) {
 			((java.util.ArrayList) _FinderColumn).ensureCapacity(finderColumn.length);
 			for (int i = 0; i < finderColumn.length; ++i) {
+				if (finderColumn[i] != null) {
+					finderColumn[i]._setParent(this);
+				}
 				_FinderColumn.add(finderColumn[i]);
-			}
-		}
-		if (finderColumnName!= null) {
-			((java.util.ArrayList) _FinderColumnName).ensureCapacity(finderColumnName.length);
-			for (int i = 0; i < finderColumnName.length; ++i) {
-				_FinderColumnName.add(finderColumnName[i]);
 			}
 		}
 	}
@@ -106,23 +97,10 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		_DbIndex = source._DbIndex;
 		for (java.util.Iterator it = source._FinderColumn.iterator(); 
 			it.hasNext(); ) {
-			String srcElement = (String)it.next();
-			_FinderColumn.add(srcElement);
-		}
-		for (java.util.Iterator it = source._FinderColumnName.iterator(); 
-			it.hasNext(); ) {
-			java.lang.String srcElement = (java.lang.String)it.next();
-			_FinderColumnName.add(srcElement);
-		}
-		for (java.util.Iterator it = source._FinderColumnCaseSensitive.iterator(); 
-			it.hasNext(); ) {
-			java.lang.String srcElement = (java.lang.String)it.next();
-			_FinderColumnCaseSensitive.add(srcElement);
-		}
-		for (java.util.Iterator it = source._FinderColumnComparator.iterator(); 
-			it.hasNext(); ) {
-			java.lang.String srcElement = (java.lang.String)it.next();
-			_FinderColumnComparator.add(srcElement);
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn srcElement = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+			_FinderColumn.add((srcElement == null) ? null : (FinderColumn) newFinderColumn(( 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            ) srcElement, this, justData));
 		}
 		if (!justData) {
 			if (source.eventListeners != null) {
@@ -349,9 +327,12 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	}
 
 	// This attribute is an array containing at least one element
-	public void setFinderColumn(String[] value) {
+	public void setFinderColumn( 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            [] valueInterface) {
+		FinderColumn[] value = (FinderColumn[]) valueInterface;
 		if (value == null)
-			value = new String[0];
+			value = new FinderColumn[0];
 		if (value.length == sizeFinderColumn()) {
 			boolean same = true;
 			for (int i = 0; i < value.length; ++i) {
@@ -363,6 +344,14 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			if (same) {
 				// No change.
 				return;
+			}
+		}
+		// Make the foreign beans take on our property change event listeners.
+		// Maintain the parent reference.
+		for (int i = 0; i < value.length; ++i) {
+			if (value[i] != null) {
+				value[i]._setPropertyChangeSupport(eventListeners);
+				value[i]._setParent(this);
 			}
 		}
 		java.beans.PropertyChangeEvent event = null;
@@ -430,10 +419,20 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			eventListeners.firePropertyChange(event);
 	}
 
-	public void setFinderColumn(int index, String value) {
+	public void setFinderColumn(int index,  
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+             valueInterface) {
+		FinderColumn value = (FinderColumn) valueInterface;
 		if (value == null ? getFinderColumn(index) == null : value.equals(getFinderColumn(index))) {
 			// No change.
 			return;
+		}
+		if (value != null) {
+			value._setParent(this);
+		}
+		if (value != null) {
+			// Make the foreign beans take on our property change event listeners.
+			value._setPropertyChangeSupport(eventListeners);
 		}
 		if (eventListeners != null) {
 			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumn."+Integer.toHexString(index), getFinderColumn(index), value);
@@ -442,17 +441,21 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		_FinderColumn.set(index, value);
 	}
 
-	public String[] getFinderColumn() {
-		String[] arr = new String[_FinderColumn.size()];
-		return (String[]) _FinderColumn.toArray(arr);
+	public  
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            [] getFinderColumn() {
+		FinderColumn[] arr = new FinderColumn[_FinderColumn.size()];
+		return (FinderColumn[]) _FinderColumn.toArray(arr);
 	}
 
 	public java.util.List fetchFinderColumnList() {
 		return _FinderColumn;
 	}
 
-	public String getFinderColumn(int index) {
-		return (String)_FinderColumn.get(index);
+	public  
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+             getFinderColumn(int index) {
+		return (FinderColumn)_FinderColumn.get(index);
 	}
 
 	// Return the number of finderColumn
@@ -460,7 +463,17 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		return _FinderColumn.size();
 	}
 
-	public int addFinderColumn(String value) {
+	public int addFinderColumn( 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+             valueInterface) {
+		FinderColumn value = (FinderColumn) valueInterface;
+		if (value != null) {
+			value._setParent(this);
+		}
+		if (value != null) {
+			// Make the foreign beans take on our property change event listeners.
+			value._setPropertyChangeSupport(eventListeners);
+		}
 		_FinderColumn.add(value);
 		if (eventListeners != null) {
 			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumn."+Integer.toHexString(_FinderColumn.size()-1), null, value);
@@ -473,7 +486,10 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	/**
 	 * Search from the end looking for @param value, and then remove it.
 	 */
-	public int removeFinderColumn(String value) {
+	public int removeFinderColumn( 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+             valueInterface) {
+		FinderColumn value = (FinderColumn) valueInterface;
 		int pos = _FinderColumn.indexOf(value);
 		if (pos >= 0) {
 			_FinderColumn.remove(pos);
@@ -485,426 +501,20 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		return pos;
 	}
 
-	// This attribute is an array containing at least one element
-	public void setFinderColumnName(java.lang.String[] value) {
-		if (value == null)
-			value = new java.lang.String[0];
-		if (value.length == sizeFinderColumnName()) {
-			boolean same = true;
-			for (int i = 0; i < value.length; ++i) {
-				if (!(value[i] == null ? getFinderColumnName(i) == null : value[i].equals(getFinderColumnName(i)))) {
-					same = false;
-					break;
-				}
-			}
-			if (same) {
-				// No change.
-				return;
-			}
-		}
-		java.beans.PropertyChangeEvent event = null;
-		if (eventListeners != null) {
-			// See if only 1 thing changed.
-			int addIndex = -1;
-			int removeIndex = -1;
-			int oldSize = sizeFinderColumnName();
-			int newSize = value.length;
-			if (oldSize + 1 == newSize || oldSize == newSize + 1) {
-				boolean checkAddOrRemoveOne = true;
-				int oldIndex = 0, newIndex = 0;
-				for (; oldIndex < oldSize && newIndex < newSize; 
-					++newIndex, ++oldIndex) {
-					if (value[newIndex] == null ? getFinderColumnName(oldIndex) == null : value[newIndex].equals(getFinderColumnName(oldIndex))) {
-						// Same, so just continue.
-					} else if (addIndex != -1 || removeIndex != -1) {
-						// More than 1 difference detected.
-						addIndex = removeIndex = -1;
-						checkAddOrRemoveOne = false;
-						break;
-					} else if (oldIndex + 1 < oldSize && (value[newIndex] == null ? getFinderColumnName(oldIndex+1) == null : value[newIndex].equals(getFinderColumnName(oldIndex+1)))) {
-						removeIndex = oldIndex;
-						++oldIndex;
-					} else if (newIndex + 1 < newSize && (value[newIndex+1] == null ? getFinderColumnName(oldIndex) == null : value[newIndex+1].equals(getFinderColumnName(oldIndex)))) {
-						addIndex = newIndex;
-						++newIndex;
-					} else {
-						// More than 1 difference.
-						addIndex = removeIndex = -1;
-						checkAddOrRemoveOne = false;
-						break;
-					}
-				}
-				if (checkAddOrRemoveOne && addIndex == -1 && removeIndex == -1) {
-					if (oldSize + 1 == newSize) {
-						// Added last one
-						addIndex = oldSize;
-					} else if (oldSize == newSize + 1) {
-						// Removed last one
-						removeIndex = newSize;
-					}
-				}
-			}
-			if (addIndex >= 0) {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnName."+Integer.toHexString(addIndex), null, value[addIndex]);
-				_FinderColumnName.add(addIndex, value[addIndex]);
-				eventListeners.firePropertyChange(event);
-				return;
-			} else if (removeIndex >= 0) {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnName."+Integer.toHexString(removeIndex), getFinderColumnName(removeIndex), null);
-				_FinderColumnName.remove(removeIndex);
-				eventListeners.firePropertyChange(event);
-				return;
-			} else {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnName.-1", getFinderColumnName(), value);
-			}
-		}
-		_FinderColumnName.clear();
-		((java.util.ArrayList) _FinderColumnName).ensureCapacity(value.length);
-		for (int i = 0; i < value.length; ++i) {
-			_FinderColumnName.add(value[i]);
-		}
-		if (event != null)
-			eventListeners.firePropertyChange(event);
-	}
-
-	public void setFinderColumnName(int index, java.lang.String value) {
-		if (value == null ? getFinderColumnName(index) == null : value.equals(getFinderColumnName(index))) {
-			// No change.
-			return;
-		}
-		if (eventListeners != null) {
-			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnName."+Integer.toHexString(index), getFinderColumnName(index), value);
-			eventListeners.firePropertyChange(event);
-		}
-		for (int size = _FinderColumnName.size(); index >= size; ++size) {
-			_FinderColumnName.add(null);
-		}
-		_FinderColumnName.set(index, value);
-	}
-
-	public java.lang.String[] getFinderColumnName() {
-		java.lang.String[] arr = new java.lang.String[_FinderColumnName.size()];
-		return (java.lang.String[]) _FinderColumnName.toArray(arr);
-	}
-
-	public java.util.List fetchFinderColumnNameList() {
-		return _FinderColumnName;
-	}
-
-	public java.lang.String getFinderColumnName(int index) {
-		return (java.lang.String)_FinderColumnName.get(index);
-	}
-
-	// Return the number of finderColumnName
-	public int sizeFinderColumnName() {
-		return _FinderColumnName.size();
-	}
-
-	public int addFinderColumnName(java.lang.String value) {
-		_FinderColumnName.add(value);
-		if (eventListeners != null) {
-			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnName."+Integer.toHexString(_FinderColumnName.size()-1), null, value);
-			eventListeners.firePropertyChange(event);
-		}
-		int positionOfNewItem = _FinderColumnName.size()-1;
-		return positionOfNewItem;
+	/**
+	 * Create a new bean using it's default constructor.
+	 * This does not add it to any bean graph.
+	 */
+	public org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn newFinderColumn() {
+		return new org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn();
 	}
 
 	/**
-	 * Search from the end looking for @param value, and then remove it.
+	 * Create a new bean, copying from another one.
+	 * This does not add it to any bean graph.
 	 */
-	public int removeFinderColumnName(java.lang.String value) {
-		int pos = _FinderColumnName.indexOf(value);
-		if (pos >= 0) {
-			_FinderColumnName.remove(pos);
-			if (eventListeners != null) {
-				java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnName."+Integer.toHexString(pos), value, null);
-				eventListeners.firePropertyChange(event);
-			}
-		}
-		return pos;
-	}
-
-	// This attribute is an array, possibly empty
-	public void setFinderColumnCaseSensitive(java.lang.String[] value) {
-		if (value == null)
-			value = new java.lang.String[0];
-		if (value.length == sizeFinderColumnCaseSensitive()) {
-			boolean same = true;
-			for (int i = 0; i < value.length; ++i) {
-				if (!(value[i] == null ? getFinderColumnCaseSensitive(i) == null : value[i].equals(getFinderColumnCaseSensitive(i)))) {
-					same = false;
-					break;
-				}
-			}
-			if (same) {
-				// No change.
-				return;
-			}
-		}
-		java.beans.PropertyChangeEvent event = null;
-		if (eventListeners != null) {
-			// See if only 1 thing changed.
-			int addIndex = -1;
-			int removeIndex = -1;
-			int oldSize = sizeFinderColumnCaseSensitive();
-			int newSize = value.length;
-			if (oldSize + 1 == newSize || oldSize == newSize + 1) {
-				boolean checkAddOrRemoveOne = true;
-				int oldIndex = 0, newIndex = 0;
-				for (; oldIndex < oldSize && newIndex < newSize; 
-					++newIndex, ++oldIndex) {
-					if (value[newIndex] == null ? getFinderColumnCaseSensitive(oldIndex) == null : value[newIndex].equals(getFinderColumnCaseSensitive(oldIndex))) {
-						// Same, so just continue.
-					} else if (addIndex != -1 || removeIndex != -1) {
-						// More than 1 difference detected.
-						addIndex = removeIndex = -1;
-						checkAddOrRemoveOne = false;
-						break;
-					} else if (oldIndex + 1 < oldSize && (value[newIndex] == null ? getFinderColumnCaseSensitive(oldIndex+1) == null : value[newIndex].equals(getFinderColumnCaseSensitive(oldIndex+1)))) {
-						removeIndex = oldIndex;
-						++oldIndex;
-					} else if (newIndex + 1 < newSize && (value[newIndex+1] == null ? getFinderColumnCaseSensitive(oldIndex) == null : value[newIndex+1].equals(getFinderColumnCaseSensitive(oldIndex)))) {
-						addIndex = newIndex;
-						++newIndex;
-					} else {
-						// More than 1 difference.
-						addIndex = removeIndex = -1;
-						checkAddOrRemoveOne = false;
-						break;
-					}
-				}
-				if (checkAddOrRemoveOne && addIndex == -1 && removeIndex == -1) {
-					if (oldSize + 1 == newSize) {
-						// Added last one
-						addIndex = oldSize;
-					} else if (oldSize == newSize + 1) {
-						// Removed last one
-						removeIndex = newSize;
-					}
-				}
-			}
-			if (addIndex >= 0) {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnCaseSensitive."+Integer.toHexString(addIndex), null, value[addIndex]);
-				_FinderColumnCaseSensitive.add(addIndex, value[addIndex]);
-				eventListeners.firePropertyChange(event);
-				return;
-			} else if (removeIndex >= 0) {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnCaseSensitive."+Integer.toHexString(removeIndex), getFinderColumnCaseSensitive(removeIndex), null);
-				_FinderColumnCaseSensitive.remove(removeIndex);
-				eventListeners.firePropertyChange(event);
-				return;
-			} else {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnCaseSensitive.-1", getFinderColumnCaseSensitive(), value);
-			}
-		}
-		_FinderColumnCaseSensitive.clear();
-		((java.util.ArrayList) _FinderColumnCaseSensitive).ensureCapacity(value.length);
-		for (int i = 0; i < value.length; ++i) {
-			_FinderColumnCaseSensitive.add(value[i]);
-		}
-		if (event != null)
-			eventListeners.firePropertyChange(event);
-	}
-
-	public void setFinderColumnCaseSensitive(int index, java.lang.String value) {
-		if (value == null ? getFinderColumnCaseSensitive(index) == null : value.equals(getFinderColumnCaseSensitive(index))) {
-			// No change.
-			return;
-		}
-		if (eventListeners != null) {
-			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnCaseSensitive."+Integer.toHexString(index), getFinderColumnCaseSensitive(index), value);
-			eventListeners.firePropertyChange(event);
-		}
-		for (int size = _FinderColumnCaseSensitive.size(); index >= size; 
-			++size) {
-			_FinderColumnCaseSensitive.add(null);
-		}
-		_FinderColumnCaseSensitive.set(index, value);
-	}
-
-	public java.lang.String[] getFinderColumnCaseSensitive() {
-		java.lang.String[] arr = new java.lang.String[_FinderColumnCaseSensitive.size()];
-		return (java.lang.String[]) _FinderColumnCaseSensitive.toArray(arr);
-	}
-
-	public java.util.List fetchFinderColumnCaseSensitiveList() {
-		return _FinderColumnCaseSensitive;
-	}
-
-	public java.lang.String getFinderColumnCaseSensitive(int index) {
-		return (java.lang.String)_FinderColumnCaseSensitive.get(index);
-	}
-
-	// Return the number of finderColumnCaseSensitive
-	public int sizeFinderColumnCaseSensitive() {
-		return _FinderColumnCaseSensitive.size();
-	}
-
-	public int addFinderColumnCaseSensitive(java.lang.String value) {
-		_FinderColumnCaseSensitive.add(value);
-		if (eventListeners != null) {
-			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnCaseSensitive."+Integer.toHexString(_FinderColumnCaseSensitive.size()-1), null, value);
-			eventListeners.firePropertyChange(event);
-		}
-		int positionOfNewItem = _FinderColumnCaseSensitive.size()-1;
-		return positionOfNewItem;
-	}
-
-	/**
-	 * Search from the end looking for @param value, and then remove it.
-	 */
-	public int removeFinderColumnCaseSensitive(java.lang.String value) {
-		int pos = _FinderColumnCaseSensitive.indexOf(value);
-		if (pos >= 0) {
-			_FinderColumnCaseSensitive.remove(pos);
-			if (eventListeners != null) {
-				java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnCaseSensitive."+Integer.toHexString(pos), value, null);
-				eventListeners.firePropertyChange(event);
-			}
-		}
-		return pos;
-	}
-
-	// This attribute is an array, possibly empty
-	public void setFinderColumnComparator(java.lang.String[] value) {
-		if (value == null)
-			value = new java.lang.String[0];
-		if (value.length == sizeFinderColumnComparator()) {
-			boolean same = true;
-			for (int i = 0; i < value.length; ++i) {
-				if (!(value[i] == null ? getFinderColumnComparator(i) == null : value[i].equals(getFinderColumnComparator(i)))) {
-					same = false;
-					break;
-				}
-			}
-			if (same) {
-				// No change.
-				return;
-			}
-		}
-		java.beans.PropertyChangeEvent event = null;
-		if (eventListeners != null) {
-			// See if only 1 thing changed.
-			int addIndex = -1;
-			int removeIndex = -1;
-			int oldSize = sizeFinderColumnComparator();
-			int newSize = value.length;
-			if (oldSize + 1 == newSize || oldSize == newSize + 1) {
-				boolean checkAddOrRemoveOne = true;
-				int oldIndex = 0, newIndex = 0;
-				for (; oldIndex < oldSize && newIndex < newSize; 
-					++newIndex, ++oldIndex) {
-					if (value[newIndex] == null ? getFinderColumnComparator(oldIndex) == null : value[newIndex].equals(getFinderColumnComparator(oldIndex))) {
-						// Same, so just continue.
-					} else if (addIndex != -1 || removeIndex != -1) {
-						// More than 1 difference detected.
-						addIndex = removeIndex = -1;
-						checkAddOrRemoveOne = false;
-						break;
-					} else if (oldIndex + 1 < oldSize && (value[newIndex] == null ? getFinderColumnComparator(oldIndex+1) == null : value[newIndex].equals(getFinderColumnComparator(oldIndex+1)))) {
-						removeIndex = oldIndex;
-						++oldIndex;
-					} else if (newIndex + 1 < newSize && (value[newIndex+1] == null ? getFinderColumnComparator(oldIndex) == null : value[newIndex+1].equals(getFinderColumnComparator(oldIndex)))) {
-						addIndex = newIndex;
-						++newIndex;
-					} else {
-						// More than 1 difference.
-						addIndex = removeIndex = -1;
-						checkAddOrRemoveOne = false;
-						break;
-					}
-				}
-				if (checkAddOrRemoveOne && addIndex == -1 && removeIndex == -1) {
-					if (oldSize + 1 == newSize) {
-						// Added last one
-						addIndex = oldSize;
-					} else if (oldSize == newSize + 1) {
-						// Removed last one
-						removeIndex = newSize;
-					}
-				}
-			}
-			if (addIndex >= 0) {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnComparator."+Integer.toHexString(addIndex), null, value[addIndex]);
-				_FinderColumnComparator.add(addIndex, value[addIndex]);
-				eventListeners.firePropertyChange(event);
-				return;
-			} else if (removeIndex >= 0) {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnComparator."+Integer.toHexString(removeIndex), getFinderColumnComparator(removeIndex), null);
-				_FinderColumnComparator.remove(removeIndex);
-				eventListeners.firePropertyChange(event);
-				return;
-			} else {
-				event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnComparator.-1", getFinderColumnComparator(), value);
-			}
-		}
-		_FinderColumnComparator.clear();
-		((java.util.ArrayList) _FinderColumnComparator).ensureCapacity(value.length);
-		for (int i = 0; i < value.length; ++i) {
-			_FinderColumnComparator.add(value[i]);
-		}
-		if (event != null)
-			eventListeners.firePropertyChange(event);
-	}
-
-	public void setFinderColumnComparator(int index, java.lang.String value) {
-		if (value == null ? getFinderColumnComparator(index) == null : value.equals(getFinderColumnComparator(index))) {
-			// No change.
-			return;
-		}
-		if (eventListeners != null) {
-			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnComparator."+Integer.toHexString(index), getFinderColumnComparator(index), value);
-			eventListeners.firePropertyChange(event);
-		}
-		for (int size = _FinderColumnComparator.size(); index >= size; 
-			++size) {
-			_FinderColumnComparator.add(null);
-		}
-		_FinderColumnComparator.set(index, value);
-	}
-
-	public java.lang.String[] getFinderColumnComparator() {
-		java.lang.String[] arr = new java.lang.String[_FinderColumnComparator.size()];
-		return (java.lang.String[]) _FinderColumnComparator.toArray(arr);
-	}
-
-	public java.util.List fetchFinderColumnComparatorList() {
-		return _FinderColumnComparator;
-	}
-
-	public java.lang.String getFinderColumnComparator(int index) {
-		return (java.lang.String)_FinderColumnComparator.get(index);
-	}
-
-	// Return the number of finderColumnComparator
-	public int sizeFinderColumnComparator() {
-		return _FinderColumnComparator.size();
-	}
-
-	public int addFinderColumnComparator(java.lang.String value) {
-		_FinderColumnComparator.add(value);
-		if (eventListeners != null) {
-			java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnComparator."+Integer.toHexString(_FinderColumnComparator.size()-1), null, value);
-			eventListeners.firePropertyChange(event);
-		}
-		int positionOfNewItem = _FinderColumnComparator.size()-1;
-		return positionOfNewItem;
-	}
-
-	/**
-	 * Search from the end looking for @param value, and then remove it.
-	 */
-	public int removeFinderColumnComparator(java.lang.String value) {
-		int pos = _FinderColumnComparator.indexOf(value);
-		if (pos >= 0) {
-			_FinderColumnComparator.remove(pos);
-			if (eventListeners != null) {
-				java.beans.PropertyChangeEvent event = new java.beans.PropertyChangeEvent(this, nameSelf()+"/FinderColumnComparator."+Integer.toHexString(pos), value, null);
-				eventListeners.firePropertyChange(event);
-			}
-		}
-		return pos;
+	public org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn newFinderColumn(org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn source, org.netbeans.modules.schema2beans.BaseBean parent, boolean justData) {
+		return new org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn((FinderColumn) source, parent, justData);
 	}
 
 	public void _setParent(org.netbeans.modules.schema2beans.BaseBean parent) {
@@ -1008,42 +618,12 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 				out.write("-->\n");
 			}
 		}
-		int index = 0;
 		for (java.util.Iterator it = _FinderColumn.iterator(); 
 			it.hasNext(); ) {
-			String element = (String)it.next();
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
 			if (element != null) {
-				out.write(nextIndent);
-				out.write("<finder-column");	// NOI18N
-				if (index < sizeFinderColumnName()) {
-					// name is an attribute with namespace null
-					if (getFinderColumnName(index) != null) {
-						out.write(" name='");
-						org.netbeans.modules.schema2beans.XMLUtil.writeXML(out, getFinderColumnName(index), true);
-						out.write("'");	// NOI18N
-					}
-				}
-				if (index < sizeFinderColumnCaseSensitive()) {
-					// case-sensitive is an attribute with namespace null
-					if (getFinderColumnCaseSensitive(index) != null) {
-						out.write(" case-sensitive='");
-						org.netbeans.modules.schema2beans.XMLUtil.writeXML(out, getFinderColumnCaseSensitive(index), true);
-						out.write("'");	// NOI18N
-					}
-				}
-				if (index < sizeFinderColumnComparator()) {
-					// comparator is an attribute with namespace null
-					if (getFinderColumnComparator(index) != null) {
-						out.write(" comparator='");
-						org.netbeans.modules.schema2beans.XMLUtil.writeXML(out, getFinderColumnComparator(index), true);
-						out.write("'");	// NOI18N
-					}
-				}
-				out.write(">");	// NOI18N
-				org.netbeans.modules.schema2beans.XMLUtil.writeXML(out, element, false);
-				out.write("</finder-column>\n");	// NOI18N
+				element.writeNode(out, "finder-column", null, nextIndent, namespaceMap);
 			}
-			++index;
 		}
 	}
 
@@ -1118,44 +698,16 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 
 	protected boolean readNodeChild(org.w3c.dom.Node childNode, String childNodeName, String childNodeValue, java.util.Map namespacePrefixes) {
 		// assert childNodeName == childNodeName.intern()
-		org.w3c.dom.NamedNodeMap attrs = childNode.getAttributes();
-		org.w3c.dom.Attr attr;
-		java.lang.String attrValue;
 		if (childNode instanceof org.w3c.dom.Comment) {
 			java.lang.String aComments;
 			aComments = ((org.w3c.dom.CharacterData)childNode).getData();
 			_Comments.add(aComments);
 		}
 		else if (childNodeName == "finder-column") {
-			String aFinderColumn;
-			aFinderColumn = childNodeValue;
-			attr = (org.w3c.dom.Attr) attrs.getNamedItem("name");
-			if (attr != null) {
-				attrValue = attr.getValue();
-			} else {
-				attrValue = null;
-			}
-			java.lang.String processedValueFor_FinderColumnName;
-			processedValueFor_FinderColumnName = attrValue;
-			addFinderColumnName(processedValueFor_FinderColumnName);
-			attr = (org.w3c.dom.Attr) attrs.getNamedItem("case-sensitive");
-			if (attr != null) {
-				attrValue = attr.getValue();
-			} else {
-				attrValue = null;
-			}
-			java.lang.String processedValueFor_FinderColumnCaseSensitive;
-			processedValueFor_FinderColumnCaseSensitive = attrValue;
-			addFinderColumnCaseSensitive(processedValueFor_FinderColumnCaseSensitive);
-			attr = (org.w3c.dom.Attr) attrs.getNamedItem("comparator");
-			if (attr != null) {
-				attrValue = attr.getValue();
-			} else {
-				attrValue = null;
-			}
-			java.lang.String processedValueFor_FinderColumnComparator;
-			processedValueFor_FinderColumnComparator = attrValue;
-			addFinderColumnComparator(processedValueFor_FinderColumnComparator);
+			FinderColumn aFinderColumn = (FinderColumn) newFinderColumn();
+			aFinderColumn._setPropertyChangeSupport(eventListeners);
+			aFinderColumn._setParent(this);
+			aFinderColumn.readNode(childNode, namespacePrefixes);
 			_FinderColumn.add(aFinderColumn);
 		}
 		else {
@@ -1182,12 +734,12 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		if (sizeFinderColumn() == 0) {
 			throw new org.netbeans.modules.schema2beans.ValidateException("sizeFinderColumn() == 0", org.netbeans.modules.schema2beans.ValidateException.FailureType.NULL_VALUE, "finderColumn", this);	// NOI18N
 		}
-		// Validating property finderColumnName
-		if (sizeFinderColumnName() == 0) {
-			throw new org.netbeans.modules.schema2beans.ValidateException("sizeFinderColumnName() == 0", org.netbeans.modules.schema2beans.ValidateException.FailureType.NULL_VALUE, "finderColumnName", this);	// NOI18N
+		for (int _index = 0; _index < sizeFinderColumn(); ++_index) {
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn) getFinderColumn(_index);
+			if (element != null) {
+				((FinderColumn)element).validate();
+			}
 		}
-		// Validating property finderColumnCaseSensitive
-		// Validating property finderColumnComparator
 	}
 
 	public void addPropertyChangeListener(java.beans.PropertyChangeListener listener) {
@@ -1195,9 +747,23 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			eventListeners = new java.beans.PropertyChangeSupport(this);
 		}
 		eventListeners.addPropertyChangeListener(listener);
+		for (java.util.Iterator it = _FinderColumn.iterator(); 
+			it.hasNext(); ) {
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+			if (element != null) {
+				element.addPropertyChangeListener(listener);
+			}
+		}
 	}
 
 	public void removePropertyChangeListener(java.beans.PropertyChangeListener listener) {
+		for (java.util.Iterator it = _FinderColumn.iterator(); 
+			it.hasNext(); ) {
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+			if (element != null) {
+				element.removePropertyChangeListener(listener);
+			}
+		}
 		if (eventListeners == null) {
 			return;
 		}
@@ -1209,6 +775,13 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 
 	public void _setPropertyChangeSupport(java.beans.PropertyChangeSupport listeners) {
 		eventListeners = listeners;
+		for (java.util.Iterator it = _FinderColumn.iterator(); 
+			it.hasNext(); ) {
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+			if (element != null) {
+				element._setPropertyChangeSupport(listeners);
+			}
+		}
 	}
 
 	public void changePropertyByName(String name, Object value) {
@@ -1227,21 +800,9 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		else if (name == "dbIndex")
 			setDbIndex((java.lang.String)value);
 		else if (name == "finderColumn")
-			addFinderColumn((String)value);
+			addFinderColumn((FinderColumn)value);
 		else if (name == "finderColumn[]")
-			setFinderColumn((String[]) value);
-		else if (name == "finderColumnName")
-			addFinderColumnName((java.lang.String)value);
-		else if (name == "finderColumnName[]")
-			setFinderColumnName((java.lang.String[]) value);
-		else if (name == "finderColumnCaseSensitive")
-			addFinderColumnCaseSensitive((java.lang.String)value);
-		else if (name == "finderColumnCaseSensitive[]")
-			setFinderColumnCaseSensitive((java.lang.String[]) value);
-		else if (name == "finderColumnComparator")
-			addFinderColumnComparator((java.lang.String)value);
-		else if (name == "finderColumnComparator[]")
-			setFinderColumnComparator((java.lang.String[]) value);
+			setFinderColumn((FinderColumn[]) value);
 		else
 			throw new IllegalArgumentException(name+" is not a valid property name for Finder");
 	}
@@ -1259,12 +820,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			return getDbIndex();
 		if (name == "finderColumn[]")
 			return getFinderColumn();
-		if (name == "finderColumnName[]")
-			return getFinderColumnName();
-		if (name == "finderColumnCaseSensitive[]")
-			return getFinderColumnCaseSensitive();
-		if (name == "finderColumnComparator[]")
-			return getFinderColumnComparator();
 		throw new IllegalArgumentException(name+" is not a valid property name for Finder");
 	}
 
@@ -1296,6 +851,26 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	 * @return null if not found
 	 */
 	public String nameChild(Object childObj, boolean returnConstName, boolean returnSchemaName, boolean returnXPathName) {
+		if (childObj instanceof FinderColumn) {
+			FinderColumn child = (FinderColumn) childObj;
+			int index = 0;
+			for (java.util.Iterator it = _FinderColumn.iterator(); 
+				it.hasNext(); ) {
+				org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+				if (child == element) {
+					if (returnConstName) {
+						return FINDER_COLUMN;
+					} else if (returnSchemaName) {
+						return "finder-column";
+					} else if (returnXPathName) {
+						return "finder-column[position()="+index+"]";
+					} else {
+						return "FinderColumn."+Integer.toHexString(index);
+					}
+				}
+				++index;
+			}
+		}
 		if (childObj instanceof java.lang.String) {
 			java.lang.String child = (java.lang.String) childObj;
 			int index = 0;
@@ -1355,74 +930,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 					return "DbIndex";
 				}
 			}
-			index = 0;
-			for (java.util.Iterator it = _FinderColumn.iterator(); 
-				it.hasNext(); ) {
-				String element = (String)it.next();
-				if (child == element) {
-					if (returnConstName) {
-						return FINDER_COLUMN;
-					} else if (returnSchemaName) {
-						return "finder-column";
-					} else if (returnXPathName) {
-						return "finder-column[position()="+index+"]";
-					} else {
-						return "FinderColumn."+Integer.toHexString(index);
-					}
-				}
-				++index;
-			}
-			index = 0;
-			for (java.util.Iterator it = _FinderColumnName.iterator(); 
-				it.hasNext(); ) {
-				java.lang.String element = (java.lang.String)it.next();
-				if (child == element) {
-					if (returnConstName) {
-						return FINDERCOLUMNNAME;
-					} else if (returnSchemaName) {
-						return "name";
-					} else if (returnXPathName) {
-						return "@name[position()="+index+"]";
-					} else {
-						return "FinderColumnName."+Integer.toHexString(index);
-					}
-				}
-				++index;
-			}
-			index = 0;
-			for (java.util.Iterator it = _FinderColumnCaseSensitive.iterator(); 
-				it.hasNext(); ) {
-				java.lang.String element = (java.lang.String)it.next();
-				if (child == element) {
-					if (returnConstName) {
-						return FINDERCOLUMNCASESENSITIVE;
-					} else if (returnSchemaName) {
-						return "case-sensitive";
-					} else if (returnXPathName) {
-						return "@case-sensitive[position()="+index+"]";
-					} else {
-						return "FinderColumnCaseSensitive."+Integer.toHexString(index);
-					}
-				}
-				++index;
-			}
-			index = 0;
-			for (java.util.Iterator it = _FinderColumnComparator.iterator(); 
-				it.hasNext(); ) {
-				java.lang.String element = (java.lang.String)it.next();
-				if (child == element) {
-					if (returnConstName) {
-						return FINDERCOLUMNCOMPARATOR;
-					} else if (returnSchemaName) {
-						return "comparator";
-					} else if (returnXPathName) {
-						return "@comparator[position()="+index+"]";
-					} else {
-						return "FinderColumnComparator."+Integer.toHexString(index);
-					}
-				}
-				++index;
-			}
 		}
 		return null;
 	}
@@ -1441,6 +948,16 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 	 * Put all child beans into the beans list.
 	 */
 	public void childBeans(boolean recursive, java.util.List beans) {
+		for (java.util.Iterator it = _FinderColumn.iterator(); 
+			it.hasNext(); ) {
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+			if (element != null) {
+				if (recursive) {
+					element.childBeans(true, beans);
+				}
+				beans.add(element);
+			}
+		}
 	}
 
 	public boolean equals(Object o) {
@@ -1482,41 +999,8 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		// Compare every element.
 		for (java.util.Iterator it = _FinderColumn.iterator(), it2 = inst._FinderColumn.iterator(); 
 			it.hasNext() && it2.hasNext(); ) {
-			String element = (String)it.next();
-			String element2 = (String)it2.next();
-			if (!(element == null ? element2 == null : element.equals(element2))) {
-				return false;
-			}
-		}
-		if (sizeFinderColumnName() != inst.sizeFinderColumnName())
-			return false;
-		// Compare every element.
-		for (java.util.Iterator it = _FinderColumnName.iterator(), it2 = inst._FinderColumnName.iterator(); 
-			it.hasNext() && it2.hasNext(); ) {
-			java.lang.String element = (java.lang.String)it.next();
-			java.lang.String element2 = (java.lang.String)it2.next();
-			if (!(element == null ? element2 == null : element.equals(element2))) {
-				return false;
-			}
-		}
-		if (sizeFinderColumnCaseSensitive() != inst.sizeFinderColumnCaseSensitive())
-			return false;
-		// Compare every element.
-		for (java.util.Iterator it = _FinderColumnCaseSensitive.iterator(), it2 = inst._FinderColumnCaseSensitive.iterator(); 
-			it.hasNext() && it2.hasNext(); ) {
-			java.lang.String element = (java.lang.String)it.next();
-			java.lang.String element2 = (java.lang.String)it2.next();
-			if (!(element == null ? element2 == null : element.equals(element2))) {
-				return false;
-			}
-		}
-		if (sizeFinderColumnComparator() != inst.sizeFinderColumnComparator())
-			return false;
-		// Compare every element.
-		for (java.util.Iterator it = _FinderColumnComparator.iterator(), it2 = inst._FinderColumnComparator.iterator(); 
-			it.hasNext() && it2.hasNext(); ) {
-			java.lang.String element = (java.lang.String)it.next();
-			java.lang.String element2 = (java.lang.String)it2.next();
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it.next();
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn element2 = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn)it2.next();
 			if (!(element == null ? element2 == null : element.equals(element2))) {
 				return false;
 			}
@@ -1524,7 +1008,7 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		return true;
 	}
 
-	public int hashCode() {
+	public int hashCode1() {
 		int result = 17;
 		result = 37*result + (_Comments == null ? 0 : _Comments.hashCode());
 		result = 37*result + (_Name == null ? 0 : _Name.hashCode());
@@ -1532,9 +1016,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		result = 37*result + (_Where == null ? 0 : _Where.hashCode());
 		result = 37*result + (_DbIndex == null ? 0 : _DbIndex.hashCode());
 		result = 37*result + (_FinderColumn == null ? 0 : _FinderColumn.hashCode());
-		result = 37*result + (_FinderColumnName == null ? 0 : _FinderColumnName.hashCode());
-		result = 37*result + (_FinderColumnCaseSensitive == null ? 0 : _FinderColumnCaseSensitive.hashCode());
-		result = 37*result + (_FinderColumnComparator == null ? 0 : _FinderColumnComparator.hashCode());
 		return result;
 	}
 
@@ -1601,46 +1082,21 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 					indexed = true;
 					constName = FINDER_COLUMN;
 					schemaName = "finder-column";
-					options = org.netbeans.modules.schema2beans.Common.TYPE_KEY | org.netbeans.modules.schema2beans.Common.TYPE_1_N|org.netbeans.modules.schema2beans.Common.TYPE_STRING;
+					options = org.netbeans.modules.schema2beans.Common.TYPE_KEY | org.netbeans.modules.schema2beans.Common.TYPE_1_N|org.netbeans.modules.schema2beans.Common.TYPE_BEAN;
 					reader = getClass().getMethod("getFinderColumn", new Class[] {Integer.TYPE});
 					arrayReader = getClass().getMethod("getFinderColumn", new Class[] {});
-					writer = getClass().getMethod("setFinderColumn", new Class[] {Integer.TYPE, String.class});
-					arrayWriter = getClass().getMethod("setFinderColumn", new Class[] {String[].class});
-					adder = getClass().getMethod("addFinderColumn", new Class[] {String.class});
-					remover = getClass().getMethod("removeFinderColumn", new Class[] {String.class});
-				} else if (name == FINDERCOLUMNNAME) {
-					indexed = true;
-					constName = FINDERCOLUMNNAME;
-					schemaName = "name";
-					options = org.netbeans.modules.schema2beans.Common.TYPE_KEY | org.netbeans.modules.schema2beans.Common.TYPE_1_N|org.netbeans.modules.schema2beans.Common.TYPE_STRING;
-					reader = getClass().getMethod("getFinderColumnName", new Class[] {Integer.TYPE});
-					arrayReader = getClass().getMethod("getFinderColumnName", new Class[] {});
-					writer = getClass().getMethod("setFinderColumnName", new Class[] {Integer.TYPE, java.lang.String.class});
-					arrayWriter = getClass().getMethod("setFinderColumnName", new Class[] {java.lang.String[].class});
-					adder = getClass().getMethod("addFinderColumnName", new Class[] {java.lang.String.class});
-					remover = getClass().getMethod("removeFinderColumnName", new Class[] {java.lang.String.class});
-				} else if (name == FINDERCOLUMNCASESENSITIVE) {
-					indexed = true;
-					constName = FINDERCOLUMNCASESENSITIVE;
-					schemaName = "case-sensitive";
-					options = org.netbeans.modules.schema2beans.Common.TYPE_KEY | org.netbeans.modules.schema2beans.Common.TYPE_0_N|org.netbeans.modules.schema2beans.Common.TYPE_STRING;
-					reader = getClass().getMethod("getFinderColumnCaseSensitive", new Class[] {Integer.TYPE});
-					arrayReader = getClass().getMethod("getFinderColumnCaseSensitive", new Class[] {});
-					writer = getClass().getMethod("setFinderColumnCaseSensitive", new Class[] {Integer.TYPE, java.lang.String.class});
-					arrayWriter = getClass().getMethod("setFinderColumnCaseSensitive", new Class[] {java.lang.String[].class});
-					adder = getClass().getMethod("addFinderColumnCaseSensitive", new Class[] {java.lang.String.class});
-					remover = getClass().getMethod("removeFinderColumnCaseSensitive", new Class[] {java.lang.String.class});
-				} else if (name == FINDERCOLUMNCOMPARATOR) {
-					indexed = true;
-					constName = FINDERCOLUMNCOMPARATOR;
-					schemaName = "comparator";
-					options = org.netbeans.modules.schema2beans.Common.TYPE_KEY | org.netbeans.modules.schema2beans.Common.TYPE_0_N|org.netbeans.modules.schema2beans.Common.TYPE_STRING;
-					reader = getClass().getMethod("getFinderColumnComparator", new Class[] {Integer.TYPE});
-					arrayReader = getClass().getMethod("getFinderColumnComparator", new Class[] {});
-					writer = getClass().getMethod("setFinderColumnComparator", new Class[] {Integer.TYPE, java.lang.String.class});
-					arrayWriter = getClass().getMethod("setFinderColumnComparator", new Class[] {java.lang.String[].class});
-					adder = getClass().getMethod("addFinderColumnComparator", new Class[] {java.lang.String.class});
-					remover = getClass().getMethod("removeFinderColumnComparator", new Class[] {java.lang.String.class});
+					writer = getClass().getMethod("setFinderColumn", new Class[] {Integer.TYPE,  
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            .class});
+					arrayWriter = getClass().getMethod("setFinderColumn", new Class[] { 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            [].class});
+					adder = getClass().getMethod("addFinderColumn", new Class[] { 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            .class});
+					remover = getClass().getMethod("removeFinderColumn", new Class[] { 
+                org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.FinderColumn
+            .class});
 				} else {
 					// Check if name is a schema name.
 					if (name == "comment") {
@@ -1670,21 +1126,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 					}
 					if (name == "finder-column") {
 						prop = beanProp(FINDER_COLUMN);
-						propByName.put(name, prop);
-						return prop;
-					}
-					if (name == "name") {
-						prop = beanProp(FINDERCOLUMNNAME);
-						propByName.put(name, prop);
-						return prop;
-					}
-					if (name == "case-sensitive") {
-						prop = beanProp(FINDERCOLUMNCASESENSITIVE);
-						propByName.put(name, prop);
-						return prop;
-					}
-					if (name == "comparator") {
-						prop = beanProp(FINDERCOLUMNCOMPARATOR);
 						propByName.put(name, prop);
 						return prop;
 					}
@@ -1854,16 +1295,13 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 
 	private void prepareBeanPropList() {
 		if (beanPropList == null) {
-			beanPropList = new java.util.ArrayList(9);
+			beanPropList = new java.util.ArrayList(6);
 			beanPropList.add(beanProp(COMMENTS));
 			beanPropList.add(beanProp(NAME));
 			beanPropList.add(beanProp(RETURNTYPE));
 			beanPropList.add(beanProp(WHERE));
 			beanPropList.add(beanProp(DBINDEX));
 			beanPropList.add(beanProp(FINDER_COLUMN));
-			beanPropList.add(beanProp(FINDERCOLUMNNAME));
-			beanPropList.add(beanProp(FINDERCOLUMNCASESENSITIVE));
-			beanPropList.add(beanProp(FINDERCOLUMNCOMPARATOR));
 		}
 	}
 
@@ -1874,7 +1312,7 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 
 	public org.netbeans.modules.schema2beans.BeanProp[] beanProps() {
 		prepareBeanPropList();
-		org.netbeans.modules.schema2beans.BeanProp[] ret = new org.netbeans.modules.schema2beans.BeanProp[9];
+		org.netbeans.modules.schema2beans.BeanProp[] ret = new org.netbeans.modules.schema2beans.BeanProp[6];
 		ret = (org.netbeans.modules.schema2beans.BeanProp[]) beanPropList.toArray(ret);
 		return ret;
 	}
@@ -1892,13 +1330,7 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		} else if (name == DBINDEX || name == "db-index") {
 			setDbIndex((java.lang.String)value);
 		} else if (name == FINDER_COLUMN || name == "finder-column") {
-			setFinderColumn((String[]) value);
-		} else if (name == FINDERCOLUMNNAME || name == "name") {
-			setFinderColumnName((java.lang.String[]) value);
-		} else if (name == FINDERCOLUMNCASESENSITIVE || name == "case-sensitive") {
-			setFinderColumnCaseSensitive((java.lang.String[]) value);
-		} else if (name == FINDERCOLUMNCOMPARATOR || name == "comparator") {
-			setFinderColumnComparator((java.lang.String[]) value);
+			setFinderColumn((FinderColumn[]) value);
 		} else throw new IllegalArgumentException(name+" is not a valid property name for Finder");
 	}
 
@@ -1915,13 +1347,7 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 		} else if (name == DBINDEX || name == "db-index") {
 			throw new IllegalArgumentException(name+" is not an indexed property for Finder");
 		} else if (name == FINDER_COLUMN || name == "finder-column") {
-			setFinderColumn(index, (String)value);
-		} else if (name == FINDERCOLUMNNAME || name == "name") {
-			setFinderColumnName(index, (java.lang.String)value);
-		} else if (name == FINDERCOLUMNCASESENSITIVE || name == "case-sensitive") {
-			setFinderColumnCaseSensitive(index, (java.lang.String)value);
-		} else if (name == FINDERCOLUMNCOMPARATOR || name == "comparator") {
-			setFinderColumnComparator(index, (java.lang.String)value);
+			setFinderColumn(index, (FinderColumn)value);
 		} else throw new IllegalArgumentException(name+" is not a valid property name for Finder");
 	}
 
@@ -1939,12 +1365,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			return getDbIndex();
 		} else if (name == FINDER_COLUMN || name == "finder-column") {
 			return getFinderColumn();
-		} else if (name == FINDERCOLUMNNAME || name == "name") {
-			return getFinderColumnName();
-		} else if (name == FINDERCOLUMNCASESENSITIVE || name == "case-sensitive") {
-			return getFinderColumnCaseSensitive();
-		} else if (name == FINDERCOLUMNCOMPARATOR || name == "comparator") {
-			return getFinderColumnComparator();
 		} else throw new IllegalArgumentException(name+" is not a valid property name for Finder");
 	}
 
@@ -1954,12 +1374,6 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			return getComments(index);
 		} else if (name == FINDER_COLUMN || name == "finder-column") {
 			return getFinderColumn(index);
-		} else if (name == FINDERCOLUMNNAME || name == "name") {
-			return getFinderColumnName(index);
-		} else if (name == FINDERCOLUMNCASESENSITIVE || name == "case-sensitive") {
-			return getFinderColumnCaseSensitive(index);
-		} else if (name == FINDERCOLUMNCOMPARATOR || name == "comparator") {
-			return getFinderColumnComparator(index);
 		} else if (name == NAME || name == "name") {
 			if (index > 0) {
 				throw new IllegalArgumentException("index > 0");
@@ -2006,20 +1420,54 @@ public class Finder extends org.netbeans.modules.schema2beans.BaseBean
 			setDbIndex(srcProperty);
 		}
 		{
-			String[] srcProperty = source.getFinderColumn();
-			setFinderColumn(srcProperty);
-		}
-		{
-			java.lang.String[] srcProperty = source.getFinderColumnName();
-			setFinderColumnName(srcProperty);
-		}
-		{
-			java.lang.String[] srcProperty = source.getFinderColumnCaseSensitive();
-			setFinderColumnCaseSensitive(srcProperty);
-		}
-		{
-			java.lang.String[] srcProperty = source.getFinderColumnComparator();
-			setFinderColumnComparator(srcProperty);
+			org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn[] srcProperty = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn[]) source.getFinderColumn();
+			int destSize = sizeFinderColumn();
+			if (destSize == srcProperty.length) {
+				for (int i = 0; i < srcProperty.length; ++i) {
+					org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn dest;
+					if (srcProperty[i] == null) {
+						dest = null;
+					} else {
+						if (i < destSize) {
+							dest = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn) getFinderColumn(i);
+						} else {
+							dest = null;
+						}
+						if (dest == null) {
+							// Use a temp variable, and store it after we've merged everything into it, so as to make it only 1 change event.
+							dest = new org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn(srcProperty[i], this, false);
+						} else {
+							dest.mergeUpdate(srcProperty[i]);
+						}
+					}
+					// Merge events were generated by the above dest.mergeUpdate, so just set it directly now.
+					_FinderColumn.set(i, dest);
+				}
+			} else {
+				org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn[] destArray = new org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn[srcProperty.length];
+				for (int i = 0; i < srcProperty.length; ++i) {
+					org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn dest;
+					if (srcProperty[i] == null) {
+						dest = null;
+					} else {
+						if (i < destSize) {
+							dest = (org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn) getFinderColumn(i);
+							if (!srcProperty[i].equals(dest)) {
+								// It's different, so have it just dup the source one.
+								dest = null;
+							}
+						} else {
+							dest = null;
+						}
+						if (dest == null) {
+							// Use a temp variable, and store it after we've merged everything into it, so as to make it only 1 change event.
+							dest = new org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.impl.FinderColumn(srcProperty[i], this, false);
+						}
+						destArray[i] = dest;
+					}
+				}
+				setFinderColumn(destArray);
+			}
 		}
 	}
 
@@ -2330,7 +1778,7 @@ Set the by attribute to "asc" or "desc" to order by ascending or descending.
 <!--
 The order-column element allows you to order the entities by specific columns.
 -->
-<!ELEMENT order-column (#PCDATA)>
+<!ELEMENT order-column (dummy_elm*)>
 
 <!--
 The attributes of the order-column element allows you to fine tune the ordering
@@ -2387,7 +1835,7 @@ The finder element represents a generated finder method.
 <!--
 The finder-column element specifies the columns to find by.
 -->
-<!ELEMENT finder-column (#PCDATA)>
+<!ELEMENT finder-column (dummy_elm*)>
 
 <!--
 The name value specifies the name of the finder method.

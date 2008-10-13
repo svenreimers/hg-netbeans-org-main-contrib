@@ -36,31 +36,43 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.portalpack.servers.websynergy.ws;
 
-package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.widgets;
+import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
+import javax.enterprise.deploy.spi.factories.DeploymentFactory;
+import org.netbeans.modules.portalpack.servers.core.api.PSDeploymentFactory;
+import javax.enterprise.deploy.spi.DeploymentManager;
+import org.netbeans.modules.portalpack.servers.websynergy.common.WSConstants;
 
 /**
  *
  * @author satyaranjan
  */
-public class Service {
+public class WSDeploymentFactory extends PSDeploymentFactory {
 
-    private String name;
-    private boolean remote;
+    private static DeploymentFactory instance;
 
-    public boolean isRemote() {
-        return remote;
+    public static synchronized DeploymentFactory create() {
+        if (instance == null) {
+            instance = new WSDeploymentFactory();
+            DeploymentFactoryManager.getInstance().registerDeploymentFactory(instance);
+        }
+        return instance;
     }
 
-    public void setRemote(boolean isRemote) {
-        this.remote = isRemote;
+    public DeploymentManager getPSDeploymentManager(String uri, String psVersion) {
+        return new WSDeploymentManager(uri, psVersion);
     }
 
-    public String getName() {
-        return name;
+    public String getDisplayName() {
+        return org.openide.util.NbBundle.getMessage(WSDeploymentFactory.class, "LBL_WebSynergy");
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }    
+    public String getURIPrefix() {
+        return WSConstants.WS_1_0_URI_PREFIX;
+    }
+
+    public String getPSVersion() {
+        return WSConstants.WS_1_0;
+    }
 }
