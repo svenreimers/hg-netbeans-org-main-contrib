@@ -29,8 +29,6 @@ import org.netbeans.modules.portalpack.servers.core.common.ServerConstants;
 import org.netbeans.modules.portalpack.servers.core.impl.j2eeservers.tomcat.TomcatConstant;
 import org.netbeans.modules.portalpack.servers.core.util.PSConfigObject;
 import org.netbeans.modules.portalpack.servers.websynergy.common.LiferayConstants;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle;
 
@@ -41,6 +39,8 @@ import org.openide.util.NbBundle;
 public class LiferayConfigPanel extends ConfigPanel implements DocumentListener {
 
     private String psVersion;
+    private int GLASSFISH_V2 = 2;
+    private int GLASSFISH_V3 = 3;
 
     /** Creates new form LifeRayConfigPanel */
     public LiferayConfigPanel(String psVersion) {
@@ -72,6 +72,9 @@ public class LiferayConfigPanel extends ConfigPanel implements DocumentListener 
         jLabel3 = new javax.swing.JLabel();
         autoDeployTf = new javax.swing.JTextField();
         browseButton = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        portalDepDirTf = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
 
         setFont(new java.awt.Font("Tahoma", 1, 11));
 
@@ -100,6 +103,10 @@ public class LiferayConfigPanel extends ConfigPanel implements DocumentListener 
             }
         });
 
+        jLabel5.setText(org.openide.util.NbBundle.getMessage(LiferayConfigPanel.class, "LBL_Portal_Deploy_Dir")); // NOI18N
+
+        jButton1.setText(org.openide.util.NbBundle.getMessage(LiferayConfigPanel.class, "LBL_BrowseButton")); // NOI18N
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -109,59 +116,72 @@ public class LiferayConfigPanel extends ConfigPanel implements DocumentListener 
                 .add(169, 169, 169)
                 .add(jLabel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(169, 169, 169))
-            .add(layout.createSequentialGroup()
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
-                        .add(jLabel4, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 52, Short.MAX_VALUE)
-                        .add(27, 27, 27))
-                    .add(jLabel6, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 79, Short.MAX_VALUE)
-                    .add(jLabel3, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .add(jLabel2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
+                    .add(layout.createSequentialGroup()
+                        .add(jLabel4, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
+                    .add(layout.createSequentialGroup()
+                        .add(jLabel6, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
+                    .add(layout.createSequentialGroup()
+                        .add(jLabel5, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(38, 38, 38))
+                    .add(layout.createSequentialGroup()
+                        .add(jLabel3, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)))
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(hostTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+                    .add(portalDepDirTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+                    .add(autoDeployTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+                    .add(layout.createSequentialGroup()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, portletUriTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, portalUri, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE))
+                        .add(87, 87, 87)))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .add(portletUriTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
-                        .add(102, 102, 102))
-                    .add(layout.createSequentialGroup()
-                        .add(portalUri, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
-                        .add(102, 102, 102))
-                    .add(layout.createSequentialGroup()
-                        .add(hostTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
-                        .add(102, 102, 102))
-                    .add(autoDeployTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE))
-                .add(18, 18, 18)
-                .add(browseButton, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .add(41, 41, 41))
-            .add(layout.createSequentialGroup()
-                .add(10, 10, 10)
-                .add(jLabel2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)
-                .addContainerGap(454, Short.MAX_VALUE))
+                    .add(browseButton, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(jButton1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(11, 11, 11)
+                .addContainerGap()
                 .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 14, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jSeparator1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                     .add(jLabel2)
                     .add(hostTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                     .add(jLabel4)
                     .add(portalUri, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                     .add(jLabel6)
                     .add(portletUriTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(autoDeployTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel3)
-                    .add(browseButton))
-                .addContainerGap(19, Short.MAX_VALUE))
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel5)
+                    .add(layout.createSequentialGroup()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                                .add(autoDeployTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                .add(jLabel3))
+                            .add(browseButton))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                            .add(portalDepDirTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(jButton1))))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
 
         browseButton.getAccessibleContext().setAccessibleDescription("null");
@@ -184,12 +204,15 @@ private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
     private javax.swing.JTextField autoDeployTf;
     private javax.swing.JButton browseButton;
     private javax.swing.JTextField hostTf;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextField portalDepDirTf;
     private javax.swing.JTextField portalUri;
     private javax.swing.JTextField portletUriTf;
     // End of variables declaration//GEN-END:variables
@@ -211,6 +234,7 @@ private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
         // adminConsoleUriTf.setText(object.getProperty(LifeRayConstants.ADMIN_CONSOLE_URI));
         portletUriTf.setText(object.getProperty(LiferayConstants.PORTLET_URI));
         autoDeployTf.setText(object.getProperty(LiferayConstants.AUTO_DEPLOY_DIR));
+        portalDepDirTf.setText(object.getProperty(LiferayConstants.LR_PORTAL_DEPLOY_DIR));
 
         hostTf.setEnabled(false);
         browseButton.setEnabled(false);
@@ -220,44 +244,53 @@ private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
     public void read(org.openide.WizardDescriptor wizardDescriptor) {
 
         WizardPropertyReader reader = new WizardPropertyReader(wizardDescriptor);
-        String autoDeployDir = autoDeployTf.getText();
-        
-       // if (autoDeployDir == null || autoDeployDir.trim().length() == 0) {
 
-            if (isWebSynergy(reader)) {
-                String domainDir = reader.getDomainDir();
-                File webSynergyHomeFile = new File(domainDir, "websynergy");
-                autoDeployTf.setText(webSynergyHomeFile.getAbsolutePath() +
-                        File.separator + "deploy");
-            
-            } else {
-                 autoDeployTf.setText(System.getProperty("user.home") + File.separator + "liferay" +
-                    File.separator + "deploy");
-            
-            }
-        //}
+        // if (autoDeployDir == null || autoDeployDir.trim().length() == 0) {
+        autoDeployTf.setText(System.getProperty("user.home") + File.separator + "liferay" +
+                File.separator + "deploy");
 
-    }
-
-    private boolean isWebSynergy(WizardPropertyReader reader) {
-        
+        //Set portal app deploy dir
         String serverType = reader.getServerType();
 
         if (serverType.equals(ServerConstants.SUN_APP_SERVER_9)) {
 
             String domainDir = reader.getDomainDir();
+            int version = getGlassFishVersion(reader.getServerHome());
 
-            File webSynergyHomeFile = new File(domainDir, "websynergy");
-            File webSynergyConfigurator = new File(reader.getServerHome() + File.separator + "lib" + File.separator + "addons" + File.separator + "websynergy_configurator.jar");
-
-            if (webSynergyHomeFile.exists() ||
-                    webSynergyConfigurator.exists()) {
-                
-                return true;
+            if (version == GLASSFISH_V2) {
+                String deployDir = domainDir + File.separator +
+                        "applications" + File.separator +
+                        "j2ee-modules" + File.separator + "liferay-portal";
+                portalDepDirTf.setText(deployDir);
+            } else {
+                String deployDir = domainDir + File.separator +
+                        "applications" + File.separator +
+                        "liferay-portal";
+                portalDepDirTf.setText(deployDir);
             }
-        } 
-        
-        return false;
+
+        } else if (serverType.equals(ServerConstants.TOMCAT_5_X)
+                        || serverType.equals(ServerConstants.TOMCAT_6_X)) {
+
+            String tomcatHome = reader.getProperty(TomcatConstant.CATALINA_HOME);
+
+            String deployDir = tomcatHome + File.separator + "webapps" + File.separator + "ROOT";
+            portalDepDirTf.setText(deployDir);
+        }
+
+    }
+
+    private int getGlassFishVersion(String glassfishHome) {
+
+        File javaeeFile = new File(glassfishHome + File.separator + "lib" + File.separator + "javaee.jar");
+        File module = new File(glassfishHome + File.separator + "modules");
+
+        if (!javaeeFile.exists() && module.exists()) {
+            return GLASSFISH_V3;
+        }
+
+        return GLASSFISH_V2;
+
     }
 
     public void store(org.openide.WizardDescriptor d) {
@@ -273,6 +306,7 @@ private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 //        wr.setProperty(LifeRayConstants.ADMIN_CONSOLE_URI,adminConsoleUriTf.getText());
         wr.setProperty(LiferayConstants.PORTLET_URI, portletUriTf.getText());
         wr.setProperty(LiferayConstants.AUTO_DEPLOY_DIR, autoDeployTf.getText());
+        wr.setProperty(LiferayConstants.LR_PORTAL_DEPLOY_DIR, portalDepDirTf.getText());
     //  wr.setPortalUri("/pcdriver");
     }
 
@@ -281,21 +315,18 @@ private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
             return true;
         }
         WizardPropertyReader wr = new WizardPropertyReader(((WizardDescriptor) wizardDescriptor));
-        //String serverHome = wr.getServerHome();
+        
         String domainDir = wr.getDomainDir();
         String serverType = wr.getServerType();
+        
         if (serverType.equals(ServerConstants.SUN_APP_SERVER_9)) {
 
             File file = new File(domainDir + File.separator + "lib" + File.separator + "portal-service.jar");
             if (!file.exists()) {
-                
-                if(!isWebSynergy(wr)) {
-                    setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_NO_LIFERAY_INSTALLATION_FOUND"));
-                    autoDeployTf.setText("");
-                    return false;
-                } else {
-                
-                }
+                setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_NO_LIFERAY_INSTALLATION_FOUND"));
+                autoDeployTf.setText("");
+                return false;
+
             }
         } else if (serverType.equals(ServerConstants.TOMCAT_5_X)) {
 
@@ -309,32 +340,43 @@ private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
                 autoDeployTf.setText("");
                 return false;
             }
+        } else if (serverType.equals(ServerConstants.TOMCAT_6_X)) {
+            
+            File file = new File(wr.getProperty(TomcatConstant.CATALINA_HOME) + File.separator +
+                    "lib" + File.separator +
+                    "ext" + File.separator +
+                    "portal-service.jar");
+            if (!file.exists()) {
+                setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_NO_LIFERAY_INSTALLATION_FOUND_ON_TOMCAT"));
+                autoDeployTf.setText("");
+                return false;
+            }
         }
-        
+
         String autoDeployDir = autoDeployTf.getText();
-        if(autoDeployDir == null || autoDeployDir.trim().length() == 0) {
-             setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_INVALID_AUTODEPLOY_DIR"));
-             return false;
+        if (autoDeployDir == null || autoDeployDir.trim().length() == 0) {
+            setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_INVALID_AUTODEPLOY_DIR"));
+            return false;
         }
-        
+
         String portalUriString = portalUri.getText();
-        if(portalUriString == null || portalUriString.trim().length() == 0) {
+        if (portalUriString == null || portalUriString.trim().length() == 0) {
             setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_NOT_A_VALID_PORTAL_URI"));
             return false;
         }
 
         String portletUriString = portletUriTf.getText();
-        if(portletUriString == null || portletUriString.trim().length() == 0) {
+        if (portletUriString == null || portletUriString.trim().length() == 0) {
             setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_NOT_A_VALID_PORTLET_URI"));
             return false;
         }
-        
+
         String host = hostTf.getText();
-        if(host == null || host.trim().length() == 0) {
+        if (host == null || host.trim().length() == 0) {
             setErrorMessage(NbBundle.getMessage(LiferayConfigPanel.class, "MSG_NOT_A_VALID_HOST"));
             return false;
         }
-        
+
         setErrorMessage("");
         return true;
     }

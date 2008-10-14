@@ -36,45 +36,43 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.portalpack.servers.websynergy.ws;
 
-package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.widgets;
-
-import java.awt.Image;
-import org.netbeans.api.visual.model.ObjectScene;
-import org.netbeans.api.visual.widget.Scene;
-import org.netbeans.api.visual.widget.Widget;
+import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
+import javax.enterprise.deploy.spi.factories.DeploymentFactory;
+import org.netbeans.modules.portalpack.servers.core.api.PSDeploymentFactory;
+import javax.enterprise.deploy.spi.DeploymentManager;
+import org.netbeans.modules.portalpack.servers.websynergy.common.WSConstants;
 
 /**
  *
  * @author satyaranjan
  */
-public class FinderMethodsWidget implements TabWidget{
+public class WSDeploymentFactory extends PSDeploymentFactory {
 
-    private OperationsWidget operationsWidget;
-    private ObjectScene scene;
-    
-    public FinderMethodsWidget(ObjectScene scene) {
-        this.scene = scene;
-    }
-    
-    public String getTitle() {
-        return "Finders";
-    }
+    private static DeploymentFactory instance;
 
-    public Image getIcon() {
-        return null;
-    }
-
-    public Widget getComponentWidget() {
-        
-        if(operationsWidget == null) {
-            operationsWidget = new OperationsWidget(scene, null);
+    public static synchronized DeploymentFactory create() {
+        if (instance == null) {
+            instance = new WSDeploymentFactory();
+            DeploymentFactoryManager.getInstance().registerDeploymentFactory(instance);
         }
-        return operationsWidget;
+        return instance;
     }
 
-    public Object hashKey() {
-        return this.hashKey();
+    public DeploymentManager getPSDeploymentManager(String uri, String psVersion) {
+        return new WSDeploymentManager(uri, psVersion);
     }
 
+    public String getDisplayName() {
+        return org.openide.util.NbBundle.getMessage(WSDeploymentFactory.class, "LBL_WebSynergy");
+    }
+
+    public String getURIPrefix() {
+        return WSConstants.WS_1_0_URI_PREFIX;
+    }
+
+    public String getPSVersion() {
+        return WSConstants.WS_1_0;
+    }
 }

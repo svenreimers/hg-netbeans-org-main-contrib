@@ -62,6 +62,7 @@ public class LiferayConfigPanelManagerImpl implements PSConfigPanelManager, Serv
         DefaultServerConfigPanel serverConfigPanel = new DefaultServerConfigPanel();
         serverConfigPanel.registerServerConfigPanel(new SunAppServerConfigPanel(),SUN_APP_SERVER_9,org.openide.util.NbBundle.getMessage(LiferayConfigPanelManagerImpl.class, "Sun_Java_System_AppServer_9"));
         serverConfigPanel.registerServerConfigPanel(new TomcatConfigPanel(),TOMCAT_5_X,org.openide.util.NbBundle.getMessage(LiferayConfigPanelManagerImpl.class, "Tomcat_5_x"));
+        serverConfigPanel.registerServerConfigPanel(new TomcatConfigPanel(),TOMCAT_6_X,org.openide.util.NbBundle.getMessage(LiferayConfigPanelManagerImpl.class, "Tomcat_6_x"));
         return serverConfigPanel;
     }
 }

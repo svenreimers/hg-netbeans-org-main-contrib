@@ -46,6 +46,7 @@ import java.util.Set;
 import javax.swing.text.Document;
 import org.netbeans.modules.gsf.api.EmbeddingModel;
 import org.netbeans.modules.gsf.api.TranslatedSource;
+import org.netbeans.modules.php.editor.lexer.PHPTokenId;
 import org.netbeans.modules.php.prado.PageLanguage;
 
 /**
@@ -61,7 +62,7 @@ public class PradoPhpEmbeddingModel implements EmbeddingModel {
     }
 
     public String getTargetMimeType() {
-        return PageLanguage.PHP_MIME_TYPE;
+        return PHPTokenId.language().mimeType();
     }
 
     public Set<String> getSourceMimeTypes() {

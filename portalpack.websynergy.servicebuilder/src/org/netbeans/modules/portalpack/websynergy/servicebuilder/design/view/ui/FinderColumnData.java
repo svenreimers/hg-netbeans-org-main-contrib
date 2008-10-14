@@ -36,42 +36,52 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
-package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.widgets;
-
-import java.awt.Image;
-import org.netbeans.api.visual.model.ObjectScene;
-import org.netbeans.api.visual.widget.Widget;
+package org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.ui;
 
 /**
  *
  * @author satyaranjan
  */
-public class LocalMethodsWidget implements TabWidget{
- private OperationsWidget operationsWidget;
-    private ObjectScene scene;
-    
-    public LocalMethodsWidget(ObjectScene scene) {
-        this.scene = scene;
-    }
-    
-    public String getTitle() {
-        return "Local Methods";
+public class FinderColumnData {
+
+    private String name;
+    private String comparator;
+    private boolean caseSensitive;
+
+    public FinderColumnData(String name, String comparator, boolean caseSensitive) {
+
+        this.name = name;
+        this.comparator = comparator;
+        this.caseSensitive = caseSensitive;
     }
 
-    public Image getIcon() {
-        return null;
+    public boolean isCaseSensitive() {
+        return caseSensitive;
     }
 
-    public Widget getComponentWidget() {
-        
-        if(operationsWidget == null) {
-            operationsWidget = new OperationsWidget(scene, null);
-        }
-        return operationsWidget;
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
     }
 
-    public Object hashKey() {
-        return hashKey();
+    public String getComparator() {
+        return comparator;
+    }
+
+    public void setComparator(String comparator) {
+        this.comparator = comparator;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
+    

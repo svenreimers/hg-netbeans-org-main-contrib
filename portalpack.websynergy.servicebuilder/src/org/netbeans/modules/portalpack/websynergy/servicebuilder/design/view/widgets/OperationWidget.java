@@ -111,6 +111,7 @@ public class OperationWidget extends AbstractTitledWidget {
         //    new GotoSourceAction(operation, serviceModel.getImplementationClass()),
         //    removeAction
        // })));
+//        setExpanded(false);
         createContent();
     }
     
@@ -234,6 +235,7 @@ public class OperationWidget extends AbstractTitledWidget {
         tabbedWidget.addTab(descriptionWidget);
         
         setTabbedView(!viewButton.isSelected());
+        //setExpanded(false);
     }
 
     protected void collapseWidget() {

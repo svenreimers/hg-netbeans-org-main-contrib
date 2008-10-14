@@ -79,7 +79,7 @@ public class ServicesTableModel implements TableModel<Entity>{
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         switch(columnIndex) {
         case 0:
-            return true;
+            return false;
         case 1:
             return false;
         default:
@@ -133,6 +133,15 @@ public class ServicesTableModel implements TableModel<Entity>{
         for(Entity en:services) {
             System.out.println("Entity Name: "+en.getName() + " HashCode: "+en.hashCode());
         }
+    }
+    
+    public void setData(List<Entity> list) {
+        services = list;
+    }
+    
+    public void clear() {
+        if(services != null)
+            services.clear();
     }
     
 }
