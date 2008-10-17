@@ -36,41 +36,46 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.contrib.testng;
 
-import org.netbeans.api.project.Project;
-import org.netbeans.spi.project.ant.AntArtifactProvider;
+package org.netbeans.modules.contrib.testng.spi;
 
 /**
  *
  * @author lukas
  */
-public final class ProjectUtilities {
+public final class TestConfig {
 
-    public enum Type {
+    private boolean rerun;
+    private String pkgName;
+    private String className;
+    private String methodName;
 
-        ANT, MAVEN, OTHER
+    public TestConfig(String pkgName, String className, String methodName) {
+        this(false, pkgName, className, methodName);
     }
 
-    private ProjectUtilities() {
+    public TestConfig(boolean rerun, String pkgName, String className, String methodName) {
+        this.rerun = rerun;
+        this.pkgName = pkgName;
+        this.className = className;
+        this.methodName = methodName;
     }
 
-    public static boolean isAntProject(Project p) {
-        return null != p.getLookup().lookup(AntArtifactProvider.class);
+
+    public String getClassName() {
+        return className;
     }
 
-    //XXX not nice, should lookup o.n.m.maven.api.NbMavenProject from project lookup
-    public static boolean isMavenProject(Project p) {
-        return "org.netbeans.modules.maven.NbMavenProjectImpl".equals(p.getClass().getName()); //NOI18N
+    public String getMethodName() {
+        return methodName;
     }
 
-    public static Type getProjectType(Project p) {
-        Type type = Type.OTHER;
-        if (isAntProject(p)) {
-            type = Type.ANT;
-        } else if (isMavenProject(p)) {
-            type = Type.MAVEN;
-        }
-        return type;
+    public String getPackageName() {
+        return pkgName;
     }
+
+    public boolean doRerun() {
+        return rerun;
+    }
+
 }

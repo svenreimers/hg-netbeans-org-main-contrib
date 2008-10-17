@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,7 +20,7 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- * 
+ *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -31,47 +31,67 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
- * 
+ *
  * Contributor(s):
- * 
+ *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.contrib.testng.suite;
+package org.netbeans.modules.contrib.testng.maven;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.netbeans.api.project.Project;
+import org.netbeans.modules.contrib.testng.spi.TestConfig;
+import org.netbeans.modules.contrib.testng.spi.TestNGSupportImplementation;
+import org.netbeans.modules.maven.api.NbMavenProject;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.testng.xml.LaunchSuite;
-import org.testng.xml.SuiteGenerator;
 
 /**
  *
  * @author lukas
  */
-public class XMLSuiteHandler {
+public class MavenTestNGSupport extends TestNGSupportImplementation {
 
-    private XMLSuiteHandler() {
-    }
+    private static final Logger LOGGER = Logger.getLogger(MavenTestNGSupport.class.getName());
     
-    public static File createSuiteforMethod(File targetFolder, String projectName, String pkgName, String className, String methodName) {
-        if (!targetFolder.isDirectory()) {
-            throw new IllegalArgumentException(targetFolder.getAbsolutePath() + " is not a directory"); //NOI18N
+    public boolean isProjectSupported(Project p) {
+        return p.getLookup().lookup(NbMavenProject.class) != null;
+    }
+
+    public void configureProject(FileObject createdFile) {
+        try {
+            addLibrary(createdFile);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
-        Map<String, Collection<String>> classes = new HashMap<String, Collection<String>>();
-        Set<String> methods = null;
-        if (methodName != null) {
-            methods = new HashSet<String>();
-            methods.add(methodName);
+    }
+
+    public TestExecutor createExecutor(Project p) {
+        return new MavenExecutor(p);
+    }
+
+    public class MavenExecutor implements TestExecutor {
+
+        private static final String failedConfPath = "target/surefire-reports/testng-native-results/testng-failed.xml"; //NOI18N
+        private static final String resultsPath = "target/surefire-reports/testng-native-results/testng-results.xml"; //NOI18N
+        private Project p;
+
+        public MavenExecutor(Project p) {
+            this.p = p;
         }
-        pkgName = pkgName.trim();
-        classes.put("".equals(pkgName) ? className : pkgName + "." + className, methods); //NOI18N
-        LaunchSuite suite = SuiteGenerator.createSuite(projectName, null, classes, null, null, null, 7);
-        File f = suite.save(targetFolder);
-        FileUtil.refreshFor(targetFolder);
-        return f;
+
+        public boolean hasFailedTests() {
+            FileObject projectHome = p.getProjectDirectory();
+            //XXX - should rather listen on a fileobject??
+            FileUtil.refreshFor(FileUtil.toFile(projectHome));
+            FileObject failedTestsConfig = projectHome.getFileObject(failedConfPath);
+            return failedTestsConfig != null && failedTestsConfig.isValid();
+        }
+
+        public void execute(TestConfig config) throws IOException {
+        }
+
     }
 }
