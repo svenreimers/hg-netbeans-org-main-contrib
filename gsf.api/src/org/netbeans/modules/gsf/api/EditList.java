@@ -128,6 +128,7 @@ public class EditList {
     /** Apply the given list of edits in the current document. If positionOffset is a position
      * within one of the regions, return a document Position that corresponds to it.
      */
+    @SuppressWarnings("deprecation") // For doc.getFormatter() Not all compilers accept the per-function declaration suppress warnings below
     public void apply() {
         if (edits.size() == 0) {
             return;
