@@ -47,6 +47,7 @@ import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.gsf.api.OffsetRange;
+import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import scala.tools.nsc.symtab.Symbols.Symbol;
 import scala.tools.nsc.symtab.Types.Type;
 
@@ -178,6 +179,11 @@ public class AstScope implements Iterable<AstScope> {
         if (idToken == null) {
             return false;
         }
+        
+        /** @todo tempary solution */
+        if (!ScalaLexUtilities.isProperIdToken(idToken.id())) {
+            return false;
+        }
 
         /** a def will always be added */
         getRoot().tryToPut(idToken, def);
@@ -200,7 +206,12 @@ public class AstScope implements Iterable<AstScope> {
             return false;
         }
 
-        /** if a def or ref that corresponds to thi idToekn has been added, this ref won't be added */
+        /** @todo tempary solution */
+        if (!ScalaLexUtilities.isProperIdToken(idToken.id())) {
+            return false;
+        }
+
+        /** if a def or ref that corresponds to this idToekn has been added, this ref won't be added */
         if (getRoot().contains(idToken)) {
             return false;
         }

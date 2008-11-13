@@ -61,6 +61,7 @@ import scala.tools.nsc.ast.Trees.CaseDef;
 import scala.tools.nsc.ast.Trees.ClassDef;
 import scala.tools.nsc.ast.Trees.CompoundTypeTree;
 import scala.tools.nsc.ast.Trees.DefDef;
+import scala.tools.nsc.ast.Trees.DocDef;
 import scala.tools.nsc.ast.Trees.ExistentialTypeTree;
 import scala.tools.nsc.ast.Trees.Function;
 import scala.tools.nsc.ast.Trees.Ident;
@@ -257,6 +258,10 @@ public abstract class AstVisitor {
             visitExistentialTypeTree((ExistentialTypeTree) tree);
         } else if (tree instanceof StubTree) {
             visitStubTree((StubTree) tree);
+        } else if (tree instanceof DocDef) {
+            visitDocDef((DocDef) tree);
+        } else {
+            System.out.println("Visit Unknow tree: " + tree + " class=" + tree.getClass().getCanonicalName());
         }
 
         exit(tree);
@@ -394,6 +399,9 @@ public abstract class AstVisitor {
     public void visitStubTree(StubTree tree) {
     }
 
+    public void visitDocDef(DocDef tree) {
+    }
+
     // ---- Helper methods
     protected Tree getCurrentParent() {
         assert astPath.size() >= 2;
@@ -469,10 +477,19 @@ public abstract class AstVisitor {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Super);
         } else if (name.endsWith("expected")) {
             token = ts.token();
+        } else if (name.startsWith("<error")) { // <error: <none>>
+            Token tk = ts.token();
+            if (tk.id() == ScalaTokenId.Dot) {
+                // a. where, offset is set to .
+                token = ScalaLexUtilities.findPrevious(ts, ScalaTokenId.Identifier);
+            } else {
+                // a.p where, offset is set to p
+                token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
+            }
         } else if (name.equals("_")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Wild);
         } else {
-            token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Identifier);
+            token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
         }
 
         if (token.isFlyweight()) {
@@ -566,5 +583,4 @@ public abstract class AstVisitor {
 
         System.out.println(getAstPathString() + "(" + offset(pos.line()) + ":" + offset(pos.column()) + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
     }
-
 }

@@ -72,7 +72,7 @@ public class RebuildCommand extends Command {
         AdaPlatform platform = AdaProjectUtil.getActivePlatform(adaProject);
         if (platform == null) {
             return false;
-        }        
+        }
         return false;
     }
     

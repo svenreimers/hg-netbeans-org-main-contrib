@@ -42,6 +42,8 @@ import java.util.concurrent.Future;
 import org.netbeans.api.ada.platform.AdaException;
 import org.netbeans.api.ada.platform.AdaExecution;
 import org.netbeans.api.ada.platform.AdaPlatform;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 
 /**
@@ -52,8 +54,8 @@ public class GnatMake extends GnatCommand {
 
     private static final String COMMAND_ID = GNAT_MAKE;
 
-    public GnatMake(AdaPlatform platform, String projectPath, String objectFolder, String sourceFolder, String mainProgram, String executableName) {
-        super(platform, projectPath, objectFolder, sourceFolder, mainProgram, executableName);
+    public GnatMake(AdaPlatform platform, String projectPath, String sourceFolder, String mainProgram, String executableName, String displayName) {
+        super(platform, projectPath, sourceFolder, mainProgram, executableName, displayName);
     }
 
     @Override
@@ -63,17 +65,25 @@ public class GnatMake extends GnatCommand {
 
     @Override
     public void invokeCommand() throws IllegalArgumentException, AdaException {
+
+        System.out.println(this.getMainFile());
+        
         try {
             AdaExecution adaExec = new AdaExecution();
             adaExec.setCommand(this.getPlatform().getCompilerPath() + GNAT_MAKE);
-            adaExec.setDisplayName("gnatmake");
-            adaExec.setShowControls(false);
-            adaExec.setShowInput(false);
-            adaExec.setShowWindow(false);
-            adaExec.setShowProgress(false);
-            adaExec.setShowSuspended(false);
-            adaExec.attachOutputProcessor();
+            adaExec.setCommandArgs(
+                    " -I" + this.getSourceFolder() +
+                    " -D " + this.getProjectPath() + "/build " +
+                    " -o " + this.getProjectPath() + "/dist/" + this.getExecutableFile() +
+                    " " + this.getMainFile());
             adaExec.setWorkingDirectory(this.getProjectPath());
+            adaExec.setDisplayName(this.getDisplayName());
+            adaExec.setShowControls(true);
+            adaExec.setShowInput(false);
+            adaExec.setShowWindow(true);
+            adaExec.setShowProgress(true);
+            adaExec.setShowSuspended(true);
+            adaExec.attachOutputProcessor();
             Future<Integer> result = adaExec.run();
             Integer value = result.get();
             if (value.intValue() == 0) {
