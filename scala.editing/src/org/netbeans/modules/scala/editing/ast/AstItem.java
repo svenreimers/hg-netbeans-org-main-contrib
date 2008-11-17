@@ -43,6 +43,7 @@ import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.modules.gsf.api.ElementHandle;
 import org.netbeans.modules.scala.editing.ScalaMimeResolver;
 import scala.tools.nsc.symtab.Symbols.Symbol;
+import scala.tools.nsc.symtab.Types.Type;
 
 /**
  *
@@ -61,6 +62,8 @@ public abstract class AstItem {
     private Symbol symbol;
     private Token idToken;
     private AstScope enclosingScope;
+    private Type resultType;
+    private String name;
 
     protected AstItem() {
         this(null, null);
@@ -77,6 +80,49 @@ public abstract class AstItem {
     protected AstItem(Symbol symbol, Token idToken) {
         this.symbol = symbol;
         this.idToken = idToken;
+        setName(idToken);
+    }
+
+    private void setName(Token idToken) {
+        if (idToken == null) {
+            name = ""; // should not happen?
+        }
+        
+        /**
+         * symbol.nameString() is same as idToken's text, for editor, it's always
+         * better to use idToken's text, for example, we'll use this name to
+         * decide occurrences etc.
+         */
+        /** @todo why will throws NPE here? */
+        try {
+            this.name = idToken.text().toString();
+        } catch (Exception ex) {
+            int l = idToken.length();
+            StringBuilder sb = new StringBuilder(l);
+            for (int i = 0; i < l; i++) {
+                sb.append(" ");
+            }
+            this.name = sb.toString();
+            System.out.println("NPE in AstItem#getName:" + idToken.id());
+        }
+    }
+
+    public void setIdToken(Token idToken) {
+        this.idToken = idToken;
+        setName(idToken);
+    }
+
+    public Token getIdToken() {
+        return idToken;
+    }
+
+
+    public void setResultType(Type tpe) {
+        this.resultType = tpe;
+    }
+
+    public Type getResultType() {
+        return resultType;
     }
 
     public Symbol getSymbol() {
@@ -84,29 +130,9 @@ public abstract class AstItem {
     }
 
     public String getName() {
-        /**
-         * symbol.nameString() is same as idToken's text, for editor, it's always
-         * better to use idToken's text, for example, we'll use this name to
-         * decide occurrences etc. 
-         */
-        String name = "";
-        /** @todo why will throws NPE here? */
-        try {
-            name = getIdToken().text().toString();
-        } catch (Exception ex) {
-            System.out.println("NPE in AstItem#getName:" + getIdToken().id());
-        }
         return name;
     }
-
-    public void setIdToken(Token idToken) {
-        this.idToken = idToken;
-    }
-
-    public Token getIdToken() {
-        return idToken;
-    }
-
+    
     public int getIdOffset(TokenHierarchy th) {
         if (idToken != null) {
             return idToken.offset(th);
