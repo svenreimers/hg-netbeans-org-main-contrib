@@ -36,31 +36,24 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package test;
 
-package org.netbeans.api.ada.platform;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import java.io.IOException;
-import org.netbeans.api.extexecution.input.InputProcessor;
+public class NewTestNGTest {
 
-/**
- *
- * @author Andrea Lucarelli
- */
-public class AdaOutputProcessor implements InputProcessor {
-    StringBuilder builder = new StringBuilder();
-    public void processInput(char[] input) throws IOException {
-        builder.append(input);
+    @BeforeClass
+    public void setUp() {
     }
 
-    public void reset() throws IOException {
-        //builder = new StringBuilder();
+    @Test
+    public void aTest() {
+        System.out.println("Test");
     }
 
-    public void close() throws IOException {
-
+    @AfterClass
+    public void cleanUp() {
     }
-    public String getData(){
-        return builder.toString();
-    }
-
 }

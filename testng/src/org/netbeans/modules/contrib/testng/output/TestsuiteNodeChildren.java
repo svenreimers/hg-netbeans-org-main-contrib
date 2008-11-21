@@ -100,7 +100,10 @@ final class TestsuiteNodeChildren extends Children.Keys<Report.Testcase> {
     /**
      */
     protected Node[] createNodes(final Report.Testcase testcase) {
-        if (filtered && (testcase.trouble == null)) {
+        //dont't create nodes for passed conf methods (aka setup, tearDown...)
+        //but show them if they fail or not run
+        if ((filtered && (testcase.trouble == null))
+                || (testcase.confMethod && testcase.trouble == null)) {
             return EMPTY_NODE_ARRAY;
         }
         return new Node[] {new TestMethodNode(testcase)};
@@ -114,7 +117,7 @@ final class TestsuiteNodeChildren extends Children.Keys<Report.Testcase> {
         }
         this.filtered = filtered;
         
-        if ((report.errors + report.failures) == report.totalTests) {
+        if ((report.skips + report.failures) == report.totalTests) {
             return;
         }
                 

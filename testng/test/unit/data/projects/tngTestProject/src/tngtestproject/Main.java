@@ -36,31 +36,19 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
-package org.netbeans.api.ada.platform;
-
-import java.io.IOException;
-import org.netbeans.api.extexecution.input.InputProcessor;
+package tngtestproject;
 
 /**
  *
- * @author Andrea Lucarelli
+ * @author lukas
  */
-public class AdaOutputProcessor implements InputProcessor {
-    StringBuilder builder = new StringBuilder();
-    public void processInput(char[] input) throws IOException {
-        builder.append(input);
-    }
+public class Main {
 
-    public void reset() throws IOException {
-        //builder = new StringBuilder();
-    }
-
-    public void close() throws IOException {
-
-    }
-    public String getData(){
-        return builder.toString();
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        // TODO code application logic here
     }
 
 }
