@@ -40,9 +40,11 @@
 package org.netbeans.modules.ada.project.ui.actions;
 
 import org.netbeans.api.ada.platform.AdaPlatform;
+import org.netbeans.modules.ada.platform.compiler.gnat.GnatCompiler;
 import org.netbeans.modules.ada.project.AdaActionProvider;
 import org.netbeans.modules.ada.project.AdaProject;
 import org.netbeans.modules.ada.project.AdaProjectUtil;
+import org.netbeans.modules.ada.project.ui.properties.AdaProjectProperties;
 import org.openide.util.Lookup;
 
 /**
@@ -64,6 +66,27 @@ public class RebuildCommand extends Command {
 
     @Override
     public void invokeAction(Lookup context) throws IllegalArgumentException {
+        // Retrieve project and platform
+        final AdaProject project = getProject();
+        AdaPlatform platform = AdaProjectUtil.getActivePlatform(project);
+        assert platform != null;
+
+        // Retrieve main file
+        String mainFile = project.getEvaluator().getProperty(AdaProjectProperties.MAIN_FILE);
+        assert mainFile != null;
+
+        // Init compiler factory
+        GnatCompiler comp = new GnatCompiler(
+                platform,
+                project.getName(),                        // project name
+                project.getProjectDirectory().getPath(),  // project location
+                project.getSourcesDirectory().getPath(),  // sources location
+                mainFile,                                 // main file
+                project.getName(),                        // executable file
+                COMMAND_ID);                              // display name
+
+        // Start rebuild
+        comp.Rebuild();
     }
 
     @Override
@@ -73,7 +96,7 @@ public class RebuildCommand extends Command {
         if (platform == null) {
             return false;
         }
-        return false;
+        return true;
     }
     
 }
