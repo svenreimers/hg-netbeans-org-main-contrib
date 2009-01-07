@@ -1243,10 +1243,16 @@ public class TreeCreator implements Visitor {
         parentNode.addChild(adapter);
     }
 
-    public void visit(PHPDocPropertyTag node) {
+    public void visit(PHPVarComment node) {
         TreeASTNodeAdapter adapter = new TreeASTNodeAdapter(parentNode,
-                node.getKind().name() + " " + node.getFieldName() + ": " + node.getFieldType() ,
-                node.getStartOffset(), node.getEndOffset());
+                "PHPVarComment", node.getStartOffset(), node.getEndOffset());
         parentNode.addChild(adapter);
+        TreeASTNodeAdapter helpParent = parentNode;
+        parentNode = adapter;
+        if (node.getVariable() != null) {
+            node.getVariable().accept(this);
+        }
+        parentNode = helpParent;
     }
+
 }

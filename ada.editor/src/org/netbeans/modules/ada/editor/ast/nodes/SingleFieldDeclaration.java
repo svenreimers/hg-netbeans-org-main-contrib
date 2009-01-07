@@ -61,8 +61,6 @@ public class SingleFieldDeclaration extends ASTNode {
         super(start, end);
         this.name = name;
         this.value = value;
-
-        System.out.println("SingleFieldDeclaration: name = " + name + " value = " + value);
     }
 
     /**

@@ -83,6 +83,26 @@ public class BuildSnifferTest extends NbTestCase {
         assertEquals("1.5", Cache.get(prefix + "s" + JavaCacheConstants.SOURCE_LEVEL));
     }
 
+    public void testParallelSourceTrees() throws Exception {
+        write("build.xml",
+                "<project default='c'>\n" +
+                " <target name='c'>\n" +
+                "  <property name='build.sysclasspath' value='only'/>\n" +
+                "  <mkdir dir='s1'/>\n" +
+                "  <mkdir dir='s2'/>\n" +
+                "  <mkdir dir='c'/>\n" +
+                "  <javac destdir='c'>\n" +
+                "   <src path='s1:s2'/>\n" +
+                "  </javac>\n" +
+                " </target>\n" +
+                "</project>\n");
+        runAnt();
+        assertEquals(prefix + "s1" + File.pathSeparator + prefix + "s2", Cache.get(prefix + "s1" + JavaCacheConstants.SOURCE));
+        assertEquals(prefix + "s1" + File.pathSeparator + prefix + "s2", Cache.get(prefix + "s2" + JavaCacheConstants.SOURCE));
+        assertEquals(prefix + "c", Cache.get(prefix + "s1" + JavaCacheConstants.BINARY));
+        assertEquals(prefix + "c", Cache.get(prefix + "s2" + JavaCacheConstants.BINARY));
+    }
+
     public void testSourceRootCompiledMultiply() throws Exception {
         write("build.xml",
                 "<project default='c'>\n" +
@@ -177,8 +197,11 @@ public class BuildSnifferTest extends NbTestCase {
         runAnt();
         String cp = Cache.get(prefix + "s" + JavaCacheConstants.CLASSPATH);
         assertTrue(cp, cp.contains(prefix + "x.jar"));
-        assertTrue(cp, cp.contains(System.getProperty("java.class.path")));
-        // can also contain tools.jar
+        // Checking that cp contains j.c.p will not work;
+        // Ant module purposely trims j.c.p while script is running (#152620).
+        if (System.getProperty("java.class.path").contains("tools.jar")) {
+            assertTrue(cp, cp.contains("tools.jar"));
+        }
     }
 
     public void testMistakenSourceDir() throws Exception {
