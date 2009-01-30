@@ -36,24 +36,19 @@
  *
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.selenium;
+package org.netbeans.modules.selenium.php;
 
-import java.util.Enumeration;
-import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
 /**
  *
  * @author Jindrich Sedek
  */
-public abstract class ExtendedAction extends NodeAction {
-
-    private static String INCLUDES_DELIMITER = ",";
+public class RunSeleniumTestsAction extends NodeAction {
 
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
@@ -66,54 +61,28 @@ public abstract class ExtendedAction extends NodeAction {
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        for (Node node : activatedNodes) {
-            Project proj = getProjectForNode(node);
-            if ((proj != null) && SeleniumSupport.hasSeleniumDir(proj)) {
-                return true;
-            }
-        }
-        return false;
+        return lookupProject(activatedNodes) != null;
     }
 
-    protected Project getProjectForNode(Node node) {
-        Project proj = node.getLookup().lookup(Project.class);
-        if (proj == null) {
-            FileObject fo = node.getLookup().lookup(FileObject.class);
-            if (fo != null) {
-                proj = FileOwnerQuery.getOwner(fo);
-            }
-        }
-        return proj;
+    @Override
+    protected void performAction(Node[] activatedNodes) {
+        SeleniumPHPSupport.invokeTest(lookupProject(activatedNodes));
     }
 
-    protected FileObject findBuildXml(Project project) {
-        return project.getProjectDirectory().getFileObject("build.xml");
+    private Project lookupProject(Node[] activatedNodes){
+        if (activatedNodes.length == 1){
+            Node node = activatedNodes[0];
+            Project proj = node.getLookup().lookup(Project.class);
+            if ((proj != null) && SeleniumPHPSupport.isActive(proj)) {
+                return proj;
+            }
+        }
+        return null;
     }
 
-    static String listAllTestIncludes(FileObject file) {
-        Enumeration<? extends FileObject> en = file.getFolders(true);
-        String result = null;
-        while (en.hasMoreElements()) {
-            FileObject next = en.nextElement();
-            assert (next.isFolder());
-            Enumeration<? extends FileObject> childrenData = next.getData(false);
-            boolean containsJavaFile = false;
-            while (childrenData.hasMoreElements()) {
-                if ("java".equals(childrenData.nextElement().getExt())) {
-                    containsJavaFile = true;
-                }
-            }
-            if (containsJavaFile) {
-                if (result == null) {
-                    result = FileUtil.getRelativePath(file, next) + "/*Test.java";
-                } else {
-                    result = result + INCLUDES_DELIMITER + FileUtil.getRelativePath(file, next) + "/*Test.java";
-                }
-            }
-        }
-        if (result == null){
-            return "";
-        }
-        return result;
+    @Override
+    public String getName() {
+        return NbBundle.getMessage(RunSeleniumTestsAction.class, "CTL_RunSeleniumTestsAction");
     }
+    
 }

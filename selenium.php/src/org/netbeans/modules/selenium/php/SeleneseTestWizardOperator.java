@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -36,7 +36,7 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.selenium.templates;
+package org.netbeans.modules.selenium.php;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -44,16 +44,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.event.ChangeListener;
-import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
-import org.netbeans.api.server.properties.InstanceProperties;
-import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
-import org.netbeans.modules.selenium.SeleniumSupport;
-import org.netbeans.modules.selenium.server.SeleniumProperties;
-import org.netbeans.spi.java.project.support.ui.templates.JavaTemplates;
 import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -61,7 +55,6 @@ import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle;
-import org.openqa.selenium.server.RemoteControlConfiguration;
 
 /**
  *
@@ -70,7 +63,6 @@ import org.openqa.selenium.server.RemoteControlConfiguration;
 public class SeleneseTestWizardOperator implements WizardDescriptor.InstantiatingIterator {
 
     private ChangeSupport changeSupport = new ChangeSupport(this);
-    private static final String DEFAULT_SERVER_PORT = "80";         // NOI18N
     private transient WizardDescriptor.Panel panel;
     private transient WizardDescriptor wiz;
 
@@ -88,16 +80,14 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
 
         FileObject createdFile = null;
         DataObject dTemplate = DataObject.find(template);
-        Object serverPort = getServerPort();
-        if (serverPort == null){
-            serverPort = DEFAULT_SERVER_PORT;
-        }
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("server_port", serverPort);   //NOI18N
 
-        InstanceProperties ip = SeleniumProperties.getInstanceProperties();
-        int port = ip.getInt(SeleniumProperties.PORT, RemoteControlConfiguration.DEFAULT_PORT);
-        params.put("selenium_server_port", Integer.toString(port));
+//      TODO server ULR & server port
+//        Object serverPort = null;
+//        if (serverPort == null){
+//            serverPort = DEFAULT_SERVER_PORT;
+//        }
+        Map<String, Object> params = new HashMap<String, Object>();
+//        params.put("server_port", serverPort);   //NOI18N
 
         DataObject dobj = dTemplate.createFromTemplate(df, targetName, params);
         createdFile = dobj.getPrimaryFile();
@@ -105,23 +95,10 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
         return Collections.singleton(createdFile);
     }
 
-    private String getServerPort(){
-        Project project = Templates.getProject(wiz);
-        J2eeModuleProvider provider = project.getLookup().lookup(J2eeModuleProvider.class);
-        if (provider != null) {
-            org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties ip = provider.getInstanceProperties();
-            if (ip != null){
-                String port = ip.getProperty(org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties.HTTP_PORT_NUMBER);
-                return port;
-            }
-        }
-        return null;
-    }
     
     public void initialize(WizardDescriptor wiz) {
         this.wiz = wiz;
-        Project proj = Templates.getProject(wiz);
-        assert(SeleniumSupport.getSelenimDir(proj) != null);
+        SeleniumPHPSupport.prepareProject(Templates.getProject(wiz));
         panel = createPanel(wiz);
         panel.getComponent();
     }
@@ -156,24 +133,9 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
     }
 
     private WizardDescriptor.Panel createPanel(WizardDescriptor wizardDescriptor) {
-        // Ask for Java folders
         Project project = Templates.getProject(wizardDescriptor);
-        Sources sources = ProjectUtils.getSources(project);
-        SourceGroup[] groups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-        assert groups != null : "Cannot return null from Sources.getSourceGroups: " + sources;
-        if (groups.length == 0) {
-            groups = sources.getSourceGroups(Sources.TYPE_GENERIC);
-            return Templates.createSimpleTargetChooser(project, groups);
-        } else {
-            FileObject seleniumDir = SeleniumSupport.getSelenimDir(project);
-            for (SourceGroup selGroup : groups) {
-                if (selGroup.getRootFolder().equals(seleniumDir)){
-                    return JavaTemplates.createPackageChooser(project, new SourceGroup[]{selGroup});
-                }
-            }
-            return JavaTemplates.createPackageChooser(project, groups);
-        }
-
+        SourceGroup seleniumSourceGroup = SeleniumPHPSupport.getSeleniumSourceGroup(project);
+        return Templates.createSimpleTargetChooser(project, new SourceGroup[]{seleniumSourceGroup});
     }
 
     public void addChangeListener(ChangeListener l) {
