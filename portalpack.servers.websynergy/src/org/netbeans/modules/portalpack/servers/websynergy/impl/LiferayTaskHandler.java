@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,7 +36,10 @@ import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.netbeans.modules.j2ee.dd.api.web.DDProvider;
+import org.netbeans.modules.j2ee.dd.api.web.WebApp;
 import org.netbeans.modules.j2ee.deployment.plugins.api.UISupport;
+import org.netbeans.modules.portalpack.portlets.genericportlets.core.util.JarUtils;
 import org.netbeans.modules.portalpack.servers.core.api.PSDeploymentManager;
 import org.netbeans.modules.portalpack.servers.core.common.DeploymentException;
 import org.netbeans.modules.portalpack.servers.core.common.ExtendedClassLoader;
@@ -43,16 +47,15 @@ import org.netbeans.modules.portalpack.servers.core.common.FileLogViewerSupport;
 import org.netbeans.modules.portalpack.servers.core.common.LogManager;
 import org.netbeans.modules.portalpack.servers.core.common.ServerConstants;
 import org.netbeans.modules.portalpack.servers.core.impl.DefaultPSTaskHandler;
+import org.netbeans.modules.portalpack.servers.core.impl.j2eeservers.api.ServerDeployHandler;
+import org.netbeans.modules.portalpack.servers.core.impl.j2eeservers.api.ServerDeployerHandlerFactory;
 import org.netbeans.modules.portalpack.servers.core.impl.j2eeservers.tomcat.TomcatConstant;
 import org.netbeans.modules.portalpack.servers.core.util.NetbeanConstants;
 import org.netbeans.modules.portalpack.servers.core.util.PSConfigObject;
-import org.netbeans.modules.portalpack.servers.websynergy.ServerDeployHandler;
-import org.netbeans.modules.portalpack.servers.websynergy.ServerDeployerHandlerFactory;
 import org.netbeans.modules.portalpack.servers.websynergy.common.LiferayConstants;
-//import org.netbeans.modules.portalpack.servers.liferay.webservices.client.PortletService;
-import org.openide.util.Exceptions;
-//import org.netbeans.modules.portalpack.servers.liferay.webservices.client.PortletServiceService;
-//import org.netbeans.modules.portalpack.servers.liferay.webservices.client.PortletServiceService;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -61,11 +64,11 @@ import org.openide.util.Exceptions;
 public class LiferayTaskHandler extends DefaultPSTaskHandler {
 
     protected static Logger logger = Logger.getLogger(NetbeanConstants.PORTAL_LOGGER);
-    protected ExtendedClassLoader loader;
     protected PSDeploymentManager dm;
     protected PSConfigObject psconfig;
     protected ServerDeployHandler deployerHandler;
     protected String uri;
+    private static String WS_PREFIX = "websynergy";
 
     /** Creates a new instance of LifeRayTaskHandler */
     public LiferayTaskHandler(PSDeploymentManager dm) {
@@ -73,41 +76,174 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
         this.psconfig = dm.getPSConfig();
         this.uri = dm.getUri();
 
-        if (loader == null) {
-            try {
-                loader = initClassLoader();
-            } catch (MalformedURLException ex) {
-                logger.log(Level.SEVERE, "Error creating classLoader for portletcontainer", ex);
-            }
-        }
         deployerHandler = ServerDeployerHandlerFactory.getServerDeployerHandler(dm);
     }
 
+    public void _deployOnGF(String warfile, String serveruri) throws Exception {
+        File warF = new File(warfile);
+        
+        File tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator
+                                    + "portalpack" + File.separator
+                                    + System.currentTimeMillis());
+        
+        //long t1 = System.currentTimeMillis();
+        JarUtils.unjar(new FileInputStream(warF), tempDir);
+        
+        writeToOutput(uri, "Extracted : "+warfile);
+        //long t2 = System.currentTimeMillis();
+        //System.out.println("Time taken to unjar::: "+(t2-t1));
+        
+        String context = warF.getName().substring(0,warF.getName().indexOf("."));
+         
+        File deployXmlFile = File.createTempFile("deploy",".xml");
+        FileOutputStream fout = new FileOutputStream(deployXmlFile);
+        String xml = "<Context docBase=\""+ tempDir + "\"></Context>"; 
+        try{
+            
+            fout.write(xml.getBytes());
+            fout.flush();
+            
+        }catch(Exception e) {
+            e.printStackTrace();
+        }finally {
+            fout.close();
+        }
+        
+        //Copy that file
+        String autoDeployDir = psconfig.getProperty(LiferayConstants.AUTO_DEPLOY_DIR);
+        File deployDirFile = new File(autoDeployDir);
+        if (!deployDirFile.exists()) {
+            deployDirFile.mkdirs();
+        }
+        
+        //check if the conf directory exists before. Otherwise delete that.
+        File confDir = new File(psconfig.getDomainDir() + File.separator + "conf");
+        if(confDir.exists())
+            confDir = null;
+        
+        long t1 = System.currentTimeMillis();
+        
+        String newDepXml = context + ".xml";
+        copy(deployXmlFile.getAbsolutePath(), newDepXml, autoDeployDir);
+        File webXml = new File(tempDir, "WEB-INF" + File.separator + "web.xml");
+        long baseTime = webXml.lastModified();
+        
+        //wait
+        File xmlInAutoDeployDir = new File(autoDeployDir + File.separator + newDepXml);
+        int counter = 0;
+        while (xmlInAutoDeployDir.exists()) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                logger.info(ex.getMessage());
+            }
+            counter++;
+            if (counter >= 300) {
+                break;
+            }
+        }
+        
+        if(counter >= 300) {
+            final String errorMsg = "Massaging could not been done properly." +
+                    "\n Autodeploy scanner might not be responding." +
+                    "\n Please restart your sever and try again... ";
+            writeErrorToOutput(uri, new Exception(errorMsg));
+            
+            throw new DeploymentException(errorMsg);
+        }
+        
+        long timestamp = 0;
+        
+        counter = 0;
+        while(timestamp <= baseTime) {
+            timestamp = webXml.lastModified();
+         
+          //  System.out.println("Counter value is::::::: " + counter);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                logger.info(ex.getMessage());
+            }
+            counter++;
+            if (counter >= 100) {
+                break;
+            }
+        }
+        
+        if(confDir != null) {
+            deleteDir(confDir);
+        }
+        
+        //t2 = System.currentTimeMillis();
+        //System.out.println("Time taken to massaging :::: "+(t2-t1));
+        
+        //For backward compatiblility when server is Liferay.
+        if(!isWebSynergy()) 
+            verifyDisplayName(tempDir.getAbsolutePath(), context);
+        
+        File destWar = new File(tempDir.getParentFile(),warF.getName());
+        if(destWar.exists())
+            destWar.delete();
+        
+        //t1 = System.currentTimeMillis();
+        JarUtils.jar(new FileOutputStream(destWar), tempDir.listFiles());
+        
+        writeToOutput(uri, warfile +" file updated successfully.");
+        long t2 = System.currentTimeMillis();
+        writeToOutput(uri, "Time taken for massaging : " + (t2-t1)/1000 + " sec");
+        
+        //t1 = System.currentTimeMillis();
+        deployerHandler.deploy(destWar.getAbsolutePath());
+        
+        //t2 = System.currentTimeMillis();
+        //System.out.println("Time Taken to Deploy:::: "+(t2-t1));
+        
+        //cleanup all temporary files/directories.
+        asynchDeleteDirectory(tempDir);
+        destWar.delete();
+        
+        showServerLog();
+        
+    }
+    
+    private void verifyDisplayName(String deployDir, String displayName) {
+        
+        File webXmlFile = new File(deployDir + File.separator +
+                                    "WEB-INF" + File.separator + "web.xml");
+        if(!webXmlFile.exists())
+            return;
+        
+        FileObject dd = FileUtil.toFileObject(FileUtil.normalizeFile(webXmlFile));
+        try {
+            WebApp ddRoot = DDProvider.getDefault().getDDRoot(dd);
+            String disName = ddRoot.getDefaultDisplayName();
+            
+            if(disName == null || disName.trim().length() == 0)
+                return;
+            
+            if(!displayName.equals(disName)) {
+                ddRoot.setDisplayName(displayName);
+                ddRoot.write(dd);
+            }
+                
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+    }
+    
     public String deploy(String warfile, String serveruri) throws Exception {
 
-        /*_deployOnPC(warfile);
-        
-        File warFileObj = new File(warfile);
-        String massagedWar = psconfig.getPSHome() + File.separator + "war" + File.separator + warFileObj.getName();
-        
-        try {
-        deployerHandler.deploy(massagedWar);
-        } catch (Exception e) {
-        try {
-        String fileName = warFileObj.getName();
-        String appName = fileName.substring(0, fileName.indexOf("."));
-        _undeployFromPC(appName, false);
-        } catch (Exception ex) {
-        // ex.printStackTrace();
+        if (psconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9)
+                && isDirectoryDeploymentSupported()) {
+            
+            _deployOnGF(warfile, serveruri);
+            return "deployed";
         }
-        //writeErrorToOutput(uri,e);
-        throw e;
-        }*/
+        
         String deployDir = psconfig.getProperty(LiferayConstants.AUTO_DEPLOY_DIR);
         File deployDirFile = new File(deployDir);
         if (!deployDirFile.exists()) {
             deployDirFile.mkdirs();
-        //copy(warfile, System.getProperty("user.home") + File.separator + "liferay" + File.separator + "deploy");
         }
         long baseTime = System.currentTimeMillis();
         copy(warfile, deployDir);
@@ -118,8 +254,6 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
     public String getDeploymentMessage(String warfile, long baseTime) throws Exception {
         File warFile = new File(warfile);
         String warName = warFile.getName();
-        // if(!psconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9))
-        //     return org.openide.util.NbBundle.getMessage(LiferayTaskHandler.class, "Deployment_Done");
 
         String deployDir = psconfig.getProperty(LiferayConstants.AUTO_DEPLOY_DIR);
 
@@ -167,7 +301,7 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
             if (deployFailFileInAppServerAutoDeployDir.exists()) {
                 if (deployFailFileInAppServerAutoDeployDir.lastModified() >= baseTime) {
                     throw new DeploymentException(warName + " deployment failed. For more into check log message. ");
-                //return warName + " deployment failed. For more into check log message. ";
+               
                 }
             }
             try {
@@ -211,12 +345,6 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
                 }
             }
             
-           /* if (deployFailFileInAppServerAutoDeployDir.exists()) {
-                if (deployFailFileInAppServerAutoDeployDir.lastModified() >= baseTime) {
-                    throw new DeploymentException(warName + " deployment failed. For more into check log message. ");
-                }
-            }*/
-            
             try {
 
                 Thread.sleep(300);
@@ -228,6 +356,58 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
                 return "Deployment done. Check server log for the status.";
             }
         }
+    }
+    
+    
+    private boolean isWebSynergy() {
+        if(uri.startsWith(WS_PREFIX))
+            return true;
+        else
+            return false;
+    }
+    
+    private boolean isDirectoryDeploymentSupported() {
+     
+        //For liferay directory deployment is always supported..
+        if(!isWebSynergy())
+            return true;
+
+        //check if the directory deployment is supported...
+        File portletContainerJar = new File(
+                psconfig.getDomainDir() + File.separator + "lib" +
+                File.separator + "portlet-container.jar");
+        
+        ExtendedClassLoader loader = null;
+        try {
+            loader = new ExtendedClassLoader();
+            loader.addURL(portletContainerJar);
+        } catch (MalformedURLException ex) {
+            return false;
+        } catch (RuntimeException ex) {
+            return false;
+        }
+        
+        
+        Class _clazz = null;
+        try {
+            _clazz = loader.loadClass("com.sun.portal.portletcontainer.warupdater.PortletWarUpdater");
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+        
+        if(_clazz == null)
+            return false;
+        try {
+
+            Method m = _clazz.getMethod("preparePortlet", new Class[]{String.class, File.class});
+        } catch (NoSuchMethodException ex) {
+            return false;
+        } catch (SecurityException ex) {
+            return false;
+        }
+        
+        return true;
+        
     }
 
     protected int runProcess(String str, boolean wait) throws Exception {
@@ -256,63 +436,148 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
     }
 
     public void undeploy(String portletAppName, String dn) throws Exception {
-
+        /* 
+        if(psconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9)){
+            String appPortletWar 
+                    = psconfig.getDomainDir() + File.separator + "autodeploy" +
+                    File.separator + portletAppName+".war";
+            String appPortletWarUndeployed 
+                    = appPortletWar+"_undeployed";
+            File warF = new File(appPortletWar);
+            File warFUndeployed =  new File(appPortletWarUndeployed);
+            if (warF.exists()) {
+                warF.delete();
+                System.out.println("Deleted/Undeployed dude...");
+            } 
+            if (warFUndeployed.exists()) {
+            warFUndeployed.delete();
+            }
+        } else {
+            deployerHandler.undeploy(portletAppName);
+        } */
         deployerHandler.undeploy(portletAppName);
         showServerLog();
-    /*if(psconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9)){
-    SunAppServerDeployerUtil handler = new SunAppServerDeployerUtil(dm);
-    handler.unDeployFromGlassFish(portletAppName);
-    }
-    else{
-    TomcatDeployerUtil handler = new TomcatDeployerUtil(dm,taskFile);
-    handler.undeployOnTomcat(portletAppName);
-    }*/
-
     }
 
-    /*    protected void _undeployFromPC(final String portletAppName, boolean logError) throws Exception {
-    
-    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-    try {
-    
-    Thread.currentThread().setContextClassLoader(loader);
-    updateCache();
-    Class clazz = loader.loadClass(PORTLET_ADMIN_INTERFACE);
-    Object ob = clazz.newInstance();
-    
-    //System.setProperty("com.sun.portal.portletcontainer.dir",psconfig.getPSHome());
-    
-    Method method = null;
-    Boolean isUnDeployed = Boolean.FALSE;
-    try {
-    method = clazz.getMethod("undeploy", new Class[]{String.class, boolean.class});
-    isUnDeployed = (Boolean) method.invoke(ob, new Object[]{portletAppName, Boolean.FALSE});
-    } catch (NoSuchMethodException e) {
-    method = clazz.getMethod("undeploy", new Class[]{String.class});
-    isUnDeployed = (Boolean) method.invoke(ob, new Object[]{portletAppName});
-    } catch (Exception e) {
-    throw e;
+    @Override
+    public String deploy(String deployedDir, String warfile, String serveruri) throws Exception {
+        File warF = new File(warfile);
+         String context = warF.getName().substring(0,warF.getName().indexOf("."));
+         /*try{
+            undeploy(context,"");
+         }catch(Exception e){
+             e.printStackTrace();
+         }*/
+        File deployXmlFile = File.createTempFile("deploy",".xml");
+        FileOutputStream fout = new FileOutputStream(deployXmlFile);
+        String xml = "<Context docBase=\""+ deployedDir + "\"></Context>"; 
+        try{
+            
+            fout.write(xml.getBytes());
+            fout.flush();
+            
+        }catch(Exception e) {
+            e.printStackTrace();
+        }finally {
+            fout.close();
+        }
+        
+        //Copy that file
+        String autoDeployDir = psconfig.getProperty(LiferayConstants.AUTO_DEPLOY_DIR);
+        File deployDirFile = new File(autoDeployDir);
+        if (!deployDirFile.exists()) {
+            deployDirFile.mkdirs();
+        }
+        
+        File webXmlFile = new File(deployedDir + File.separator +
+                                    "WEB-INF" + File.separator + "web.xml");
+        long baseTime = webXmlFile.lastModified();
+        
+        //check if the conf directory exists before. Otherwise delete that.
+        File confDir = new File(psconfig.getDomainDir() + File.separator + "conf");
+        if(confDir.exists())
+            confDir = null;
+        
+        String newDepXml = context + ".xml";
+        copy(deployXmlFile.getAbsolutePath(), newDepXml, autoDeployDir);
+        
+        long t1 = System.currentTimeMillis();
+        //wait
+        File xmlInAutoDeployDir = new File(autoDeployDir + File.separator + newDepXml);
+        int counter = 0;
+        while (xmlInAutoDeployDir.exists()) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                logger.info(ex.getMessage());
+            }
+            counter++;
+            if (counter >= 300) {
+                break;
+            }
+        }
+        
+         if(counter >= 300) {
+            final String errorMsg = "Massaging could not been done properly." +
+                    "\n Autodeploy scanner might not be responding." +
+                    "\n Please restart your sever and try again... ";
+            writeErrorToOutput(uri, new Exception(errorMsg));
+            
+            throw new DeploymentException(errorMsg);
+        }
+        
+        long timestamp = 0;
+        
+        counter = 0;
+        while(timestamp <= baseTime) {
+            timestamp = webXmlFile.lastModified();
+            
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                logger.info(ex.getMessage());
+            }
+            counter++;
+            if (counter >= 100) {
+                break;
+            }
+        }
+        
+        if(confDir != null)
+            deleteDir(confDir);
+        
+        if(!isWebSynergy())
+            verifyDisplayName(deployedDir, context);
+        
+        showServerLog();
+        
+        writeToOutput(uri, deployedDir + " updated successfully.");
+        //deploy(warfile, serveruri);
+        long t2 = System.currentTimeMillis();
+        
+        writeToOutput(uri, "Time taken for massaging : " + (t2-t1)/1000  + "sec.");
+        
+        if(psconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9)) {
+            
+            deployerHandler.deploy(deployedDir,context);
+            
+        } else if(psconfig.getServerType().equals(ServerConstants.TOMCAT_5_X)
+                    || psconfig.getServerType().equals(ServerConstants.TOMCAT_6_X)){
+            
+            //wait for 5 sec.. 
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                logger.info(ex.getMessage());
+            }
+        }
+        
+        if(deployXmlFile.exists())
+            deployXmlFile.delete();
+        
+        return "Deployed...";
     }
     
-    if (isUnDeployed != null) {
-    if (!isUnDeployed.booleanValue()) {
-    throw new Exception(org.openide.util.NbBundle.getMessage(LifeRayTaskHandler.class, "UNDEPLOYMENT_FAILED"));
-    }
-    } else {
-    logger.log(Level.INFO, "Problem unregistering application from the portlet container");
-    }
-    
-    } catch (Exception e) {
-    if (logError) {
-    writeErrorToOutput(uri, e);
-    }
-    throw e;
-    } finally {
-    
-    Thread.currentThread().setContextClassLoader(contextClassLoader);
-    }
-    }
-     */
     public String[] getPortlets(String dn) {
         try {
 
@@ -344,34 +609,6 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
             logger.log(Level.SEVERE, "Error", ex);
             return new String[0];
         }
-    }
-
-    protected ExtendedClassLoader initClassLoader() throws MalformedURLException {
-        ExtendedClassLoader loader = new ExtendedClassLoader(getClass().getClassLoader());
-        /*String jdkVersion = "1.5";
-        try {
-        loader.loadClass("java.awt.Desktop");
-        jdkVersion = "1.6";
-        } catch (ClassNotFoundException ex) {
-        jdkVersion = "1.5";
-        }
-        
-        File libDir = new File(psconfig.getServerHome() + File.separator + "lib");
-        File[] files = null;
-        
-        if (jdkVersion.equals("1.5")) {
-        files = new File[]{new File(libDir, "webservices-rt.jar"), new File(libDir, "activation.jar"),
-        new File(libDir, "javaee.jar")
-        };
-        } else {
-        files = new File[]{new File(libDir, "javaee.jar")};
-        //}
-        
-        for (int i = 0; i < files.length; i++) {
-        logger.info(files[i].getName());
-        loader.addURL(files[i]);
-        }*/
-        return loader;
     }
 
     public String constructPortletViewURL(String dn, String portlet) {
@@ -451,10 +688,16 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
         e.printStackTrace(UISupport.getServerIO(uri).getErr());
     }
 
-    public static void copy(String fromFileName, String toFileName)
+     public static void copy(String fromFileName, String toFolder) throws IOException {
+         copy(fromFileName, null, toFolder);
+     }
+    public static void copy(String fromFileName, String newFileName, String toFolder)
         throws IOException {
         File fromFile = new File(fromFileName);
-        File toFile = new File(toFileName);
+        File toFile = new File(toFolder);
+        
+        if(newFileName == null)
+            newFileName = fromFile.getName();
 
         if (!fromFile.exists()) {
             throw new IOException("FileCopy: " + "no such source file: " + fromFileName);
@@ -466,7 +709,7 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
             throw new IOException("FileCopy: " + "source file is unreadable: " + fromFileName);
         }
         if (toFile.isDirectory()) {
-            toFile = new File(toFile, fromFile.getName());
+            toFile = new File(toFile, newFileName);
         }
         FileInputStream from = null;
         FileOutputStream to = null;
@@ -496,14 +739,55 @@ public class LiferayTaskHandler extends DefaultPSTaskHandler {
             }
         }
     }
+    
+    protected void asynchDeleteDirectory(final File dir) {
+        
+        if(dir == null) return;
+        RequestProcessor.getDefault().post(new Runnable() {
+
+            public void run() {
+                deleteDir(dir);
+            }
+            
+        });
+    }
+    
+    protected void deleteDir(File dir) {
+
+        if(dir == null)
+            return;
+        
+        String files[] = dir.list();
+        if (files == null) {
+            files = new String[0];
+        }
+        for (int i = 0; i < files.length; i++) {
+            File file = new File(dir, files[i]);
+            if (file.isDirectory()) {
+                deleteDir(file);
+            } else {
+                file.delete();
+            }
+            dir.delete();
+        }
+    }
 
     public void showServerLog() {
+        
         try {
-            File f = new File(psconfig.getDomainDir() + File.separator + "/logs/server.log");
+            
+            File f = new File(psconfig.getDomainDir() + File.separator + "logs"
+                              + File.separator + "server.log");
             FileLogViewerSupport p = FileLogViewerSupport.getLogViewerSupport(f, dm.getUri(), 2000, true);
             p.showLogViewer(false);
+            
         } catch (IOException ex) {
             //Exceptions.printStackTrace(ex);
         }
+    }
+    
+    private void writeToOutput(String uri,String msg)
+    {
+        UISupport.getServerIO(uri).getOut().println(msg);
     }
 }

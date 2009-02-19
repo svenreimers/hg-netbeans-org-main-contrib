@@ -66,7 +66,6 @@ import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.JarFileSystem;
 import org.openide.util.Exceptions;
-import scala.Nil;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
 import scala.tools.nsc.Settings;
@@ -78,6 +77,7 @@ import scala.tools.nsc.util.BatchSourceFile;
  */
 public class ScalaGlobal {
 
+    private static boolean debug;
     private final static Map<Project, Reference<Global>> ProjectToGlobal =
             new WeakHashMap<Project, Reference<Global>>();
     private final static Map<Project, Reference<Global>> ProjectToGlobalForTest =
@@ -99,9 +99,9 @@ public class ScalaGlobal {
         GlobalForStdLid = null;
     }
 
-    /** 
+    /**
      * Scala's global is not thread safed
-     * 
+     *
      * @Todo: it seems scala's Settings only support one source path, i.e.
      * "/scalaproject/src" only, does not support "/scalaproject/src:/scalaproject/src2"
      * since we can not gaurantee the srcCp returns only one entry, we have to use
@@ -114,9 +114,9 @@ public class ScalaGlobal {
         if (project == null) {
             // it may be a standalone file, or file in standard lib
             if (GlobalForStdLid == null) {
-                 GlobalForStdLid = ScalaHome.getGlobalForStdLib();
+                GlobalForStdLid = ScalaHome.getGlobalForStdLib();
             }
-            
+
             return GlobalForStdLid;
         }
 
@@ -160,10 +160,15 @@ public class ScalaGlobal {
             }
 
             final Settings settings = new Settings();
-            settings.verbose().value_$eq(false);
+            if (debug) {
+                settings.debug().value_$eq(true);
+                settings.verbose().value_$eq(true);
+            } else {
+                settings.verbose().value_$eq(false);
+            }
 
-            settings.sourcepath().tryToSet(Nil.$colon$colon(srcPath).$colon$colon("-sourcepath"));
-            settings.outdir().tryToSet(Nil.$colon$colon(outPath).$colon$colon("-d"));
+            settings.sourcepath().tryToSet(scala.netbeans.Wrapper$.MODULE$.scalaStringList("-sourcepath", srcPath));
+            settings.outdir().tryToSet(scala.netbeans.Wrapper$.MODULE$.scalaStringList("-d", outPath));
 
             // add boot, compile classpath
             ClassPath bootCp = null;
@@ -185,14 +190,14 @@ public class ScalaGlobal {
 
             StringBuilder sb = new StringBuilder();
             computeClassPath(sb, bootCp);
-            settings.bootclasspath().tryToSet(Nil.$colon$colon(sb.toString()).$colon$colon("-bootclasspath"));
+            settings.bootclasspath().tryToSet(scala.netbeans.Wrapper$.MODULE$.scalaStringList("-bootclasspath", sb.toString()));
 
             sb.delete(0, sb.length());
             computeClassPath(sb, compCp);
             if (forTest && !inStdLib && dirs.outDir != null) {
                 sb.append(File.pathSeparator).append(dirs.outDir);
             }
-            settings.classpath().tryToSet(Nil.$colon$colon(sb.toString()).$colon$colon("-classpath"));
+            settings.classpath().tryToSet(scala.netbeans.Wrapper$.MODULE$.scalaStringList("-classpath", sb.toString()));
 
             global = new Global(settings) {
 
@@ -222,7 +227,7 @@ public class ScalaGlobal {
                 }
 
                 if (dirs.outDir != null) {
-                    // monitor outDir's changes, 
+                    // monitor outDir's changes,
                     /** @Todo should reset global for any changes under out dir, including subdirs */
                     dirs.outDir.addFileChangeListener(new FileChangeAdapter() {
 
@@ -370,8 +375,9 @@ public class ScalaGlobal {
     public static CompilationUnit compileSource(final Global global, BatchSourceFile srcFile) {
         synchronized (global) {
             Global.Run run = global.new Run();
+            global.resetSelectTypeErrors();
 
-            scala.List srcFiles = Nil.$colon$colon(srcFile);
+            scala.List srcFiles = scala.netbeans.Wrapper$.MODULE$.scalaSrcFileList(srcFile);
             try {
                 run.compileSources(srcFiles);
             } catch (AssertionError ex) {
@@ -386,10 +392,25 @@ public class ScalaGlobal {
                 // just ignore all ex
             }
 
+            if (debug) {
+                scala.collection.Map selectTypeErrors = global.selectTypeErrors();
+                System.out.println("selectTypeErrors:" + selectTypeErrors);
+            }
+
             scala.Iterator units = run.units();
             while (units.hasNext()) {
                 CompilationUnit unit = (CompilationUnit) units.next();
                 if (unit.source() == srcFile) {
+                    if (debug) {
+                        final CompilationUnit unit1 = unit;
+                        Runnable browser = new Runnable() {
+
+                            public void run() {
+                                global.treeBrowser().browse(unit1.body());
+                            }
+                        };
+                        new Thread(browser).start();
+                    }
                     return unit;
                 }
             }

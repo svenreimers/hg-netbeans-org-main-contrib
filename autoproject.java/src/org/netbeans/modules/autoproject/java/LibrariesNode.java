@@ -46,16 +46,18 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.project.JavaProjectConstants;
+import org.netbeans.api.java.queries.SourceForBinaryQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
@@ -63,7 +65,6 @@ import org.netbeans.api.project.Sources;
 import org.netbeans.spi.java.project.support.ui.PackageView;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -78,7 +79,7 @@ import org.openide.util.WeakListeners;
 
 final class LibrariesNode extends AbstractNode {
 
-    private static final Image ICON_BADGE = ImageUtilities.loadImage("org/netbeans/modules/java/j2seproject/ui/resources/libraries-badge.png"); // NOI18N
+    private static final Image ICON_BADGE = ImageUtilities.loadImage("org/netbeans/modules/autoproject/java/libraries-badge.png"); // NOI18N
 
     LibrariesNode(Project project) {
         super(new LibrariesChildren(project), Lookups.singleton(project));
@@ -96,13 +97,13 @@ final class LibrariesNode extends AbstractNode {
 
     @Override
     public Image getIcon(int type) {
-        return ImageUtilities.mergeImages(DataFolder.findFolder(Repository.getDefault().getDefaultFileSystem().getRoot()).
+        return ImageUtilities.mergeImages(DataFolder.findFolder(FileUtil.getConfigRoot()).
                 getNodeDelegate().getIcon(type), ICON_BADGE, 7, 7);
     }
 
     @Override
     public Image getOpenedIcon(int type) {
-        return ImageUtilities.mergeImages(DataFolder.findFolder(Repository.getDefault().getDefaultFileSystem().getRoot()).
+        return ImageUtilities.mergeImages(DataFolder.findFolder(FileUtil.getConfigRoot()).
                 getNodeDelegate().getOpenedIcon(type), ICON_BADGE, 7, 7);
     }
     
@@ -119,7 +120,7 @@ final class LibrariesNode extends AbstractNode {
     private static class LibrariesChildren extends Children.Keys<FileObject> implements PropertyChangeListener, ChangeListener {
 
         private static final Icon ARCHIVE_ICON =
-                ImageUtilities.image2Icon(ImageUtilities.loadImage("org/netbeans/modules/java/j2seproject/ui/resources/jar.gif"));
+                ImageUtilities.image2Icon(ImageUtilities.loadImage("org/netbeans/modules/autoproject/java/jar.gif"));
         private final Sources sources;
         private final PropertyChangeListener cpListener = WeakListeners.propertyChange(this, null);
 
@@ -148,14 +149,28 @@ final class LibrariesNode extends AbstractNode {
 
         private Collection<FileObject> getKeys() {
             Collection<FileObject> keys = new LinkedHashSet<FileObject>();
+            List<FileObject> sourceRoots = new ArrayList<FileObject>();
             for (SourceGroup g : sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA)) {
-                FileObject root = g.getRootFolder();
+                sourceRoots.add(g.getRootFolder());
+            }
+            for (FileObject sourceRoot : sourceRoots) {
                 // XXX add in bootcp later?
-                ClassPath cp = ClassPath.getClassPath(root, ClassPath.COMPILE);
+                ClassPath cp = ClassPath.getClassPath(sourceRoot, ClassPath.COMPILE);
                 if (cp != null) {
                     cp.removePropertyChangeListener(cpListener);
                     cp.addPropertyChangeListener(cpListener);
-                    keys.addAll(Arrays.asList(cp.getRoots()));
+                    BINROOT: for (FileObject binRoot : cp.getRoots()) {
+                        try {
+                            for (FileObject matchingRoot : SourceForBinaryQuery.findSourceRoots(binRoot.getURL()).getRoots()) {
+                                if (sourceRoots.contains(matchingRoot)) {
+                                    continue BINROOT;
+                                }
+                            }
+                        } catch (FileStateInvalidException x) {
+                            assert false : x;
+                        }
+                        keys.add(binRoot);
+                    }
                 }
             }
             return keys;

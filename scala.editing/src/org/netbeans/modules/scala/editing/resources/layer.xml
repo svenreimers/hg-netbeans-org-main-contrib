@@ -1,7 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
 <filesystem>
+    <folder name="Services">
+        <folder name="MIMEResolver">
+            <file name="Scala.xml" url="ScalaResolver.xml">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editing.resources.Bundle"/>
+                <attr name="position" intvalue="95010"/>
+            </file>
+        </folder>
+    </folder>
+
+
     <folder name="Editors">
+
+      <!-- Reference binding color themes are under module: main/defaults/src/org/netbeans/modules/defaults -->
+      <!-- color theme for nbeditor-settings-ColoringType -->
+        <folder name="FontsColors">
+            <folder name="Twilight">
+                <folder name="Defaults">
+                    <file name="org-netbeans-modules-defaults-highlight-colorings.xml" url="Twilight/editor.xml">
+                        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.defaults.Bundle"/>
+                        <attr name="nbeditor-settings-ColoringType" stringvalue="highlight"/>
+                    </file>
+                    <file name="org-netbeans-modules-defaults-token-colorings.xml" url="Twilight/defaults.xml">
+                        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.defaults.Bundle"/>
+                    </file>
+                </folder>
+            </folder>
+            <folder name="EmacsStandard">
+                <folder name="Defaults">
+                    <file name="org-netbeans-modules-defaults-token-colorings.xml" url="EmacsStandard/defaults.xml">
+                        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.defaults.Bundle"/>
+                    </file>
+                </folder>
+            </folder>
+        </folder>
+
         <folder name="text">
             <folder name="x-scala">
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editing.Bundle"/>
@@ -20,7 +54,22 @@
                             </file>
                         </folder>
                     </folder>
+                    <folder name="Twilight">
+                        <folder name="Defaults">
+                            <file name="coloring.xml" url="Twilight/fontsColors.xml">
+                                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editing.Bundle"/>
+                            </file>
+                        </folder>
+                    </folder>
+                    <folder name="EmacsStandard">
+                        <folder name="Defaults">
+                            <file name="coloring.xml" url="EmacsStandard/fontsColors.xml">
+                                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editing.Bundle"/>
+                            </file>
+                        </folder>
+                    </folder>
                 </folder>
+            
                 <folder name="CodeTemplates">
                     <folder name="Defaults">
                         <file name="codetemplates.xml" url="codetemplates.xml">
@@ -82,7 +131,7 @@
                 </file>
                 <file name="structure.instance">
                     <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editing.ScalaStructureAnalyzer"/>
-                </file> 
+                </file>
             </folder>
         </folder>
     </folder>

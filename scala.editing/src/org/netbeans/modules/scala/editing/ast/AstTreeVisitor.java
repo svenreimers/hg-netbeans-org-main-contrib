@@ -47,6 +47,9 @@ import org.netbeans.modules.gsf.api.ElementKind;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import scala.Option;
+import scala.tools.nsc.CompilationUnits.CompilationUnit;
+import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Alternative;
 import scala.tools.nsc.ast.Trees.Annotated;
 import scala.tools.nsc.ast.Trees.Annotation;
@@ -61,6 +64,7 @@ import scala.tools.nsc.ast.Trees.CaseDef;
 import scala.tools.nsc.ast.Trees.ClassDef;
 import scala.tools.nsc.ast.Trees.CompoundTypeTree;
 import scala.tools.nsc.ast.Trees.DefDef;
+import scala.tools.nsc.ast.Trees.DocDef;
 import scala.tools.nsc.ast.Trees.ExistentialTypeTree;
 import scala.tools.nsc.ast.Trees.Function;
 import scala.tools.nsc.ast.Trees.Ident;
@@ -93,6 +97,7 @@ import scala.tools.nsc.ast.Trees.Typed;
 import scala.tools.nsc.ast.Trees.UnApply;
 import scala.tools.nsc.ast.Trees.ValDef;
 import scala.tools.nsc.symtab.Symbols.Symbol;
+import scala.tools.nsc.symtab.Types.Type;
 import scala.tools.nsc.util.BatchSourceFile;
 
 /**
@@ -102,9 +107,10 @@ import scala.tools.nsc.util.BatchSourceFile;
 public class AstTreeVisitor extends AstVisitor {
 
     private final FileObject fo;
+    private Type maybeType;
 
-    public AstTreeVisitor(Tree rootTree, TokenHierarchy th, BatchSourceFile sourceFile) {
-        super(rootTree, th, sourceFile);
+    public AstTreeVisitor(Global global, CompilationUnit unit, TokenHierarchy th, BatchSourceFile sourceFile) {
+        super(global, unit, th, sourceFile);
         setBoundsEndToken(rootScope);
         if (sourceFile != null) {
             File file = new File(sourceFile.path());
@@ -211,9 +217,13 @@ public class AstTreeVisitor extends AstVisitor {
             kind = ElementKind.PARAMETER;
         }
 
-        AstDef def = new AstDef(tree.symbol(), getIdToken(tree), scope, kind, fo);
-        if (scopes.peek().addDef(def)) {
-            info("\tAdded: ", def);
+        // special case for: val (a, b, c) = (1, 2, 3)
+        boolean isTuple = isTupleClass(tree.tpt().symbol());
+        if (!isTuple) {
+            AstDef def = new AstDef(tree.symbol(), getIdToken(tree), scope, kind, fo);
+            if (scopes.peek().addDef(def)) {
+                info("\tAdded: ", def);
+            }
         }
 
         scopes.push(scope);
@@ -410,17 +420,41 @@ public class AstTreeVisitor extends AstVisitor {
 
     @Override
     public void visitTypeApply(TypeApply tree) {
-        visit(tree.fun());
-        visit(tree.args());
+        /**
+         * @todo just ignore type apply's fun for scala.TupleXXX, for example:
+         * val tuple = (a, b, c)
+         * where (a, c, c) will be Apply::TypeApply
+         */
+        boolean isTupleApply = false;
+        scala.List<Symbol> funOwnerChain = tree.fun().symbol().ownerChain();
+        int size = funOwnerChain.size();
+        if (size == 4) {
+            if (funOwnerChain.apply(0).rawname().decode().equals("apply") &&
+                    funOwnerChain.apply(1).rawname().decode().startsWith("Tuple") &&
+                    funOwnerChain.apply(2).rawname().decode().equals("scala") &&
+                    funOwnerChain.apply(3).rawname().decode().equals("<root>")) {
+                isTupleApply = true;
+            }
+        }
+
+        if (!isTupleApply) {
+            visit(tree.fun());
+            visit(tree.args());
+        }
     }
 
     @Override
     public void visitApply(Apply tree) {
         AstExpr expr = new AstExpr();
         exprs.peek().addSubExpr(expr);
-        
+
         exprs.push(expr);
-        visit(tree.fun());
+        Tree fun = tree.fun();
+        if (fun instanceof TypeApply) {
+            visit(fun);
+        } else {
+            visit(fun);
+        }
         visit(tree.args());
         exprs.pop();
     }
@@ -457,19 +491,42 @@ public class AstTreeVisitor extends AstVisitor {
 
     @Override
     public void visitSelect(Select tree) {
+        /**
+         * For error Select tree, for example a.p, the error part's offset will be set to 'p',
+         * The tree.qualifier() part's offset will be 'a'
+         */
         Token idToken = getIdToken(tree);
-        AstRef ref = new AstRef(tree.symbol(), idToken);
+
+        Symbol sym = tree.symbol();
+        AstRef ref = new AstRef(sym, idToken);
+        if (sym != null && isNoSymbol(sym) && maybeType != null) {
+            ref.setResultType(maybeType);
+        }
         if (scopes.peek().addRef(ref)) {
             info("\tAdded: ", ref);
         }
 
         AstExpr expr = new AstExpr();
         exprs.peek().addSubExpr(expr);
-        
+
         exprs.push(expr);
         // For Select tree, should its idToken to the same expr
         exprs.peek().addToken(idToken);
-        visit(tree.qualifier());
+
+        /**
+         * For error Select tree, the qual type may stored, try to fetch it now
+         */
+        Tree qual = tree.qualifier();
+        if (qual instanceof Ident || qual instanceof Apply) {
+            Symbol qualSym = qual.symbol();
+            if (qualSym != null && isNoSymbol(qualSym) && global != null) {
+                scala.collection.Map<Tree, Type> errors = global.selectTypeErrors();
+                Option<Type> opt = errors.get(tree);
+                maybeType = opt.isDefined() ? opt.get() : null;
+            }
+        }
+        visit(qual);
+        maybeType = null;
         exprs.pop();
     }
 
@@ -477,10 +534,14 @@ public class AstTreeVisitor extends AstVisitor {
     public void visitIdent(Ident tree) {
         Symbol symbol = tree.symbol();
         if (symbol != null) {
-            if (symbol.toString().equals("<none>")) {
-                //System.out.println("A NoSymbol found");
-            }
+            /**
+             * @Note: this symbol may be NoSymbol, for example, an error tree,
+             * to get error recover in code completion, we need to also add it as a ref
+             */
             AstRef ref = new AstRef(symbol, getIdToken(tree));
+            if (isNoSymbol(symbol) && maybeType != null) {
+                ref.setResultType(maybeType);
+            }
             if (scopes.peek().addRef(ref)) {
                 info("\tAdded: ", ref);
             }
@@ -500,12 +561,28 @@ public class AstTreeVisitor extends AstVisitor {
 
     @Override
     public void visitTypeTree(TypeTree tree) {
-        AstRef ref = new AstRef(tree.symbol(), getIdToken(tree));
-        if (scopes.peek().addRef(ref)) {
-            info("\tAdded: ", ref);
+        Symbol symbol = tree.symbol();
+        if (symbol == null) {
+            // in case of: <type ?>
+            //System.out.println("Null symbol found, tree is:" + tree);
+        } else {
+            if (isNoSymbol(symbol)) {
+                // type tree in case def, for example: case Some(_),
+                // since the symbol is NoSymbol, we should visit its original type
+                Tree original = tree.original();
+                if (original != null && !isTupleClass(original.symbol())) {
+                    visit(original);
+                }
+            } else {
+                if (!isTupleClass(symbol)) {
+                    AstRef ref = new AstRef(symbol, getIdToken(tree));
+                    if (scopes.peek().addRef(ref)) {
+                        info("\tAdded: ", ref);
+                    }
+                    visit(tree.original());
+                }
+            }
         }
-
-        visit(tree.original());
     }
 
     @Override
@@ -542,6 +619,31 @@ public class AstTreeVisitor extends AstVisitor {
     }
 
     @Override
+    public void visitDocDef(DocDef tree) {
+        visit(tree.definition());
+    }
+
+    @Override
     public void visitStubTree(StubTree tree) {
+        Object underlying = tree.underlying();
+    }
+
+    private boolean isNoSymbol(Symbol symbol) {
+        return symbol.toString().equals("<none>");
+    }
+
+    private boolean isTupleClass(Symbol symbol) {
+        if (symbol != null) {
+            scala.List<Symbol> chain = symbol.ownerChain();
+            int size = chain.size();
+            if (size == 3) {
+                if (chain.apply(0).rawname().decode().startsWith("Tuple") &&
+                        chain.apply(1).rawname().decode().equals("scala") &&
+                        chain.apply(2).rawname().decode().equals("<root>")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

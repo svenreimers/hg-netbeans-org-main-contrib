@@ -46,7 +46,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,10 +64,9 @@ import org.netbeans.api.visual.model.ObjectScene;
 import org.netbeans.api.visual.widget.EventProcessingType;
 import org.netbeans.api.visual.widget.LabelWidget;
 import org.netbeans.api.visual.widget.LayerWidget;
-import org.netbeans.api.visual.widget.ScrollWidget;
 import org.netbeans.api.visual.widget.SeparatorWidget;
-import org.netbeans.api.visual.widget.SwingScrollWidget;
 import org.netbeans.api.visual.widget.Widget;
+import org.netbeans.modules.portalpack.portlets.genericportlets.core.util.CoreUtil;
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.api.ServiceBuilderEditorContext;
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.beans.Entity;
 import org.openide.filesystems.FileObject;
@@ -77,6 +75,8 @@ import org.netbeans.modules.portalpack.websynergy.servicebuilder.design.javamode
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.design.view.ui.AddServiceUI;
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.helper.GenerateServiceHelper;
 import org.netbeans.modules.portalpack.websynergy.servicebuilder.helper.ServiceBuilderHelper;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
@@ -279,7 +279,7 @@ public class DesignView extends JPanel {
         //Package-path widget
         Widget packagePathWidget = new Widget(scene);
         packagePathWidget.setLayout(LayoutFactory.createHorizontalFlowLayout(LayoutFactory.SerialAlignment.JUSTIFY, 16));
-        LabelWidget packagePathLabelWidget = new LabelWidget(scene, "Package Path :");
+        LabelWidget packagePathLabelWidget = new LabelWidget(scene, NbBundle.getMessage(DesignView.class, "LBL_PACKAGEPATH"));
         packagePathLabelWidget.setFont(scene.getFont().deriveFont(Font.BOLD));
         //packagePathLabelWidget.setForeground(Color.BLUE);
 
@@ -301,7 +301,7 @@ public class DesignView extends JPanel {
         //namespace widget
         Widget namespaceWidget = new Widget(scene);
         namespaceWidget.setLayout(LayoutFactory.createHorizontalFlowLayout(LayoutFactory.SerialAlignment.JUSTIFY, 16));
-        LabelWidget namespaceLabelWidget = new LabelWidget(scene, "Namespace     :");
+        LabelWidget namespaceLabelWidget = new LabelWidget(scene, NbBundle.getMessage(DesignView.class, "LBL_NAMESPACE"));
         namespaceLabelWidget.setFont(scene.getFont().deriveFont(Font.BOLD));
         //namespaceLabelWidget.setForeground(Color.BLUE);
 
@@ -413,12 +413,12 @@ public class DesignView extends JPanel {
         headerPanelWidget.addChild(headerWidget);
 
         headerWidget.setBorder(BorderFactory.createEmptyBorder(6, 28, 0, 0));
-        ButtonWidget generateServiceButton = new ButtonWidget(scene, "Genrate Services");
+        ButtonWidget generateServiceButton = new ButtonWidget(scene, NbBundle.getMessage(DesignView.class, "LBL_GENERATESERVICES"));
         generateServiceButton.setOpaque(true);
         generateServiceButton.setRoundedBorder(3, 4, 0, null);
 
         headerPanelWidget.addChild(generateServiceButton);
-        ButtonWidget reloadButton = new ButtonWidget(scene, "Reload");
+        ButtonWidget reloadButton = new ButtonWidget(scene, NbBundle.getMessage(DesignView.class, "LBL_RELOAD"));
         reloadButton.setOpaque(true);
         reloadButton.setRoundedBorder(3, 4, 0, null);
         reloadButton.setAction(new ReloadAction());
@@ -509,6 +509,10 @@ public class DesignView extends JPanel {
                     entity.setRemoteService(Boolean.toString(addSrvUI.isRemoteService()));
                 }
                 entity.setLocalService(Boolean.toString(addSrvUI.isLocalService()));
+                
+                String table = addSrvUI.getTableName();
+                if(table != null && table.trim().length() != 0)
+                    entity.setTable(table);
 
                 if(!helper.addEntity(entity)) {
                     //helper.forceReload();
@@ -543,6 +547,10 @@ public class DesignView extends JPanel {
                 selectedEntity.setRemoteService(Boolean.toString(addSrvUI.isRemoteService()));
                 selectedEntity.setLocalService(Boolean.toString(addSrvUI.isLocalService()));
 
+                String table = addSrvUI.getTableName();
+                if(table != null && table.trim().length() != 0)
+                    selectedEntity.setTable(table);
+                
                 if(!helper.save()) {
                     helper.forceReload();
                     reload();
@@ -602,9 +610,13 @@ public class DesignView extends JPanel {
             }
             return null;
         }
-
+        
         public void setText(Widget widget, String text) {
-
+            if (text == null || text.trim().length() == 0 || !CoreUtil.validatePackageName(text)) {
+                NotifyDescriptor d = new NotifyDescriptor.Message(NbBundle.getMessage(DesignView.class, "MSG_INVALID_PACKAGENAME"), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
             if (!(widget instanceof LabelWidget)) {
                 return;
             }
@@ -630,7 +642,12 @@ public class DesignView extends JPanel {
         }
 
         public void setText(Widget widget, String text) {
-
+            if (text == null || text.trim().length() == 0 || !CoreUtil.validateString(text, false)) {
+                NotifyDescriptor d = new NotifyDescriptor.Message(NbBundle.getMessage(DesignView.class, "MSG_INVALID_NAMESPACE"), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
+            
             if (!(widget instanceof LabelWidget)) {
                 return;
             }

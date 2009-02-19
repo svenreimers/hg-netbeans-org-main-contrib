@@ -61,15 +61,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import java.io.Serializable;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.swing.UIManager;
 import javax.swing.text.Caret;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.modules.extexecution.api.ExecutionDescriptor;
-import org.netbeans.modules.extexecution.api.ExecutionService;
-import org.netbeans.modules.extexecution.api.ExternalProcessBuilder;
-import org.netbeans.modules.languages.execution.console.TextAreaReadline;
+import org.netbeans.api.extexecution.ExecutionDescriptor;
+import org.netbeans.api.extexecution.ExecutionService;
+import org.netbeans.api.extexecution.ExternalProcessBuilder;
+import org.netbeans.modules.scala.console.readline.TextAreaReadline;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -291,7 +290,7 @@ final class ScalaConsoleTopComponent extends TopComponent {
                 NbBundle.getMessage(ScalaConsoleTopComponent.class, "ScalaConsoleWelcome") + " \n\n",
                 pipeIn); // NOI18N
         File pwd = getMainProjectWorkPath();
-	String workPath = pwd.getPath();
+        String workPath = pwd.getPath();
         final Reader in = new InputStreamReader(pipeIn);
         final PrintWriter out = new PrintWriter(new PrintStream(taReadline));
         final PrintWriter err = new PrintWriter(new PrintStream(taReadline));

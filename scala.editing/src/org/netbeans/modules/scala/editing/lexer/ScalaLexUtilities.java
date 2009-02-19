@@ -323,6 +323,14 @@ public class ScalaLexUtilities {
         return ts.token();
     }
 
+    public static Token<ScalaTokenId> findNextIn(TokenSequence<ScalaTokenId> ts, List<ScalaTokenId> includes) {
+        if (!includes.contains(ts.token().id())) {
+            while (ts.moveNext() && !includes.contains(ts.token().id())) {
+            }
+        }
+        return ts.token();
+    }
+
     public static Token<ScalaTokenId> findPrevious(TokenSequence<ScalaTokenId> ts, ScalaTokenId id) {
         if (ts.token().id() != id) {
             while (ts.movePrevious() && ts.token().id() != id) {
@@ -380,6 +388,55 @@ public class ScalaLexUtilities {
             if (id == (back ? ScalaTokenId.RParen : ScalaTokenId.LParen)) {
                 balance++;
             } else if (id == (back ? ScalaTokenId.LParen : ScalaTokenId.RParen)) {
+                if (balance == 0) {
+                    return false;
+                } else if (balance == 1) {
+                    if (back) {
+                        ts.movePrevious();
+                    } else {
+                        ts.moveNext();
+                    }
+                    return true;
+                }
+
+                balance--;
+            }
+        } while (back ? ts.movePrevious() : ts.moveNext());
+
+        return false;
+    }
+
+    /**
+     * Tries to skip parenthesis
+     */
+    public static boolean skipPair(TokenSequence<ScalaTokenId> ts, ScalaTokenId left, ScalaTokenId right, boolean back) {
+        int balance = 0;
+
+        Token<ScalaTokenId> token = ts.token();
+        if (token == null) {
+            return false;
+        }
+
+        TokenId id = token.id();
+
+        // skip whitespace and comment
+        if (isWsComment(id)) {
+            while ((back ? ts.movePrevious() : ts.moveNext()) && isWsComment(id)) {
+            }
+        }
+
+        // if current token is not parenthesis
+        if (ts.token().id() != (back ? right : left)) {
+            return false;
+        }
+
+        do {
+            token = ts.token();
+            id = token.id();
+
+            if (id == (back ? right : left)) {
+                balance++;
+            } else if (id == (back ? left : right)) {
                 if (balance == 0) {
                     return false;
                 } else if (balance == 1) {
@@ -1420,6 +1477,27 @@ public class ScalaLexUtilities {
             return false;
         }
 
+    }
+    public static List<ScalaTokenId> PotentialIdTokens = Arrays.asList(
+            ScalaTokenId.Identifier,
+            ScalaTokenId.True,
+            ScalaTokenId.False,
+            ScalaTokenId.Null,
+            ScalaTokenId.XmlAttName,
+            ScalaTokenId.XmlAttValue,
+            ScalaTokenId.XmlCDData,
+            ScalaTokenId.XmlCDEnd,
+            ScalaTokenId.XmlComment,
+            ScalaTokenId.XmlSTagName,
+            ScalaTokenId.XmlSTagName,
+            ScalaTokenId.XmlCharData);
+
+    /** Some AstItems have Xml Nl etc type of idToken, here we just pick following as proper one */
+    public static boolean isProperIdToken(TokenId id) {
+        if (id == ScalaTokenId.Identifier || id == ScalaTokenId.This || id == ScalaTokenId.Super || id == ScalaTokenId.Wild) {
+            return true;
+        }
+        return false;
     }
 
     public static boolean isKeyword(ScalaTokenId id) {

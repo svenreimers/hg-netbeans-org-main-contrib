@@ -77,12 +77,16 @@ public class PortletFileNode extends FilterNode {
     
     public Image getIcon(int type) {
         DataFolder root = DataFolder.findFolder(Repository.getDefault().getDefaultFileSystem().getRoot());
+        //For NB 7.0
+        //DataFolder root = DataFolder.findFolder(FileUtil.getConfigRoot());
         Image original = root.getNodeDelegate().getIcon(type);
         return Utilities.mergeImages(original, smallImage, 7, 7);
     }
 
     public Image getOpenedIcon(int type) {
         DataFolder root = DataFolder.findFolder(Repository.getDefault().getDefaultFileSystem().getRoot());
+        //For NB 7.0
+        //DataFolder root = DataFolder.findFolder(FileUtil.getConfigRoot());
         Image original = root.getNodeDelegate().getIcon(type);
         return Utilities.mergeImages(original, smallImage, 7, 7);
     }

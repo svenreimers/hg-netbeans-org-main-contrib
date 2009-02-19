@@ -40,14 +40,16 @@ package org.netbeans.api.ada.platform;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
 import java.util.concurrent.Future;
-import org.netbeans.modules.extexecution.api.ExecutionDescriptor;
-import org.netbeans.modules.extexecution.api.ExecutionService;
-import org.netbeans.modules.extexecution.api.ExternalProcessBuilder;
-import org.netbeans.modules.extexecution.api.input.InputProcessor;
+import org.netbeans.api.extexecution.ExecutionDescriptor;
+import org.netbeans.api.extexecution.ExecutionService;
+import org.netbeans.api.extexecution.ExternalProcessBuilder;
+import org.netbeans.api.extexecution.input.InputProcessor;
 import org.openide.util.Exceptions;
 
 /**
@@ -60,8 +62,8 @@ public class AdaExecution {
     private String command;
     private String workingDirectory;
     private String commandArgs;
-    private String path;
     private String displayName;
+    private boolean redirect;
     private ExecutionDescriptor descriptor = new ExecutionDescriptor().frontWindow(true).controllable(true).inputVisible(true).showProgress(true).showSuspended(true);
 
     /**
@@ -79,16 +81,122 @@ public class AdaExecution {
 
     }
 
+    // TODO: To modify in Custom Execution Service. See org.netbeans.modules.extexecution.api.ExecutionServiceTest.
     private ExternalProcessBuilder buildProcess() throws IOException {
         ExternalProcessBuilder processBuilder = new ExternalProcessBuilder(command);
         processBuilder = processBuilder.workingDirectory(new File(workingDirectory));
+        processBuilder = processBuilder.redirectErrorStream(redirect);
         if (commandArgs != null) {
-            processBuilder = processBuilder.addArgument(commandArgs);
-        }
-        if (path != null) {
-            processBuilder = processBuilder.addEnvironmentVariable("ADA_PLATFORM_PATH", path);
+            String args[] = org.openide.util.Utilities.parseParameters(commandArgs);
+            for (int index = 0; index < args.length; index++) {
+                processBuilder = processBuilder.addArgument(args[index]);
+            }
         }
         return processBuilder;
+    }
+
+    // TODO: To use when Custom Execution Service will be created.
+    private static class CheckProcess extends Process {
+
+        private final int returnValue;
+        private boolean finished;
+        private boolean started;
+
+        public CheckProcess(int returnValue) {
+            this.returnValue = returnValue;
+        }
+
+        public void start() {
+            synchronized (this) {
+                started = true;
+                notifyAll();
+            }
+        }
+
+        public boolean isStarted() {
+            synchronized (this) {
+                return started;
+            }
+        }
+
+        public boolean isFinished() {
+            synchronized (this) {
+                return finished;
+            }
+        }
+
+        @Override
+        public void destroy() {
+            synchronized (this) {
+                if (finished) {
+                    return;
+                }
+
+                finished = true;
+                notifyAll();
+            }
+        }
+
+        @Override
+        public int exitValue() {
+            synchronized (this) {
+                if (!finished) {
+                    throw new IllegalStateException("Not finished yet");
+                }
+            }
+            return returnValue;
+        }
+
+        @Override
+        public InputStream getErrorStream() {
+            return new InputStream() {
+
+                @Override
+                public int read() throws IOException {
+                    return -1;
+                }
+            };
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return new InputStream() {
+
+                @Override
+                public int read() throws IOException {
+                    throw new UnsupportedOperationException("Not supported yet.");
+                }
+            };
+        }
+
+        @Override
+        public OutputStream getOutputStream() {
+            return new OutputStream() {
+
+                @Override
+                public void write(int b) throws IOException {
+                    // throw it away
+                }
+            };
+        }
+
+        @Override
+        public int waitFor() throws InterruptedException {
+            synchronized (this) {
+                while (!finished) {
+                    wait();
+                }
+            }
+            return returnValue;
+        }
+
+        public void waitStarted() throws InterruptedException {
+            synchronized (this) {
+                while (!started) {
+                    wait();
+                }
+            }
+        }
     }
 
     public synchronized String getCommand() {
@@ -105,14 +213,6 @@ public class AdaExecution {
 
     public synchronized void setCommandArgs(String commandArgs) {
         this.commandArgs = commandArgs;
-    }
-
-    public synchronized String getPath() {
-        return path;
-    }
-
-    public synchronized void setPath(String path) {
-        this.path = path;
     }
 
     public synchronized String getWorkingDirectory() {
@@ -143,6 +243,10 @@ public class AdaExecution {
         descriptor = descriptor.showProgress(showProgress);
     }
 
+    public synchronized void setRedirectError(boolean redirect){
+        this.redirect = redirect;
+    }
+
     /**
      * Can the process be suppended
      * @param showSuspended boolean to set the status 
@@ -169,6 +273,10 @@ public class AdaExecution {
             public InputProcessor newInputProcessor() {
                 return outProcessor;
             }
+
+            public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
+                return outProcessor;
+            }
         });
     }
 
@@ -193,5 +301,9 @@ public class AdaExecution {
      */
     public Writer getInput() {
         return null;
+    }
+
+    public void setPostExecution(Runnable postExecution) {
+        descriptor.postExecution(postExecution);
     }
 }

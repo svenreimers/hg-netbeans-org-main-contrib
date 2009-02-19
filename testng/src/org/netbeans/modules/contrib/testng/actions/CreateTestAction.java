@@ -41,25 +41,27 @@ package org.netbeans.modules.contrib.testng.actions;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.queries.UnitTestForSourceQuery;
-import org.netbeans.modules.contrib.testng.TestNGProjectUpdater;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
+import org.netbeans.modules.contrib.testng.api.TestNGSupport;
+import org.netbeans.modules.contrib.testng.api.TestNGSupport.Action;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.cookies.EditorCookie;
 import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.Repository;
 import org.openide.filesystems.URLMapper;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.Node;
 import org.openide.text.Line;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.CookieAction;
@@ -67,7 +69,17 @@ import org.openide.util.actions.CookieAction;
 public final class CreateTestAction extends CookieAction {
 
     private static final Logger LOGGER = Logger.getLogger(CreateTestAction.class.getName());
-    
+
+    @Override
+    protected boolean enable(Node[] activatedNodes) {
+        if (super.enable(activatedNodes)) {
+            DataObject dataObject = activatedNodes[0].getLookup().lookup(DataObject.class);
+            Project p = FileOwnerQuery.getOwner(dataObject.getPrimaryFile());
+            return TestNGSupport.isActionSupported(Action.CREATE_TEST, p);
+        }
+        return false;
+    }
+
     protected void performAction(Node[] activatedNodes) {
         DataObject dataObject = activatedNodes[0].getLookup().lookup(DataObject.class);
         FileObject pFile = dataObject.getPrimaryFile();
@@ -78,36 +90,37 @@ public final class CreateTestAction extends CookieAction {
         DummyUI gui = new DummyUI(s.substring(0, s.length() - 5).replace('/', '.') + "Test");
         Object result = DialogDisplayer.getDefault().notify(new DialogDescriptor(gui, "Create TestNG Test"));
         if (DialogDescriptor.OK_OPTION.equals(result)) {
-            FileObject templateFO = Repository.getDefault().getDefaultFileSystem().findResource("Templates/TestNG/TestNGTest.java");
+            FileObject templateFO = FileUtil.getConfigFile("Templates/TestNG/TestNGTest.java");
             DataObject templateDO = null;
             try {
                 templateDO = DataObject.find(templateFO);
             } catch (DataObjectNotFoundException ex) {
-                Exceptions.printStackTrace(ex);
+                LOGGER.log(Level.FINER, null, ex);
             }
             String n = gui.getTestName();
-            String pkg = n.substring(0, n.lastIndexOf("."));
+            String pkg = n.indexOf(".") > -1
+                    ? n.substring(0, n.lastIndexOf("."))
+                    : null;
             String name = n.substring(n.lastIndexOf('.') + 1);
             URL[] test = UnitTestForSourceQuery.findUnitTests(cpRoot);
             FileObject testFolder = URLMapper.findFileObject(test[0]);
-            FileObject targetFolder = null;
-            try {
-                targetFolder = FileUtil.createFolder(testFolder, pkg.replace('.', '/'));
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
+            FileObject targetFolder = testFolder;
+            if (pkg != null) {
+                try {
+                    targetFolder = FileUtil.createFolder(testFolder, pkg.replace('.', '/'));
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
             }
             if (templateDO != null) {
                 DataObject createdFile = null;
                 try {
                     createdFile = templateDO.createFromTemplate(DataFolder.findFolder(targetFolder), name, Collections.singletonMap("package", pkg));
                 } catch (IOException ex) {
-                    Exceptions.printStackTrace(ex);
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
-                try {
-                    TestNGProjectUpdater.updateProject(createdFile.getPrimaryFile());
-                } catch (IOException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
+                FileObject newFile = createdFile.getPrimaryFile();
+                TestNGSupport.findTestNGSupport(FileOwnerQuery.getOwner(newFile)).configureProject(newFile);
                 final LineCookie lc = createdFile.getCookie(LineCookie.class);
                 if (lc != null) {
                     SwingUtilities.invokeLater(new Runnable() {

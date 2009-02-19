@@ -28,8 +28,17 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <release-version>0-1</release-version>
-                        <specification-version>1.8</specification-version>
+                        <release-version>2</release-version>
+                        <specification-version>1.13</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.netbeans.modules.project.ant</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.26.1</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -87,13 +96,17 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>7.17</specification-version>
+                        <specification-version>7.18.1</specification-version>
                     </run-dependency>
                 </dependency>
             </module-dependencies>
             <friend-packages>
+                <friend>org.netbeans.modules.ada.kit</friend>
                 <friend>org.netbeans.modules.ada.project</friend>
                 <package>org.netbeans.api.ada.platform</package>
+                <package>org.netbeans.modules.ada.platform.compiler</package>
+                <package>org.netbeans.modules.ada.platform.compiler.gnat</package>
+                <package>org.netbeans.modules.ada.platform.compiler.gnat.commands</package>
                 <package>org.netbeans.modules.ada.platform.ui</package>
             </friend-packages>
         </data>

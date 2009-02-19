@@ -55,11 +55,20 @@ final class JumpAction extends AbstractAction {
     private final Node node;
     /** */
     private final String callstackFrameInfo;
+    /** */
+    private final Report.Trouble trouble;
 
     /** Creates a new instance of JumpAction */
     public JumpAction(Node node, String callstackFrameInfo) {
         this.node = node;
         this.callstackFrameInfo = callstackFrameInfo;
+        this.trouble = null;
+    }
+
+    public JumpAction(Node node, Report.Trouble trouble) {
+        this.node = node;
+        this.callstackFrameInfo = null;
+        this.trouble = trouble;
     }
 
     /**
@@ -67,11 +76,12 @@ final class JumpAction extends AbstractAction {
      * tries to jump to the callstack frame source code. Otherwise does nothing.
      */
     public void actionPerformed(ActionEvent e) {
-        if (callstackFrameInfo == null) {
-            return;
+        if (callstackFrameInfo != null) {
+            OutputUtils.openCallstackFrame(node, callstackFrameInfo);
+        } else {
+            assert trouble != null;
+            OutputUtils.openCallstackFrame(node, trouble);
         }
-        
-        OutputUtils.openCallstackFrame(node, callstackFrameInfo);
     }
 
 }

@@ -38,7 +38,9 @@
  */
 package org.netbeans.modules.scala.editing.ast;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Stack;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
@@ -47,6 +49,8 @@ import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import scala.Option;
 import scala.Tuple2;
+import scala.tools.nsc.CompilationUnits.CompilationUnit;
+import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Alternative;
 import scala.tools.nsc.ast.Trees.Annotated;
 import scala.tools.nsc.ast.Trees.Annotation;
@@ -61,6 +65,7 @@ import scala.tools.nsc.ast.Trees.CaseDef;
 import scala.tools.nsc.ast.Trees.ClassDef;
 import scala.tools.nsc.ast.Trees.CompoundTypeTree;
 import scala.tools.nsc.ast.Trees.DefDef;
+import scala.tools.nsc.ast.Trees.DocDef;
 import scala.tools.nsc.ast.Trees.ExistentialTypeTree;
 import scala.tools.nsc.ast.Trees.Function;
 import scala.tools.nsc.ast.Trees.Ident;
@@ -106,15 +111,21 @@ public abstract class AstVisitor {
     protected int indentLevel;
     protected BatchSourceFile sourceFile;
     protected TokenHierarchy th;
+    protected CompilationUnit unit;
     protected Stack<Tree> astPath = new Stack<Tree>();
     protected AstRootScope rootScope;
     protected Stack<AstScope> scopes = new Stack<AstScope>();
     protected Stack<AstExpr> exprs = new Stack<AstExpr>();
+    protected Set<Tree> visited = new HashSet<Tree>();
+    protected Global global;
 
-    public AstVisitor(Tree rootTree, TokenHierarchy th, BatchSourceFile sourceFile) {
+    public AstVisitor(Global global, CompilationUnit unit, TokenHierarchy th, BatchSourceFile sourceFile) {
+        this.global = global;
+        this.unit = unit;
         this.th = th;
         this.sourceFile = sourceFile;
-        this.rootScope = new AstRootScope(getBoundsTokens(offset(rootTree), sourceFile.length()));
+        Tree rootTree = unit.body();
+        rootScope = new AstRootScope(getBoundsTokens(offset(rootTree), sourceFile.length()));
         scopes.push(rootScope);
         exprs.push(rootScope.getExprContainer());
         visit(rootTree);
@@ -167,98 +178,116 @@ public abstract class AstVisitor {
             return;
         }
 
-        enter(tree);
-
-        if (tree instanceof PackageDef) {
-            visitPackageDef((PackageDef) tree);
-        } else if (tree instanceof ClassDef) {
-            visitClassDef((ClassDef) tree);
-        } else if (tree instanceof ModuleDef) {
-            visitModuleDef((ModuleDef) tree);
-        } else if (tree instanceof ValDef) {
-            visitValDef((ValDef) tree);
-        } else if (tree instanceof DefDef) {
-            visitDefDef((DefDef) tree);
-        } else if (tree instanceof TypeDef) {
-            visitTypeDef((TypeDef) tree);
-        } else if (tree instanceof LabelDef) {
-            visitLabelDef((LabelDef) tree);
-        } else if (tree instanceof Import) {
-            visitImport((Import) tree);
-        } else if (tree instanceof Annotation) {
-            visitAnnotation((Annotation) tree);
-        } else if (tree instanceof Template) {
-            visitTemplate((Template) tree);
-        } else if (tree instanceof Block) {
-            visitBlock((Block) tree);
-        } else if (tree instanceof Match) {
-            visitMatch((Match) tree);
-        } else if (tree instanceof CaseDef) {
-            visitCaseDef((CaseDef) tree);
-        } else if (tree instanceof Sequence) {
-            visitSequence((Sequence) tree);
-        } else if (tree instanceof Alternative) {
-            visitAlternative((Alternative) tree);
-        } else if (tree instanceof Star) {
-            visitStar((Star) tree);
-        } else if (tree instanceof Bind) {
-            visitBind((Bind) tree);
-        } else if (tree instanceof UnApply) {
-            visitUnApply((UnApply) tree);
-        } else if (tree instanceof ArrayValue) {
-            visitArrayValue((ArrayValue) tree);
-        } else if (tree instanceof Function) {
-            visitFunction((Function) tree);
-        } else if (tree instanceof Assign) {
-            visitAssign((Assign) tree);
-        } else if (tree instanceof If) {
-            visitIf((If) tree);
-        } else if (tree instanceof Return) {
-            visitReturn((Return) tree);
-        } else if (tree instanceof Try) {
-            visitTry((Try) tree);
-        } else if (tree instanceof Throw) {
-            visitThrow((Throw) tree);
-        } else if (tree instanceof New) {
-            visitNew((New) tree);
-        } else if (tree instanceof Typed) {
-            visitTyped((Typed) tree);
-        } else if (tree instanceof TypeApply) {
-            visitTypeApply((TypeApply) tree);
-        } else if (tree instanceof Apply) {
-            visitApply((Apply) tree);
-        } else if (tree instanceof ApplyDynamic) {
-            visitApplyDynamic((ApplyDynamic) tree);
-        } else if (tree instanceof Super) {
-            visitSuper((Super) tree);
-        } else if (tree instanceof This) {
-            visitThis((This) tree);
-        } else if (tree instanceof Select) {
-            visitSelect((Select) tree);
-        } else if (tree instanceof Ident) {
-            visitIdent((Ident) tree);
-        } else if (tree instanceof Literal) {
-            visitLiteral((Literal) tree);
-        } else if (tree instanceof TypeTree) {
-            visitTypeTree((TypeTree) tree);
-        } else if (tree instanceof Annotated) {
-            visitAnnotated((Annotated) tree);
-        } else if (tree instanceof SingletonTypeTree) {
-            visitSingletonTypeTree((SingletonTypeTree) tree);
-        } else if (tree instanceof SelectFromTypeTree) {
-            visitSelectFromTypeTree((SelectFromTypeTree) tree);
-        } else if (tree instanceof CompoundTypeTree) {
-            visitCompoundTypeTree((CompoundTypeTree) tree);
-        } else if (tree instanceof AppliedTypeTree) {
-            visitAppliedTypeTree((AppliedTypeTree) tree);
-        } else if (tree instanceof TypeBoundsTree) {
-            visitTypeBoundsTree((TypeBoundsTree) tree);
-        } else if (tree instanceof ExistentialTypeTree) {
-            visitExistentialTypeTree((ExistentialTypeTree) tree);
-        } else if (tree instanceof StubTree) {
-            visitStubTree((StubTree) tree);
+        /**
+         * @Note: For some reason, or bug in Scala's native compiler, the tree will
+         * be recursively linked to itself via childern. Which causes infinite loop,
+         * We have to avoid this happens:
+         */
+        if (visited.contains(tree)) {
+            //System.out.println("Detected a possible infinite loop of visiting: " + tree);
+            return;
+        } else {
+            visited.add(tree);
         }
 
+        enter(tree);
+        try {
+            if (tree instanceof PackageDef) {
+                visitPackageDef((PackageDef) tree);
+            } else if (tree instanceof ClassDef) {
+                visitClassDef((ClassDef) tree);
+            } else if (tree instanceof ModuleDef) {
+                visitModuleDef((ModuleDef) tree);
+            } else if (tree instanceof ValDef) {
+                visitValDef((ValDef) tree);
+            } else if (tree instanceof DefDef) {
+                visitDefDef((DefDef) tree);
+            } else if (tree instanceof TypeDef) {
+                visitTypeDef((TypeDef) tree);
+            } else if (tree instanceof LabelDef) {
+                visitLabelDef((LabelDef) tree);
+            } else if (tree instanceof Import) {
+                visitImport((Import) tree);
+            } else if (tree instanceof Annotation) {
+                visitAnnotation((Annotation) tree);
+            } else if (tree instanceof Template) {
+                visitTemplate((Template) tree);
+            } else if (tree instanceof Block) {
+                visitBlock((Block) tree);
+            } else if (tree instanceof Match) {
+                visitMatch((Match) tree);
+            } else if (tree instanceof CaseDef) {
+                visitCaseDef((CaseDef) tree);
+            } else if (tree instanceof Sequence) {
+                visitSequence((Sequence) tree);
+            } else if (tree instanceof Alternative) {
+                visitAlternative((Alternative) tree);
+            } else if (tree instanceof Star) {
+                visitStar((Star) tree);
+            } else if (tree instanceof Bind) {
+                visitBind((Bind) tree);
+            } else if (tree instanceof UnApply) {
+                visitUnApply((UnApply) tree);
+            } else if (tree instanceof ArrayValue) {
+                visitArrayValue((ArrayValue) tree);
+            } else if (tree instanceof Function) {
+                visitFunction((Function) tree);
+            } else if (tree instanceof Assign) {
+                visitAssign((Assign) tree);
+            } else if (tree instanceof If) {
+                visitIf((If) tree);
+            } else if (tree instanceof Return) {
+                visitReturn((Return) tree);
+            } else if (tree instanceof Try) {
+                visitTry((Try) tree);
+            } else if (tree instanceof Throw) {
+                visitThrow((Throw) tree);
+            } else if (tree instanceof New) {
+                visitNew((New) tree);
+            } else if (tree instanceof Typed) {
+                visitTyped((Typed) tree);
+            } else if (tree instanceof TypeApply) {
+                visitTypeApply((TypeApply) tree);
+            } else if (tree instanceof Apply) {
+                visitApply((Apply) tree);
+            } else if (tree instanceof ApplyDynamic) {
+                visitApplyDynamic((ApplyDynamic) tree);
+            } else if (tree instanceof Super) {
+                visitSuper((Super) tree);
+            } else if (tree instanceof This) {
+                visitThis((This) tree);
+            } else if (tree instanceof Select) {
+                visitSelect((Select) tree);
+            } else if (tree instanceof Ident) {
+                visitIdent((Ident) tree);
+            } else if (tree instanceof Literal) {
+                visitLiteral((Literal) tree);
+            } else if (tree instanceof TypeTree) {
+                visitTypeTree((TypeTree) tree);
+            } else if (tree instanceof Annotated) {
+                visitAnnotated((Annotated) tree);
+            } else if (tree instanceof SingletonTypeTree) {
+                visitSingletonTypeTree((SingletonTypeTree) tree);
+            } else if (tree instanceof SelectFromTypeTree) {
+                visitSelectFromTypeTree((SelectFromTypeTree) tree);
+            } else if (tree instanceof CompoundTypeTree) {
+                visitCompoundTypeTree((CompoundTypeTree) tree);
+            } else if (tree instanceof AppliedTypeTree) {
+                visitAppliedTypeTree((AppliedTypeTree) tree);
+            } else if (tree instanceof TypeBoundsTree) {
+                visitTypeBoundsTree((TypeBoundsTree) tree);
+            } else if (tree instanceof ExistentialTypeTree) {
+                visitExistentialTypeTree((ExistentialTypeTree) tree);
+            } else if (tree instanceof StubTree) {
+                visitStubTree((StubTree) tree);
+            } else if (tree instanceof DocDef) {
+                visitDocDef((DocDef) tree);
+            } else {
+                System.out.println("Visit Unknow tree: " + tree + " class=" + tree.getClass().getCanonicalName());
+            }
+        } catch (Throwable ex) {
+            System.out.println("Exception when visit tree: " + tree + "\n" + ex.getMessage());
+        }
         exit(tree);
     }
 
@@ -394,6 +423,9 @@ public abstract class AstVisitor {
     public void visitStubTree(StubTree tree) {
     }
 
+    public void visitDocDef(DocDef tree) {
+    }
+
     // ---- Helper methods
     protected Tree getCurrentParent() {
         assert astPath.size() >= 2;
@@ -453,7 +485,8 @@ public abstract class AstVisitor {
         }
 
         /** Do not use symbol.nameString() here, for example, a constructor Dog()'s nameString maybe "this" */
-        String name = symbol.idString();
+        //String name = symbol.idString();
+        String name = symbol.rawname().decode();
         int offset = offset(tree);
         TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, offset);
         ts.move(offset);
@@ -462,16 +495,25 @@ public abstract class AstVisitor {
         }
 
         Token token;
-        if (tree instanceof This) {
+        if (tree instanceof This || name.equals("this")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.This);
-        } else if (tree instanceof Super) {
+        } else if (tree instanceof Super || name.equals("super")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Super);
         } else if (name.endsWith("expected")) {
             token = ts.token();
+        } else if (name.startsWith("<error")) { // <error: <none>>
+            Token tk = ts.token();
+            if (tk.id() == ScalaTokenId.Dot) {
+                // a. where, offset is set to .
+                token = ScalaLexUtilities.findPrevious(ts, ScalaTokenId.Identifier);
+            } else {
+                // a.p where, offset is set to p
+                token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
+            }
         } else if (name.equals("_")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Wild);
         } else {
-            token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Identifier);
+            token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
         }
 
         if (token.isFlyweight()) {
@@ -565,5 +607,4 @@ public abstract class AstVisitor {
 
         System.out.println(getAstPathString() + "(" + offset(pos.line()) + ":" + offset(pos.column()) + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
     }
-
 }

@@ -45,6 +45,8 @@ import org.netbeans.installer.utils.ResourceUtils;
 import org.netbeans.installer.utils.StringUtils;
 import org.netbeans.installer.utils.SystemUtils;
 import org.netbeans.installer.utils.env.CheckStatus;
+import org.netbeans.installer.utils.env.EnvironmentInfo;
+import org.netbeans.installer.utils.env.EnvironmentInfoFactory;
 import org.netbeans.installer.utils.env.ExistingSunStudioChecker;
 import org.netbeans.installer.utils.env.SystemCheckCategory;
 import org.netbeans.installer.utils.helper.ExecutionMode;
@@ -56,7 +58,7 @@ import org.netbeans.installer.wizard.components.panels.sunstudio.SystemCheckPane
 
 public class SystemCheckSequence extends WizardSequence {
     
-    private final String CRITICAL_ERROR_MESSAGE = ResourceUtils.getString(SystemCheckSequence.class, "SCS.error.message"); // NOI18N
+    public final static String CRITICAL_ERROR_MESSAGE = ResourceUtils.getString(SystemCheckSequence.class, "SCS.error.message"); // NOI18N
     
     private SystemCheckPanel systemCheckPanel = null;
     private ExistingSunStudioPanel existingSunStudioPanel = null;
@@ -127,7 +129,7 @@ public class SystemCheckSequence extends WizardSequence {
                 if (SystemCheckCategory.hasProblemCategories()) {
                     addChild(systemCheckPanel);
                 }
-                if (ExistingSunStudioChecker.getInstance().isSunStudioInstallationFound()) {
+                if (!SystemCheckCategory.hasErrorCategories() && ExistingSunStudioChecker.getInstance().isSunStudioInstallationFound()) {
                     addChild(existingSunStudioPanel);
                 }
             }            

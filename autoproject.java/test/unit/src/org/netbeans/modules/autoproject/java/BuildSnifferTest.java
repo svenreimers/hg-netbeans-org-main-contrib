@@ -46,6 +46,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.junit.NbTestCase;
+import org.netbeans.modules.autoproject.core.AutomaticProjectFactory;
 import org.netbeans.modules.autoproject.spi.Cache;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.test.TestFileUtils;
@@ -63,6 +64,7 @@ public class BuildSnifferTest extends NbTestCase {
         clearWorkDir();
         Cache.clear();
         prefix = getWorkDirPath() + File.separator;
+        AutomaticProjectFactory.setAutomaticDetectionMode(true);
     }
 
     public void testBasicJavac() throws Exception {
@@ -79,6 +81,26 @@ public class BuildSnifferTest extends NbTestCase {
         assertEquals(prefix + "c", Cache.get(prefix + "s" + JavaCacheConstants.BINARY));
         assertEquals(prefix + "x.jar", Cache.get(prefix + "s" + JavaCacheConstants.CLASSPATH));
         assertEquals("1.5", Cache.get(prefix + "s" + JavaCacheConstants.SOURCE_LEVEL));
+    }
+
+    public void testParallelSourceTrees() throws Exception {
+        write("build.xml",
+                "<project default='c'>\n" +
+                " <target name='c'>\n" +
+                "  <property name='build.sysclasspath' value='only'/>\n" +
+                "  <mkdir dir='s1'/>\n" +
+                "  <mkdir dir='s2'/>\n" +
+                "  <mkdir dir='c'/>\n" +
+                "  <javac destdir='c'>\n" +
+                "   <src path='s1:s2'/>\n" +
+                "  </javac>\n" +
+                " </target>\n" +
+                "</project>\n");
+        runAnt();
+        assertEquals(prefix + "s1" + File.pathSeparator + prefix + "s2", Cache.get(prefix + "s1" + JavaCacheConstants.SOURCE));
+        assertEquals(prefix + "s1" + File.pathSeparator + prefix + "s2", Cache.get(prefix + "s2" + JavaCacheConstants.SOURCE));
+        assertEquals(prefix + "c", Cache.get(prefix + "s1" + JavaCacheConstants.BINARY));
+        assertEquals(prefix + "c", Cache.get(prefix + "s2" + JavaCacheConstants.BINARY));
     }
 
     public void testSourceRootCompiledMultiply() throws Exception {
@@ -175,8 +197,11 @@ public class BuildSnifferTest extends NbTestCase {
         runAnt();
         String cp = Cache.get(prefix + "s" + JavaCacheConstants.CLASSPATH);
         assertTrue(cp, cp.contains(prefix + "x.jar"));
-        assertTrue(cp, cp.contains(System.getProperty("java.class.path")));
-        // can also contain tools.jar
+        // Checking that cp contains j.c.p will not work;
+        // Ant module purposely trims j.c.p while script is running (#152620).
+        if (System.getProperty("java.class.path").contains("tools.jar")) {
+            assertTrue(cp, cp.contains("tools.jar"));
+        }
     }
 
     public void testMistakenSourceDir() throws Exception {
@@ -190,6 +215,27 @@ public class BuildSnifferTest extends NbTestCase {
         write("s/pkg/Clazz.java", "// my root is s!\npackage pkg;\npublic class Clazz {}\n");
         runAnt();
         assertEquals(prefix + "s", Cache.get(prefix + "s" + JavaCacheConstants.SOURCE));
+    }
+
+    public void testJar() throws Exception { // #150837
+        write("build.xml",
+                "<project default='c'>\n" +
+                " <target name='c'>\n" +
+                "  <mkdir dir='s'/>\n" +
+                "  <mkdir dir='c'/>\n" +
+                "  <javac srcdir='s' destdir='c'/>\n" +
+                "  <jar destfile='c1.jar' basedir='c'/>\n" +
+                "  <jar destfile='c2.jar'><fileset dir='c'/></jar>\n" +
+                "  <jar jarfile='c3.jar' basedir='c'/>\n" +
+                "  <jar destfile='c4.jar'><fileset dir='c'/><fileset dir='s'/></jar>\n" +
+                " </target>\n" +
+                "</project>\n");
+        runAnt();
+        assertEquals(prefix + "c", Cache.get(prefix + "s" + JavaCacheConstants.BINARY));
+        assertEquals(prefix + "c", Cache.get(prefix + "c1.jar" + JavaCacheConstants.JAR));
+        assertEquals(prefix + "c", Cache.get(prefix + "c2.jar" + JavaCacheConstants.JAR));
+        assertEquals(prefix + "c", Cache.get(prefix + "c3.jar" + JavaCacheConstants.JAR));
+        assertEquals(prefix + "c" + File.pathSeparator + prefix + "s", Cache.get(prefix + "c4.jar" + JavaCacheConstants.JAR));
     }
 
     private void write(String file, String body) throws IOException {

@@ -6,10 +6,11 @@
             <folder name="any">
                 <folder name="Actions">
                     <file name="org-netbeans-modules-explorefromhere-EFHAction.instance">
-                        <attr name="position" intvalue="1800"/>
+                        <attr name="position" intvalue="1550"/>
                     </file>
                 </folder>
             </folder>
         </folder>
     </folder>
 </filesystem>
+

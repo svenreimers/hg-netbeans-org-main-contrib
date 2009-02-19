@@ -43,7 +43,6 @@ package org.netbeans.modules.contrib.testng.output;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 
@@ -77,6 +76,7 @@ final class TestsuiteNodeChildren extends Children.Keys<Report.Testcase> {
     
     /**
      */
+    @Override
     protected void addNotify() {
         super.addNotify();
         
@@ -88,6 +88,7 @@ final class TestsuiteNodeChildren extends Children.Keys<Report.Testcase> {
     
     /**
      */
+    @Override
     protected void removeNotify() {
         super.removeNotify();
         
@@ -99,7 +100,10 @@ final class TestsuiteNodeChildren extends Children.Keys<Report.Testcase> {
     /**
      */
     protected Node[] createNodes(final Report.Testcase testcase) {
-        if (filtered && (testcase.trouble == null)) {
+        //dont't create nodes for passed conf methods (aka setup, tearDown...)
+        //but show them if they fail or not run
+        if ((filtered && (testcase.trouble == null))
+                || (testcase.confMethod && testcase.trouble == null)) {
             return EMPTY_NODE_ARRAY;
         }
         return new Node[] {new TestMethodNode(testcase)};
@@ -113,7 +117,8 @@ final class TestsuiteNodeChildren extends Children.Keys<Report.Testcase> {
         }
         this.filtered = filtered;
         
-        if ((report.errors + report.failures) == report.totalTests) {
+        if ((report.skips + report.failures) == report.totalTests
+                && (report.confFailures + report.confSkips == 0)) {
             return;
         }
                 

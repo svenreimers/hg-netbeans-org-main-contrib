@@ -89,11 +89,11 @@ public final class SourceRoots {
     /**
      * Default label for sources node used in {@link org.netbeans.spi.project.ui.LogicalViewProvider}.
      */
-    public static final String DEFAULT_SOURCE_LABEL = NbBundle.getMessage(SourceRoots.class, "NAME_src.dir");
+    public static final String DEFAULT_SOURCE_LABEL = NbBundle.getMessage(SourceRoots.class, "src.dir");
     /**
      * Default label for tests node used in {@link org.netbeans.spi.project.ui.LogicalViewProvider}.
      */
-    public static final String DEFAULT_TEST_LABEL = NbBundle.getMessage(SourceRoots.class, "NAME_test.src.dir");
+    public static final String DEFAULT_TEST_LABEL = NbBundle.getMessage(SourceRoots.class, "test.dir");
     
     /**
      * Name of XML Element having source root definition
@@ -107,7 +107,7 @@ public final class SourceRoots {
     
     private static final String FMT_SOURCE_ROOT = "src.{0}{1}.dir";
     
-    private static final String FMT_TEST_ROOT = "src.{0}{1}.dir";
+    private static final String FMT_TEST_ROOT = "test.{0}{1}.dir";
     
 
     private final UpdateHelper helper;
@@ -128,7 +128,7 @@ public final class SourceRoots {
         assert helper != null;
         assert evaluator != null;
         assert refHelper != null;
-        return new SourceRoots(helper, evaluator, refHelper,isTest);
+        return new SourceRoots(helper, evaluator, refHelper, isTest);
     }
 
     private SourceRoots(UpdateHelper helper, PropertyEvaluator evaluator, ReferenceHelper refHelper, boolean isTest) {
@@ -138,13 +138,12 @@ public final class SourceRoots {
         this.refHelper = refHelper;
         this.isTest = isTest;
         this.elementName = isTest ? E_TESTS : E_SOURCES;
-        this.newRootNameTemplate = isTest ? FMT_TEST_ROOT: FMT_SOURCE_ROOT;
+        this.newRootNameTemplate = isTest ? FMT_TEST_ROOT : FMT_SOURCE_ROOT;
         this.projectDir = FileUtil.toFile(this.helper.getAntProjectHelper().getProjectDirectory());
         this.support = new PropertyChangeSupport(this);
         this.listener = new ProjectMetadataListener();
         this.evaluator.addPropertyChangeListener(WeakListeners.propertyChange(this.listener, this.evaluator));
-        this.helper.getAntProjectHelper().addAntProjectListener(
-                WeakListeners.create(AntProjectListener.class, this.listener, this.helper));
+        this.helper.getAntProjectHelper().addAntProjectListener(WeakListeners.create(AntProjectListener.class, this.listener, this.helper));
     }
 
 
@@ -371,8 +370,7 @@ public final class SourceRoots {
                                     if (path.startsWith(prjPath)) {
                                         path = path.substring(prjPath.length());
                                     } else {
-                                        path = refHelper.createForeignFileReference(
-                                                f, AdaProjectType.SOURCES_TYPE_ADA);
+                                        path = refHelper.createForeignFileReference(f, AdaSources.SOURCES_TYPE_ADA);
                                         props = helper.getProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH);
                                     }
                                     props.put(rootName, path);
@@ -407,7 +405,7 @@ public final class SourceRoots {
     public String getRootDisplayName(String rootName, String propName) {
         if (rootName == null || rootName.length() == 0) {
             // if the prop is src.dir use the default name
-            if (isTest && "test.src.dir".equals(propName)) { //NOI18N
+            if (isTest && "test.dir".equals(propName)) { //NOI18N
                 rootName = DEFAULT_TEST_LABEL;
             } else if (!isTest && "src.dir".equals(propName)) { //NOI18N
                 rootName = DEFAULT_SOURCE_LABEL;

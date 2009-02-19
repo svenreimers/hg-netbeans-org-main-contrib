@@ -70,6 +70,16 @@ public class AstRootScope extends AstScope {
         return idTokenToItem.containsKey(idToken);
     }
 
+    public Map<Token, AstItem> getIdTokenToItem(TokenHierarchy th) {
+        if (!tokensSorted) {
+            tokens = Arrays.asList(idTokenToItem.keySet().toArray(new Token[idTokenToItem.size()]));
+            Collections.sort(tokens, new TokenComparator(th));
+            tokensSorted = true;
+        }
+
+        return idTokenToItem;
+    }
+
     /**
      * To make sure each idToken only corresponds to one AstItem, if more than
      * one AstItem point to the same idToken, only the first one will be stored
@@ -80,6 +90,13 @@ public class AstRootScope extends AstScope {
             idTokenToItem.put(idToken, item);
             tokensSorted = false;
             return true;
+        } else {
+            // if existOne is def and with narrow visible than new one, replace it
+            if (item instanceof AstDef && existOne.getSymbol().isPrivateLocal() && item.getSymbol().isPublic()) {
+                idTokenToItem.put(idToken, item);
+                tokensSorted = false;
+                return true;
+            }
         }
 
         return false;
@@ -115,7 +132,7 @@ public class AstRootScope extends AstScope {
 
         return tokens == null ? Collections.<Token>emptyList() : tokens;
     }
-    
+
     public AstItem findItemAt(Token token) {
         return idTokenToItem.get(token);
     }
@@ -126,7 +143,7 @@ public class AstRootScope extends AstScope {
                 return entry.getValue();
             }
         }
-        
+
         return null;
     }
 
@@ -135,7 +152,7 @@ public class AstRootScope extends AstScope {
             System.out.println("AstItem: " + idTokenToItem.get(token));
         }
     }
-    
+
     private static class TokenComparator implements Comparator<Token> {
 
         private TokenHierarchy th;
@@ -147,5 +164,26 @@ public class AstRootScope extends AstScope {
         public int compare(Token o1, Token o2) {
             return o1.offset(th) < o2.offset(th) ? -1 : 1;
         }
+    }
+    // Sinleton EmptyScope
+    private static AstRootScope EmptyScope;
+
+    public static AstRootScope emptyScope() {
+        if (EmptyScope == null) {
+            EmptyScope = new AstRootScope() {
+
+                @Override
+                public int getBoundsOffset(TokenHierarchy th) {
+                    return -1;
+                }
+
+                @Override
+                public int getBoundsEndOffset(TokenHierarchy th) {
+                    return -1;
+                }
+            };
+        }
+
+        return EmptyScope;
     }
 }

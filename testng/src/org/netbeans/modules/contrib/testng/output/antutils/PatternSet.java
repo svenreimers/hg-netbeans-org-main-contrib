@@ -222,15 +222,13 @@ final class PatternSet {
         BufferedReader fileReader = null;
         try {
             fileReader = new BufferedReader(new FileReader(patternsFile));
-            String line = fileReader.readLine();
-            while (line != null) {
+            for (String line = fileReader.readLine(); line != null; ) {
                 if (line.length() != 0) {
                     addPatterns(project.replaceProperties(line), patterns);
                 }
-                line = fileReader.readLine();
             }
         } catch (IOException ex) {
-            Logger.getLogger(getClass().getName())
+            Logger.getLogger(PatternSet.class.getName())
                   .log(Level.INFO,
                        "failed to read Ant patterns file "              //NOI18N
                                 + patternsFile.getAbsolutePath(),

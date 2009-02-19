@@ -49,18 +49,19 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.Repository;
 import org.openide.windows.TopComponent;
 import org.openide.util.RequestProcessor;
 
 import org.netbeans.api.bookmarks.*;
 import org.netbeans.api.registry.*;
+import org.openide.filesystems.FileUtil;
 
 /**
  * Implementation of the BookmarkService. Stores the bookmarks in
  * folder BOOKMARKS_FOLDER and the top components in TOP_COMPONENTS_FOLDER.
  * @author David Strupl
  */
+@org.openide.util.lookup.ServiceProvider(service=org.netbeans.api.bookmarks.BookmarkService.class)
 public class BookmarkServiceImpl extends BookmarkService {
     
     /** Folder name on the system file system where the
@@ -447,7 +448,7 @@ public class BookmarkServiceImpl extends BookmarkService {
      */
     static void refreshShortcutsFolder() {
         try {
-            FileObject sfo = Repository.getDefault().getDefaultFileSystem().findResource(SHORTCUTS_FOLDER);
+            FileObject sfo = FileUtil.getConfigFile(SHORTCUTS_FOLDER);
             // This is a hack! It forces the core's impl to refresh the list of shortcuts.
             FileObject dummy = sfo.createData("dummy");  // NOI18N
             // and delete it!

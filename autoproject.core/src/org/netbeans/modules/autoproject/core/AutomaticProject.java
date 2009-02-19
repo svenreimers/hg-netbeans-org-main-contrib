@@ -42,6 +42,7 @@ package org.netbeans.modules.autoproject.core;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.autoproject.spi.AutomaticProjectMarker;
 import org.netbeans.spi.project.support.LookupProviderSupport;
+import org.netbeans.spi.project.ui.support.UILookupMergerSupport;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
@@ -68,6 +69,7 @@ class AutomaticProject implements Project {
         lkp = LookupProviderSupport.createCompositeLookup(Lookups.fixed(
                 new AutomaticProjectMarker(),
                 LookupProviderSupport.createSourcesMerger(),
+                UILookupMergerSupport.createProjectOpenHookMerger(new OpenHook(this)),
                 new FileEncodingQueryImpl(this),
                 new LogicalViewImpl(this),
                 this), "Projects/org-netbeans-modules-autoproject/Lookup"); //NOI18N

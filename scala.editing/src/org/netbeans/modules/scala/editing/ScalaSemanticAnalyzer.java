@@ -39,20 +39,25 @@
 package org.netbeans.modules.scala.editing;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.text.Document;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
+import org.netbeans.api.lexer.TokenId;
 import org.netbeans.modules.gsf.api.ColoringAttributes;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.OffsetRange;
 import org.netbeans.modules.gsf.api.SemanticAnalyzer;
 import org.netbeans.modules.scala.editing.ast.AstDef;
+import org.netbeans.modules.scala.editing.ast.AstItem;
 import org.netbeans.modules.scala.editing.ast.AstRef;
 import org.netbeans.modules.scala.editing.ast.AstRootScope;
-import org.netbeans.modules.scala.editing.ast.AstScope;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
+import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
+import scala.tools.nsc.symtab.Types.ImplicitMethodType;
+import scala.tools.nsc.symtab.Types.Type;
 
 /**
  *  
@@ -107,7 +112,8 @@ public class ScalaSemanticAnalyzer implements SemanticAnalyzer {
         }
 
         Map<OffsetRange, Set<ColoringAttributes>> highlights = new HashMap<OffsetRange, Set<ColoringAttributes>>(100);
-        visitScopeRecursively(doc, th, rootScope, highlights);
+        //visitScopeRecursively(doc, th, rootScope, highlights);
+        visitItems(th, rootScope, highlights);
 
         if (highlights.size() > 0) {
 //            if (result.getTranslatedSource() != null) {
@@ -127,60 +133,82 @@ public class ScalaSemanticAnalyzer implements SemanticAnalyzer {
             this.semanticHighlights = null;
         }
     }
+    private static Set<ColoringAttributes> IMPLICIT_METHOD = new HashSet();
 
-    private void visitScopeRecursively(Document doc, TokenHierarchy th, AstScope scope, Map<OffsetRange, Set<ColoringAttributes>> highlights) {
 
-        for (AstRef ref : scope.getRefs()) {
-            Token hiToken = ref.getIdToken();
+    {
+        IMPLICIT_METHOD.add(ColoringAttributes.INTERFACE);
+    }
+
+    private void visitItems(TokenHierarchy th, AstRootScope rootScope, Map<OffsetRange, Set<ColoringAttributes>> highlights) {
+        for (AstItem item : rootScope.getIdTokenToItem(th).values()) {
+            Token hiToken = item.getIdToken();
             if (hiToken == null) {
                 continue;
             }
 
-            String name = ref.getName();
+            // token may be xml tokens, @see AstVisit#getTokenId
+            TokenId tid = hiToken.id();
+            if (tid != ScalaTokenId.Identifier &&
+                    tid != ScalaTokenId.This &&
+                    tid != ScalaTokenId.Super) {
+                continue;
+            }
+
+            String name = item.getName();
             if (name.equals("this") || name.equals("super")) {
                 continue;
             }
 
             OffsetRange hiRange = ScalaLexUtilities.getRangeOfToken(th, hiToken);
-            switch (ref.getKind()) {
-                case CLASS:
-                    highlights.put(hiRange, ColoringAttributes.FIELD_SET);
-                    break; // break out from switch
-                default:
-            }
-        }
+            if (item instanceof AstRef) {
+                AstRef ref = (AstRef) item;
+                switch (ref.getKind()) {
+                    case CLASS:
+                        highlights.put(hiRange, ColoringAttributes.STATIC_SET);
+                        break;
+                    case MODULE:
+                        highlights.put(hiRange, ColoringAttributes.GLOBAL_SET);
+                        break;
+                    case METHOD:
+                        try {
+                            Type tpe = ref.getSymbol().tpe();
+                            // @todo doesn't work yet
+                            if (tpe instanceof ImplicitMethodType) {
+                                highlights.put(hiRange, IMPLICIT_METHOD);
+                                break;
+                            }
+                        } catch (Throwable t) {
+                        }
 
-        for (AstDef def : scope.getDefs()) {
-            Token idToken = def.getIdToken();
-            if (idToken == null) {
-                continue;
-            }
-
-            String name = def.getName();
-            if (name.equals("this") || name.equals("super")) {
-                continue;
-            }
-
-            OffsetRange idRange = ScalaLexUtilities.getRangeOfToken(th, def.getIdToken());
-            switch (def.getKind()) {
-                case MODULE:
-                    highlights.put(idRange, ColoringAttributes.CLASS_SET);
-                    break;
-                case CLASS:
-                    highlights.put(idRange, ColoringAttributes.CLASS_SET);
-                    break;
-                case METHOD:
-                    highlights.put(idRange, ColoringAttributes.METHOD_SET);
-                    break;
+                        final String symbolName = ref.getSymbol().nameString();
+                        if (symbolName.equals("apply") || symbolName.startsWith("unapply")) {
+                            highlights.put(hiRange, ColoringAttributes.STATIC_SET);
+                        } else {
+                            highlights.put(hiRange, ColoringAttributes.FIELD_SET);
+                        }
+                        break;
+                    default:
+                }
+            } else {
+                AstDef def = (AstDef) item;
+                switch (def.getKind()) {
+                    case MODULE:
+                        highlights.put(hiRange, ColoringAttributes.CLASS_SET);
+                        break;
+                    case CLASS:
+                        highlights.put(hiRange, ColoringAttributes.CLASS_SET);
+                        break;
+                    case METHOD:
+                        highlights.put(hiRange, ColoringAttributes.METHOD_SET);
+                        break;
 //                case FIELD:
 //                    highlights.put(idRange, ColoringAttributes.FIELD_SET);
 //                    break;
-                default:
+                    default:
+                }
             }
-        }
 
-        for (AstScope child : scope.getSubScopes()) {
-            visitScopeRecursively(doc, th, child, highlights);
         }
     }
 }

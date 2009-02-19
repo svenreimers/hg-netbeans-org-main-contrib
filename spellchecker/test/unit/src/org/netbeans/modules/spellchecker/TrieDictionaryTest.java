@@ -41,7 +41,6 @@
 
 package org.netbeans.modules.spellchecker;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.SortedSet;
 import junit.framework.TestCase;
@@ -87,10 +86,6 @@ public class TrieDictionaryTest extends TestCase {
         assertEquals(ValidityType.PREFIX_OF_VALID, d.validateWord("t"));
     }
 
-//    public void testFindValidWordsForPrefix() {
-//    }
-//
-    
     public void testFindProposals() throws Exception {
         SortedSet<String> data = new TreeSet<String>();
         
@@ -106,12 +101,34 @@ public class TrieDictionaryTest extends TestCase {
         assertEquals(Collections.singletonList("hello"), d.findProposals("hfllo"));
         assertEquals(Collections.singletonList("saida"), d.findProposals("safda"));
     }
-    
-//
-//    public void testGetDictionary() throws Exception {
-//    }
-//
-//    public void testConstructTrie() throws Exception {
-//    }
-    
+
+    public void test150642() throws Exception {
+        SortedSet<String> data = new TreeSet<String>();
+
+        data.add("abc");
+        data.add("aéc");
+
+        TrieDictionary d = TrieDictionary.constructTrie(data);
+
+        assertEquals(ValidityType.VALID, d.validateWord("abc"));
+        assertEquals(ValidityType.VALID, d.validateWord("aéc"));
+
+        assertEquals(ValidityType.PREFIX_OF_VALID, d.validateWord("a"));
+        assertEquals(ValidityType.PREFIX_OF_VALID, d.validateWord("ab"));
+        assertEquals(ValidityType.PREFIX_OF_VALID, d.validateWord("aé"));
+    }
+
+    public void testWordPrefixOfOther() throws Exception {
+        SortedSet<String> data = new TreeSet<String>();
+
+        data.add("Abc");
+        data.add("Bcd");
+        data.add("abcd");
+
+        TrieDictionary d = TrieDictionary.constructTrie(data);
+
+        assertEquals(ValidityType.VALID, d.validateWord("Abc"));
+        assertEquals(ValidityType.PREFIX_OF_VALID, d.validateWord("Bc"));
+    }
+
 }

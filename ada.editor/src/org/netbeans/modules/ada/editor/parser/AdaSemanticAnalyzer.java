@@ -36,32 +36,276 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.editor.parser;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.netbeans.modules.ada.editor.AdaMimeResolver;
+import org.netbeans.modules.ada.editor.ast.ASTNode;
+import org.netbeans.modules.ada.editor.ast.nodes.Block;
+import org.netbeans.modules.ada.editor.ast.nodes.BodyDeclaration.Modifier;
+import org.netbeans.modules.ada.editor.ast.nodes.FieldsDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.Identifier;
+import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
+import org.netbeans.modules.ada.editor.ast.nodes.PackageSpecification;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.Variable;
+import org.netbeans.modules.ada.editor.ast.nodes.visitors.DefaultVisitor;
 import org.netbeans.modules.gsf.api.ColoringAttributes;
 import org.netbeans.modules.gsf.api.CompilationInfo;
 import org.netbeans.modules.gsf.api.OffsetRange;
+import org.netbeans.modules.gsf.api.ParserResult;
 import org.netbeans.modules.gsf.api.SemanticAnalyzer;
+import org.netbeans.modules.gsf.api.TranslatedSource;
 
 /**
+ * Based on org.netbeans.modules.php.editor.parser.SemanticAnalysis
  *
  * @author Andrea Lucarelli
  */
 public class AdaSemanticAnalyzer implements SemanticAnalyzer {
 
+    public static final EnumSet<ColoringAttributes> UNUSED_FIELD_SET = EnumSet.of(ColoringAttributes.UNUSED, ColoringAttributes.FIELD);
+    public static final EnumSet<ColoringAttributes> UNUSED_METHOD_SET = EnumSet.of(ColoringAttributes.UNUSED, ColoringAttributes.METHOD);
+    private boolean cancelled;
+    private Map<OffsetRange, Set<ColoringAttributes>> semanticHighlights;
+
+    public AdaSemanticAnalyzer() {
+        semanticHighlights = null;
+    }
+
     public Map<OffsetRange, Set<ColoringAttributes>> getHighlights() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return semanticHighlights;
     }
 
     public void cancel() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        cancelled = true;
     }
 
-    public void run(CompilationInfo parameter) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void run(CompilationInfo compilationInfo) throws Exception {
+        resume();
+
+        if (isCancelled()) {
+            return;
+        }
+
+        AdaParseResult result = getParseResult(compilationInfo);
+        Map<OffsetRange, Set<ColoringAttributes>> highlights =
+                new HashMap<OffsetRange, Set<ColoringAttributes>>(100);
+
+        if (result.getProgram() != null) {
+            result.getProgram().accept(new SemanticHighlightVisitor(highlights, result.getTranslatedSource()));
+
+            if (highlights.size() > 0) {
+                semanticHighlights = highlights;
+            } else {
+                semanticHighlights = null;
+            }
+        }
     }
 
+    protected final synchronized boolean isCancelled() {
+        return cancelled;
+    }
+
+    protected final synchronized void resume() {
+        cancelled = false;
+    }
+
+    private AdaParseResult getParseResult(CompilationInfo info) {
+        ParserResult result = info.getEmbeddedResult(AdaMimeResolver.ADA_MIME_TYPE, 0);
+
+        if (result == null) {
+            return null;
+        } else {
+            return ((AdaParseResult) result);
+        }
+    }
+
+    private class SemanticHighlightVisitor extends DefaultVisitor {
+
+        private class IdentifierColoring {
+
+            public Identifier identifier;
+            public Set<ColoringAttributes> coloring;
+
+            public IdentifierColoring(Identifier identifier, Set<ColoringAttributes> coloring) {
+                this.identifier = identifier;
+                this.coloring = coloring;
+            }
+        }
+        Map<OffsetRange, Set<ColoringAttributes>> highlights;
+        // for unused private fields: name, varible
+        // if isused, then it's deleted from the list and marked as the field
+        private final Map<String, IdentifierColoring> privateFieldsUsed;
+        // for unsed private method: name, identifier
+        private final Map<String, IdentifierColoring> privateMethod;
+        // this is holder of blocks, which has to be scanned for usages in the class.
+        private List<Block> needToScan = new ArrayList<Block>();
+        private final TranslatedSource translatedSource;
+
+        public SemanticHighlightVisitor(Map<OffsetRange, Set<ColoringAttributes>> highlights, TranslatedSource translatedSource) {
+            this.highlights = highlights;
+            privateFieldsUsed = new HashMap<String, IdentifierColoring>();
+            privateMethod = new HashMap<String, IdentifierColoring>();
+            this.translatedSource = translatedSource;
+        }
+
+        private void addOffsetRange(ASTNode node, Set<ColoringAttributes> coloring) {
+            if (translatedSource == null) {
+                highlights.put(new OffsetRange(node.getStartOffset(), node.getEndOffset()), coloring);
+            } else {
+                int start = translatedSource.getLexicalOffset(node.getStartOffset());
+                if (start > -1) {
+                    int end = start + node.getEndOffset() - node.getStartOffset();
+                    highlights.put(new OffsetRange(start, end), coloring);
+                }
+            }
+        }
+
+        @Override
+        public void visit(PackageSpecification node) {
+            if (isCancelled()) {
+                return;
+            }
+            Identifier name = node.getName();
+            addOffsetRange(name, ColoringAttributes.CLASS_SET);
+            // Check if package name end is present
+            if (node.getNameEnd().getName() != null) {
+                Identifier nameEnd = node.getNameEnd();
+                addOffsetRange(nameEnd, ColoringAttributes.CLASS_SET);
+            }
+            needToScan = new ArrayList<Block>();
+            if (node.getBody() != null) {
+                node.getBody().accept(this);
+
+                // find all usages in the method bodies
+                for (Block block : needToScan) {
+                    block.accept(this);
+                }
+                // are there unused private fields?
+                for (IdentifierColoring item : privateFieldsUsed.values()) {
+                    addOffsetRange(item.identifier, UNUSED_FIELD_SET);
+                }
+
+                // are there unused private methods?
+                for (IdentifierColoring item : privateMethod.values()) {
+                    addOffsetRange(item.identifier, UNUSED_METHOD_SET);
+                }
+            }
+        }
+
+        @Override
+        public void visit(MethodDeclaration md) {
+            boolean isPrivate = Modifier.isPrivate(md.getModifier());
+            EnumSet<ColoringAttributes> coloring = ColoringAttributes.METHOD_SET;
+
+            Identifier identifier = md.getIdentifier();
+            addOffsetRange(identifier, coloring);
+            if (md.getNameEnd() != null) {
+                Identifier nameEnd = md.getIdentifierEnd();
+                addOffsetRange(nameEnd, coloring);
+            }
+
+
+            if (!Modifier.isAbstract(md.getModifier())) {
+                // don't scan the body now. It should be scanned after all declarations
+                // are known
+                Block block;
+                if (md.getKind() == MethodDeclaration.Kind.FUNCTION) {
+                    block = md.getFunction().getDeclarations();
+                } else {
+                    block = md.getProcedure().getDeclarations();
+                }
+                if (block != null) {
+                    needToScan.add(block);
+                }
+                if (md.getKind() == MethodDeclaration.Kind.FUNCTION) {
+                    block = md.getFunction().getBody();
+                } else {
+                    block = md.getProcedure().getBody();
+                }
+                if (block != null) {
+                    needToScan.add(block);
+                }
+            }
+        }
+
+        @Override
+        public void visit(PackageBody node) {
+            if (isCancelled()) {
+                return;
+            }
+            Identifier name = node.getName();
+            addOffsetRange(name, ColoringAttributes.CLASS_SET);
+            // Check if package name end is present
+            if (node.getNameEnd().getName() != null) {
+                Identifier nameEnd = node.getNameEnd();
+                addOffsetRange(nameEnd, ColoringAttributes.CLASS_SET);
+            }
+            needToScan = new ArrayList<Block>();
+            if (node.getBody() != null) {
+                node.getBody().accept(this);
+
+                // find all usages in the method bodies
+                for (Block block : needToScan) {
+                    block.accept(this);
+                }
+                // are there unused private fields?
+                for (IdentifierColoring item : privateFieldsUsed.values()) {
+                    addOffsetRange(item.identifier, UNUSED_FIELD_SET);
+                }
+
+                // are there unused private methods?
+                for (IdentifierColoring item : privateMethod.values()) {
+                    addOffsetRange(item.identifier, UNUSED_METHOD_SET);
+                }
+            }
+        }
+
+        @Override
+        public void visit(FieldsDeclaration node) {
+            if (isCancelled()) {
+                return;
+            }
+
+            boolean isPrivate = Modifier.isPrivate(node.getModifier());
+            EnumSet<ColoringAttributes> coloring = ColoringAttributes.FIELD_SET;
+
+            Variable[] variables = node.getVariableNames();
+            for (int i = 0; i < variables.length; i++) {
+                Variable variable = variables[i];
+                if (!isPrivate) {
+                    addOffsetRange(variable.getName(), ColoringAttributes.FIELD_SET);
+                } else {
+                    if (variable.getName() instanceof Identifier) {
+                        Identifier identifier = (Identifier) variable.getName();
+                        privateFieldsUsed.put(identifier.getName(), new IdentifierColoring(identifier, coloring));
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void visit(TypeDeclaration node) {
+            if (isCancelled()) {
+                return;
+            }
+
+            boolean isPrivate = Modifier.isPrivate(node.getModifier());
+            EnumSet<ColoringAttributes> coloring = ColoringAttributes.FIELD_SET;
+
+            Identifier id = node.getTypeName();
+            if (!isPrivate) {
+                addOffsetRange(id, ColoringAttributes.FIELD_SET);
+            } else {
+                privateFieldsUsed.put(id.getName(), new IdentifierColoring(id, coloring));
+            }
+        }
+    }
 }

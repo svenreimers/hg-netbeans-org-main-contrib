@@ -65,6 +65,8 @@ public class LayerXMLHelper {
     private static FileObject getFolder(String listenerFolder) {
         FileSystem fs = Repository.getDefault().getDefaultFileSystem();
         FileObject fo = fs.getRoot().getFileObject(listenerFolder);
+        //For NB 7.0
+        //FileObject fo = FileUtil.getConfigFile(listenerFolder);
         return fo;
     }
 

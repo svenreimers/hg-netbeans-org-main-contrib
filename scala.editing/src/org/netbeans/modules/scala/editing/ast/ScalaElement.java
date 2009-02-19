@@ -65,7 +65,6 @@ import org.openide.util.Exceptions;
 import scala.Option;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
-import scala.tools.nsc.ast.Trees.Tree;
 import scala.tools.nsc.io.AbstractFile;
 import scala.tools.nsc.symtab.Symbols.Symbol;
 import scala.tools.nsc.symtab.Types.Type;
@@ -268,8 +267,7 @@ public class ScalaElement implements ScalaElementHandle {
                      */
                     CompilationUnit unit = ScalaGlobal.compileSource(global, srcFile);
                     if (unit != null) {
-                        final Tree tree = unit.body();
-                        AstRootScope root = new AstTreeVisitor(tree, th, srcFile).getRootScope();
+                        AstRootScope root = new AstTreeVisitor(global, unit, th, srcFile).getRootScope();
                         AstDef def = root.findDefMatched(symbol);
                         if (def != null) {
                             offset = def.getIdOffset(th);
@@ -330,35 +328,41 @@ public class ScalaElement implements ScalaElementHandle {
             Option argNames = argNamesMap.get(symbol);
             return argNames.isDefined() ? (scala.List) argNames.get() : null;
         }
-        
+
         return null;
     }
 
     public static ElementKind getKind(Symbol symbol) {
-        if (symbol.isClass()) {
-            return ElementKind.CLASS;
-        } else if (symbol.isConstructor()) {
-            return ElementKind.CONSTRUCTOR;
-        } else if (symbol.isConstant()) {
-            return ElementKind.CONSTANT;
-        } else if (symbol.isValue()) {
-            return ElementKind.FIELD;
-        } else if (symbol.isModule()) {
-            return ElementKind.MODULE;
-        } else if (symbol.isLocal() && symbol.isVariable()) {
-            return ElementKind.VARIABLE;
-        } else if (symbol.isMethod()) {
-            return ElementKind.METHOD;
-        } else if (symbol.isPackage()) {
-            return ElementKind.PACKAGE;
-        } else if (symbol.isValueParameter()) {
-            return ElementKind.PARAMETER;
-        } else if (symbol.isTypeParameter()) {
-            return ElementKind.CLASS;
-        } else {
+        try {
+            if (symbol.isClass()) {
+                return ElementKind.CLASS;
+            } else if (symbol.isConstructor()) {
+                return ElementKind.CONSTRUCTOR;
+            } else if (symbol.isConstant()) {
+                return ElementKind.CONSTANT;
+            } else if (symbol.isValue()) {
+                return ElementKind.FIELD;
+            } else if (symbol.isModule()) {
+                return ElementKind.MODULE;
+            } else if (symbol.isLocal() && symbol.isVariable()) {
+                return ElementKind.VARIABLE;
+            } else if (symbol.isMethod()) {
+                return ElementKind.METHOD;
+            } else if (symbol.isPackage()) {
+                return ElementKind.PACKAGE;
+            } else if (symbol.isValueParameter()) {
+                return ElementKind.PARAMETER;
+            } else if (symbol.isTypeParameter()) {
+                return ElementKind.CLASS;
+            } else {
+                return ElementKind.OTHER;
+            }
+        } catch (Throwable t) {
             return ElementKind.OTHER;
+            // java.lang.Error: no-symbol does not have owner
+            //      at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1609)
+            //      at scala.tools.nsc.symtab.Symbols$Symbol.isLocal(Symbols.scala:346)
         }
-
     }
 
     public static Set<Modifier> getModifiers(Symbol symbol) {

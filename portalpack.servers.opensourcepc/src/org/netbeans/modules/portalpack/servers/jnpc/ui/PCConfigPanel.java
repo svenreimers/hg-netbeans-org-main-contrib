@@ -20,15 +20,19 @@
 package org.netbeans.modules.portalpack.servers.jnpc.ui;
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.net.MalformedURLException;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.modules.portalpack.servers.core.WizardPropertyReader;
 import org.netbeans.modules.portalpack.servers.core.api.ConfigPanel;
+import org.netbeans.modules.portalpack.servers.core.common.ExtendedClassLoader;
 import org.netbeans.modules.portalpack.servers.core.util.PSConfigObject;
 import org.netbeans.modules.portalpack.servers.core.util.Util;
 import org.netbeans.modules.portalpack.servers.jnpc.common.JNPCConstants;
+import org.netbeans.modules.portalpack.servers.jnpc.impl.JNPCTaskHandler;
 import org.openide.util.NbBundle;
 
 /**
@@ -70,6 +74,7 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
         adminConsoleUriTf = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         portletUriTf = new javax.swing.JTextField();
+        directoryDeploymentCB = new javax.swing.JCheckBox();
 
         setFont(new java.awt.Font("Tahoma", 1, 11));
 
@@ -109,12 +114,19 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
         jLabel6.setLabelFor(portletUriTf);
         jLabel6.setText(org.openide.util.NbBundle.getBundle(PCConfigPanel.class).getString("LBL_PORTLET_URI")); // NOI18N
 
+        directoryDeploymentCB.setText(org.openide.util.NbBundle.getMessage(PCConfigPanel.class, "LBL_Directory_Deployment_Enable")); // NOI18N
+        directoryDeploymentCB.setEnabled(false);
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(jSeparator1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 533, Short.MAX_VALUE)
             .add(layout.createSequentialGroup()
+                .add(155, 155, 155)
+                .add(jLabel1)
+                .addContainerGap(239, Short.MAX_VALUE))
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
@@ -133,40 +145,35 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, adminConsoleUriTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, portalUri, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, portletUriTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE))
                         .add(168, 168, 168))
                     .add(layout.createSequentialGroup()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, hostTf, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, homeTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 299, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(homeChooseButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 36, Short.MAX_VALUE)))
                 .add(103, 103, 103))
             .add(layout.createSequentialGroup()
-                .add(155, 155, 155)
-                .add(jLabel1)
-                .addContainerGap(239, Short.MAX_VALUE))
+                .addContainerGap()
+                .add(directoryDeploymentCB)
+                .addContainerGap(356, Short.MAX_VALUE))
         );
-
-        layout.linkSize(new java.awt.Component[] {homeTf, hostTf}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-
-        layout.linkSize(new java.awt.Component[] {adminConsoleUriTf, portalUri, portletUriTf}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(5, 5, 5)
+                .add(11, 11, 11)
                 .add(jLabel1)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
                 .add(jSeparator1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(6, 6, 6)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(homeChooseButton)
                     .add(homeTf, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(jLabel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(homeChooseButton))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                     .add(layout.createSequentialGroup()
@@ -188,7 +195,9 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
                         .add(jLabel5, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jLabel6, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 22, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .add(directoryDeploymentCB)
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -249,6 +258,7 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField adminConsoleUriTf;
+    private javax.swing.JCheckBox directoryDeploymentCB;
     private javax.swing.JButton homeChooseButton;
     private javax.swing.JTextField homeTf;
     private javax.swing.JTextField hostTf;
@@ -280,6 +290,21 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
        hostTf.setText("localhost");
         
     }
+    
+    public void enableDisableDirectoryDeploymentCheckBox(File pcHomeFile) {
+        
+        if(pcHomeFile == null || !pcHomeFile.exists())
+            return;
+        
+         if(psVersion.equals(JNPCConstants.OP_PC_2_0)) {
+                        
+            directoryDeploymentCB.setEnabled(true);
+        } else {
+            directoryDeploymentCB.setSelected(false);
+            directoryDeploymentCB.setEnabled(false);
+        }
+        
+    }
     public void populateDataForCustomizer(PSConfigObject object) {
         
         //hostTf.setText(object.getHost());
@@ -289,10 +314,15 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
         hostTf.setText(object.getHost());
         adminConsoleUriTf.setText(object.getProperty(JNPCConstants.ADMIN_CONSOLE_URI));
         portletUriTf.setText(object.getProperty(JNPCConstants.PORTLET_URI));
+        directoryDeploymentCB.setSelected(object.isDirectoryDeployment());
         
         homeTf.setEnabled(false);
         hostTf.setEnabled(false);
         homeChooseButton.setEnabled(false);
+        
+        //set directory deployment option properly
+        if(object.getPSHome() != null && object.getPSHome().length() != 0)
+            enableDisableDirectoryDeploymentCheckBox(new File(object.getPSHome()));
         
     }
 
@@ -303,8 +333,15 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
         if(pcHome == null || pcHome.trim().length() == 0)
         {
             File pcHomeFile = new File(domainDir,"portlet-container");
-            if(pcHomeFile.exists())
+            if(pcHomeFile.exists()) {
                 homeTf.setText(pcHomeFile.getAbsolutePath());
+            }
+        }
+        
+        //check for directory deployment option.
+        pcHome = homeTf.getText();
+        if(pcHome != null && pcHome.trim().length() != 0) {
+            enableDisableDirectoryDeploymentCheckBox(new File(pcHome));
         }
         
     }
@@ -320,6 +357,8 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
         wr.setRemote(false);
         wr.setPortalUri(portalUri.getText());
         wr.setHost(hostTf.getText());
+        wr.setDirectoryDeployment(directoryDeploymentCB.isSelected());
+        
         wr.setProperty(JNPCConstants.ADMIN_CONSOLE_URI,adminConsoleUriTf.getText());
         wr.setProperty(JNPCConstants.PORTLET_URI,portletUriTf.getText());
       //  wr.setPortalUri("/pcdriver");
@@ -413,5 +452,59 @@ public class PCConfigPanel extends ConfigPanel implements DocumentListener{
     {
         fireChangeEvent();
     }
+   
+    //Directory deployment is supported from PC 2.1
+   protected boolean checkIfDirectoryDeploymentSupported(File pcHome)
+   {
+   
+       ExtendedClassLoader loader = null;
+       try{
+            loader = new ExtendedClassLoader();
+       }catch(Exception e) {
+           return false;
+       }
+        
+       if(pcHome == null)
+           return false;
+       
+       File libDir = new File(pcHome, "lib");
+       File[] files = libDir.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                if(name.endsWith(".jar"))
+                {
+                    return true;
+                }
+                return false;
+            }
+        });
+        
+        if(files == null)
+            return false;
+        
+        for(int i=0;i<files.length;i++)
+        {
+            try {
+                loader.addURL(files[i]);
+            } catch (MalformedURLException ex) {
+                
+            } catch (RuntimeException ex) {
+                
+            }
+        }
+        
+        try {
+
+            Class pwuClazz = loader.loadClass(JNPCTaskHandler.PORTLET_WAR_UPDATER);
+            pwuClazz.getMethod("preparePortlet",new Class[]{String.class,File.class});
+            
+        } catch (ClassNotFoundException ex) {
+            return false;
+        } catch(NoSuchMethodException msmex) {
+            return false;
+        }
+        
+        return true;
+   }
+
     
 }

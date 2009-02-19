@@ -122,14 +122,14 @@ final class Manager {
     }
     
     /**
-     * Called when an Ant task running JUnit tests is started.
-     * Displays a message in the JUnit results window.
+     * Called when an Ant task running TestNG tests is started.
+     * Displays a message in the TestNG results window.
      */
     void testStarted(final AntSession session, final TaskType sessionType) {
         displayMessage(
                 session,
                 sessionType, 
-                NbBundle.getMessage(getClass(), "LBL_RunningTests"));   //NOI18N
+                NbBundle.getMessage(Manager.class, "LBL_RunningTests"));   //NOI18N
     }
     
     /**
@@ -277,7 +277,7 @@ final class Manager {
     }
     
     /**
-     * Displays a message in the JUnit results window.
+     * Displays a message in the TestNG results window.
      * If this is the first display in the window, it also promotes
      * (displays, activates) it.
      *
@@ -290,7 +290,7 @@ final class Manager {
     }
     
     /**
-     * Displays a message in the JUnit results window.
+     * Displays a message in the TestNG results window.
      * If this is the first display in the window, it also promotes
      * (displays, activates) it.
      *
@@ -399,7 +399,7 @@ final class Manager {
     /**
      *
      */
-    private static class Displayer implements Runnable {
+    private class Displayer implements Runnable {
         private final ResultDisplayHandler displayHandler;
         private final boolean promote;
         Displayer(final ResultDisplayHandler displayHandler,
@@ -410,7 +410,7 @@ final class Manager {
         public void run() {
             final ResultWindow window = ResultWindow.getInstance();
             if (displayHandler != null) {
-               window.addDisplayComponent(displayHandler.getDisplayComponent());
+               window.addDisplayComponent(displayHandler.getDisplayComponent(), displayHandler.getLookup());
             }
             if (promote) {
                window.promote();

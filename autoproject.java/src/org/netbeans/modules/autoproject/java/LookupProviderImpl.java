@@ -43,13 +43,13 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.autoproject.java.actions.ActionProviderImpl;
 import org.netbeans.spi.java.project.support.LookupMergerSupport;
 import org.netbeans.spi.project.LookupProvider;
-import org.netbeans.spi.project.ui.support.UILookupMergerSupport;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 
 /**
  * Inserts extra items into autoproject lookup suited for Java projects.
  */
+@LookupProvider.Registration(projectType="org-netbeans-modules-autoproject")
 public class LookupProviderImpl implements LookupProvider {
 
     /** public for lookup */
@@ -65,7 +65,7 @@ public class LookupProviderImpl implements LookupProvider {
                 new ProjectInformationImpl(p),
                 new SourcesImpl(p),
                 new SourceLevelQueryImpl(p),
-                UILookupMergerSupport.createProjectOpenHookMerger(new OpenHook(p, cpp)),
+                new OpenHook(p, cpp),
                 new ActionProviderImpl(p),
                 new SubprojectProviderImpl(p));
         // XXX consider adding:

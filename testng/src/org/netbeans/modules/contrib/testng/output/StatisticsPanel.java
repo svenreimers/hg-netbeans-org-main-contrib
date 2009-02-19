@@ -53,8 +53,8 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
-import org.openide.util.Utilities;
 
 /**
  * Panel containing the toolbar and the tree of test results.
@@ -62,7 +62,7 @@ import org.openide.util.Utilities;
  * @author  Marian Petras
  */
 public final class StatisticsPanel extends JPanel implements ItemListener {
-    
+
     /** */
     private final ResultPanelTree treePanel;
     /** */
@@ -74,7 +74,7 @@ public final class StatisticsPanel extends JPanel implements ItemListener {
 
     /**
      */
-    public StatisticsPanel(final ResultDisplayHandler displayHandler) {
+    StatisticsPanel(final ResultDisplayHandler displayHandler) {
         super(new BorderLayout(0, 0));
 
         JComponent toolbar = createToolbar();
@@ -94,43 +94,43 @@ public final class StatisticsPanel extends JPanel implements ItemListener {
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
         toolbar.add(btnFilter);
         toolbar.add(Box.createHorizontalGlue());
-        
+
         toolbar.setFocusable(false);
         toolbar.setFloatable(false);
         toolbar.setBorderPainted(false);
-        
+
         return toolbar;
     }
-    
+
     /**
      */
     private void createFilterButton() {
         btnFilter = new JToggleButton(new ImageIcon(
-                Utilities.loadImage(
+                ImageUtilities.loadImage(
                     "org/netbeans/modules/contrib/testng/resources/filter.png", //NOI18N
                     true)));
         btnFilter.getAccessibleContext().setAccessibleName(
-                NbBundle.getMessage(getClass(), "ACSN_FilterButton"));  //NOI18N
+                NbBundle.getMessage(StatisticsPanel.class, "ACSN_FilterButton"));  //NOI18N
         btnFilter.addItemListener(this);
-        
+
         updateFilterButtonLabel();
     }
-    
+
     /**
      */
     private void updateFilterButtonLabel() {
         if (tooltipShowAll == null) {
             tooltipShowAll = NbBundle.getMessage(
-                    getClass(),
+                    StatisticsPanel.class,
                     "MultiviewPanel.btnFilter.showAll.tooltip");        //NOI18N
             tooltipShowFailures = NbBundle.getMessage(
-                    getClass(),
+                    StatisticsPanel.class,
                     "MultiviewPanel.btnFilter.showFailures.tooltip");   //NOI18N
         }
         btnFilter.setToolTipText(btnFilter.isSelected() ? tooltipShowAll
                                                         : tooltipShowFailures);
     }
-    
+
     /**
      */
     public void itemStateChanged(ItemEvent e) {
@@ -138,29 +138,29 @@ public final class StatisticsPanel extends JPanel implements ItemListener {
         treePanel.setFiltered(btnFilter.isSelected());
         updateFilterButtonLabel();
     }
-    
+
     /**
      */
     void displayReport(final Report report) {
         treePanel.displayReport(report);
-        
+
         btnFilter.setEnabled(
             treePanel.getSuccessDisplayedLevel() != RootNode.ALL_PASSED_ABSENT);
     }
-    
+
     /**
      */
     void displayReports(final List<Report> reports) {
         if (reports.isEmpty()) {
             return;
         }
-        
+
         treePanel.displayReports(reports);
-        
+
         btnFilter.setEnabled(
             treePanel.getSuccessDisplayedLevel() != RootNode.ALL_PASSED_ABSENT);
     }
-    
+
     /**
      * Displays a message about a running suite.
      *
@@ -171,11 +171,11 @@ public final class StatisticsPanel extends JPanel implements ItemListener {
     void displaySuiteRunning(final String suiteName) {
         treePanel.displaySuiteRunning(suiteName);
     }
-    
+
     /**
      */
     void displayMsg(final String msg) {
         treePanel.displayMsg(msg);
     }
-    
+
 }

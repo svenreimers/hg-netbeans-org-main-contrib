@@ -41,10 +41,23 @@
 
 package org.netbeans.modules.contrib.testng.output;
 
+import javax.swing.Action;
+import org.netbeans.api.java.classpath.ClassPath;
+import org.netbeans.modules.contrib.testng.actions.DebugTestClassAction;
+import org.netbeans.modules.contrib.testng.actions.RunTestClassAction;
+import org.openide.actions.OpenAction;
+import org.openide.cookies.OpenCookie;
+import org.openide.filesystems.FileObject;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.SystemAction;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
+import static org.netbeans.modules.contrib.testng.output.HtmlMarkupUtils.COLOR_OK;
+import static org.netbeans.modules.contrib.testng.output.HtmlMarkupUtils.COLOR_WARNING;
+import static org.netbeans.modules.contrib.testng.output.HtmlMarkupUtils.COLOR_SKIP;
+import static org.netbeans.modules.contrib.testng.output.HtmlMarkupUtils.COLOR_FAILURE;
 
 /**
  *
@@ -55,6 +68,7 @@ final class TestsuiteNode extends AbstractNode {
     private String suiteName;
     private Report report;
     private boolean filtered;
+    private InstanceContent ic;
 
     /**
      *
@@ -63,16 +77,16 @@ final class TestsuiteNode extends AbstractNode {
      * @see  ResultDisplayHandler#ANONYMOUS_SUITE
      */
     TestsuiteNode(final String suiteName, final boolean filtered) {
-        this(null, suiteName, filtered);
+        this(null, suiteName, filtered, new InstanceContent());
     }
-    
+
     /**
      * Creates a new instance of TestsuiteNode
      */
     TestsuiteNode(final Report report, final boolean filtered) {
-        this(report, null, filtered);
+        this(report, null, filtered, new InstanceContent());
     }
-    
+
     /**
      *
      * @param  suiteName  name of the test suite, or {@code ANONYMOUS_SUITE}
@@ -81,35 +95,39 @@ final class TestsuiteNode extends AbstractNode {
      */
     private TestsuiteNode(final Report report,
                           final String suiteName,
-                          final boolean filtered) {
+                          final boolean filtered,
+                          InstanceContent ic) {
         super(report != null ? new TestsuiteNodeChildren(report, filtered)
-                             : Children.LEAF);
-        
+                             : Children.LEAF, new AbstractLookup(ic));
+
         this.report = report;
         this.suiteName = (report != null) ? report.suiteClassName : suiteName;
         this.filtered = filtered;
-        
+        this.ic = ic;
         assert this.suiteName != null;
-        
+
         setDisplayName();
         setIconBaseWithExtension(
                 "org/netbeans/modules/contrib/testng/resources/class.gif");     //NOI18N
     }
-    
+
     /**
      */
     void displayReport(final Report report) {
         assert (this.report == null) && (report != null);
         assert report.suiteClassName.equals(this.suiteName)
                || (this.suiteName == ResultDisplayHandler.ANONYMOUS_SUITE);
-        
+
         this.report = report;
         suiteName = report.suiteClassName;
-        
+
+        ic.add(this.report);
+        ic.add(this.suiteName);
+
         setDisplayName();
         setChildren(new TestsuiteNodeChildren(report, filtered));
     }
-    
+
     /**
      * Returns a report represented by this node.
      *
@@ -119,68 +137,90 @@ final class TestsuiteNode extends AbstractNode {
     Report getReport() {
         return report;
     }
-    
+
     /**
      */
     private void setDisplayName() {
+        String bundleKey;
+        boolean suiteNameKnown = true;
+
         String displayName;
-        if (report == null) {
-            if (suiteName != ResultDisplayHandler.ANONYMOUS_SUITE) {
-                displayName = NbBundle.getMessage(
-                                          getClass(),
-                                          "MSG_TestsuiteRunning",       //NOI18N
-                                          suiteName);
-            } else {
-                displayName = NbBundle.getMessage(
-                                          getClass(),
-                                          "MSG_TestsuiteRunningNoname");//NOI18N
-            }
+        if (report != null) {
+            boolean failed = containsFailed();
+            boolean interrupted = report.isSuiteInterrupted();
+            bundleKey = interrupted
+                        ? (failed ? "MSG_TestsuiteFailedInterrupted"    //NOI18N
+                                  : "MSG_TestsuiteInterrupted")         //NOI18N
+                        : (failed ? "MSG_TestsuiteFailed"               //NOI18N
+                                  : null);
         } else {
-            boolean containsFailed = containsFailed();
-            displayName = containsFailed
-                          ? NbBundle.getMessage(
-                                          getClass(),
-                                          "MSG_TestsuiteFailed",        //NOI18N
-                                          suiteName)
-                          : suiteName;
+            if (suiteName != ResultDisplayHandler.ANONYMOUS_SUITE) {
+                bundleKey = "MSG_TestsuiteRunning";                     //NOI18N
+            } else {
+                bundleKey = "MSG_TestsuiteRunningNoname";               //NOI18N
+                suiteNameKnown = false;
+            }
+        }
+
+        if (bundleKey == null) {
+            assert suiteName != null;
+            displayName = suiteName;
+        } else {
+            displayName = suiteNameKnown
+                          ? NbBundle.getMessage(TestsuiteNode.class, bundleKey, suiteName)
+                          : NbBundle.getMessage(TestsuiteNode.class, bundleKey);
         }
         setDisplayName(displayName);
     }
-    
+
     /**
      */
+    @Override
     public String getHtmlDisplayName() {
-        
+
         assert suiteName != null;
-        
-        StringBuffer buf = new StringBuffer(60);
+
+        StringBuilder buf = new StringBuilder(60);
         if (suiteName != ResultDisplayHandler.ANONYMOUS_SUITE) {
             buf.append(suiteName);
-            buf.append("&nbsp;&nbsp;");                                 //NOI18N
         } else {
-            buf.append(NbBundle.getMessage(getClass(),
+            buf.append(NbBundle.getMessage(TestsuiteNode.class,
                                            "MSG_TestsuiteNoname"));     //NOI18N
-            buf.append("&nbsp;");
         }
         if (report != null) {
             final boolean containsFailed = containsFailed();
+            final boolean interrupted = report.isSuiteInterrupted();
+            final boolean containsSkipped = containsSkipped();
 
-            buf.append("<font color='#");                               //NOI18N
-            buf.append(containsFailed ? "FF0000'>" : "00CC00'>");       //NOI18N
-            buf.append(NbBundle.getMessage(
-                                    getClass(),
-                                    containsFailed
-                                    ? "MSG_TestsuiteFailed_HTML"        //NOI18N
-                                    : "MSG_TestsuitePassed_HTML"));     //NOI18N
-            buf.append("</font>");                                      //NOI18N
+            if (containsFailed) {
+                buf.append("&nbsp;&nbsp;");                             //NOI18N
+                HtmlMarkupUtils.appendColourText(
+                        buf, COLOR_FAILURE, "MSG_TestsuiteFailed_HTML");//NOI18N
+            }
+            if (interrupted) {
+                buf.append("&nbsp;&nbsp;");                             //NOI18N
+                HtmlMarkupUtils.appendColourText(
+                        buf, COLOR_WARNING, "MSG_TestsuiteInterrupted_HTML");   //NOI18N
+            }
+            if (containsSkipped && !containsFailed()) {
+                buf.append("&nbsp;&nbsp;");                             //NOI18N
+                HtmlMarkupUtils.appendColourText(
+                        buf, COLOR_SKIP, "MSG_TestsuiteSkipped_HTML");   //NOI18N
+            }
+            if (!containsFailed && !interrupted && !containsSkipped) {
+                buf.append("&nbsp;&nbsp;");                             //NOI18N
+                HtmlMarkupUtils.appendColourText(
+                        buf, COLOR_OK, "MSG_TestsuitePassed_HTML");     //NOI18N
+            }
         } else {
+            buf.append("&nbsp;&nbsp;");                                 //NOI18N
             buf.append(NbBundle.getMessage(
-                                    getClass(),
+                                    TestsuiteNode.class,
                                     "MSG_TestsuiteRunning_HTML"));      //NOI18N
         }
         return buf.toString();
     }
-    
+
     /**
      */
     void setFiltered(final boolean filtered) {
@@ -188,20 +228,47 @@ final class TestsuiteNode extends AbstractNode {
             return;
         }
         this.filtered = filtered;
-        
+
         Children children = getChildren();
         if (children != Children.LEAF) {
             ((TestsuiteNodeChildren) children).setFiltered(filtered);
         }
     }
-    
+
     /**
      */
     private boolean containsFailed() {
-        return (report != null) && (report.failures + report.errors != 0);
+        return (report != null) && (report.failures + report.confFailures != 0);
     }
-    
-    public SystemAction[] getActions(boolean context) {
-        return new SystemAction[0];
+
+    private boolean containsSkipped() {
+        return (report != null) && (report.skips + report.confSkips != 0);
+    }
+
+    @Override
+    public Action[] getActions(boolean context) {
+        if (getLookup().lookup(FileObject.class) == null) {
+            ClassPath srcClassPath = report.getSourceClassPath();
+            if (srcClassPath != null) {
+                String suiteClassName = report.suiteClassName;
+                String suiteFileName = suiteClassName.replace('.', '/') + ".java"; //NOI18N
+                final String clsName = suiteClassName.substring(suiteClassName.lastIndexOf(".") + 1);
+                final FileObject suiteFile = srcClassPath.findResource(suiteFileName);
+                if (suiteFile != null) {
+                    ic.add(suiteFile);
+                    ic.add(new OpenCookie() {
+
+                        public void open() {
+                            OutputUtils.openFile(suiteFile, clsName, null);
+                        }
+                    });
+                }
+            }
+        }
+        return new Action[] {
+            SystemAction.get(OpenAction.class),
+            SystemAction.get(RunTestClassAction.class),
+            SystemAction.get(DebugTestClassAction.class)
+        };
     }
 }

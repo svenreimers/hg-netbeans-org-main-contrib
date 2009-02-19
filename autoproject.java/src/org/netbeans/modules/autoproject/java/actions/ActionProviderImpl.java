@@ -44,10 +44,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,7 +64,10 @@ import org.netbeans.api.java.source.CompilationController;
 import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.java.source.Task;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.api.project.SourceGroup;
 import org.netbeans.modules.autoproject.spi.Cache;
+import org.netbeans.spi.java.classpath.support.ClassPathSupport;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.SingleMethod;
 import org.openide.filesystems.FileObject;
@@ -175,6 +180,7 @@ public class ActionProviderImpl implements ActionProvider {
                 RequestProcessor.getDefault().post(new Runnable() {
                     public void run() {
                         try {
+                            cleanGeneratedClassfiles(p);
                             ActionUtils.runTarget(script, _targets, null);
                         } catch (IOException x) {
                             LOG.log(Level.WARNING, null, x);
@@ -193,6 +199,23 @@ public class ActionProviderImpl implements ActionProvider {
             return getOrDefineCommandBinding(command, false);
         } else {
             return binding;
+        }
+    }
+
+    static void cleanGeneratedClassfiles(Project p) throws IOException { // #145243
+        List<ClassPath> executePaths = new ArrayList<ClassPath>();
+        for (SourceGroup g : ProjectUtils.getSources(p).getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA)) {
+            FileObject root = g.getRootFolder();
+            ClassPath cp = ClassPath.getClassPath(root, ClassPath.EXECUTE);
+            if (cp != null) {
+                executePaths.add(cp);
+            }
+        }
+        int res = JavaRunner.execute(JavaRunner.QUICK_CLEAN, Collections.singletonMap(
+                JavaRunner.PROP_EXECUTE_CLASSPATH, ClassPathSupport.createProxyClassPath(executePaths.toArray(new ClassPath[0])))).
+                result();
+        if (res != 0) {
+            throw new IOException("Failed to clean NetBeans-generated classes");
         }
     }
 

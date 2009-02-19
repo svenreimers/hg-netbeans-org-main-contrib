@@ -36,7 +36,6 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.editor.ast.nodes.visitors;
 
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
@@ -50,6 +49,16 @@ import org.netbeans.modules.ada.editor.ast.nodes.Comment;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageName;
 import org.netbeans.modules.ada.editor.ast.ASTError;
 import org.netbeans.modules.ada.editor.ast.ASTNode;
+import org.netbeans.modules.ada.editor.ast.nodes.Block;
+import org.netbeans.modules.ada.editor.ast.nodes.FieldsDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
+import org.netbeans.modules.ada.editor.ast.nodes.FunctionDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
+import org.netbeans.modules.ada.editor.ast.nodes.PackageInstanceCreation;
+import org.netbeans.modules.ada.editor.ast.nodes.ProcedureDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.SingleFieldDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
 
 /**
  * Based on org.netbeans.modules.php.editor.parser.astnodes.visitors.Visitor
@@ -66,17 +75,37 @@ public interface Visitor {
 
     public void visit(EmptyStatement emptyStatement);
 
+    public void visit(FieldsDeclaration fieldsDeclaration);
+
+	public void visit(FormalParameter formalParameter);
+
+	public void visit(FunctionDeclaration functionDeclaration);
+
     public void visit(Identifier identifier);
 
-    public void visit(PackageSpecification packageDeclaration);
+	public void visit(MethodDeclaration methodDeclaration);
+
+    public void visit(PackageSpecification packageSpecification);
+
+    public void visit(PackageBody packageBody);
+
+	public void visit(PackageInstanceCreation packageInstanceCreation);
 
     public void visit(PackageName packageName);
 
+	public void visit(ProcedureDeclaration functionDeclaration);
+
     public void visit(Program program);
+
+    public void visit(SingleFieldDeclaration singleFieldDeclaration);
+
+    public void visit(TypeDeclaration typeDeclaration);
 
     public void visit(Variable variable);
 
     public void visit(With with);
 
     public void visit(Use use);
+
+    public void visit(Block block);
 }

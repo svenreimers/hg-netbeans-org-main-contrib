@@ -7,8 +7,11 @@
 trap "on_exit; exit" 1 2 15 EXIT
 
 PID=$$
-TMPDIR=/tmp/ssinstall.${PID}
+TMPDIR_ROOT=${TMPDIR-/tmp}
+TMPDIR="${TMPDIR_ROOT}/ssinstall.${PID}"
+TMP_DIR=${TMPDIR}
 mkdir -p ${TMPDIR}
+export TMP_DIR
 CWD=`pwd`
 INSTALLER_NAME=`basename $0`
 
@@ -118,7 +121,7 @@ then
 fi
 
 SUNSTUDIO_DIR=`uname | sed s/SunOS/SUNWspro/ | sed s/Linux/sunstudioceres/`
-NETBEANS_DIR="netbeans-6.1ss"
+NETBEANS_DIR="netbeans-6.5ss"
 
 }
 
@@ -163,5 +166,8 @@ export SOURCE
 
 # Disabled until registration is not completed.
 cd $REGISTRATION_DIR
-sh register.sh
+agentInfoFile=${TMP_DIR}/environment.xml
+export agentInfoFile
+echo "test" > ${agentInfoFile}
+sh register.sh 2>/dev/null
 exit 0;

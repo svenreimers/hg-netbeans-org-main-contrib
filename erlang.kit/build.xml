@@ -3,7 +3,14 @@
     <description>Builds, tests, and runs the project org.netbeans.modules.erlang.kit</description>
     <import file="../../nbbuild/templates/projectized.xml"/>
     
+    <!-- The building dependency is based on "ant -Dcluster.config=java" -->
     <target name="erlang-build">
+        <!-- stable modules -->
+        <ant dir="../../gsfpath.api"/>
+        <ant dir="../../gsf.api"/>
+        <ant dir="../../gsf"/>
+        <ant dir="../../extexecution"/>
+        <!-- contrib modules -->
         <ant dir="../../contrib/languages.execution"/>
         <ant dir="../../contrib/c.ericsson.otp.erlang"/>
         <ant dir="../../contrib/erlang.editing"/>
@@ -11,10 +18,26 @@
         <ant dir="../../contrib/erlang.platform"/>
         <ant dir="../../contrib/erlang.project"/>
         <ant dir="../../contrib/erlang.console"/>
+        <ant dir="../../contrib/erlang.kit"/>
         <antcall target="netbeans"/>
     </target>
 
+   <!-- since the minima download package j2se has include above stable modules, only following nbms are needed -->
+   <target name="erlang-nbm" depends="erlang-build">
+        <ant dir="../../contrib/languages.execution" target="nbm"/>
+        <ant dir="../../contrib/c.ericsson.otp.erlang" target="nbm"/>
+        <ant dir="../../contrib/erlang.editing" target="nbm"/>
+        <ant dir="../../contrib/erlang.makeproject" target="nbm"/>
+        <ant dir="../../contrib/erlang.platform" target="nbm"/>
+        <ant dir="../../contrib/erlang.project" target="nbm"/>
+        <ant dir="../../contrib/erlang.console" target="nbm"/>
+        <ant dir="../../contrib/erlang.kit" target="nbm"/>
+      <antcall target="netbeans"/>
+   </target>
+
+
     <target name="erlang-clean">
+        <ant dir="../../contrib/erlang.kit" inheritAll="false" target="clean"/>
         <ant dir="../../contrib/erlang.console" inheritAll="false" target="clean"/>
         <ant dir="../../contrib/erlang.project" inheritAll="false" target="clean"/>
         <ant dir="../../contrib/erlang.platform" inheritAll="false" target="clean"/>

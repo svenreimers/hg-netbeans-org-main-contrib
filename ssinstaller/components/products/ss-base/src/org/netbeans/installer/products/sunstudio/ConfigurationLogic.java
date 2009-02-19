@@ -38,6 +38,7 @@ package org.netbeans.installer.products.sunstudio;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ import org.netbeans.installer.utils.SystemUtils;
 import org.netbeans.installer.utils.exceptions.InitializationException;
 import org.netbeans.installer.utils.exceptions.InstallationException;
 import org.netbeans.installer.utils.exceptions.UninstallationException;
+import org.netbeans.installer.utils.helper.Dependency;
 import org.netbeans.installer.utils.helper.Platform;
 import org.netbeans.installer.utils.helper.RemovalMode;
 import org.netbeans.installer.utils.helper.Text;
@@ -69,8 +71,15 @@ public class ConfigurationLogic extends ProductConfigurationLogic {
         if (SystemUtils.getCurrentPlatform().equals(Platform.SOLARIS_SPARC)) {
             // TODO remove this
             String v8Name =  getProduct().getInstallationLocation() + "/" + Utils.getMainDirectory() +"/lib/v8plus";
+            String v9Name =  getProduct().getInstallationLocation() + "/" + Utils.getMainDirectory() +"/prod/lib/v9";
+            String v9aName =  getProduct().getInstallationLocation() + "/" + Utils.getMainDirectory() +"/lib/v9a";
+            String v9bName =  getProduct().getInstallationLocation() + "/" + Utils.getMainDirectory() +"/lib/v9b";
+            //#String v9Name =  getProduct().getInstallationLocation() + "/" + Utils.getMainDirectory() +"/lib/v9";
             try {
                 FileUtils.mkdirs(new File(v8Name));
+                FileUtils.mkdirs(new File(v9Name));
+                FileUtils.mkdirs(new File(v9aName));
+                FileUtils.mkdirs(new File(v9bName));
                 LogManager.log("v8Name was created as "  + v8Name );
             } catch (IOException ex) {
                 LogManager.log("v8Name was not created as "  + v8Name, ex);                
@@ -82,8 +91,13 @@ public class ConfigurationLogic extends ProductConfigurationLogic {
     @Override
     public void uninstall(Progress progress) throws UninstallationException {
         getProduct().getParent().removeChild(getProduct());
-        List<Product> products = Registry.getInstance().getProducts();
-     
+        List<Product> products = new ArrayList<Product>();
+        for (Product product : Registry.getInstance().getProducts()) {
+            if (product.getParent().equals(getProduct())) {
+                products.add(product);
+            }
+        }
+        
         /*
          * Here the percentage of each product is approximated
          * as a number of its subcomponents
@@ -105,15 +119,15 @@ public class ConfigurationLogic extends ProductConfigurationLogic {
         File mainDirectory = new File(getProduct().getInstallationLocation(), Utils.getMainDirectory());
         
         for (Product product : products) {
-          //  try {
+            try {
                 Progress innerProgress = new Progress();
                 compositeProgress.addChild(innerProgress, percents.get(product));                
                 product.uninstall(innerProgress);
                 product.getParent().removeChild(product);
-         //   } catch (InitializationException ex) {
-          //      LogManager.log("Unexpected exception during removal of " 
-           //             + product.getDisplayName(), ex);
-           // }
+            } catch (Exception ex) {
+                LogManager.log("Unexpected exception during removal of " 
+                        + product.getDisplayName(), ex);
+            }
         }                       
         try {
             FileUtils.deleteFile(new File(mainDirectory, "uninstall.sh"));
@@ -123,11 +137,12 @@ public class ConfigurationLogic extends ProductConfigurationLogic {
             // workaround for SS bug
             // the removal of condev should be moved to the beginning
             FileUtils.deleteFile(new File(mainDirectory, "prod"), true);
-            FileUtils.deleteFile(new File(mainDirectory, "lib/v8plus"), true);
+            FileUtils.deleteFile(new File(mainDirectory, "lib/amd64"), false);
+            FileUtils.deleteFile(new File(mainDirectory, "lib"), false);
             // end
             // delete only if empty
             FileUtils.deleteFile(mainDirectory);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             LogManager.log("Unexpected exception during removal of " 
                     + mainDirectory.getAbsolutePath(), ex);
         }

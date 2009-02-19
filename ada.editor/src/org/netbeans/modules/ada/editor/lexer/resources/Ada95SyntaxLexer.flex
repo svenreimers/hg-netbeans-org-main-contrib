@@ -51,7 +51,7 @@ import org.netbeans.spi.lexer.LexerRestartInfo;
 %char
 
 %state ST_LOOKING_FOR_PROPERTY
-%state ST_COMMENT
+%state ST_LINE_COMMENT
 %state ST_HIGHLIGHTING_ERROR
 
 %eofval{
@@ -194,7 +194,7 @@ import org.netbeans.spi.lexer.LexerRestartInfo;
  *    Copyright © 2000 The MITRE Corporation, Inc.       *
  * 2. http://www.adaic.com/standards/95lrm/lexer9x.l     *
  *                                                       *
- * Modified for "Ada for Netbeans" and for using with    *
+ * Modified for "Ada for Netbeans" and for using it with *
  * JFlex by Andrea Lucarelli.                            *
  *                                                       *
  *********************************************************/
@@ -206,10 +206,10 @@ EXPONENT=([eE](\+?|-){INTEGER})
 DECIMAL_LITERAL={INTEGER}(\.?{INTEGER})?{EXPONENT}?
 BASE={INTEGER}
 BASED_INTEGER={EXTENDED_DIGIT}(_?{EXTENDED_DIGIT})*
-BASED_LITERAL={BASE}#{BASED_INTEGER}(\.{BASED_INTEGER})?#{EXPONENT}?
+BASED_LITERAL={BASE}(#|:){BASED_INTEGER}(\.{BASED_INTEGER})?(#|:){EXPONENT}?
 IDENTIFIER=[a-zA-Z]("_"?[a-zA-Z0-9])*
 WHITESPACE=[ \n\r\t]+
-STRING_LITERAL=(\\\"|[^\n\r\"]|\\{WHITESPACE}+\\)*
+STRING_LITERAL=\"(\"\"|[^\n\"])*\"
 CHAR_LITERAL=\'[^\n]\'
 WHITESPACE=[ \n\r\t]+
 NEWLINE=("\r"|"\n"|"\r\n")
@@ -290,6 +290,14 @@ ANY_CHAR=(.|[\n])
     "while"         { return AdaTokenId.WHILE; }
     "with"          { return AdaTokenId.WITH; }
     "xor"           { return AdaTokenId.XOR; }
+}
+
+// Ada 95 compound keywords
+
+<YYINITIAL> {
+    "end case"      { return AdaTokenId.END_CASE; }
+    "end if"        { return AdaTokenId.END_IF; }
+    "end loop"      { return AdaTokenId.END_LOOP; }
 }
 
 // attributes
@@ -394,9 +402,8 @@ ANY_CHAR=(.|[\n])
     "+"             { return AdaTokenId.PLUS; }
     ","             { return AdaTokenId.COMMA; }
     "-"             { return AdaTokenId.MINUS; }
-    "."             {
-                        pushState(ST_LOOKING_FOR_PROPERTY);
-                        return AdaTokenId.DOT;
+    "."             { pushState(ST_LOOKING_FOR_PROPERTY);
+                      return AdaTokenId.DOT;
                     }
     "/"             { return AdaTokenId.SLASH; }
     ":"             { return AdaTokenId.COLON; }
@@ -442,9 +449,19 @@ ANY_CHAR=(.|[\n])
     return AdaTokenId.DOT;
 }
 
+<ST_LOOKING_FOR_PROPERTY>".." {
+    popState();
+    return AdaTokenId.DOT_DOT;
+}
+
 <ST_LOOKING_FOR_PROPERTY>{IDENTIFIER} {
     popState();
     return AdaTokenId.IDENTIFIER;
+}
+
+<ST_LOOKING_FOR_PROPERTY>{ANY_CHAR} {
+    yypushback(1);
+    popState();
 }
 
 <YYINITIAL>{IDENTIFIER} {
@@ -465,11 +482,6 @@ ANY_CHAR=(.|[\n])
     return  AdaTokenId.WHITESPACE;
 }
 
-<ST_LOOKING_FOR_PROPERTY>{CHAR_LITERAL} {
-    yypushback(1);
-    popState();
-}
-
 <YYINITIAL>{DECIMAL_LITERAL} {
     return AdaTokenId.DECIMAL_LITERAL;
 }
@@ -478,40 +490,25 @@ ANY_CHAR=(.|[\n])
     return AdaTokenId.BASED_LITERAL;
 }
 
-<YYINITIAL>\"{STRING_LITERAL}\" {
+<YYINITIAL>{STRING_LITERAL} {
     return AdaTokenId.STRING_LITERAL;
 }
 
-<YYINITIAL>\"{STRING_LITERAL} {
-    pushState(ST_HIGHLIGHTING_ERROR);
-    return  AdaTokenId.UNKNOWN_TOKEN;
-}
-
-<YYINITIAL>\'{CHAR_LITERAL}\' {
+<YYINITIAL>{CHAR_LITERAL} {
     return AdaTokenId.CHAR_LITERAL;
 }
 
-<YYINITIAL>\'{CHAR_LITERAL} {
-    pushState(ST_HIGHLIGHTING_ERROR);
-    return  AdaTokenId.UNKNOWN_TOKEN;
-}
-
-<YYINITIAL>\'{CHAR_LITERAL} {
-    pushState(ST_HIGHLIGHTING_ERROR);
-    return  AdaTokenId.UNKNOWN_TOKEN;
-}
-
 <YYINITIAL>"--" {
-    pushState(ST_COMMENT);
+    pushState(ST_LINE_COMMENT);
     return AdaTokenId.COMMENT;
 }
 
-<ST_COMMENT>[^\n\r]*{ANY_CHAR} {
+<ST_LINE_COMMENT>[^\n\r]*{ANY_CHAR} {
     popState();
     return AdaTokenId.COMMENT;
 }
 
-<ST_COMMENT>{NEWLINE} {
+<ST_LINE_COMMENT>{NEWLINE} {
     popState();
     return AdaTokenId.COMMENT;
 }
