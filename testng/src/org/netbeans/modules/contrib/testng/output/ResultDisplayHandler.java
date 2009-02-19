@@ -49,32 +49,45 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
-import org.openide.ErrorManager;
+import org.openide.util.Lookup;
 
 /**
  *
  * @author Marian Petras
  */
 final class ResultDisplayHandler {
-    
+
+    private static final Logger LOGGER = Logger.getLogger(ResultDisplayHandler.class.getName());
     /** */
     private static java.util.ResourceBundle bundle = org.openide.util.NbBundle.getBundle(
             ResultDisplayHandler.class);
-    
+
     /** */
     private ResultPanelTree treePanel;
     /** */
     private ResultPanelOutput outputListener;
     /** */
     private Component displayComp;
-    
-    
+
+    private Lookup l;
+
+
     /** Creates a new instance of ResultDisplayHandler */
     ResultDisplayHandler() {
     }
-    
+
+    void setLookup(Lookup l) {
+        this.l = l;
+    }
+
+    Lookup getLookup() {
+        return l;
+    }
+
     /**
      */
     Component getDisplayComponent() {
@@ -83,7 +96,7 @@ final class ResultDisplayHandler {
         }
         return displayComp;
     }
-    
+
     /**
      */
     private Component createDisplayComp() {
@@ -97,17 +110,17 @@ final class ResultDisplayHandler {
                 super.addNotify();
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-//                        int loc = JUnitSettings.getDefault().getResultsSplitPaneDivider();
-//                        if (loc != -1) {
-//                            setDividerLocation(loc);
-//                        }
+                        int loc = TestNGSettings.getDefault().getResultsSplitPaneDivider();
+                        if (loc != -1) {
+                            setDividerLocation(loc);
+                        }
                     }
                 });
             }
 
             @Override
             public void removeNotify() {
-//                JUnitSettings.getDefault().setResultsSplitPaneDivider(getDividerLocation());
+                TestNGSettings.getDefault().setResultsSplitPaneDivider(getDividerLocation());
                 super.removeNotify();
             }
         };
@@ -115,7 +128,7 @@ final class ResultDisplayHandler {
         splitPane.getAccessibleContext().setAccessibleDescription(bundle.getString("ACSD_ResultPanelTree"));
         return splitPane;
     }
-    
+
     /**
      */
     void displayShown() {
@@ -123,7 +136,7 @@ final class ResultDisplayHandler {
         //PENDING
         //
     }
-    
+
     /**
      */
     void displayHidden() {
@@ -131,7 +144,7 @@ final class ResultDisplayHandler {
         //PENDING
         //
     }
-    
+
     //------------------ DISPLAYING OUTPUT ----------------------//
 
     static final Object[] EMPTY_QUEUE = new Object[0];
@@ -139,13 +152,13 @@ final class ResultDisplayHandler {
     private volatile Object[] outputQueue;
     private volatile int outputQueueSize = 0;
     private int outputQueueAvailSpace;
-    
+
     /**
      */
     Object getOutputQueueLock() {
         return queueLock;
     }
-    
+
     /**
      */
     void setOutputListener(ResultPanelOutput outputPanel) {
@@ -153,7 +166,7 @@ final class ResultDisplayHandler {
             this.outputListener = outputPanel;
         }
     }
-    
+
     /**
      */
     void displayOutput(final String text, final boolean error) {
@@ -174,20 +187,20 @@ final class ResultDisplayHandler {
                 Object[] oldQueue = outputQueue;
                 outputQueue = new Object[newCapacity];
                 System.arraycopy(oldQueue, 0, outputQueue, 0, outputQueueSize);
-                
+
                 outputQueueAvailSpace += outputQueue.length - oldQueue.length;
             }
             if (error) {
                 outputQueue[outputQueueSize++] = Boolean.TRUE;
             }
             outputQueue[outputQueueSize++] = text;
-            
+
             if (outputListener != null) {
                 outputListener.outputAvailable();
             }
         }
     }
-    
+
     /**
      */
     Object[] consumeOutput() {
@@ -201,10 +214,10 @@ final class ResultDisplayHandler {
             return passedQueue;
         }
     }
-    
+
     //-----------------------------------------------------------//
     //------------------- DISPLAYING TREE -----------------------//
-    
+
     static final String ANONYMOUS_SUITE = new String();
     /**
      * name of the currently running suite - to be passed to the
@@ -214,36 +227,36 @@ final class ResultDisplayHandler {
     private List<Report> reports;
     private String message;
     private boolean sessionFinished;
-    
+
     /**
      *
      * @param  suiteName  name of the running suite; or {@code null} in the case
      *                    of anonymous suite
      */
     void displaySuiteRunning(String suiteName) {
-        
+
         /* Called from the AntLogger's thread */
-        
+
         assert runningSuite == null;
-        
+
         suiteName = (suiteName != null) ? suiteName : ANONYMOUS_SUITE;
-        
+
         synchronized (this) {
             if (treePanel == null) {
                 runningSuite = suiteName;
                 return;
             }
         }
-        
+
         displayInDispatchThread("displaySuiteRunning", suiteName);      //NOI18N
     }
 
     /**
      */
     void displayReport(final Report report) {
-        
+
         /* Called from the AntLogger's thread */
-        
+
         synchronized (this) {
             if (treePanel == null) {
                 if (reports == null) {
@@ -254,12 +267,12 @@ final class ResultDisplayHandler {
                 return;
             }
         }
-        
+
         displayInDispatchThread("displayReport", report);               //NOI18N
-        
+
         assert runningSuite == null;
     }
-    
+
     /**
      */
     void displayMessage(final String msg) {
@@ -272,10 +285,10 @@ final class ResultDisplayHandler {
                 return;
             }
         }
-        
+
         displayInDispatchThread("displayMsg", msg);                     //NOI18N
     }
-    
+
     /**
      */
     void displayMessageSessionFinished(final String msg) {
@@ -289,13 +302,13 @@ final class ResultDisplayHandler {
                 return;
             }
         }
-        
+
         displayInDispatchThread("displayMsgSessionFinished", msg);        //NOI18N
     }
-    
+
     /** */
     private Map<String,Method> methodsMap;
-    
+
     /**
      * Calls a given display-method of class {@code ResutlPanelTree}
      * in the AWT event queue thread.
@@ -307,37 +320,37 @@ final class ResultDisplayHandler {
                                          final Object param) {
         assert methodName != null;
         assert treePanel != null;
-        
+
         final Method method = prepareMethod(methodName);
         if (method == null) {
             return;
         }
-        
+
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
                     method.invoke(treePanel, new Object[] {param});
                 } catch (InvocationTargetException ex) {
-                    ErrorManager.getDefault().notify(ex.getTargetException());
+                    LOGGER.log(Level.SEVERE, null, ex);
                 } catch (Exception ex) {
-                    ErrorManager.getDefault().notify(ErrorManager.ERROR, ex);
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
             }
         });
     }
-    
+
     /**
      */
     private Method prepareMethod(final String methodName) {
         Method method;
-        
+
         if (methodsMap == null) {
             methodsMap = new HashMap<String,Method>(4);
             method = null;
         } else {
             method = methodsMap.get(methodName);
         }
-        
+
         if ((method == null) && !methodsMap.containsKey(methodName)) {
             final Class paramType;
             if (methodName.equals("displayReport")) {                   //NOI18N
@@ -353,22 +366,22 @@ final class ResultDisplayHandler {
                          .getDeclaredMethod(methodName, new Class[] {paramType});
             } catch (Exception ex) {
                 method = null;
-                ErrorManager.getDefault().notify(ErrorManager.ERROR, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             methodsMap.put(methodName, method);
         }
-        
+
         return method;
     }
-    
-    
+
+
     /**
      */
     void setTreePanel(final ResultPanelTree treePanel) {
         assert EventQueue.isDispatchThread();
-        
+
         /* Called from the EventDispatch thread */
-        
+
         synchronized (this) {
             if (this.treePanel != null) {
                 return;
@@ -376,7 +389,7 @@ final class ResultDisplayHandler {
 
             this.treePanel = treePanel;
         }
-        
+
         if (message != null) {
             treePanel.displayMsg(message);
             message = null;

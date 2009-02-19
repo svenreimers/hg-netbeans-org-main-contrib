@@ -45,6 +45,8 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -94,8 +96,18 @@ class SourceForBinaryImpl implements SourceForBinaryQueryImplementation {
             List<FileObject> roots = new ArrayList<FileObject>();
             for (Map.Entry<String,String> entry : Cache.pairs()) {
                 String k = entry.getKey();
-                if (k.endsWith(JavaCacheConstants.BINARY) && entry.getValue().equals(root)) {
-                    roots.add(FileUtil.toFileObject(new File(k.substring(0, k.length() - JavaCacheConstants.BINARY.length()))));
+                List<String> translatedRoots;
+                String dirs = Cache.get(root + JavaCacheConstants.JAR);
+                if (dirs != null) {
+                    translatedRoots = Arrays.asList(dirs.split(File.pathSeparator));
+                } else {
+                    translatedRoots = Collections.singletonList(root);
+                }
+                if (k.endsWith(JavaCacheConstants.BINARY) && translatedRoots.contains(entry.getValue())) {
+                    FileObject r = FileUtil.toFileObject(new File(k.substring(0, k.length() - JavaCacheConstants.BINARY.length())));
+                    if (r != null) {
+                        roots.add(r);
+                    }
                 }
             }
             LOG.log(Level.FINE, "sources of " + root + ": " + roots);

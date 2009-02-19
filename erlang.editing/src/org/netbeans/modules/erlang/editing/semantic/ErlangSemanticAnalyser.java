@@ -43,20 +43,34 @@ package org.netbeans.modules.erlang.editing.semantic;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.text.Document;
 import org.netbeans.api.languages.ASTItem;
 import org.netbeans.api.languages.ASTNode;
 import org.netbeans.api.languages.ASTToken;
-import org.netbeans.api.languages.ParserManager;
-import org.netbeans.api.languages.ParserManager.State;
-import org.netbeans.api.languages.ParserManagerListener;
+import org.netbeans.api.languages.ParserResult;
 import org.netbeans.api.languages.SyntaxContext;
 import org.netbeans.api.languages.database.DatabaseManager;
 import org.netbeans.modules.editor.NbEditorUtilities;
 import org.netbeans.modules.erlang.editing.spi.ErlangIndexProvider;
+import org.netbeans.modules.parsing.api.ParserManager;
+import org.netbeans.modules.parsing.api.ResultIterator;
+import org.netbeans.modules.parsing.api.Snapshot;
+import org.netbeans.modules.parsing.api.Source;
+import org.netbeans.modules.parsing.api.UserTask;
+import org.netbeans.modules.parsing.spi.ParseException;
+import org.netbeans.modules.parsing.spi.Parser;
+import org.netbeans.modules.parsing.spi.Parser.Result;
+import org.netbeans.modules.parsing.spi.ParserResultTask;
+import org.netbeans.modules.parsing.spi.Scheduler;
+import org.netbeans.modules.parsing.spi.SchedulerEvent;
+import org.netbeans.modules.parsing.spi.SchedulerTask;
+import org.netbeans.modules.parsing.spi.TaskFactory;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 
@@ -66,6 +80,8 @@ import org.openide.loaders.DataObject;
  */
 public class ErlangSemanticAnalyser {
 
+    private static final Logger LOG = Logger.getLogger(ErlangSemanticAnalyser.class.getName());
+    
     /**
      * JavaScript module use doc as the key, so, if the doc is modified, it do not
      * process semantic parsing any more, it just iterate the old JSRoot context to
@@ -101,8 +117,9 @@ public class ErlangSemanticAnalyser {
      */
     private boolean forIndexing;
 
-    private ParserManager parserManager;
-    private ParserManagerListener parserManagerListener;
+// XXX: parsingapi
+//    private ParserManager parserManager;
+//    private ParserManagerListener parserManagerListener;
     
     /** Don't get WILD_VAR to be static, otherwise, it will collect all usages cross all once opened source files */
     private ErlVariable WILD_VAR = new ErlVariable("_", 0, 0, ErlVariable.Scope.LOCAL);
@@ -111,7 +128,8 @@ public class ErlangSemanticAnalyser {
         this.doc = doc;
         this.fo = NbEditorUtilities.getFileObject(doc);
         this.index = ErlangIndexProvider.getDefault().get(fo);
-        initParserManagerListener();
+// XXX: parsingapi
+//        initParserManagerListener();
     }
 
     private ErlangSemanticAnalyser(boolean forIndexing) {
@@ -119,28 +137,30 @@ public class ErlangSemanticAnalyser {
         this.forIndexing = forIndexing;
     }
 
-    private void initParserManagerListener() {
-        parserManager = ParserManager.get(doc);
-        parserManagerListener = new ParserManagerListener() {
+// XXX: parsingapi
+//    private void initParserManagerListener() {
+//        parserManager = ParserManager.get(doc);
+//        parserManagerListener = new ParserManagerListener() {
+//
+//            public void parsed(State state, ASTNode root) {
+//                if (state == State.PARSING) {
+//                    return;
+//                } else {
+//                    analyse(root);
+//                }
+//            }
+//        };
+//        parserManager.addListener(parserManagerListener);
+//    }
 
-            public void parsed(State state, ASTNode root) {
-                if (state == State.PARSING) {
-                    return;
-                } else {
-                    analyse(root);
-                }
-            }
-        };
-        parserManager.addListener(parserManagerListener);
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (parserManager != null && parserManagerListener != null) {
-            parserManager.removeListener(parserManagerListener);
-        }
-    }    
+// XXX: parsingapi
+//    @Override
+//    protected void finalize() throws Throwable {
+//        super.finalize();
+////        if (parserManager != null && parserManagerListener != null) {
+////            parserManager.removeListener(parserManagerListener);
+////        }
+//    }
     
     public ASTNode getAstRoot() {
         return astRoot;
@@ -234,10 +254,22 @@ public class ErlangSemanticAnalyser {
     
     
     public static ErlContext getCurrentRootCtx(Document doc) {
-        ErlangSemanticAnalyser analyser = getAnalyser(doc);
+        final ErlangSemanticAnalyser analyser = getAnalyser(doc);
         if (analyser.rootCtx == null) {
-             ParserManager parserManager = ParserManager.get(doc);
-             waitingForParsingFinished(parserManager);
+// XXX: parsingapi
+//             ParserManager parserManager = ParserManager.get(doc);
+//             waitingForParsingFinished(parserManager);
+            try {
+                ParserManager.parse(Collections.singleton(Source.create(doc)), new UserTask() {
+                    public @Override void run(ResultIterator resultIterator) throws Exception {
+                        Parser.Result r = resultIterator.getParserResult();
+                        assert r instanceof ParserResult;
+                        analyser.analyse(((ParserResult) r).getRootNode());
+                    }
+                });
+            } catch (ParseException e) {
+                LOG.log(Level.WARNING, null, e);
+            }
         }
         return analyser.rootCtx;
     }
@@ -1171,16 +1203,59 @@ public class ErlangSemanticAnalyser {
         return null;
     }
 
-    private static void waitingForParsingFinished(ParserManager parserManager) {
-        int counter = 0;
-        try {
-            while (((parserManager.getState() == ParserManager.State.NOT_PARSED) ||
-                    (parserManager.getState() == ParserManager.State.PARSING)) && counter < 200) {
-                Thread.sleep(100);
-                counter++;
+//    private static void waitingForParsingFinished(ParserManager parserManager) {
+//        int counter = 0;
+//        try {
+//            while (((parserManager.getState() == ParserManager.State.NOT_PARSED) ||
+//                    (parserManager.getState() == ParserManager.State.PARSING)) && counter < 200) {
+//                Thread.sleep(100);
+//                counter++;
+//            }
+//        } catch (InterruptedException e) {
+//        }
+//    }
+
+    private static final class ESATask extends ParserResultTask {
+
+        @Override
+        public void run(Result result, SchedulerEvent event) {
+            assert result instanceof ParserResult;
+            ParserResult pr = (ParserResult) result;
+
+            ErlangSemanticAnalyser analyser;
+            Source source = result.getSnapshot().getSource();
+            Document doc = source.getDocument(false);
+            if (doc != null) {
+                analyser = getAnalyser(doc);
+            } else {
+                analyser = getAnalyser(source.getFileObject());
             }
-        } catch (InterruptedException e) {
+
+            // XXX: this is wrong!! analyse should stop when the task is cancelled
+            // XXX: synchronization ?!
+            analyser.analyse(pr.getRootNode());
         }
+
+        public @Override int getPriority() {
+            return 1; // XXX: not sure about that
+        }
+
+        public @Override Class<? extends Scheduler> getSchedulerClass() {
+            return Scheduler.EDITOR_SENSITIVE_TASK_SCHEDULER;
+        }
+
+        public @Override void cancel() {
+            // no-op
+        }
+
+    } // End of EASTask class
+
+    // used in the module XML layer
+    private static TaskFactory getESATaskFactory() {
+        return new TaskFactory() {
+            public @Override Collection<? extends SchedulerTask> create(Snapshot snapshot) {
+                return Collections.singleton(new ESATask());
+            }
+        };
     }
-    
 }

@@ -42,7 +42,6 @@ package org.netbeans.modules.spellchecker.bindings.ruby;
 
 import javax.swing.text.Document;
 import org.netbeans.editor.BaseDocument;
-import org.netbeans.modules.ruby.RubyMimeResolver;
 import org.netbeans.modules.ruby.RubyUtils;
 import org.netbeans.modules.spellchecker.spi.language.TokenList;
 import org.netbeans.modules.spellchecker.spi.language.TokenListProvider;
@@ -51,6 +50,7 @@ import org.netbeans.modules.spellchecker.spi.language.TokenListProvider;
  *
  * @author Jan Lahoda
  */
+@org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.spellchecker.spi.language.TokenListProvider.class)
 public class RubyTokenListProvider implements TokenListProvider {
     /** Creates a new instance of RubyTokenListProvider */
     public RubyTokenListProvider() {
@@ -65,7 +65,7 @@ public class RubyTokenListProvider implements TokenListProvider {
             return new RhtmlTokenList(bdoc);
         }
         String mimeType = (String)doc.getProperty("mimeType");
-        if (RubyMimeResolver.RUBY_MIME_TYPE.equals(mimeType)) {
+        if (RubyUtils.RUBY_MIME_TYPE.equals(mimeType)) {
             return new RubyTokenList(bdoc);
         }
 

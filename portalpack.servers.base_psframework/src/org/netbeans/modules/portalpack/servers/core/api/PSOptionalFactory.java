@@ -21,8 +21,6 @@ package org.netbeans.modules.portalpack.servers.core.api;
 
 import org.netbeans.modules.j2ee.deployment.plugins.spi.AntDeploymentProvider;
 import org.netbeans.modules.portalpack.servers.core.*;
-import org.netbeans.modules.portalpack.servers.core.common.NetbeansServerConstant;
-import org.netbeans.modules.portalpack.servers.core.common.NetbeansServerType;
 import org.netbeans.modules.portalpack.servers.core.impl.PSAntDeploymentProviderImpl;
 import org.netbeans.modules.portalpack.servers.core.ui.PSInstantiatingIterator;
 import javax.enterprise.deploy.spi.DeploymentManager;
@@ -30,6 +28,10 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.IncrementalDeployment;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.OptionalDeploymentManagerFactory;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.StartServer;
+import org.netbeans.modules.portalpack.servers.core.common.ServerConstants;
+import org.netbeans.modules.portalpack.servers.core.impl.j2eeservers.sunappserver.SunAppIncrementalDeployment;
+import org.netbeans.modules.portalpack.servers.core.impl.j2eeservers.tomcat.TomcatIncrementalDeployment;
+import org.netbeans.modules.portalpack.servers.core.util.PSConfigObject;
 import org.openide.WizardDescriptor.InstantiatingIterator;
 
 /**
@@ -43,6 +45,26 @@ public abstract class PSOptionalFactory extends OptionalDeploymentManagerFactory
     }
     
     public IncrementalDeployment getIncrementalDeployment(DeploymentManager dm) {
+        
+        if(!(dm instanceof PSDeploymentManager))
+            return null;
+        
+        PSDeploymentManager pdm = (PSDeploymentManager)dm;
+        PSConfigObject pconfig = pdm.getPSConfig();
+        
+        if(pconfig.getServerType() == null)
+            return null;
+        
+        if(pconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9)) {
+            
+            return new SunAppIncrementalDeployment(pdm);
+            
+        } else if(pconfig.getServerType().equals(ServerConstants.TOMCAT_5_X) 
+                    || pconfig.getServerType().equals(ServerConstants.TOMCAT_6_X)) {
+            
+            return new TomcatIncrementalDeployment(pdm);
+        }
+        
         return null;
     }
     

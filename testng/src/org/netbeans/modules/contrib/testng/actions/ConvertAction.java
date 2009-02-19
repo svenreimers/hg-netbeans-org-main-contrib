@@ -40,30 +40,33 @@ package org.netbeans.modules.contrib.testng.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.contrib.testng.ProjectUtilities;
-import org.netbeans.modules.contrib.testng.TestNGProjectUpdater;
+import org.netbeans.modules.contrib.testng.api.TestNGSupport;
+import org.netbeans.modules.contrib.testng.api.TestNGSupport.Action;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.CookieAction;
 
 public final class ConvertAction extends CookieAction {
 
+    private static final Logger LOGGER = Logger.getLogger(ConvertAction.class.getName());
+
     @Override
     protected boolean enable(Node[] activatedNodes) {
         if (super.enable(activatedNodes)) {
             DataObject dataObject = activatedNodes[0].getLookup().lookup(DataObject.class);
             Project p = FileOwnerQuery.getOwner(dataObject.getPrimaryFile());
-            return ProjectUtilities.isAntProject(p);
+            return TestNGSupport.isActionSupported(Action.CONVERT, p);
         }
         return false;
     }
@@ -81,7 +84,7 @@ public final class ConvertAction extends CookieAction {
                 NotifyDescriptor.OK_OPTION);
         if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(nd))) {
             FileObject fo = dataObject.getPrimaryFile();
-            TestNGProjectUpdater.initBuildScript(fo);
+            TestNGSupport.findTestNGSupport(FileOwnerQuery.getOwner(fo)).configureProject(fo);
             fo = FileOwnerQuery.getOwner(fo).getProjectDirectory();
             File f = FileUtil.toFile(fo);
             try {
@@ -90,7 +93,7 @@ public final class ConvertAction extends CookieAction {
                         new String[] {"convert"},
                         null);
             } catch (IOException ioe) {
-                Exceptions.printStackTrace(ioe);
+                LOGGER.log(Level.SEVERE, null, ioe);
             }
             FileUtil.refreshFor(f);
         }

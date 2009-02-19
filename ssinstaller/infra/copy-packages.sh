@@ -23,6 +23,7 @@ echo "Copy packages $platform in $DEST_PACKAGES from $SS_PACKAGES_DIR"
 rm -rf $DEST_PACKAGES/*
 mkdir -p $DEST_PACKAGES
 cp -r $SS_PACKAGES_DIR/* $DEST_PACKAGES
+cp -r $SS_TWEAK_DIR/SPROtweak $DEST_PACKAGES
 
 if [ $platform = "intel-Linux" ]
 then 
@@ -46,7 +47,7 @@ mkdir -p $DEST_NB
 cp $NB_ARCHIVE_DIR/* $DEST_NB
 cd $DEST_NB
 mv atd-cluster*.zip atd-cluster.zip   
-mv netbeans-trunk*.zip netbeans.zip
+mv netbeans*.zip netbeans.zip
 unzip netbeans.zip
 cd netbeans
 zip -r netbeans.zip *

@@ -36,12 +36,14 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.project;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import org.netbeans.modules.ada.project.ui.actions.BuildCommand;
+import org.netbeans.modules.ada.project.ui.actions.RebuildCommand;
+import org.netbeans.modules.ada.project.ui.actions.CleanCommand;
 import org.netbeans.modules.ada.project.ui.actions.Command;
 import org.netbeans.modules.ada.project.ui.actions.CopyCommand;
 import org.netbeans.modules.ada.project.ui.actions.DebugCommand;
@@ -60,9 +62,13 @@ import org.openide.util.RequestProcessor;
  */
 public class AdaActionProvider implements ActionProvider {
 
-    AdaProject project;
-    
-    private final Map<String,Command> commands;
+    /**
+     * Standard command for running Adadoc on a project.
+     * @see org.netbeans.spi.project.ActionProvider
+     */
+    public static final String COMMAND_ADADOC = "adadoc"; // NOI18N
+    final AdaProject project;
+    private final Map<String, Command> commands;
 
     /**
      * 
@@ -70,14 +76,19 @@ public class AdaActionProvider implements ActionProvider {
      */
     public AdaActionProvider(AdaProject project) {
         assert project != null;
+        this.project = project;
+
         commands = new LinkedHashMap<String, Command>();
-        Command[] commandArray = new Command[] {
+        Command[] commandArray = new Command[]{
             new DeleteCommand(project),
             new CopyCommand(project),
             new MoveCommand(project),
             new RenameCommand(project),
             new RunCommand(project),
-            new DebugCommand(project) ,
+            new DebugCommand(project),
+            new BuildCommand(project),
+            new CleanCommand(project),
+            new RebuildCommand(project)
         };
         for (Command command : commandArray) {
             commands.put(command.getCommandId(), command);
@@ -97,7 +108,7 @@ public class AdaActionProvider implements ActionProvider {
      *
      * @param commandName
      * @param context
-     * @throws java.lang.IllegalArgumentException
+     * @throws IllegalArgumentException
      */
     public void invokeAction(final String commandName, final Lookup context) throws IllegalArgumentException {
         final Command command = findCommand(commandName);
@@ -109,6 +120,7 @@ public class AdaActionProvider implements ActionProvider {
             command.invokeAction(context);
         } else {
             RequestProcessor.getDefault().post(new Runnable() {
+
                 public void run() {
                     command.invokeAction(context);
                 }
@@ -117,26 +129,25 @@ public class AdaActionProvider implements ActionProvider {
     }
 
     /**
-     * 
+     *
      * @param commandName
      * @param context
      * @return
-     * @throws java.lang.IllegalArgumentException
+     * @throws IllegalArgumentException
      */
     public boolean isActionEnabled(String commandName, Lookup context) throws IllegalArgumentException {
-        final Command command = findCommand (commandName);
+        final Command command = findCommand(commandName);
         assert command != null;
         return command.isActionEnabled(context);
     }
-    
+
     /**
-     * 
+     *
      * @param commandName
      * @return
      */
-    private Command findCommand (final String commandName) {
+    private Command findCommand(final String commandName) {
         assert commandName != null;
         return commands.get(commandName);
     }
-
 }

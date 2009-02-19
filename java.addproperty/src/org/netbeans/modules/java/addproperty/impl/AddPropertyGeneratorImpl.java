@@ -50,13 +50,14 @@ import javax.script.ScriptException;
 import org.netbeans.modules.java.addproperty.api.AddPropertyConfig;
 import org.netbeans.modules.java.addproperty.api.AddPropertyGenerator;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.Repository;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
 /**
  *
  * @author  Sandip V. Chitale (Sandip.Chitale@Sun.Com)
  */
+@org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.java.addproperty.api.AddPropertyGenerator.class)
 public class AddPropertyGeneratorImpl extends AddPropertyGenerator {
 
     public String generate(AddPropertyConfig addPropertyConfig) {
@@ -143,7 +144,7 @@ public class AddPropertyGeneratorImpl extends AddPropertyGenerator {
     }
     
     private static FileObject getTemplateFileObject(String templatePath) {        
-        return Repository.getDefault().getDefaultFileSystem().getRoot().getFileObject(templatePath);
+        return FileUtil.getConfigFile(templatePath);
     }
 
     private static ScriptEngine getScriptEngine() {

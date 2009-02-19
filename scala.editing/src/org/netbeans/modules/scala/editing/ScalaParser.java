@@ -42,8 +42,6 @@ package org.netbeans.modules.scala.editing;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,7 +76,6 @@ import org.openide.filesystems.FileStateInvalidException;
 import org.openide.util.Exceptions;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
-import scala.tools.nsc.ast.Trees.Tree;
 import scala.tools.nsc.reporters.Reporter;
 import scala.tools.nsc.util.BatchSourceFile;
 import scala.tools.nsc.util.Position;
@@ -548,8 +545,7 @@ public class ScalaParser implements Parser {
         }
         try {
             CompilationUnit unit = ScalaGlobal.compileSource(global, srcFile);
-            Tree tree = unit.body();
-            rootScope = new AstTreeVisitor(tree, th, srcFile).getRootScope();
+            rootScope = new AstTreeVisitor(global, unit, th, srcFile).getRootScope();
         } catch (AssertionError ex) {
             // avoid scala nsc's assert error
             ScalaGlobal.reset();
@@ -560,7 +556,8 @@ public class ScalaParser implements Parser {
             notifyError(context, "SYNTAX_ERROR", ex.getMessage(),
                     0, 0, sanitizing, Severity.ERROR, new Object[]{ex});
         } catch (Exception ex) {
-            // Scala's global throws too many exceptions
+            ex.printStackTrace();
+        // Scala's global throws too many exceptions
         } finally {
             if (doc != null) {
                 doc.readUnlock();
@@ -574,7 +571,12 @@ public class ScalaParser implements Parser {
             pResult.setSource(source);
             return pResult;
         } else {
-            return sanitize(context, sanitizing);
+            // Don't do sanitize trying:
+            //return sanitize(context, sanitizing);
+            ScalaParserResult pResult = createParserResult(context.file, rootScope, null, context.th, context.getErrors());
+            pResult.setSanitized(context.sanitized, context.sanitizedRange, context.sanitizedContents);
+            pResult.setSource(source);
+            return pResult;
         }
     }
     private static long version;
@@ -780,13 +782,25 @@ public class ScalaParser implements Parser {
 
         @Override
         public void info0(Position pos, String msg, Severity severity, boolean force) {
-            int offset = ScalaUtils.getOffset(pos);
-            org.netbeans.modules.gsf.api.Severity sev = org.netbeans.modules.gsf.api.Severity.ERROR;
-
             boolean ignoreError = context.sanitizedSource != null;
             if (!ignoreError) {
+                int offset = ScalaUtils.getOffset(pos);
+                org.netbeans.modules.gsf.api.Severity sev = org.netbeans.modules.gsf.api.Severity.ERROR;
+                switch (severity.id()) {
+                    case 0:
+                        return;
+                    case 1:
+                        sev = org.netbeans.modules.gsf.api.Severity.WARNING;
+                        break;
+                    case 2:
+                        sev = org.netbeans.modules.gsf.api.Severity.ERROR;
+                        break;
+                    default:
+                        return;
+                }
+
                 notifyError(context, "SYNTAX_ERROR", msg,
-                        offset, offset, sanitizing, sev, new Object[]{offset, msg});
+                        offset, -1, sanitizing, sev, new Object[]{offset, msg});
             }
         }
     }

@@ -46,5 +46,5 @@ package org.netbeans.modules.ada.editor;
 public enum AdaVersion {
     ADA_83,
     ADA_95,
-    ADA_05; // Ada 2005
+    ADA_2005;
 }

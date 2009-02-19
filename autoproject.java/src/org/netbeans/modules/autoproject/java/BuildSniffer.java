@@ -41,6 +41,7 @@ package org.netbeans.modules.autoproject.java;
 
 import org.netbeans.modules.autoproject.spi.Cache;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -61,11 +62,13 @@ import org.netbeans.spi.java.project.support.JavadocAndSourceRootDetection;
 import org.netbeans.spi.project.support.ant.PathMatcher;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Tracks progress of Ant builds and looks for calls to important tasks like javac.
  * These are analyzed for interesting information.
  */
+@ServiceProvider(service=AntLogger.class)
 public class BuildSniffer extends AntLogger {
 
     private static final Logger LOG = Logger.getLogger(BuildSniffer.class.getName());
@@ -96,10 +99,11 @@ public class BuildSniffer extends AntLogger {
         return AntLogger.ALL_TARGETS;
     }
 
+    // XXX may also want/need: delete, copy, javadoc, ...
+    private final String[] INTERESTING_TASKS = {"javac", "fileset", "jar"};
     @Override
     public String[] interestedInTasks(AntSession session) {
-        // XXX may also want/need: jar, delete, copy, javadoc, ...
-        return new String[] {"javac", "fileset"};
+        return INTERESTING_TASKS;
     }
 
     /**
@@ -141,21 +145,38 @@ public class BuildSniffer extends AntLogger {
             state = new State();
             event.getSession().putCustomData(this, state);
         }
-        if (event.getTaskName().equals("fileset")) {
-            String id = event.getTaskStructure().getAttribute("id");
-            String dir = event.getTaskStructure().getAttribute("dir");
-            if (id != null && dir != null) {
-                state.filesetBasedirs.put(id, dir);
-            }
-            return;
+        String taskName = event.getTaskName();
+        if (taskName.equals("fileset")) {
+            handleFileset(event, state);
+        } else if (taskName.equals("javac")) {
+            handleJavac(event, state);
+        } else if (taskName.equals("jar")) {
+            handleJar(event, state);
+        } else {
+            assert false : event;
         }
-        assert event.getTaskName().equals("javac") : event;
+    }
+
+    private void handleFileset(AntEvent event, State state) {
+        String id = event.getTaskStructure().getAttribute("id");
+        String dir = event.getTaskStructure().getAttribute("dir");
+        if (id != null && dir != null) {
+            state.filesetBasedirs.put(id, dir);
+        }
+    }
+
+    private void handleJavac(AntEvent event, State state) {
         TaskStructure task = event.getTaskStructure();
         if (task == null) {
             return;
         }
         List<String> sources = new ArrayList<String>();
         appendPath(task.getAttribute("srcdir"), event, sources, true);
+        for (TaskStructure child : task.getChildren()) {
+            if (child.getName().equals("src")) {
+                appendPathStructure(child, event, sources, state);
+            }
+        }
         // XXX consider includes/excludes too?
         List<String> _destdir = new ArrayList<String>();
         appendPath(task.getAttribute("destdir"), event, _destdir, false);
@@ -173,9 +194,7 @@ public class BuildSniffer extends AntLogger {
         }
         List<String> classpath = new ArrayList<String>();
         if (buildSysclasspath.matches("only|first")) {
-            // XXX would be good to exclude items in ${netbeans.home}/lib/*.jar and dt.jar
-            // XXX probably also safe to collapse ant/lib/*.jar to ant/lib/ant.jar
-            appendPath(System.getProperty("java.class.path"), event, classpath, true);
+            appendJavaClassPath(classpath);
         }
         if (!buildSysclasspath.equals("only")) {
             appendPath(task.getAttribute("classpath"), event, classpath, true);
@@ -184,15 +203,13 @@ public class BuildSniffer extends AntLogger {
                 appendPath(event.getProperty(cpref), event, classpath, true);
             }
             for (TaskStructure child : task.getChildren()) {
-                if (child.getName().equals("src")) {
-                    appendPathStructure(child, event, sources, state);
-                } else if (child.getName().equals("classpath")) {
+                if (child.getName().equals("classpath")) {
                     appendPathStructure(child, event, classpath, state);
                 }
             }
         }
         if (buildSysclasspath.equals("last")) {
-            appendPath(System.getProperty("java.class.path"), event, classpath, true);
+            appendJavaClassPath(classpath);
         }
         // Check to see if source roots are correct; srcdir on <javac> is sometimes wrong.
         ListIterator<String> sourcesIt = sources.listIterator();
@@ -204,7 +221,7 @@ public class BuildSniffer extends AntLogger {
                 FileObject realRootFO = JavadocAndSourceRootDetection.findSourceRoot(origRootFO);
                 if (realRootFO != null && realRootFO != origRootFO) {
                     File realRoot = FileUtil.toFile(realRootFO);
-                    LOG.log(Level.FINE, "Corrected root {0} to {1} based on package decl", new Object[]{origRoot, realRoot});
+                    LOG.log(Level.FINE, "Corrected root {0} to {1} based on package decl", new Object[] {origRoot, realRoot});
                     sourcesIt.set(realRoot.getAbsolutePath());
                 }
             }
@@ -236,7 +253,32 @@ public class BuildSniffer extends AntLogger {
             }
         }
     }
-    
+
+    private void handleJar(AntEvent event, State state) {
+        String jar = event.getTaskStructure().getAttribute("destfile");
+        if (jar == null) {
+            jar = event.getTaskStructure().getAttribute("jarfile");
+        }
+        if (jar == null) {
+            return;
+        }
+        String key = resolve(event, jar) + JavaCacheConstants.JAR;
+        List<String> basedirs = new ArrayList<String>();
+        String basedir = event.getTaskStructure().getAttribute("basedir");
+        if (basedir != null) {
+            basedirs.add(resolve(event, basedir).getAbsolutePath());
+        }
+        for (TaskStructure child : event.getTaskStructure().getChildren()) {
+            if (child.getName().equals("fileset")) {
+                basedir = child.getAttribute("dir");
+                if (basedir != null) {
+                    basedirs.add(resolve(event, basedir).getAbsolutePath());
+                }
+            }
+        }
+        writePath(key, basedirs, state);
+    }
+
     private static void writePath(String key, List<String> path, State state) {
         Set<String> writtenPath;
         synchronized (state.writtenKeys) {
@@ -260,6 +302,28 @@ public class BuildSniffer extends AntLogger {
                 continue;
             }
             entries.add(resolve(event, piece).getAbsolutePath());
+        }
+    }
+
+    private static void appendJavaClassPath(List<String> entries) {
+        File jdkLibs = canonicalizeFile(new File(new File(System.getProperty("java.home")).getParentFile(), "lib"));
+        for (String piece : System.getProperty("java.class.path").split(File.pathSeparator)) {
+            if (piece.length() == 0) {
+                continue;
+            }
+            File entry = new File(piece);
+            if (!canonicalizeFile(entry).getParentFile().equals(jdkLibs) || entry.getName().equals("tools.jar")) {
+                // XXX probably also safe to collapse ant/lib/*.jar (and java2/ant/patches/*.jar) to ant/lib/ant.jar
+                entries.add(FileUtil.normalizeFile(entry).getAbsolutePath());
+            }
+        }
+    }
+    private static File canonicalizeFile(File f) {
+        try {
+            return f.getCanonicalFile();
+        } catch (IOException x) {
+            // ignore and use original
+            return f;
         }
     }
 

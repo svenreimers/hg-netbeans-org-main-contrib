@@ -5,9 +5,11 @@
 
 
 # The directory to save binaries 
-OUTPUT_DIR="`pwd`/build"
+OUTPUT_DIR=${OUTPUT_DIR-"`pwd`/build"}
 export OUTPUT_DIR
 
+TMP_OUTPUT_DIR="`pwd`/build"
+export TMP_OUTPUT_DIR
 
 # Remote installer use this url
 BUNDLES_URL=file://../packaged
@@ -35,7 +37,7 @@ case `uname` in
 	INST_DIR=opt/sun
     ;;
 esac
-
+DISTRS=${VARIANT-$DISTRS}
 export DISTRS
 
 
@@ -43,6 +45,9 @@ export DISTRS
 SUNSTUDIO_BITS_ROOT=/shared/dp/sstrunk/latest
 SS_PACKAGES_DIR=${SS_PACKAGES_DIR-$SUNSTUDIO_BITS_ROOT/builds/$DISTRS/c_installers/dvd_image_universal/install-$DISTRS/packages-$DISTRS}
 export SS_PACKAGES_DIR
+
+SS_TWEAK_DIR=${SS_TWEAK_PACKAGE-$SUNSTUDIO_BITS_ROOT/builds/$DISTRS}
+export SS_TWEAK_DIR
 
 NB_ARCHIVE_DIR=${NB_ARCHIVE_DIR-$SUNSTUDIO_BITS_ROOT/builds/$DISTRS/c_installers/dvd_image_universal/install-$DISTRS/archives-$DISTRS}
 export NB_ARCHIVE_DIR

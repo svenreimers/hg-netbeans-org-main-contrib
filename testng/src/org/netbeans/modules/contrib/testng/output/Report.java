@@ -60,22 +60,22 @@ import org.openide.filesystems.FileUtil;
 import static java.util.logging.Level.FINER;
 
 /**
- * Data structure (model) of results of JUnit task results.
- * The data are built by the {@link JUnitOutputReader}.
+ * Data structure (model) of results of TestNG task results.
+ * The data are built by the {@link TestNGOutputReader}.
  *
- * @see  JUnitOutputReader
+ * @see  TestNGOutputReader
  * @author  Marian Petras
  */
 final class Report {
 
-    private final Logger LOG = Logger.getLogger(getClass().getName());
+    private final Logger LOG = Logger.getLogger(Report.class.getName());
 
     static enum InfoSource {
-
         VERBOSE_MSG,
         TEST_REPORT,
         XML_FILE
     }
+
     File antScript;
     File resultsDir;
     String suiteClassName;
@@ -86,7 +86,9 @@ final class Report {
     String[] outputErr;
     int totalTests;
     int failures;
-    int errors;
+    int skips;
+    int confSkips;
+    int confFailures;
     int interruptedTests;
     int elapsedTimeMillis;
     /**
@@ -96,7 +98,7 @@ final class Report {
     private Collection<Testcase> tests;
     private boolean hasTestsFromVerboseMsgs = false;
     private boolean suiteFinished = false;
-
+    
     /**
      */
     Report(String suiteClassName) {
@@ -107,28 +109,28 @@ final class Report {
         this.antScript = antScript;
         this.tests = new ArrayList<Testcase>(10);
     }
-
+    
     /**
      */
     void reportTest(Testcase test) {
-
+        
         /* Called from the AntLogger thread */
-
+        
         reportTest(test, InfoSource.TEST_REPORT);
     }
 
     void reportTest(Testcase test, final InfoSource source) {
-
+        
         /* Called from the AntLogger thread */
-
+        
         if (LOG.isLoggable(FINER)) {
-            LOG.finer("reportTest(" //NOI18N
-                    + (test.trouble == null ? "pass   " //NOI18N
-                    : test.trouble.isError() ? "error  " //NOI18N
-                    : "failure") //NOI18N
-                    + ", name: " + test.name //NOI18N
-                    + ", class: " + test.className //NOI18N
-                    + ')');
+            LOG.finer("reportTest("                                     //NOI18N
+                      + (test.trouble == null ? "pass   "               //NOI18N
+                                              : test.trouble.isFailure() ? "failure "  //NOI18N
+                                                                       : "skip    ") //NOI18N
+                      + ", name: " + test.name                          //NOI18N
+                      + ", class: " + test.className                    //NOI18N
+                      + ')');
         }
 
         boolean addToList = false;
@@ -140,7 +142,8 @@ final class Report {
                 hasTestsFromVerboseMsgs = true;
                 break;
             case TEST_REPORT:
-                addToList = !hasTestsFromVerboseMsgs || (findTest(test.name, false) == null);
+                addToList = !hasTestsFromVerboseMsgs
+                            || (findTest(test.name, false) == null);
                 break;
             case XML_FILE:
                 addToList = true;
@@ -164,10 +167,10 @@ final class Report {
             }
         } else if (updateAllStats) {
             totalTests++;
-            if (test.trouble.isError()) {
-                errors++;
-            } else {
+            if (test.trouble.isFailure()) {
                 failures++;
+            } else {
+                skips++;
             }
         }
     }
@@ -228,15 +231,15 @@ final class Report {
     boolean isSuiteInterrupted() {
         return !suiteFinished;
     }
-
+    
     /**
      */
     void update(Report report) {
-
+        
         /* Called from the AntLogger thread */
-
+        
         //PENDING - should be synchronized
-
+        
         //this.antScript = report.antScript;    - KEEP DISABLED!!!
         this.resultsDir = report.resultsDir;
         this.suiteClassName = report.suiteClassName;
@@ -244,17 +247,17 @@ final class Report {
         this.outputErr = report.outputErr;
         this.totalTests = report.totalTests;
         this.failures = report.failures;
-        this.errors = report.errors;
+        this.skips = report.skips;
         this.elapsedTimeMillis = report.elapsedTimeMillis;
         this.detectedPassedTests = report.detectedPassedTests;
         this.tests = report.tests;
         this.suiteFinished |= report.suiteFinished;
     }
-
+    
     /**
      */
     Collection<Testcase> getTests() {
-
+        
         /*
          * May be called both from the EventDispatch thread and
          * from other threads!
@@ -262,7 +265,7 @@ final class Report {
          * TestSuiteNodeChildren.setFiltered() ... EventDispatch thread
          * TestSuiteNodeChildren.addNotify() ... EventDispatch thread or else
          */
-
+        
         //PENDING - should be synchronized
         if (tests.isEmpty()) {
             final Collection<Testcase> emptyList = Collections.emptyList();
@@ -271,7 +274,7 @@ final class Report {
             return new ArrayList<Testcase>(tests);
         }
     }
-
+    
     /**
      */
     boolean containsFailed() {
@@ -279,62 +282,63 @@ final class Report {
 
         /* Called from the EventDispatch thread */
 
-        return (failures + errors) != 0;
+        return (failures + skips + confFailures + confSkips) != 0;
     }
 
     /**
      */
     static final class Testcase {
-
         static final int TIME_UNKNOWN = -1;
         static final int NOT_FINISHED_YET = -2;
         String className;
         String name;
+        boolean confMethod = false;
         int timeMillis;
         Trouble trouble;
 
-        Testcase() {
-        }
-
-        Testcase(String name) {
-            this.name = name;
-        }
+        Testcase() {}
+        Testcase(String name) { this.name = name; }
     }
-
+    
     /**
      */
     static final class Trouble {
+        
+        static final String COMPARISON_FAILURE_JUNIT3
+                = "junit.framework.ComparisonFailure";                  //NOI18N
+        static final String COMPARISON_FAILURE_JUNIT4
+                = "org.junit.ComparisonFailure";                        //NOI18N
 
-        static final String COMPARISON_FAILURE_JUNIT3 = "junit.framework.ComparisonFailure";                  //NOI18N
-        static final String COMPARISON_FAILURE_JUNIT4 = "org.junit.ComparisonFailure";                        //NOI18N
-        boolean error;
+        boolean failure;
         String message;
         String exceptionClsName;
         String[] stackTrace;
         Trouble nestedTrouble;
-
+        
         /**
          */
-        Trouble(boolean error) {
-            this.error = error;
+        Trouble(boolean failure) {
+            this.failure = failure;
         }
-
+        
         /** */
-        boolean isError() {
-            return error;
+        boolean isFailure() {
+            return failure;
         }
 
         /** */
         boolean isComparisonFailure() {
-            return (exceptionClsName != null) && (exceptionClsName.equals(COMPARISON_FAILURE_JUNIT3) || exceptionClsName.equals(COMPARISON_FAILURE_JUNIT4));
+            return (exceptionClsName != null)
+                   && (exceptionClsName.equals(COMPARISON_FAILURE_JUNIT3)
+                       || exceptionClsName.equals(COMPARISON_FAILURE_JUNIT4));
         }
 
         /** */
         boolean isFakeError() {
-            return error && isComparisonFailure();
+            return failure && isComparisonFailure();
         }
     }
-
+    
     /**
      * Builds a source {@code ClassPath} for the given {@code Report}.
      *
@@ -374,7 +378,7 @@ final class Report {
 
         Collection<FileObject> sourceRoots = new LinkedHashSet<FileObject>();
         final StringTokenizer tok = new StringTokenizer(classpath,
-                File.pathSeparator);
+                                                        File.pathSeparator);
         while (tok.hasMoreTokens()) {
             String binrootS = tok.nextToken();
             File f = FileUtil.normalizeFile(new File(binrootS));

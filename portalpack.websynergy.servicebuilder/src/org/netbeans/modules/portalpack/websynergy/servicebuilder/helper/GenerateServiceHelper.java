@@ -208,7 +208,7 @@ public class GenerateServiceHelper {
                              WebXmlHelper.addServiceBuilderParams(wm);
                              
                              FileObject fileObj = project.getProjectDirectory();
-                             FileObject lib = fileObj.getFileObject("service" + File.separator + "classes");
+                             FileObject lib = fileObj.getFileObject("service/classes");
                              /*if(lib != null) {
                                  FileObject[] children = lib.getChildren();
                                  List list = new ArrayList();
@@ -223,8 +223,12 @@ public class GenerateServiceHelper {
                             try {
                                 URL url = lib.getURL();
                                 LibraryHelper.addCompileRoot(project,new URL[]{url});
-                            } catch (FileStateInvalidException ex) {
+                            } catch (Exception ex) {
                                 ex.printStackTrace();
+                                NotifyDescriptor nd = new NotifyDescriptor.Message("Classpath could not be modified.\n" +
+                                        "Please add $project_dir/service/classes folder to your project classpath\n" +
+                                        "But don't package this folder in your webapp war.", NotifyDescriptor.WARNING_MESSAGE);
+                                DialogDisplayer.getDefault().notify(nd);
                             }
                                  
                             if(action != null)
@@ -297,6 +301,18 @@ public class GenerateServiceHelper {
 
                 props.setProperty("app.server.lib.global.dir", tomcatHome + File.separator + "common" + File.separator + "lib" + File.separator + "ext");
             }
+        } else if (psConfig.getServerType().equals(ServerConstants.TOMCAT_6_X)) {
+
+            String tomcatHome = psConfig.getProperty(TomcatConstant.CATALINA_HOME);
+
+            props.setProperty("app.server.dir", tomcatHome);
+
+            File deployLoc = new File(tomcatHome + File.separator + "webapps" + File.separator + "ROOT");
+            if (deployLoc.exists()) {
+                deployDir = deployLoc.getAbsolutePath();
+
+                props.setProperty("app.server.lib.global.dir", tomcatHome + File.separator + "lib" + File.separator + "ext");
+            }
         }
 
         if (deployDir != null || deployDir.trim().length() != 0) {
@@ -319,6 +335,10 @@ public class GenerateServiceHelper {
                 sb.append(servletAPI.getAbsoluteFile());
                 sb.append(":");
                 
+                String activationJar = glassFishHome + File.separator + "lib" + File.separator + "activation.jar";
+                sb.append(activationJar);
+                sb.append(":");
+                
                 //props.setProperty("servlet.jar.path", servletAPI.getAbsolutePath());
             } else {
                 //check for V3
@@ -327,7 +347,7 @@ public class GenerateServiceHelper {
 
                     public boolean accept(File dir, String name) {
 
-                        if (name.startsWith("javax.javaee-")) {
+                        if (name.startsWith("javax.")) {
                             return true;
                         }
                         return false;
@@ -335,17 +355,28 @@ public class GenerateServiceHelper {
                 });
 
                 if (files != null && files.length != 0) {
-                    sb.append(files[0].getAbsolutePath());
-                    sb.append(":");
+                    for(File f:files) {
+                        sb.append(f.getAbsolutePath());
+                        sb.append(":");
+                    }
                    // props.setProperty("servlet.jar.path", files[0].getAbsolutePath());
                 }
             }
-        } else if (psConfig.getServerType().equals(ServerConstants.TOMCAT_5_X)) {
+        } else if(psConfig.getServerType().equals(ServerConstants.TOMCAT_5_X)
+                     || psConfig.getServerType().equals(ServerConstants.TOMCAT_6_X)) {
             
             String tomcatHome = psConfig.getProperty(TomcatConstant.CATALINA_HOME);
             
-            File libDir = new File(tomcatHome + File.separator + "common" 
+            File libDir =  null;
+            
+            if(psConfig.getServerType().equals(ServerConstants.TOMCAT_5_X)) {
+                    
+                libDir = new File(tomcatHome + File.separator + "common" 
                                                   + File.separator + "lib");
+            } else if(psConfig.getServerType().equals(ServerConstants.TOMCAT_6_X)){
+                
+                libDir = new File(tomcatHome + File.separator + "lib"); 
+            }
             
             if(!libDir.exists()) {
                 libDir = new File(tomcatHome + File.separator + "lib"); 

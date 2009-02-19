@@ -59,8 +59,12 @@ public class AstRef extends AstItem {
         Symbol symbol = getSymbol();
         if (symbol.isPackage()) {
             return ElementKind.PACKAGE;
-        } else if (symbol.isClass() || symbol.isTrait() || symbol.isModule()) {
+        } else if (symbol.isClass() || symbol.isTrait()) {
             return ElementKind.CLASS;
+        } else if (symbol.isModule()) {
+            return ElementKind.MODULE;
+        } else if (symbol.isMethod()) {
+            return ElementKind.METHOD;
         } else {
             return ElementKind.OTHER;
         }

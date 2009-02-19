@@ -48,17 +48,17 @@ import java.util.ArrayList;
  * @author Andrea Lucarelli
  */
 public class AdaPlatform implements Serializable {
+
     private String name;
     private String info;
 
-    private ArrayList<String> adaCompilerPath;
+    private String compilerPath;
     private String compilerCommand;
     private String compilerArgs;
+    private boolean dirty;
 
     public AdaPlatform() {
-        adaCompilerPath = new ArrayList<String>();
     }
-
 
     public String getCompilerArgs() {
         return compilerArgs;
@@ -74,6 +74,15 @@ public class AdaPlatform implements Serializable {
 
     public void setCompilerCommand(String compilerCommand) {
         this.compilerCommand = compilerCommand;
+    }
+
+    public String getCompilerCommand() {
+        return compilerCommand;
+    }
+
+    /** Has this platform been changed since the last load? */
+    public boolean isDirty() {
+        return dirty;
     }
 
     public String getName() {
@@ -92,18 +101,12 @@ public class AdaPlatform implements Serializable {
         this.info = info;
     }
 
-    public ArrayList<String> getAdaCompilerPath() {
-        return adaCompilerPath;
+    public String getCompilerPath() {
+        return compilerPath;
     }
 
-    public void setAdaCompilerPath(ArrayList<String> adaCompilerPath) {
-        this.adaCompilerPath = adaCompilerPath;
-    }
-    public void addAdaCompilerPath(String pathElement){
-        getAdaCompilerPath().add(pathElement);
-    }
-    public void removeAdaCompilerPath(String pathElement){
-        getAdaCompilerPath().remove(pathElement);
+    public void setCompilerPath(String compilerPath) {
+        this.compilerPath = compilerPath;
     }
 
     /**
@@ -123,9 +126,4 @@ public class AdaPlatform implements Serializable {
         return pathString.toString();
     }
 
-    void addAdaCompilerPath(String[] pathElements) {
-        for (int i =0; i < pathElements.length; i++){
-            addAdaCompilerPath(pathElements[i]);
-        }
-    }
 }

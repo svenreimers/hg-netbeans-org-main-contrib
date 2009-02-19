@@ -41,6 +41,9 @@ package org.netbeans.modules.ada.editor;
 
 import org.netbeans.modules.ada.editor.navigator.AdaInstantRenamer;
 import org.netbeans.api.lexer.Language;
+import org.netbeans.modules.ada.editor.formatter.AdaFormatter;
+import org.netbeans.modules.ada.editor.formatter.AdaKeystrokeHandler;
+import org.netbeans.modules.ada.editor.indexer.AdaIndexer;
 import org.netbeans.modules.gsf.api.Parser;
 import org.netbeans.modules.gsf.api.CodeCompletionHandler;
 import org.netbeans.modules.gsf.api.Indexer;
@@ -54,8 +57,11 @@ import org.netbeans.modules.gsf.api.InstantRenamer;
 import org.netbeans.modules.gsf.api.HintsProvider;
 import org.netbeans.modules.gsf.spi.DefaultLanguageConfig;
 import org.netbeans.modules.ada.editor.lexer.AdaTokenId;
+import org.netbeans.modules.ada.editor.navigator.AdaDeclarationFinder;
+import org.netbeans.modules.ada.editor.navigator.AdaOccurrencesFinder;
 import org.netbeans.modules.ada.editor.parser.AdaStructureScanner;
 import org.netbeans.modules.ada.editor.parser.AdaParser;
+import org.netbeans.modules.ada.editor.parser.AdaSemanticAnalyzer;
 
 /**
  *
@@ -79,7 +85,7 @@ public class AdaLanguage extends DefaultLanguageConfig {
     //
     // Service Registrations
     //
-    
+
     @Override
     public Parser getParser() {
         return new AdaParser();
@@ -87,19 +93,17 @@ public class AdaLanguage extends DefaultLanguageConfig {
 
     @Override
     public boolean hasFormatter() {
-        return false;
+        return true;
     }
 
     @Override
     public Formatter getFormatter() {
-        return null;
-        //return new AdaFormatter();
+        return new AdaFormatter();
     }
 
     @Override
     public KeystrokeHandler getKeystrokeHandler() {
-        return null;
-        //return new AdaBracketCompleter();
+        return new AdaKeystrokeHandler();
     }
 
     @Override
@@ -110,19 +114,17 @@ public class AdaLanguage extends DefaultLanguageConfig {
 
     @Override
     public SemanticAnalyzer getSemanticAnalyzer() {
-        return null;
-        //return new AdaSemanticAnalyzer();
+        return new AdaSemanticAnalyzer();
     }
 
     @Override
     public boolean hasOccurrencesFinder() {
-        return false;
+        return true;
     }
 
     @Override
     public OccurrencesFinder getOccurrencesFinder() {
-        return null;
-        //return new AdaOccurrencesFinder();
+        return new AdaOccurrencesFinder();
     }
 
     @Override
@@ -132,8 +134,7 @@ public class AdaLanguage extends DefaultLanguageConfig {
 
     @Override
     public Indexer getIndexer() {
-        return null;
-//        return new AdaIndexer();
+        return new AdaIndexer();
     }
 
     @Override
@@ -149,8 +150,7 @@ public class AdaLanguage extends DefaultLanguageConfig {
 
     @Override
     public DeclarationFinder getDeclarationFinder() {
-        return null;
-//        return new AdaDeclarationFinder();
+        return new AdaDeclarationFinder();
     }
 
     @Override

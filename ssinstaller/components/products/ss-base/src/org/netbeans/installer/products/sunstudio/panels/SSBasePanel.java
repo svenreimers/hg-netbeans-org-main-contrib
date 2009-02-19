@@ -66,7 +66,7 @@ public class SSBasePanel extends DestinationPanel {
         setProperty(DESTINATION_LABEL_TEXT_PROPERTY,
                 DEFAULT_DESTINATION_LABEL_TEXT
                  // while packages are in SUNWspo / sunstudioceres
-                + " ( Sun Studion will located in "+ Utils.getMainDirectory() + " subdirectory )");
+                + " (" + Utils.getMainDirectory() + " subdirectory will be created.)");
         setProperty(DESTINATION_BUTTON_TEXT_PROPERTY,
                 DEFAULT_DESTINATION_BUTTON_TEXT);
           
@@ -144,7 +144,10 @@ public class SSBasePanel extends DestinationPanel {
                 constraints.gridy = GridBagConstraints.RELATIVE;
                 constraints.anchor = GridBagConstraints.FIRST_LINE_START;
                 constraints.insets = new Insets(11, 11, 11, 11);
-                add(createSymLinks, constraints);                
+                
+                // for SSX only
+                createSymLinks.setSelected(false);
+                //add(createSymLinks, constraints);                
             }
         }
         
@@ -188,6 +191,11 @@ public class SSBasePanel extends DestinationPanel {
                     errorMessage = ALREADY_INSTALLED_LOCATION_TEXT;
                 }
             }
+            if (SystemUtils.isLinux()) {
+                if (new File(file, "lib").exists()) {
+                    errorMessage = LIB_PRESENT_LOCATION_TEXT;
+                }
+            }
             return errorMessage;
         }
         
@@ -220,6 +228,9 @@ public class SSBasePanel extends DestinationPanel {
     public static final String CREATE_SYMLINKS_CHECKBOX_TEXT =
             ResourceUtils.getString(SSBasePanel.class,
             "NBP.create.symlinks.text");//NOI18N 
+    public static final String LIB_PRESENT_LOCATION_TEXT =
+            ResourceUtils.getString(SSBasePanel.class,
+            "NBP.destination.lib.present");//NOI18N
 
     public static final String CREATE_SYMLINKS_PROPERTY =
             Utils.getSPROsslnkPropertyName();

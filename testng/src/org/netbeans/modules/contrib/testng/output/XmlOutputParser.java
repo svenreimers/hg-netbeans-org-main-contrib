@@ -40,6 +40,8 @@ package org.netbeans.modules.contrib.testng.output;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.Attributes;
@@ -57,7 +59,11 @@ public class XmlOutputParser extends DefaultHandler {
     private static final Logger LOG = Logger.getLogger(XmlOutputParser.class.getName());
     private int allTestsCount;
     private int failedTestsCount;
-    private int skippedTestsCount; //XXX - jUnit calls these errors; need to investigate if there's error state in TestNG
+    private int passedTestsCount;
+    private int skippedTestsCount;
+    private int failedConfCount;
+    private int skippedConfCount;
+    private String status;
     private int suiteTime;
     /** */
     private static final int STATE_OUT_OF_SCOPE = 0;
@@ -76,6 +82,7 @@ public class XmlOutputParser extends DefaultHandler {
     private static final int STATE_FULL_STACKTRACE = 15;
     private int state = STATE_OUT_OF_SCOPE;
     /** */
+    private List<Report> reports;
     private Report suiteResult;
     private Report.Testcase testcase;
     private Report.Trouble trouble;
@@ -89,7 +96,7 @@ public class XmlOutputParser extends DefaultHandler {
         xmlReader.setContentHandler(this);
     }
 
-    static Report parseXmlOutput(Reader reader) throws SAXException, IOException {
+    static List<Report> parseXmlOutput(Reader reader) throws SAXException, IOException {
         assert reader != null;
         XmlOutputParser parser = new XmlOutputParser();
         try {
@@ -102,7 +109,7 @@ public class XmlOutputParser extends DefaultHandler {
         } finally {
             reader.close();          //throws IOException
         }
-        return parser.suiteResult;
+        return parser.reports;
     }
 
     @Override
@@ -133,6 +140,7 @@ public class XmlOutputParser extends DefaultHandler {
             case STATE_TEST:
                 if ("class".equals(qName)) { //NOI18N
                     tcClassName = attributes.getValue("name"); //NOI18N
+                    suiteResult = new Report(tcClassName); //NOI18N
                     state = STATE_CLASS;
                 }
                 break;
@@ -141,6 +149,28 @@ public class XmlOutputParser extends DefaultHandler {
                     int duration = Integer.valueOf(attributes.getValue("duration-ms")); //NOI18N
                     testcase = createTestcaseReport(tcClassName, attributes.getValue("name"), duration); //NOI18N
                     suiteTime += duration;
+                    testcase.confMethod = Boolean.valueOf(attributes.getValue("is-config")); //NOI18N
+                    status = attributes.getValue("status"); //NOI18N
+                    if (!testcase.confMethod) {
+                        allTestsCount++;
+                    }
+                    if ("FAIL".equals(status)) { //NOI18N
+                        if (testcase.confMethod) {
+                            failedConfCount++;
+                        } else {
+                            failedTestsCount++;
+                        }
+                        trouble = new Report.Trouble(true);
+                    } else if ("PASS".equals(status) && !testcase.confMethod) { //NOI18N
+                        passedTestsCount++;
+                    } else if ("SKIP".equals(status)) { //NOI18N
+                        trouble = new Report.Trouble(false);
+                        if (testcase.confMethod) {
+                            skippedConfCount++;
+                        } else {
+                            skippedTestsCount++;
+                        }
+                    }
                     state = STATE_TEST_METHOD;
                 }
                 break;
@@ -148,15 +178,17 @@ public class XmlOutputParser extends DefaultHandler {
                 if ("params".equals(qName)) { //NOI18N
                     state = STATE_TEST_PARAMS;
                 } else if ("exception".equals(qName)) { //NOI18N
-                    assert testcase != null;
-                    trouble = new Report.Trouble(false); //XXX - do we have errors in TestNG? If so how to distinguish them from failures?
-                    trouble.exceptionClsName = attributes.getValue("class"); //NOI18N
-                    state = STATE_EXCEPTION;
+                    assert testcase != null && status != null;
+                    if (!"PASS".equals(status)) {
+                        trouble.exceptionClsName = attributes.getValue("class"); //NOI18N
+                    }
+                    //if test passes, skip possible exception element
+                    state = (trouble != null) ? STATE_EXCEPTION : STATE_TEST_METHOD;
                 }
                 break;
             case STATE_EXCEPTION:
                 //how to get text msgs here?
-                //exMessage = 
+                //exMessage =
                 if ("message".equals(qName)) { //NOI18N
                     state = STATE_MESSAGE;
                 } else if ("full-stacktrace".equals(qName)) { //NOI18N
@@ -165,8 +197,7 @@ public class XmlOutputParser extends DefaultHandler {
                 break;
             default:
                 if (qName.equals("suite")) { //NOI18N
-                    String sName = attributes.getValue("name"); //NOI18N
-                    suiteResult = new Report(sName != null ? sName : "Unknown"); //NOI18N
+                    reports = new ArrayList<Report>();
                     state = STATE_SUITE;
                 }
         }
@@ -189,11 +220,6 @@ public class XmlOutputParser extends DefaultHandler {
                 break;
             case STATE_SUITE:
                 assert "suite".equals(qName) : "was " + qName; //NOI18N
-                suiteResult.elapsedTimeMillis = suiteTime;
-//            XXX: is this needed?
-//            suiteResult.totalTests = count(/suite/test/class/test-method)
-//            suiteResult.failures = count(/suite/test/class/test-method[@status='FAIL'])
-//            suiteResult.errors = count(/suite/test/class/test-method[@status='????']) - perhaps can use this for skipped tests (@status='SKIP'])
                 state = STATE_OUT_OF_SCOPE;
                 break;
             case STATE_TEST:
@@ -202,13 +228,33 @@ public class XmlOutputParser extends DefaultHandler {
                 break;
             case STATE_CLASS:
                 assert "class".equals(qName); //NOI18N
+                suiteResult.elapsedTimeMillis = suiteTime;
+                suiteResult.skips = skippedTestsCount;
+                suiteResult.failures = failedTestsCount;
+                suiteResult.totalTests = allTestsCount;
+                suiteResult.detectedPassedTests = passedTestsCount;
+                suiteResult.confFailures = failedConfCount;
+                suiteResult.confSkips = skippedConfCount;
+                reports.add(suiteResult);
+                skippedTestsCount = 0;
+                failedTestsCount = 0;
+                allTestsCount = 0;
+                passedTestsCount = 0;
+                failedConfCount = skippedConfCount = 0;
                 tcClassName = null;
+                suiteResult = null;
                 state = STATE_TEST;
                 break;
             case STATE_TEST_METHOD:
+                //if test passes, wait for our element
+                if (!"test-method".equals(qName)) {
+                    break;
+                }
                 assert "test-method".equals(qName) : "was " + qName; //NOI18N
                 assert testcase != null;
+                testcase.trouble = trouble;
                 suiteResult.reportTest(testcase, Report.InfoSource.XML_FILE);
+                trouble = null;
                 testcase = null;
                 state = STATE_CLASS;
                 break;
@@ -229,7 +275,7 @@ public class XmlOutputParser extends DefaultHandler {
                 assert testcase != null;
                 assert trouble != null;
                 if (text != null) {
-                    trouble.message = text.toString();
+                    trouble.message = text.toString().trim();
                     text = null;
                 }
                 state = STATE_EXCEPTION;
@@ -237,11 +283,9 @@ public class XmlOutputParser extends DefaultHandler {
             case STATE_FULL_STACKTRACE:
                 assert "full-stacktrace".equals(qName); //NOI18N
                 if (text != null) {
-                    trouble.stackTrace = text.toString().split("[\\r\\n]+"); //NOI18N
+                    parseTroubleReport(text.toString().trim(), trouble); //NOI18N
                     text = null;
                 }
-                testcase.trouble = trouble;
-                trouble = null;
                 state = STATE_EXCEPTION;
                 break;
         }
@@ -267,4 +311,17 @@ public class XmlOutputParser extends DefaultHandler {
         tc.timeMillis = time;
         return tc;
     }
+
+    private void parseTroubleReport(String report, Report.Trouble trouble) {
+        final String[] lines = report.split("[\\r\\n]+");               //NOI18N
+
+        TroubleParser troubleParser = new TroubleParser(trouble, RegexpUtils.getInstance());
+        for (String line : lines) {
+            if (troubleParser.processMessage(line)) {
+                return;
+            }
+        }
+        troubleParser.finishProcessing();
+    }
+
 }

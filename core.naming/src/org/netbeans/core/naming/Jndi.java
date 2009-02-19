@@ -50,7 +50,7 @@ import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
 
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.Repository;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 
 
@@ -58,6 +58,7 @@ import org.openide.util.Lookup;
  *
  * @author  Jaroslav Tulach
  */
+@org.openide.util.lookup.ServiceProvider(service=javax.naming.spi.InitialContextFactoryBuilder.class)
 public final class Jndi implements InitialContextFactory, InitialContextFactoryBuilder {
     
     /** Name of property in environment keeping root file object. */
@@ -78,7 +79,7 @@ public final class Jndi implements InitialContextFactory, InitialContextFactoryB
         // Initialize environment.
         FileObject root = (FileObject) hashtable.get (ROOT_OBJECT);
         if (root == null) {
-            root = Repository.getDefault ().getDefaultFileSystem().getRoot();
+            root = FileUtil.getConfigRoot();
             hashtable.put (ROOT_OBJECT, root);
         }
 

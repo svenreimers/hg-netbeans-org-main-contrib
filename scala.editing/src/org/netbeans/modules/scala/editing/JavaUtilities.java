@@ -808,48 +808,34 @@ public class JavaUtilities {
         final ElementHandle handle = ElementHandle.create(e);
 
         JavaSource source = JavaSource.forFileObject(originFo);
-        if (JavaSourceAccessor.getINSTANCE().isDispatchThread()) {
-            // already under javac's lock
-            CompilationInfo newInfo = JavaSourceAccessor.getINSTANCE().getCurrentCompilationInfo(source, Phase.RESOLVED);
+        /**
+         * @Note
+         * Removed if (JavaSourceAccessor.getINSTANCE().isDispatchThread()) {}
+         * as the parsing lock is reentrant.
+         */
+        try {
+            source.runUserActionTask(new Task<CompilationController>() {
 
-            Element el = handle.resolve(newInfo);
-            FindDeclarationVisitor v = new FindDeclarationVisitor(el, newInfo);
+                public void run(CompilationController controller) throws Exception {
+                    controller.toPhase(Phase.RESOLVED);
 
-            CompilationUnitTree cu = newInfo.getCompilationUnit();
+                    CompilationInfo newInfo = controller;
 
-            v.scan(cu, null);
-            Tree elTree = v.declTree;
+                    Element el = handle.resolve(newInfo);
+                    FindDeclarationVisitor v = new FindDeclarationVisitor(el, newInfo);
 
-            if (elTree != null) {
-                offset[0] = (int) newInfo.getTrees().getSourcePositions().getStartPosition(cu, elTree);
-            }
+                    CompilationUnitTree cu = newInfo.getCompilationUnit();
 
-        } else {
-            try {
-                source.runUserActionTask(new Task<CompilationController>() {
+                    v.scan(cu, null);
+                    Tree elTree = v.declTree;
 
-                    public void run(CompilationController controller) throws Exception {
-                        controller.toPhase(Phase.RESOLVED);
-
-                        CompilationInfo newInfo = controller;
-
-                        Element el = handle.resolve(newInfo);
-                        FindDeclarationVisitor v = new FindDeclarationVisitor(el, newInfo);
-
-                        CompilationUnitTree cu = newInfo.getCompilationUnit();
-
-                        v.scan(cu, null);
-                        Tree elTree = v.declTree;
-
-                        if (elTree != null) {
-                            offset[0] = (int) newInfo.getTrees().getSourcePositions().getStartPosition(cu, elTree);
-                        }
+                    if (elTree != null) {
+                        offset[0] = (int) newInfo.getTrees().getSourcePositions().getStartPosition(cu, elTree);
                     }
-                }, true);
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-
+                }
+            }, true);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
         }
 
         return offset[0];

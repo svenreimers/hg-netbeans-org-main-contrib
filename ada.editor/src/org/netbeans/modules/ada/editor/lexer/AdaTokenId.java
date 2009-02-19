@@ -80,6 +80,9 @@ public enum AdaTokenId implements TokenId {
     ELSE("else", "keyword"), //NOI18N
     ELSIF("elsif", "keyword"), //NOI18N
     END("end", "keyword"), //NOI18N
+    END_CASE("end case", "keyword"), //NOI18N
+    END_IF("end if", "keyword"), //NOI18N
+    END_LOOP("end loop", "keyword"), //NOI18N
     ENTRY("entry", "keyword"), //NOI18N
     EXCEPTION("exception", "keyword"), //NOI18N
     EXIT("exit", "keyword"), //NOI18N
@@ -124,7 +127,7 @@ public enum AdaTokenId implements TokenId {
     UNTIL("until", "keyword"), //NOI18N
     USE("use", "keyword"), //NOI18N
     WHEN("when", "keyword"), //NOI18N
-    WHILE("", "keyword"), //NOI18N
+    WHILE("while", "keyword"), //NOI18N
     WITH("with", "keyword"), //NOI18N
     XOR("xor", "keyword"), //NOI18N
 
@@ -209,7 +212,7 @@ public enum AdaTokenId implements TokenId {
 
                 @Override
                 protected String mimeType() {
-                    return AdaMimeResolver.MIME_TYPE;
+                    return AdaMimeResolver.ADA_MIME_TYPE;
                 }
 
             }.language();

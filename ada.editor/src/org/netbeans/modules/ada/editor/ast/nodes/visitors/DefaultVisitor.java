@@ -36,17 +36,27 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.editor.ast.nodes.visitors;
 
 import org.netbeans.modules.ada.editor.ast.ASTError;
 import org.netbeans.modules.ada.editor.ast.ASTNode;
+import org.netbeans.modules.ada.editor.ast.nodes.Block;
 import org.netbeans.modules.ada.editor.ast.nodes.Comment;
 import org.netbeans.modules.ada.editor.ast.nodes.EmptyStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.FieldsDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
+import org.netbeans.modules.ada.editor.ast.nodes.FunctionDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.Identifier;
+import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
+import org.netbeans.modules.ada.editor.ast.nodes.PackageInstanceCreation;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageSpecification;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageName;
+import org.netbeans.modules.ada.editor.ast.nodes.ProcedureDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.Program;
+import org.netbeans.modules.ada.editor.ast.nodes.Reference;
+import org.netbeans.modules.ada.editor.ast.nodes.SingleFieldDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.Use;
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
 import org.netbeans.modules.ada.editor.ast.nodes.With;
@@ -75,40 +85,98 @@ public class DefaultVisitor implements Visitor {
     public void visit(ASTError astError) {
     }
 
+    public void visit(ASTNode node) {
+    }
+
+    public void visit(Block node) {
+        scan(node.getStatements());
+    }
+
     public void visit(Comment comment) {
+    }
+
+    public void visit(EmptyStatement node) {
+    }
+
+    public void visit(FieldsDeclaration node) {
+        scan(node.getFields());
+    }
+
+    public void visit(FunctionDeclaration node) {
+        scan(node.getIdentifier());
+        scan(node.getFormalParameters());
+        scan(node.getBody());
+    }
+
+    public void visit(FormalParameter node) {
+        scan(node.getParameterName());
+        scan(node.getParameterType());
+        scan(node.getDefaultValue());
     }
 
     public void visit(Identifier identifier) {
     }
 
-    public void visit(PackageSpecification node) {
+    public void visit(MethodDeclaration node) {
+        if (node.getKind() == MethodDeclaration.Kind.FUNCTION) {
+            scan(node.getFunction());
+        }
+        else {
+            scan(node.getProcedure());
+        }
+    }
+
+    public void visit(PackageBody node) {
         scan(node.getName());
+        scan(node.getBody());
+    }
+
+    public void visit(PackageInstanceCreation node) {
+        scan(node.getPackageName());
+        scan(node.ctorParams());
     }
 
     public void visit(PackageName node) {
         scan(node.getName());
     }
 
+    public void visit(PackageSpecification node) {
+        scan(node.getName());
+        scan(node.getBody());
+    }
+
+    public void visit(ProcedureDeclaration node) {
+        scan(node.getIdentifier());
+        scan(node.getFormalParameters());
+        scan(node.getBody());
+    }
+
     public void visit(Program program) {
         scan(program.getStatements());
     }
 
-    public void visit(Variable node) {
+    public void visit(Reference node) {
+        scan(node.getExpression());
+    }
+
+    public void visit(TypeDeclaration node) {
+        scan(node.getTypeName());
+    }
+
+    public void visit(SingleFieldDeclaration node) {
         scan(node.getName());
-    }
-
-    public void visit(ASTNode node) {
-    }
-
-    public void visit(EmptyStatement node) {
-    }
-    
-    public void visit(With node) {
-        scan(node.getPackageName());
+        scan(node.getValue());
     }
 
     public void visit(Use node) {
         scan(node.getPackageName());
     }
 
+    public void visit(Variable node) {
+        scan(node.getName());
+    }
+
+    public void visit(With node) {
+        scan(node.getPackageName());
+    }
 }

@@ -38,34 +38,44 @@
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
  */
-
 package org.netbeans.modules.contrib.testng.output;
 
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.Action;
+import javax.swing.text.Document;
+import javax.swing.text.StyledDocument;
 import org.netbeans.api.java.classpath.ClassPath;
+import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.spi.java.classpath.support.ClassPathSupport;
-import org.openide.ErrorManager;
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.Node;
 import org.openide.text.Line;
+import org.openide.text.NbDocument;
 
 /**
  *
  * @author Marian Petras
  */
 final class OutputUtils {
-    
+
+    private static final Logger LOGGER = Logger.getLogger(OutputUtils.class.getName());
+
+    static final Action[] NO_ACTIONS = new Action[0];
+
     private OutputUtils() {
     }
-    
+
     /**
      */
     static void openCallstackFrame(Node node,
-                                   String frameInfo) {
+            String frameInfo) {
         Report report = getTestsuiteNode(node).getReport();
         Collection<FileObject> srcRoots = report.classpathSourceRoots;
         if ((srcRoots == null) || srcRoots.isEmpty()) {
@@ -78,9 +88,44 @@ final class OutputUtils {
 
         final int[] lineNumStorage = new int[1];
         FileObject file = getFile(frameInfo, lineNumStorage, srcClassPath);
-        openFile(file, lineNumStorage[0]);
+        openFile(file, lineNumStorage[0], -1);
     }
-        
+
+    /**
+     */
+    static void openCallstackFrame(Node node,
+            Report.Trouble trouble) {
+        String frameInfo = determineStackFrame(trouble);
+        if (frameInfo != null) {
+            openCallstackFrame(node, frameInfo);
+        }
+    }
+
+    /**
+     * Determines the most interesting frame for the user.
+     * When user double-clicks on a failed test method, the editor will jump
+     * to the location corresponding to that frame.
+     *
+     * @param  trouble  description of the test failure
+     * @return  string describing the chosen call-stack frame,
+     *          or {@code null} if no frame has been chosen
+     */
+    static String determineStackFrame(Report.Trouble trouble) {
+        String[] frames = trouble.stackTrace;
+        return ((frames != null) && (frames.length != 0))
+                ? frames[frames.length - 1]
+                : null;
+    }
+
+    /**
+     * Returns a {@code Report} for the given node.
+     * @param  node  node to find {@code Report} for
+     * @return  found report
+     */
+    static Report getReport(Node node) {
+        return getTestsuiteNode(node).getReport();
+    }
+
     /**
      */
     private static TestsuiteNode getTestsuiteNode(Node node) {
@@ -89,7 +134,7 @@ final class OutputUtils {
         }
         return (TestsuiteNode) node;
     }
-    
+
     /**
      * Returns FileObject corresponding to the given callstack line.
      *
@@ -97,20 +142,19 @@ final class OutputUtils {
      *                        returned by the JUnit framework
      */
     private static FileObject getFile(final String callstackLine,
-                                      final int[] lineNumStorage,
-                                      final ClassPath classPath) {
+            final int[] lineNumStorage,
+            final ClassPath classPath) {
 
         /* Get the part before brackets (if any brackets present): */
         int bracketIndex = callstackLine.indexOf('(');
         String beforeBrackets = (bracketIndex == -1)
-                                ? callstackLine
-                                : callstackLine.substring(0, bracketIndex)
-                                  .trim();
+                ? callstackLine
+                : callstackLine.substring(0, bracketIndex).trim();
         String inBrackets = (bracketIndex == -1)
-                            ? (String) null
-                            : callstackLine.substring(
-                                    bracketIndex + 1,
-                                    callstackLine.lastIndexOf(')'));
+                ? (String) null
+                : callstackLine.substring(
+                bracketIndex + 1,
+                callstackLine.lastIndexOf(')'));
 
         /* Get the method name and the class name: */
         int lastDotIndex = beforeBrackets.lastIndexOf('.');
@@ -122,8 +166,7 @@ final class OutputUtils {
         int lineNum = -1;
         if (inBrackets != null) {
             // RegexpUtils.getInstance() retns instance from ResultPanelTree
-            if (RegexpUtils.getInstance().getLocationInFilePattern()
-                    .matcher(inBrackets).matches()) {
+            if (RegexpUtils.getInstance().getLocationInFilePattern().matcher(inBrackets).matches()) {
                 int ddotIndex = inBrackets.lastIndexOf(':'); //srch from end
                 if (ddotIndex == -1) {
                     fileName = inBrackets;
@@ -131,7 +174,7 @@ final class OutputUtils {
                     fileName = inBrackets.substring(0, ddotIndex);
                     try {
                         lineNum = Integer.parseInt(
-                                       inBrackets.substring(ddotIndex + 1));
+                                inBrackets.substring(ddotIndex + 1));
                         if (lineNum <= 0) {
                             lineNum = 1;
                         }
@@ -162,8 +205,8 @@ final class OutputUtils {
         } else {
             lastSlashIndex = clsNameSlash.lastIndexOf('/');
             slashName = (lastSlashIndex != -1)
-                        ? clsNameSlash.substring(0, lastSlashIndex)
-                        : clsNameSlash;
+                    ? clsNameSlash.substring(0, lastSlashIndex)
+                    : clsNameSlash;
             ending = '/' + fileName;
         }
         file = classPath.findResource(thePath = (slashName + ending));
@@ -172,7 +215,7 @@ final class OutputUtils {
             file = classPath.findResource(thePath = (slashName + ending));
             if (file == null) {
                 lastSlashIndex = slashName.lastIndexOf(
-                                                '/', lastSlashIndex - 1);
+                        '/', lastSlashIndex - 1);
             }
         }
         if ((file == null) && (fileName != null)) {
@@ -187,21 +230,19 @@ final class OutputUtils {
         return file;
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    public static void openFile(FileObject file, String className, String methodName) {
+        TestClassScanner tsc = new TestClassScanner(className, methodName);
+        try {
+            JavaSource.forFileObject(file).runUserActionTask(tsc, true);
+            openFile(file, -1, tsc.getOffset());
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
+        }
+
+    }
+
     //from ...junit.wizard.Utils.java
-    
-    /**
-     */
-    public static void openFile(FileObject file, int lineNum) {
+    public static void openFile(FileObject file, int lineNum, int offset) {
 
         /*
          * Most of the following code was copied from the Ant module, method
@@ -209,7 +250,7 @@ final class OutputUtils {
          */
 
         if (file == null) {
-            java.awt.Toolkit.getDefaultToolkit().beep();
+            Toolkit.getDefaultToolkit().beep();
             return;
         }
 
@@ -217,13 +258,16 @@ final class OutputUtils {
             DataObject dob = DataObject.find(file);
             EditorCookie ed = dob.getCookie(EditorCookie.class);
             if (ed != null && /* not true e.g. for *_ja.properties */
-                              file == dob.getPrimaryFile()) {
-                if (lineNum == -1) {
+                    file == dob.getPrimaryFile()) {
+                if (lineNum == -1 && offset == -1) {
                     // OK, just open it.
                     ed.open();
                 } else {
-                    ed.openDocument();//XXX getLineSet doesn't do it for you
+                    Document doc = ed.openDocument();//XXX getLineSet doesn't do it for you
                     try {
+                        if (offset > -1) {
+                            lineNum = NbDocument.findLineNumber((StyledDocument)doc, offset) + 1;
+                        }
                         Line l = ed.getLineSet().getOriginal(lineNum - 1);
                         if (!l.isDeleted()) {
                             l.show(Line.ShowOpenType.OPEN, Line.ShowVisibilityType.FOCUS);
@@ -234,17 +278,14 @@ final class OutputUtils {
                     }
                 }
             } else {
-                java.awt.Toolkit.getDefaultToolkit().beep();
+                Toolkit.getDefaultToolkit().beep();
             }
         } catch (DataObjectNotFoundException ex1) {
-            ErrorManager.getDefault().notify(ErrorManager.WARNING, ex1);
+            LOGGER.log(Level.WARNING, null, ex1);
         } catch (IOException ex2) {
             // XXX see above, should not be necessary to call openDocument
             // at all
-            ErrorManager.getDefault().notify(ErrorManager.WARNING, ex2);
+            LOGGER.log(Level.WARNING, null, ex2);
         }
     }
-    
-    
-    
 }

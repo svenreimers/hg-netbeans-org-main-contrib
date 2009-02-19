@@ -40,14 +40,17 @@ package org.netbeans.modules.ada.project;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectManager;
-import org.netbeans.modules.ada.project.path.ClassPathProviderImplementation;
+import org.netbeans.modules.ada.project.path.AdaClassPathProvider;
+import org.netbeans.modules.ada.project.ui.Utils;
 import org.netbeans.modules.ada.project.ui.properties.AdaCustomizerProvider;
+import org.netbeans.modules.ada.project.ui.properties.AdaProjectProperties;
 import org.netbeans.modules.gsfpath.api.classpath.ClassPath;
 import org.netbeans.modules.gsfpath.api.classpath.GlobalPathRegistry;
 import org.netbeans.spi.project.AuxiliaryConfiguration;
@@ -56,16 +59,18 @@ import org.netbeans.spi.project.support.ant.ProjectXmlSavedHook;
 import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.netbeans.spi.project.support.ant.PropertyUtils;
 import org.netbeans.spi.project.support.ant.ReferenceHelper;
-import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.PrivilegedTemplates;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.netbeans.spi.project.ui.RecommendedTemplates;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.Mutex;
+import org.openide.util.NbBundle;
 import org.openide.util.lookup.Lookups;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -80,13 +85,14 @@ public class AdaProject implements Project {
 
     protected AntProjectHelper helper;
     protected UpdateHelper updateHelper;
-    protected LogicalViewProvider logicalView = new AdaLogicalView(this);
     protected SourceRoots sourceRoots;
     protected SourceRoots testRoots;
     protected Lookup lookup;
     protected PropertyEvaluator evaluator;
     protected ReferenceHelper refHelper;
     protected AuxiliaryConfiguration aux;
+
+    private FileObject sourcesDirectory;
 
     public AdaProject(final AntProjectHelper helper) {
         assert helper != null;
@@ -124,9 +130,9 @@ public class AdaProject implements Project {
                     this, //project spec requires a project be in it's own lookup
                     aux, //Auxiliary configuartion to store bookmarks and so on
                     new AdaActionProvider(this), //Provides Standard like build and cleen
-                    new ClassPathProviderImplementation(this),
+                    new AdaClassPathProvider(this),
                     new Info(), // Project information Implementation
-                    logicalView, // Logical view if project implementation
+                    new AdaLogicalViewProvider(this), // Logical view if project implementation
                     new AdaOpenedHook(), //Called by project framework when project is opened (closed)
                     new AdaProjectXmlSavedHook(), //Called when project.xml changes
                     new AdaSources(helper, evaluator, sourceRoots, testRoots), // Ada source grops - used by package view, factories, refactoring, ...
@@ -156,12 +162,50 @@ public class AdaProject implements Project {
         return evaluator;
     }
 
-    AntProjectHelper getHelper() {
+    public AntProjectHelper getHelper() {
         return this.helper;
     }
 
-    public FileObject getSrcFolder() {
-        return getProjectDirectory();
+    public synchronized FileObject getSourcesDirectory() {
+        if (sourcesDirectory == null) {
+            sourcesDirectory = resolveSourcesDirectory();
+        }
+        assert sourcesDirectory != null : "Sources directory cannot be null";
+        return sourcesDirectory;
+    }
+
+    private FileObject resolveSourcesDirectory() {
+        // get the first source root
+        //  in fact, there should *always* be only 1 source root but see #141200, #141204 or #141229
+        FileObject[] sourceObjects = Utils.getSourceObjects(this);
+        if (sourceObjects.length > 0) {
+            return sourceObjects[0];
+        }
+        // #144371 - source folder probably deleted => so:
+        // #145477 (project sharability):
+        //  1. try to restore it - if it fails, then
+        //  2. set it to the project directory in *PRIVATE* properties (and save it)
+        //      => warn user about impossibility of creating src dir and *remove it in project closed hook*!!!
+        String projectName = getName();
+        File srcDir = FileUtil.normalizeFile(new File(helper.resolvePath(evaluator.getProperty(AdaProjectProperties.SRC_DIR))));
+        if (srcDir.mkdirs()) {
+            // original sources restored
+            informUser(projectName, NbBundle.getMessage(AdaProject.class, "MSG_SourcesFolderRestored", srcDir.getAbsolutePath()), NotifyDescriptor.INFORMATION_MESSAGE);
+            return FileUtil.toFileObject(srcDir);
+        }
+        // temporary set sources to project directory, do not store it anywhere
+        informUser(projectName, NbBundle.getMessage(AdaProject.class, "MSG_SourcesFolderTemporaryToProjectDirectory", srcDir.getAbsolutePath()), NotifyDescriptor.ERROR_MESSAGE);
+        return helper.getProjectDirectory();
+    }
+
+    private void informUser(String title, String message, int type) {
+        DialogDisplayer.getDefault().notify(new NotifyDescriptor(
+                message,
+                title,
+                NotifyDescriptor.DEFAULT_OPTION,
+                type,
+                new Object[] {NotifyDescriptor.OK_OPTION},
+                NotifyDescriptor.OK_OPTION));
     }
 
     public String getName() {
@@ -243,7 +287,7 @@ public class AdaProject implements Project {
 
         protected void projectOpened() {
             // register project's classpaths to GlobalPathRegistry
-            final ClassPathProviderImplementation cpProvider = getLookup().lookup(ClassPathProviderImplementation.class);
+            final AdaClassPathProvider cpProvider = getLookup().lookup(AdaClassPathProvider.class);
             assert cpProvider != null;
             GlobalPathRegistry.getDefault().register(ClassPath.BOOT, cpProvider.getProjectClassPaths(ClassPath.BOOT));
             GlobalPathRegistry.getDefault().register(ClassPath.SOURCE, cpProvider.getProjectClassPaths(ClassPath.SOURCE));
@@ -251,9 +295,9 @@ public class AdaProject implements Project {
 
         protected void projectClosed() {
             // unregister project's classpaths to GlobalPathRegistry
-            final ClassPathProviderImplementation cpProvider = getLookup().lookup(ClassPathProviderImplementation.class);
+            final AdaClassPathProvider cpProvider = getLookup().lookup(AdaClassPathProvider.class);
             assert cpProvider != null;
-            //GlobalPathRegistry.getDefault().unregister(ClassPath.BOOT, cpProvider.getProjectClassPaths(ClassPath.BOOT));
+            GlobalPathRegistry.getDefault().unregister(ClassPath.BOOT, cpProvider.getProjectClassPaths(ClassPath.BOOT));
             GlobalPathRegistry.getDefault().unregister(ClassPath.SOURCE, cpProvider.getProjectClassPaths(ClassPath.SOURCE));
             try {
                 ProjectManager.getDefault().saveProject(AdaProject.this);
@@ -281,20 +325,28 @@ public class AdaProject implements Project {
         RecommendedTemplatesImpl(UpdateHelper helper) {
             this.helper = helper;
         }
+
         private final UpdateHelper helper;
-        // List of primarily supported templates
-        private static final String[] APPLICATION_TYPES = new String[]{
-            "ada", // NOI18N
-            "ads", // NOI18N
-            "adb" // NOI18N
+
+        private static final String[] TYPES = new String[]{
+            "Ada", // NOI18N
+            "c-types", // NOI18N
+            "cpp-types", // NOI18N
+            "asm-types", // NOI18N
+            "shell-types", // NOI18N
+            "simple-files" // NOI18N
         };
+
+        // List of primarily supported templates
         private static final String[] PRIVILEGED_NAMES = new String[]{
-            "Templates/Ada/AdaSpec.ads", // NOI18N
-            "Templates/Ada/Main.adb" //NOI18N
+            "Templates/Ada/NewAdaMain.adb", //NOI18N
+            "Templates/Ada/NewAdaSpec.ads", // NOI18N
+            "Templates/Ada/NewAdaBody.adb", // NOI18N
+            "Templates/Other/Folder"
         };
 
         public String[] getRecommendedTypes() {
-            return APPLICATION_TYPES;
+            return TYPES;
         }
 
         public String[] getPrivilegedTemplates() {

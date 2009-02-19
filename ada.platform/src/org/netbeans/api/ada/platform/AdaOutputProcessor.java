@@ -40,7 +40,8 @@
 package org.netbeans.api.ada.platform;
 
 import java.io.IOException;
-import org.netbeans.modules.extexecution.api.input.InputProcessor;
+import org.netbeans.api.extexecution.input.InputProcessor;
+
 
 /**
  *
