@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -34,45 +34,40 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
+ * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.python.debugger.actions;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.netbeans.modules.python.debugger.config.NetBeansFrontend;
-import org.openide.util.NbBundle;
-import org.openide.util.ImageUtilities;
+package org.netbeans.modules.python.qshell;
+
+import java.util.prefs.Preferences;
+import org.openide.util.NbPreferences;
 
 /**
- * Action which shows PythonDebugging Console component.
- * @author Jean-Yves Mengant
+ *
+ * @author Maros Sandor
  */
-public class PythonDebugConsoleAction extends AbstractAction {
+public class QShellConfig {
 
-  public static String ICON_PATH = "org/netbeans/modules/python/debugger/actions/bugicon.gif";
+    private static String PROP_QSHELL_EXECUTABLE = "qshell.command";
+    private static String PROP_QSHELL_PATH = "qshell.path";
 
-  public PythonDebugConsoleAction() {
-    super(NbBundle.getMessage(PythonDebugConsoleAction.class, "CTL_PythonDebugConsoleAction"));
-    putValue(SMALL_ICON, ImageUtilities.loadImageIcon(ICON_PATH, true));
-  }
+    public static String getQShellCommand() {
+        return getPreferences().get(QShellConfig.PROP_QSHELL_EXECUTABLE, "sudo ./qshell").trim();
+    }
 
-  public void actionPerformed(ActionEvent evt) {
-//        PythonConsoleTopComponent win = PythonConsoleTopComponent.findInstance();
-//        if (win.nTerm() > 1)
-//            win.newTab();
-//        else{
-//            win.open();
-//        }
-//        win.requestActive();
-    // first check for correct initializations
-    // of IDE frontend module
-    NetBeansFrontend.initCheck();
-    openPythonDebuggingWindow();
-  }
+    public static void setQShellCommand(String s) {
+        getPreferences().put(QShellConfig.PROP_QSHELL_EXECUTABLE, s);
+    }
 
-  private void openPythonDebuggingWindow() {
-    JpyDbgView jv = JpyDbgView.getCurrentView();
-    jv.openPythonDebuggingWindow(null, true);
-  }
+    public static String getQShellPath() {
+        return getPreferences().get(QShellConfig.PROP_QSHELL_PATH, "/opt/qbase2").trim();
+    }
+
+    public static void setQShellPath(String s) {
+        getPreferences().put(QShellConfig.PROP_QSHELL_PATH, s);
+    }
+    
+    public static Preferences getPreferences() {
+        return NbPreferences.forModule(QShellConfig.class);
+    }
 }
