@@ -91,11 +91,16 @@ class AstDfn(_idToken:Option[Token[TokenId]],
     override
     def getOffsetRange(pResult:ParserResult) :OffsetRange = LexUtil.tokenHierarchy(pResult) match {
         case None => OffsetRange.NONE
-        case Some(th) => new OffsetRange(boundsOffset(th), boundsEndOffset(th))
+        case Some(th) =>
+            val offset = boundsOffset(th)
+            val endOffset = boundsEndOffset(th)
+            if (offset >= 0 && endOffset >= offset) {
+                new OffsetRange(boundsOffset(th), boundsEndOffset(th))
+            } else OffsetRange.NONE
     }
 
     def tpe :String = {
-        null
+        "NoType"
     }
 
     def enclosedElements :ArrayBuffer[AstDfn] = {
@@ -131,10 +136,6 @@ class AstDfn(_idToken:Option[Token[TokenId]],
     def mayEqual(dfn:AstDfn) :Boolean = {
         this == dfn
         //return getName().equals(def.getName())
-    }
-
-    def docComment :String = {
-        null
     }
 
     def doc :Option[BaseDocument] = fo match {
@@ -173,23 +174,40 @@ class AstDfn(_idToken:Option[Token[TokenId]],
 trait LanguageAstDfn {self:AstDfn =>
     import ElementKind._
     import org.netbeans.modules.erlang.editor.node.ErlSymbols._
+    import org.netbeans.modules.erlang.editor.util.ErlangUtil
 
     /** @Note: do not call ref.getKind here, which will recursively call this function, use ref.kind ! */
     def isReferredBy(ref:AstRef) :Boolean = (ref.kind, getKind) match {
         case (CALL, METHOD) => (ref.symbol, symbol) match {
                 case (ErlFunction(_, nameX, arityX), ErlFunction(_, nameY, arityY))
-                    if nameX.equals(nameY) && arityX == arityY => true
+                    if nameX == nameY && arityX == arityY => true
                 case _ => false
             }
+        case (_, RULE) => false // RULE is spec dfn, don't let it's reffered by anything
         case _ =>
-            if (ref.getName.equals(getName)) {
+            if (ref.getName == getName) {
                 ref.symbol == self.asInstanceOf[AstItem].symbol
             } else false
     }
 
+    def docComment :String = {
+        val srcDoc = doc match {
+            case None => return null
+            case Some(x) => x
+        }
+
+        val th = TokenHierarchy.get(srcDoc)
+        if (th == null) {
+            return null
+        }
+
+        ErlangUtil.docComment(srcDoc, idOffset(th))
+    }
+
+
     def htmlFormat(formatter:HtmlFormatter) :Unit = getKind match {
         case PACKAGE | CLASS | MODULE => formatter.appendText(getName)
-        case METHOD => symbol match {
+        case METHOD | RULE => symbol match {
                 case ErlFunction(_, name, arity) =>
                     formatter.appendText(name)
                     formatter.appendText("/")
@@ -230,6 +248,15 @@ trait LanguageAstDfn {self:AstDfn =>
     def functionClauses :List[AstDfn] = functionDfn match {
         case None => Nil
         case Some(x) => x.bindingScope.dfns.filter{_.getKind == ElementKind.ATTRIBUTE}.toList
+    }
+
+    def spec :Option[ErlFunction] = self.symbol match {
+        case f@ErlFunction(_, name, arity) =>
+            rootScope.dfns.find{dfn => dfn.getKind == ElementKind.RULE && dfn.symbol == f} match {
+                case None => None
+                case Some(x) => Some(x.symbol.asInstanceOf[ErlFunction])
+            }
+        case _ => None
     }
 }
 

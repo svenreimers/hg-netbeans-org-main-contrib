@@ -407,8 +407,12 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                     }
 
                     if (call.base.getSymbol() != null) {
-                        completeSymbolMembers(call.base, proposals, request);
-                        return completionResult;
+                        if (completeSymbolMembers(call.base, proposals, request)) {
+                            if (call.caretAfterDot) {
+                                // it should be expecting call proposals, so just return right now to avoid keyword local vars proposals
+                                return completionResult;
+                            }
+                        }
                     }
                 }
             }
@@ -459,7 +463,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 //                return completionResult;
 //            }
 
-        // @todo Try to complete methods inheried and predef's methods 
+            // @todo Try to complete methods inheried and predef's methods
 //            if (completeFunctions(proposals, request)) {
 //                return proposals;
 //            }
@@ -504,7 +508,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         }
 
 
-    // Add in "arguments" local variable which is available to all functions
+        // Add in "arguments" local variable which is available to all functions
 //        String ARGUMENTS = "arguments"; // NOI18N
 //        if (startsWith(ARGUMENTS, prefix)) {
 //            // Make sure we're in a function before adding the arguments property
@@ -783,7 +787,6 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 //
 //        return true;
 //    }
-
 //    private void addElementClasses(List<CompletionProposal> proposals, CompletionRequest request, String prefix) {
 //        ParserResult result = request.info.getEmbeddedResult(JsUtils.HTML_MIME_TYPE, 0);
 //        if (result != null) {
@@ -1140,7 +1143,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             } finally {
                 doc.readUnlock();
             }
-        // Else: normal identifier: just return null and let the machinery do the rest
+            // Else: normal identifier: just return null and let the machinery do the rest
         } catch (BadLocationException ble) {
             Exceptions.printStackTrace(ble);
         }
@@ -1669,7 +1672,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             }
         } else if (element instanceof GsfElement) {
             ((GsfElement) element).htmlFormat(sigFormatter);
-        //comment = ((GsfElement) element).getDocComment();
+            //comment = ((GsfElement) element).getDocComment();
         } else if (element instanceof ScalaElementHandle) {
             ScalaElementHandle element1 = (ScalaElementHandle) element;
             try {
@@ -2072,11 +2075,10 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
     private void findCall(AstRootScope rootScope, TokenSequence ts, TokenHierarchy th, Call call, int times) {
         assert rootScope != null;
 
-        boolean caretAfterDot = false;
         Token idToken = null;
         Token closest = ScalaLexUtilities.findPreviousNonWsNonComment(ts);
         if (closest.id() == ScalaTokenId.Dot) {
-            caretAfterDot = true;
+            call.caretAfterDot = true;
             // skip RParen if it's the previous
             if (ts.movePrevious()) {
                 Token prev = ScalaLexUtilities.findPreviousNonWs(ts);
@@ -2098,7 +2100,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         if (idToken != null) {
             AstItem item = rootScope.findItemAt(idToken);
             if (times == 0) {
-                if (caretAfterDot) {
+                if (call.caretAfterDot) {
                     call.base = item;
                     return;
                 }
@@ -2109,6 +2111,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                 }
 
                 if (prev != null && prev.id() == ScalaTokenId.Dot) {
+                    call.caretAfterDot = true;
                     call.select = item;
                     findCall(rootScope, ts, th, call, times + 1);
                 } else {
@@ -2128,6 +2131,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 
         AstItem base;
         AstItem select;
+        boolean caretAfterDot;
     }
 
     protected static class CompletionRequest {

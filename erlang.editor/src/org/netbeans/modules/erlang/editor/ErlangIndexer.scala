@@ -41,6 +41,7 @@ package org.netbeans.modules.erlang.editor
 import _root_.java.io.{File,IOException}
 import _root_.java.net.MalformedURLException
 import _root_.java.util.{Collection}
+import _root_.java.util.logging.{Logger,Level}
 import javax.swing.text.Document
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.api.lexer.{TokenHierarchy}
@@ -96,23 +97,24 @@ class ErlangIndexer extends EmbeddingIndexer {
     protected def index(indexable:Indexable, parserResult:Result, context:Context) :Unit = {
 	val start = System.currentTimeMillis
         //if (file.isPlatform())
-        io.getOut().print("Indexing: " + parserResult.getSnapshot.getSource.getFileObject + " ")
+        
+        val fo = LexUtil.fileObject(parserResult).get
+
+        io.getOut().print("Indexing: " + fo + ": ")
 
         val r = parserResult match {
-            case null => return
+            case null => io.getOut.println("no parser result !"); return
             case x:ErlangParserResult => x
         }
 
         r.rootScope match {
-            case None => return
+            case None => io.getOut.println("no root scope !"); return
             case Some(x) => x
         }
 
         val support = try {
             IndexingSupport.getInstance(context)
-        } catch {
-            case ioe:IOException => return
-        }
+        } catch {case ioe:IOException => return}
 
 
         // I used to suppress indexing files that have had automatic cleanup to
@@ -133,7 +135,7 @@ class ErlangIndexer extends EmbeddingIndexer {
         }
 
 	//if (file.isPlatform())
-        io.getOut().println((System.currentTimeMillis() - start) + "ms");
+        io.getOut.println((System.currentTimeMillis - start) + "ms")
     }
 
     /** Travel through parsed result, and index meta-data */
@@ -144,7 +146,7 @@ class ErlangIndexer extends EmbeddingIndexer {
         private var imports:String = _
         private val documents = new ArrayBuffer[IndexDocument]
 
-        private val fo :FileObject = pResult.getSnapshot.getSource.getFileObject
+        private val fo :FileObject = LexUtil.fileObject(pResult).get
         private val tpe = fo.getExt match {
             case "hrl" => HEADER
             case _ => MODULE
@@ -192,17 +194,6 @@ class ErlangIndexer extends EmbeddingIndexer {
             val exports  = rootScope.findAllDfnSyms(classOf[ErlExport])
             val records  = rootScope.findAllDfnSyms(classOf[ErlRecord])
             val macros   = rootScope.findAllDfnSyms(classOf[ErlMacro])
-
-            /** @ReferenceOnly used by sqlIndexEngine
-             * if (isSqlIndexAvaialble(index)) {
-             * long moduleId = sqlIndexEngine.storeModule(module.getName(), url);
-             * if (moduleId != -1) {
-             * for (ErlExport export : exports) {
-             * sqlIndexEngine.storeFunctions(export.getFunctions(), moduleId);
-             * }
-             * }
-             * }
-             */
              
             /** The following code is currently for updating the timestamp only */
             analyzeModule(fqn, includes, exports, records, macros)
@@ -378,11 +369,15 @@ object ErlangIndexer {
     /** Attributes: "m" -> module, "d" -> documented, "d(nnn)" documented with n characters */
     val FIELD_ATTRS    = "attrs" //NOI18N
     
+    val NAME = "erlang" // NOI18N
+    val VERSION = 9
+
+    val LOG = Logger.getLogger(classOf[ErlangIndexer].getName)
+
+    
     class Factory extends EmbeddingIndexerFactory {
 
         val INDEXABLE_FOLDERS = Array("src", "include", "test")
-        val NAME = "erlang" // NOI18N
-        val VERSION = 9
 
         override
         def createIndexer(indexable:Indexable, snapshot:Snapshot) :EmbeddingIndexer = {
@@ -404,7 +399,7 @@ object ErlangIndexer {
                  * Not each kind of MIME files hava FileObject, for instance:
                  * ParserFile with name as ".LCKxxxxx.erl~" etc will have none FileObject.
                  */
-                return false;
+                return false
             }
 
             val maxMemoryInMBs = Runtime.getRuntime.maxMemory / (1024.0 * 1024.0)
@@ -436,15 +431,25 @@ object ErlangIndexer {
         override
         def filesDeleted(deleted:Collection[_ <: Indexable], context:Context) :Unit = {
             try {
-                val support = IndexingSupport.getInstance(context)
+                val is = IndexingSupport.getInstance(context)
                 val itr = deleted.iterator
                 while (itr.hasNext) {
-                    support.removeDocuments(itr.next)
+                    is.removeDocuments(itr.next)
                 }
-            } catch {
-                case ex:IOException => Exceptions.printStackTrace(ex)
-            }
+            } catch {case ioe:IOException => LOG.log(Level.WARNING, null, ioe)}
         }
+
+        override
+        def filesDirty(dirty:Collection[_ <: Indexable], context:Context) :Unit = {
+            try {
+                val is = IndexingSupport.getInstance(context)
+                val itr = dirty.iterator
+                while (itr.hasNext) {
+                    is.markDirtyDocuments(itr.next)
+                }
+            } catch {case ioe:IOException => LOG.log(Level.WARNING, null, ioe)}
+        }
+
     }
 
 

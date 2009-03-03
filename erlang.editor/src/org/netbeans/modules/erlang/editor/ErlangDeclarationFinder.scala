@@ -43,6 +43,7 @@ import org.netbeans.api.lexer.{Token,TokenHierarchy,TokenId,TokenSequence}
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.erlang.editor.ast.{AstDfn,AstItem,AstRootScope}
 import org.netbeans.modules.erlang.editor.lexer.{ErlangTokenId,LexUtil}
+import org.netbeans.modules.erlang.editor.node.ErlSymbols._
 import org.netbeans.modules.csl.spi.ParserResult
 import org.netbeans.modules.csl.api.{ElementKind,DeclarationFinder,OffsetRange}
 import org.openide.filesystems.FileObject
@@ -107,11 +108,17 @@ class ErlangDeclarationFinder extends DeclarationFinder {
         ) yield rootScope.findDfnOf(closest) match {
             case Some(x) =>
                 // local
-                val offset = x.idOffset(th)
-                new DeclarationLocation(x.getFileObject, offset, x)
-            case None =>
-                // @todo search in remote modules
-                DeclarationLocation.NONE
+                new DeclarationLocation(x.getFileObject, x.idOffset(th), x)
+            case None => closest.symbol match {
+                    // search in remote modules
+                    case ErlFunction(Some(module), name, arity) =>
+                        val index = ErlangIndex.get(pResult)
+                        index.queryFunction(module, name, arity) match {
+                            case None => DeclarationLocation.NONE
+                            case Some(x) => new DeclarationLocation(x.getFileObject, x.idOffset(th), x)
+                        }
+                    case _ =>  DeclarationLocation.NONE
+                }
         }
 
         location match {

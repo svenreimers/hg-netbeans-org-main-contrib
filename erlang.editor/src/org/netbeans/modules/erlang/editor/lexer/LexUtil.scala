@@ -43,6 +43,7 @@ import org.netbeans.api.lexer.{Token,TokenId,TokenHierarchy,TokenSequence}
 import org.netbeans.modules.csl.api.OffsetRange
 import org.netbeans.modules.csl.spi.ParserResult
 import org.netbeans.modules.parsing.api.Snapshot
+import org.netbeans.modules.parsing.spi.Parser.Result
 import org.netbeans.editor.{BaseDocument,Utilities}
 import org.netbeans.modules.erlang.editor.lexer.ErlangTokenId._
 import org.openide.filesystems.{FileUtil,FileObject}
@@ -59,6 +60,9 @@ trait LanguageLexUtil {
 
     protected val LPAREN = ErlangTokenId.LParen
     protected val RPAREN = ErlangTokenId.RParen
+    protected val LINE_COMMENT = ErlangTokenId.LineComment
+
+    protected val Ws = ErlangTokenId.Ws
 
     protected val WS = Set(ErlangTokenId.Ws,
                            ErlangTokenId.Nl
@@ -66,7 +70,9 @@ trait LanguageLexUtil {
 
     protected val WS_COMMENT = Set(ErlangTokenId.Ws,
                                    ErlangTokenId.Nl,
-                                   ErlangTokenId.LineComment
+                                   ErlangTokenId.LineComment,
+                                   ErlangTokenId.CommentData,
+                                   ErlangTokenId.CommentTag
     )
 
     protected val INDENT_TOKENS = Set(ErlangTokenId.Case,
@@ -78,11 +84,18 @@ trait LanguageLexUtil {
 
     protected val END_PAIRS = Set(ErlangTokenId.Try)
 
+    val CALL_IDs = Set(ErlangTokenId.Atom,
+                       ErlangTokenId.Var,
+                       ErlangTokenId.Macro
+    ).asInstanceOf[Set[TokenId]]
+
     def isWs(id:TokenId) = {id == ErlangTokenId.Ws}
     def isNl(id:TokenId) = {id == ErlangTokenId.Nl}
 
     def isComment(id:TokenId) :Boolean = id match {
         case ErlangTokenId.LineComment => true
+        case ErlangTokenId.CommentData => true
+        case ErlangTokenId.CommentTag  => true
         case _ => false
     }
 
@@ -120,6 +133,16 @@ trait LanguageLexUtil {
 
 object LexUtil extends LanguageLexUtil {
 
+    def fileObject(pResult:ParserResult) :Option[FileObject] = pResult match {
+        case null => None
+        case _ => pResult.getSnapshot.getSource.getFileObject match {
+                case null => None
+                case fo => Some(fo)
+            }
+    }
+
+    def fileObject(pResult:Result) :Option[FileObject] = fileObject(pResult.asInstanceOf[ParserResult])
+
     def document(pResult:ParserResult, forceOpen:Boolean) :Option[BaseDocument] = pResult match {
         case null => None
         case _ => document(pResult.getSnapshot, forceOpen)
@@ -130,18 +153,6 @@ object LexUtil extends LanguageLexUtil {
         case _ => snapshot.getSource.getDocument(forceOpen) match {
                 case doc:BaseDocument => Some(doc)
                 case _ => None
-            }
-    }
-
-    def tokenHierarchy(snapshot:Snapshot) :Option[TokenHierarchy[_]] = document(snapshot, false) match {
-        // * try get th from BaseDocument first, if it has been opened, th should has been there
-        case doc:BaseDocument => TokenHierarchy.get(doc) match {
-                case null => None
-                case th => Some(th)
-            }
-        case _ => TokenHierarchy.create(snapshot.getText, language) match {
-                case null => None
-                case th => Some(th)
             }
     }
 
@@ -160,8 +171,13 @@ object LexUtil extends LanguageLexUtil {
         } catch {case ex:Exception => None}
     }
 
+    def tokenHierarchy(snapshot:Snapshot) :Option[TokenHierarchy[_]] = snapshot.getTokenHierarchy match {
+        case null => None
+        case th => Some(th)
+    }
+
     def tokenHierarchy(pResult:ParserResult) :Option[TokenHierarchy[_]] = pResult match {
-        case null => null
+        case null => None
         case _ => tokenHierarchy(pResult.getSnapshot)
     }
 
@@ -194,7 +210,10 @@ object LexUtil extends LanguageLexUtil {
 
     def rangeOfToken(th:TokenHierarchy[_], token:Token[TokenId]) :OffsetRange = {
         val offset = token.offset(th)
-        new OffsetRange(offset, offset + token.length)
+        val endOffset = offset + token.length
+        if (offset >= 0 && endOffset >= offset) {
+            new OffsetRange(offset, offset + token.length)
+        } else OffsetRange.NONE
     }
 
     /** For a possibly generated offset in an AST, return the corresponding lexing/true document offset */
@@ -342,6 +361,66 @@ object LexUtil extends LanguageLexUtil {
         }
         ts.token
     }
+
+    /**
+     * Back up to the first space character prior to the given offset - as long as
+     * it's on the same line!  If there's only leading whitespace on the line up
+     * to the lex offset, return the offset itself
+     * @todo Rewrite this now that I have a separate newline token, EOL, that I can
+     *   break on - no need to call Utilities.getRowStart.
+     */
+    def findSpaceBegin(doc:BaseDocument, lexOffset:Int) :Int = {
+        val ts = tokenSequence(doc, lexOffset) match {
+            case None => return lexOffset
+            case Some(x) => x
+        }
+        var allowPrevLine = false;
+        var lineStart = 0
+        try {
+            lineStart = Utilities.getRowStart(doc, Math.min(lexOffset, doc.getLength))
+            var prevLast = lineStart - 1;
+            if (lineStart > 0) {
+                prevLast = Utilities.getRowLastNonWhite(doc, lineStart - 1)
+                if (prevLast != -1) {
+                    val c = doc.getText(prevLast, 1).charAt(0)
+                    if (c == ',') {
+                        // Arglist continuation? // TODO : check lexing
+                        allowPrevLine = true
+                    }
+                }
+            }
+            if (!allowPrevLine) {
+                val firstNonWhite = Utilities.getRowFirstNonWhite(doc, lineStart)
+                if (lexOffset <= firstNonWhite || firstNonWhite == -1) {
+                    return lexOffset
+                }
+            } else {
+                // Make lineStart so small that Math.max won't cause any problems
+                val firstNonWhite = Utilities.getRowFirstNonWhite(doc, lineStart)
+                if (prevLast >= 0 && (lexOffset <= firstNonWhite || firstNonWhite == -1)) {
+                    return prevLast + 1
+                }
+                lineStart = 0
+            }
+        } catch {case ble:BadLocationException => Exceptions.printStackTrace(ble); return lexOffset}
+
+        ts.move(lexOffset)
+        if (ts.moveNext) {
+            if (lexOffset > ts.offset) {
+                // We're in the middle of a token
+                return Math.max(if (ts.token.id == Ws) ts.offset else lexOffset, lineStart)
+            }
+            while (ts.movePrevious) {
+                val token = ts.token
+                if (token.id != Ws) {
+                    return Math.max(ts.offset + token.length, lineStart)
+                }
+            }
+        }
+
+        return lexOffset
+    }
+
 
     def skipParenthesis(ts:TokenSequence[TokenId]) :Boolean = {
         skipParenthesis(ts, false)
@@ -718,6 +797,35 @@ object LexUtil extends LanguageLexUtil {
         return false
     }
 
+    def docCommentRangeBefore(th:TokenHierarchy[_], lexOffset:Int) :OffsetRange = {
+        val ts = tokenSequence(th, lexOffset) match {
+            case None => return OffsetRange.NONE
+            case Some(x) => x
+        }
+        ts.move(lexOffset)
 
+        var startLineCommentSet = false
+        var offset = -1
+        var endOffset = -1
+        var done = false
+        while (ts.movePrevious && !done) {
+            val token = ts.token
+            token.id match {
+                case id if isWsComment(id) =>
+                    offset = ts.offset
+                    if (!startLineCommentSet) {
+                        endOffset = offset + token.length
+                        startLineCommentSet = true
+                    }
+                case _ => done = true
+            }
+        }
+
+        if (offset >= 0 && endOffset >= offset) {
+            new OffsetRange(offset, endOffset)
+        } else {
+            OffsetRange.NONE
+        }
+    }
 }
 
