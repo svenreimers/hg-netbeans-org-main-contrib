@@ -64,11 +64,21 @@ import org.openide.util.Exceptions;
  */
 public class SeleniumSupport {
 
-    private static final String SELENIUM_FOLDER_NAME = "selenium";
-    private static final String SELENIUM_LIBRARY_NAME = "Selenium";
-    private static final String SELENIUM_DIR_PROPERTY = "test.selenium.dir";
+    private static final String SELENIUM_FOLDER_NAME = "selenium";          //NOI18N
+    private static final String SELENIUM_LIBRARY_NAME = "Selenium";         //NOI18N
+    private static final String SELENIUM_DIR_PROPERTY = "test.selenium.dir";//NOI18N
 
     private SeleniumSupport() {
+    }
+
+    public static boolean hasSeleniumDir(Project project){
+        final FileObject projectDir = project.getProjectDirectory();
+        for (FileObject fileObject : projectDir.getChildren()) {
+            if (SELENIUM_FOLDER_NAME.equals(fileObject.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static FileObject getSelenimDir(Project project) {
@@ -92,9 +102,9 @@ public class SeleniumSupport {
         FileObject projectDir = project.getProjectDirectory();
         FileObject seleniumDir = addTestSourceRoot(project);
         addLibrary(seleniumDir);
-        FileObject srcs = projectDir.getFileObject("src/java");
+        FileObject srcs = projectDir.getFileObject("src/java"); //NOI18N
         if (srcs == null) {
-            srcs = projectDir.getFileObject("src");
+            srcs = projectDir.getFileObject("src");         //NOI18N
         }
         notifyProjectXMLChanges(srcs);
         return seleniumDir;
@@ -102,7 +112,7 @@ public class SeleniumSupport {
 
     private static void notifyProjectXMLChanges(FileObject fo) throws IOException {
         assert fo != null;
-        Library library = LibraryManager.getDefault().getLibrary(SELENIUM_LIBRARY_NAME); //NOI18N
+        Library library = LibraryManager.getDefault().getLibrary(SELENIUM_LIBRARY_NAME); 
         ProjectClassPathModifier.addLibraries(new Library[]{library}, fo, ClassPath.COMPILE);
         ProjectClassPathModifier.removeLibraries(new Library[]{library}, fo, ClassPath.COMPILE);
     }
@@ -132,8 +142,8 @@ public class SeleniumSupport {
                     String line = null;
                     while ((line = reader.readLine()) != null) {
                         writer.write(line);
-                        if (line.contains("<test-roots>")) {
-                            writer.write("<root id=\"test.selenium.dir\" name=\"Selenium Test Packages\"/>");
+                        if (line.contains("<test-roots>")) {        //NOI18N
+                            writer.write("<root id=\"test.selenium.dir\" name=\"Selenium Test Packages\"/>");   //NOI18N
                         }
                     }
                     projectXMLIs.close();

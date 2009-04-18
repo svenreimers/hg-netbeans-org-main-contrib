@@ -55,7 +55,7 @@ public final class RunUnitTestsAction extends ExtendedAction {
 
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            Project project = node.getLookup().lookup(Project.class);
+            Project project = getProjectForNode(node);
             Properties testProperties = new Properties();
             testProperties.setProperty("forceRedeploy", "false"); //NOI18N
             FileObject buildXML = findBuildXml(project);
@@ -63,7 +63,7 @@ public final class RunUnitTestsAction extends ExtendedAction {
                 Properties props = SeleniumSupport.getProjectProperties(project.getProjectDirectory());
                 String unitTestDir = props.getProperty("test.src.dir");
                 FileObject unitTestSources = project.getProjectDirectory().getFileObject(unitTestDir);
-                testProperties.setProperty("test.includes", ActionUtils.antIncludesList(unitTestSources.getChildren(), unitTestSources));
+                testProperties.setProperty("test.includes", listAllTestIncludes(unitTestSources));
                 testProperties.setProperty("javac.includes", ActionUtils.antIncludesList(unitTestSources.getChildren(), unitTestSources));
                 ActionUtils.runTarget(buildXML, new String[]{"test-single"}, testProperties);
             } catch (IOException ex) {

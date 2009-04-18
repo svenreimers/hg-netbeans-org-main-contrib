@@ -61,6 +61,7 @@ import org.netbeans.spi.java.queries.BinaryForSourceQueryImplementation;
 import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileRenameEvent;
 import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
@@ -77,7 +78,7 @@ import scala.tools.nsc.util.BatchSourceFile;
  */
 public class ScalaGlobal {
 
-    private static boolean debug;
+    private static boolean debug = false;
     private final static Map<Project, Reference<Global>> ProjectToGlobal =
             new WeakHashMap<Project, Reference<Global>>();
     private final static Map<Project, Reference<Global>> ProjectToGlobalForTest =
@@ -189,11 +190,11 @@ public class ScalaGlobal {
             }
 
             StringBuilder sb = new StringBuilder();
-            computeClassPath(sb, bootCp);
+            computeClassPath(project, sb, bootCp);
             settings.bootclasspath().tryToSet(scala.netbeans.Wrapper$.MODULE$.scalaStringList("-bootclasspath", sb.toString()));
 
             sb.delete(0, sb.length());
-            computeClassPath(sb, compCp);
+            computeClassPath(project, sb, compCp);
             if (forTest && !inStdLib && dirs.outDir != null) {
                 sb.append(File.pathSeparator).append(dirs.outDir);
             }
@@ -218,6 +219,18 @@ public class ScalaGlobal {
                     dirs.testOutDir.addFileChangeListener(new FileChangeAdapter() {
 
                         @Override
+                        public void fileChanged(FileEvent fe) {
+                            ProjectToGlobalForTest.remove(project);
+                            ProjectToDirs.remove(project);
+                        }
+
+                        @Override
+                        public void fileRenamed(FileRenameEvent fe) {
+                            ProjectToGlobalForTest.remove(project);
+                            ProjectToDirs.remove(project);
+                        }
+
+                        @Override
                         public void fileDeleted(FileEvent fe) {
                             // maybe a clean task invoked
                             ProjectToGlobalForTest.remove(project);
@@ -232,6 +245,18 @@ public class ScalaGlobal {
                     dirs.outDir.addFileChangeListener(new FileChangeAdapter() {
 
                         @Override
+                        public void fileChanged(FileEvent fe) {
+                            ProjectToGlobalForTest.remove(project);
+                            ProjectToDirs.remove(project);
+                        }
+
+                        @Override
+                        public void fileRenamed(FileRenameEvent fe) {
+                            ProjectToGlobalForTest.remove(project);
+                            ProjectToDirs.remove(project);
+                        }
+
+                        @Override
                         public void fileDeleted(FileEvent fe) {
                             ProjectToGlobalForTest.remove(project);
                             ProjectToDirs.remove(project);
@@ -242,6 +267,18 @@ public class ScalaGlobal {
                 ProjectToGlobal.put(project, new WeakReference<Global>(global));
                 if (dirs.outDir != null) {
                     dirs.outDir.addFileChangeListener(new FileChangeAdapter() {
+
+                        @Override
+                        public void fileChanged(FileEvent fe) {
+                            ProjectToGlobal.remove(project);
+                            ProjectToDirs.remove(project);
+                        }
+
+                        @Override
+                        public void fileRenamed(FileRenameEvent fe) {
+                            ProjectToGlobal.remove(project);
+                            ProjectToDirs.remove(project);
+                        }
 
                         @Override
                         public void fileDeleted(FileEvent fe) {
@@ -341,7 +378,7 @@ public class ScalaGlobal {
         return out;
     }
 
-    private static void computeClassPath(StringBuilder sb, ClassPath cp) {
+    private static void computeClassPath(final Project project, StringBuilder sb, ClassPath cp) {
         if (cp == null) {
             return;
         }
@@ -363,6 +400,31 @@ public class ScalaGlobal {
             }
 
             if (rootFile != null) {
+                FileUtil.toFileObject(rootFile).addFileChangeListener(new FileChangeAdapter() {
+
+                    @Override
+                    public void fileChanged(FileEvent fe) {
+                        ProjectToGlobalForTest.remove(project);
+                        ProjectToGlobal.remove(project);
+                        ProjectToDirs.remove(project);
+                    }
+
+                    @Override
+                    public void fileRenamed(FileRenameEvent fe) {
+                        ProjectToGlobalForTest.remove(project);
+                        ProjectToGlobal.remove(project);
+                        ProjectToDirs.remove(project);
+                    }
+
+                    @Override
+                    public void fileDeleted(FileEvent fe) {
+                        // maybe a clean task invoked
+                        ProjectToGlobalForTest.remove(project);
+                        ProjectToGlobal.remove(project);
+                        ProjectToDirs.remove(project);
+                    }
+                });
+
                 String path = rootFile.getAbsolutePath();
                 sb.append(path);
                 if (itr.hasNext()) {
@@ -375,6 +437,7 @@ public class ScalaGlobal {
     public static CompilationUnit compileSource(final Global global, BatchSourceFile srcFile) {
         synchronized (global) {
             Global.Run run = global.new Run();
+            global.resetSelectTypeErrors();
 
             scala.List srcFiles = scala.netbeans.Wrapper$.MODULE$.scalaSrcFileList(srcFile);
             try {
@@ -391,14 +454,15 @@ public class ScalaGlobal {
                 // just ignore all ex
             }
 
+            if (debug) {
+                scala.collection.Map selectTypeErrors = global.selectTypeErrors();
+                System.out.println("selectTypeErrors:" + selectTypeErrors);
+            }
+
             scala.Iterator units = run.units();
             while (units.hasNext()) {
                 CompilationUnit unit = (CompilationUnit) units.next();
                 if (unit.source() == srcFile) {
-                    if (debug) {
-                        scala.collection.Map selectTypeErrors = unit.selectTypeErrors();
-                        System.out.println("selectTypeErrors:" + selectTypeErrors);
-                    }
                     if (debug) {
                         final CompilationUnit unit1 = unit;
                         Runnable browser = new Runnable() {
@@ -416,5 +480,4 @@ public class ScalaGlobal {
             return null;
         }
     }
-
 }

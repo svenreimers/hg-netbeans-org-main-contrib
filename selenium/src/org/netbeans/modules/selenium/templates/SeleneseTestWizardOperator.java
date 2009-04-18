@@ -40,6 +40,7 @@ package org.netbeans.modules.selenium.templates;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.event.ChangeListener;
@@ -48,9 +49,10 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
+import org.netbeans.api.server.properties.InstanceProperties;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
-import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.selenium.SeleniumSupport;
+import org.netbeans.modules.selenium.server.SeleniumProperties;
 import org.netbeans.spi.java.project.support.ui.templates.JavaTemplates;
 import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.WizardDescriptor;
@@ -59,6 +61,7 @@ import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle;
+import org.openqa.selenium.server.RemoteControlConfiguration;
 
 /**
  *
@@ -67,9 +70,9 @@ import org.openide.util.NbBundle;
 public class SeleneseTestWizardOperator implements WizardDescriptor.InstantiatingIterator {
 
     private ChangeSupport changeSupport = new ChangeSupport(this);
+    private static final String DEFAULT_SERVER_PORT = "80";         // NOI18N
     private transient WizardDescriptor.Panel panel;
     private transient WizardDescriptor wiz;
-
 
     public static WizardDescriptor.InstantiatingIterator create(){
         return new SeleneseTestWizardOperator();
@@ -84,7 +87,17 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
 
         FileObject createdFile = null;
         DataObject dTemplate = DataObject.find(template);
-        Map<String, Object> params = Collections.singletonMap("server_port", (Object) getServerPort());//NOI18N
+        Object serverPort = getServerPort();
+        if (serverPort == null){
+            serverPort = DEFAULT_SERVER_PORT;
+        }
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("server_port", serverPort);   //NOI18N
+
+        InstanceProperties ip = SeleniumProperties.getInstanceProperties();
+        int port = ip.getInt(SeleniumProperties.PORT, RemoteControlConfiguration.DEFAULT_PORT);
+        params.put("selenium_server_port", Integer.toString(port));
+
         DataObject dobj = dTemplate.createFromTemplate(df, targetName, params);
         createdFile = dobj.getPrimaryFile();
 
@@ -95,8 +108,11 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
         Project project = Templates.getProject(wiz);
         J2eeModuleProvider provider = project.getLookup().lookup(J2eeModuleProvider.class);
         if (provider != null) {
-            String port = provider.getInstanceProperties().getProperty(InstanceProperties.HTTP_PORT_NUMBER);
-            return port;
+            org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties ip = provider.getInstanceProperties();
+            if (ip != null){
+                String port = ip.getProperty(org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties.HTTP_PORT_NUMBER);
+                return port;
+            }
         }
         return null;
     }
@@ -104,9 +120,14 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
     public void initialize(WizardDescriptor wiz) {
         this.wiz = wiz;
         Project proj = Templates.getProject(wiz);
-        SeleniumSupport.getSelenimDir(proj);
-        panel = createPanel(wiz);
-        panel.getComponent();
+        if (isAntProject(proj)){
+            assert (SeleniumSupport.getSelenimDir(proj) != null);
+            panel = createPanel(wiz);
+            panel.getComponent();
+        } else {
+            wiz.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(SeleneseTestWizardOperator.class, "NON_ANT_PROJECT"));
+            panel = Templates.createSimpleTargetChooser(proj, new SourceGroup[0]);
+        }
     }
 
     public void uninitialize(WizardDescriptor wiz) {
@@ -165,5 +186,9 @@ public class SeleneseTestWizardOperator implements WizardDescriptor.Instantiatin
 
     public void removeChangeListener(ChangeListener l) {
         changeSupport.removeChangeListener(l);
+    }
+
+    private boolean isAntProject(Project proj) {
+        return proj.getProjectDirectory().getFileObject("nbproject/project.xml") != null;
     }
 }

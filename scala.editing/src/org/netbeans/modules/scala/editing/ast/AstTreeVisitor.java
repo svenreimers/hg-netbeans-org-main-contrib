@@ -49,6 +49,7 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import scala.Option;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
+import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Alternative;
 import scala.tools.nsc.ast.Trees.Annotated;
 import scala.tools.nsc.ast.Trees.Annotation;
@@ -108,8 +109,8 @@ public class AstTreeVisitor extends AstVisitor {
     private final FileObject fo;
     private Type maybeType;
 
-    public AstTreeVisitor(CompilationUnit unit, TokenHierarchy th, BatchSourceFile sourceFile) {
-        super(unit, th, sourceFile);
+    public AstTreeVisitor(Global global, CompilationUnit unit, TokenHierarchy th, BatchSourceFile sourceFile) {
+        super(global, unit, th, sourceFile);
         setBoundsEndToken(rootScope);
         if (sourceFile != null) {
             File file = new File(sourceFile.path());
@@ -518,8 +519,8 @@ public class AstTreeVisitor extends AstVisitor {
         Tree qual = tree.qualifier();
         if (qual instanceof Ident || qual instanceof Apply) {
             Symbol qualSym = qual.symbol();
-            if (qualSym != null && isNoSymbol(qualSym)) {
-                scala.collection.Map<Tree, Type> errors = unit.selectTypeErrors();
+            if (qualSym != null && isNoSymbol(qualSym) && global != null) {
+                scala.collection.Map<Tree, Type> errors = global.selectTypeErrors();
                 Option<Type> opt = errors.get(tree);
                 maybeType = opt.isDefined() ? opt.get() : null;
             }

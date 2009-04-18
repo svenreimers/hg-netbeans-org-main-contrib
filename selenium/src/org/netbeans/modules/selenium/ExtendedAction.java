@@ -38,9 +38,11 @@
  */
 package org.netbeans.modules.selenium;
 
+import java.util.Enumeration;
+import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.web.spi.webmodule.WebModuleProvider;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.NodeAction;
@@ -50,6 +52,8 @@ import org.openide.util.actions.NodeAction;
  * @author Jindrich Sedek
  */
 public abstract class ExtendedAction extends NodeAction {
+
+    private static String INCLUDES_DELIMITER = ",";
 
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
@@ -63,18 +67,53 @@ public abstract class ExtendedAction extends NodeAction {
     @Override
     protected boolean enable(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            Project proj = node.getLookup().lookup(Project.class);
-            if (proj == null) {
-                return false;
-            }
-            if (proj.getLookup().lookup(WebModuleProvider.class) == null) {
-                return false;
+            Project proj = getProjectForNode(node);
+            if ((proj != null) && SeleniumSupport.hasSeleniumDir(proj)) {
+                return true;
             }
         }
-        return activatedNodes.length > 0;
+        return false;
+    }
+
+    protected Project getProjectForNode(Node node) {
+        Project proj = node.getLookup().lookup(Project.class);
+        if (proj == null) {
+            FileObject fo = node.getLookup().lookup(FileObject.class);
+            if (fo != null) {
+                proj = FileOwnerQuery.getOwner(fo);
+            }
+        }
+        return proj;
     }
 
     protected FileObject findBuildXml(Project project) {
         return project.getProjectDirectory().getFileObject("build.xml");
+    }
+
+    static String listAllTestIncludes(FileObject file) {
+        Enumeration<? extends FileObject> en = file.getFolders(true);
+        String result = null;
+        while (en.hasMoreElements()) {
+            FileObject next = en.nextElement();
+            assert (next.isFolder());
+            Enumeration<? extends FileObject> childrenData = next.getData(false);
+            boolean containsJavaFile = false;
+            while (childrenData.hasMoreElements()) {
+                if ("java".equals(childrenData.nextElement().getExt())) {
+                    containsJavaFile = true;
+                }
+            }
+            if (containsJavaFile) {
+                if (result == null) {
+                    result = FileUtil.getRelativePath(file, next) + "/*Test.java";
+                } else {
+                    result = result + INCLUDES_DELIMITER + FileUtil.getRelativePath(file, next) + "/*Test.java";
+                }
+            }
+        }
+        if (result == null){
+            return "";
+        }
+        return result;
     }
 }

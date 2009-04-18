@@ -108,6 +108,9 @@ public class LiferayXMLUtil {
     public static FileObject getFolder() {
         if (folder == null) {
             folder = Repository.getDefault().getDefaultFileSystem().findResource(templateFolder);
+            //For NB 7.0
+            //folder = FileUtil.getConfigFile(templateFolder);
+
         }
         return folder;
     }

@@ -50,6 +50,7 @@ import org.netbeans.modules.scala.editing.lexer.ScalaTokenId;
 import scala.Option;
 import scala.Tuple2;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
+import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Alternative;
 import scala.tools.nsc.ast.Trees.Annotated;
 import scala.tools.nsc.ast.Trees.Annotation;
@@ -116,8 +117,10 @@ public abstract class AstVisitor {
     protected Stack<AstScope> scopes = new Stack<AstScope>();
     protected Stack<AstExpr> exprs = new Stack<AstExpr>();
     protected Set<Tree> visited = new HashSet<Tree>();
+    protected Global global;
 
-    public AstVisitor(CompilationUnit unit, TokenHierarchy th, BatchSourceFile sourceFile) {
+    public AstVisitor(Global global, CompilationUnit unit, TokenHierarchy th, BatchSourceFile sourceFile) {
+        this.global = global;
         this.unit = unit;
         this.th = th;
         this.sourceFile = sourceFile;
@@ -166,18 +169,6 @@ public abstract class AstVisitor {
     }
 
     protected void visit(Tree tree) {
-        /**
-         * @Note: For some reason, or bug in Scala's native compiler, the tree will
-         * be recursively linked to itself via childern. Which causes infinite loop,
-         * We have to avoid this happens:
-         */
-        if (visited.contains(tree)) {
-            System.out.println("Detected a possible infinite loop of visiting: " + tree);
-            return;
-        } else {
-            visited.add(tree);
-        }
-
         if (tree == null) {
             return;
         }
@@ -185,6 +176,18 @@ public abstract class AstVisitor {
         if (offset(tree) == -1) {
             /** It may be EmptyTree, emptyValDef$, or remote TypeTree which presents an inferred Type etc */
             return;
+        }
+
+        /**
+         * @Note: For some reason, or bug in Scala's native compiler, the tree will
+         * be recursively linked to itself via childern. Which causes infinite loop,
+         * We have to avoid this happens:
+         */
+        if (visited.contains(tree)) {
+            //System.out.println("Detected a possible infinite loop of visiting: " + tree);
+            return;
+        } else {
+            visited.add(tree);
         }
 
         enter(tree);

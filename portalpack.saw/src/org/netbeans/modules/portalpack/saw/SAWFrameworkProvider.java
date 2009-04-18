@@ -167,6 +167,8 @@ public class SAWFrameworkProvider extends WebFrameworkProvider {
                 FileObject wfc = fileObject.getFileObject("WorkflowConfig", "properties");
                 if (wfc == null) {
                     FileObject wfcFileObject = Repository.getDefault().getDefaultFileSystem().findResource("templates/saw/WorkflowConfig.template");
+                    //For NB 7.0
+                    //FileObject wfcFileObject = FileUtil.getConfigFile("templates/saw/WorkflowConfig.template");
                     wfc = FileUtil.copyFile(wfcFileObject, fileObject, "WorkflowConfig", "properties");
                 }
             }

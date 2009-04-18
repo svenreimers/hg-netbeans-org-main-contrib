@@ -51,7 +51,8 @@ public abstract class PSOptionalFactory extends OptionalDeploymentManagerFactory
         
         PSDeploymentManager pdm = (PSDeploymentManager)dm;
         PSConfigObject pconfig = pdm.getPSConfig();
-        if(!pconfig.isDirectoryDeployment())
+        
+        if(pconfig.getServerType() == null)
             return null;
         
         if(pconfig.getServerType().equals(ServerConstants.SUN_APP_SERVER_9)) {
