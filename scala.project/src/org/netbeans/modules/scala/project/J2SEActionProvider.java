@@ -76,6 +76,7 @@ import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
 import org.netbeans.modules.csl.api.ElementKind;
 import org.netbeans.modules.java.api.common.ant.UpdateHelper;
+import org.netbeans.modules.java.api.common.project.ProjectProperties;
 import org.netbeans.modules.parsing.api.ParserManager;
 import org.netbeans.modules.parsing.api.ResultIterator;
 import org.netbeans.modules.parsing.api.Source;
@@ -369,7 +370,7 @@ class J2SEActionProvider implements ActionProvider {
     /*private*/ String[] getTargetNames(String command, Lookup context, Properties p) throws IllegalArgumentException {
         if (Arrays.asList(platformSensitiveActions).contains(command)) {
             final String activePlatformId = this.project.evaluator().getProperty("platform.active");  //NOI18N
-            if (J2SEProjectUtil.getActivePlatform (activePlatformId) == null) {
+            if (J2SEProjectUtil.getJavaActivePlatform (activePlatformId) == null) {
                 showPlatformWarning ();
                 return null;
             }
@@ -624,7 +625,7 @@ class J2SEActionProvider implements ActionProvider {
                     }
                     dirtyList.append(f);
                 }
-                p.setProperty(J2SEProjectProperties.INCLUDES, dirtyList.toString());
+                p.setProperty(ProjectProperties.INCLUDES, dirtyList.toString());
             }
             dirty.clear();
         }

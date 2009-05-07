@@ -824,7 +824,8 @@ public class ScalaUtils {
                 StringBuilder fqn = new StringBuilder(sym.fullNameString('.'));
 
                 // * getTopLevelClassName "scalarun.Dog"
-                String topClzName = sym.toplevelClass().fullNameString('.');
+                Symbol topSym = sym.toplevelClass();
+                String topClzName = topSym.fullNameString('.');
 
                 // "scalarun.Dog$$talk$1"
                 for (int i = topClzName.length(); i < fqn.length(); i++) {
@@ -833,6 +834,11 @@ public class ScalaUtils {
                     }
                 }
 
+                // * According to Symbol#kindString, an object template isModuleClass()
+                // * trait's symbol name has been added "$class" by compiler
+                if (topSym.isModuleClass()) {
+                    fqn.append("$");
+                }
                 clzName = fqn.toString();
             }
         }
@@ -1005,5 +1011,18 @@ public class ScalaUtils {
             }
         }
         return result;
+    }
+
+    public static ClasspathInfo getClasspathInfoForFileObject(FileObject fo) {
+
+        ClassPath bootPath = ClassPath.getClassPath(fo, ClassPath.BOOT);
+        ClassPath compilePath = ClassPath.getClassPath(fo, ClassPath.COMPILE);
+        ClassPath srcPath = ClassPath.getClassPath(fo, ClassPath.SOURCE);
+
+        if (bootPath == null || compilePath == null || srcPath == null) {
+            return null;
+        }
+
+        return ClasspathInfo.create(bootPath, compilePath, srcPath);
     }
 }

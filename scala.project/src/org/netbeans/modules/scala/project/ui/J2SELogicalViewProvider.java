@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2008 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2007 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2008 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -47,6 +47,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.CharConversionException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -54,24 +55,25 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.netbeans.api.scala.platform.ScalaPlatform;
-import org.netbeans.api.scala.platform.ScalaPlatformManager;
+import org.netbeans.api.java.platform.JavaPlatform;
+import org.netbeans.api.java.platform.JavaPlatformManager;
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.java.api.common.SourceRoots;
 import org.netbeans.modules.java.api.common.ant.UpdateHelper;
-import org.netbeans.modules.scala.project.J2SEProject;
+import org.netbeans.modules.java.api.common.project.ProjectProperties;
+import org.netbeans.modules.java.api.common.project.ui.LogicalViewProvider2;
 import org.netbeans.modules.scala.project.J2SEProjectUtil;
 import org.netbeans.modules.scala.project.ui.customizer.J2SEProjectProperties;
+import org.netbeans.modules.scala.project.J2SEProject;
 import org.netbeans.spi.java.project.support.ui.BrokenReferencesSupport;
 import org.netbeans.spi.java.project.support.ui.PackageView;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.SubprojectProvider;
 import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.netbeans.spi.project.support.ant.ReferenceHelper;
-import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.CommonProjectActions;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
@@ -80,13 +82,12 @@ import org.openide.ErrorManager;
 import org.openide.actions.FindAction;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataFolder;
 import org.openide.modules.SpecificationVersion;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Node;
 import org.openide.util.ChangeSupport;
 import org.openide.util.HelpCtx;
-import org.openide.util.Lookup;
+import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Utilities;
@@ -99,7 +100,7 @@ import org.openide.xml.XMLUtil;
  * Support for creating logical views.
  * @author Petr Hrebejk
  */
-public class J2SELogicalViewProvider implements LogicalViewProvider {
+public class J2SELogicalViewProvider implements LogicalViewProvider2 {
     
     private static final RequestProcessor RP = new RequestProcessor("J2SEPhysicalViewProvider.RP"); // NOI18N
     
@@ -140,15 +141,15 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
     }
     
     public Node findPath(Node root, Object target) {
-        Project project = root.getLookup().lookup(Project.class);
-        if (project == null) {
+        Project prj = root.getLookup().lookup(Project.class);
+        if (prj == null) {
             return null;
         }
         
         if (target instanceof FileObject) {
             FileObject fo = (FileObject) target;
             Project owner = FileOwnerQuery.getOwner(fo);
-            if (!project.equals(owner)) {
+            if (!prj.equals(owner)) {
                 return null; // Don't waste time if project does not own the fo
             }
             
@@ -182,22 +183,16 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
         changeSupport.fireChange();
     }
     
-    private static Lookup createLookup( Project project ) {
-        DataFolder rootFolder = DataFolder.findFolder(project.getProjectDirectory());
-        // XXX Remove root folder after FindAction rewrite
-        return Lookups.fixed(project, rootFolder);
-    }
-    
     
     // Private innerclasses ----------------------------------------------------
     
     private static final String[] BREAKABLE_PROPERTIES = {
-        J2SEProjectProperties.JAVAC_CLASSPATH,
-        J2SEProjectProperties.RUN_CLASSPATH,
+        ProjectProperties.JAVAC_CLASSPATH,
+        ProjectProperties.RUN_CLASSPATH,
         J2SEProjectProperties.DEBUG_CLASSPATH,
-        J2SEProjectProperties.RUN_TEST_CLASSPATH,
+        ProjectProperties.RUN_TEST_CLASSPATH,
         J2SEProjectProperties.DEBUG_TEST_CLASSPATH,
-        J2SEProjectProperties.JAVAC_TEST_CLASSPATH,
+        ProjectProperties.JAVAC_TEST_CLASSPATH,
     };
     
     public boolean hasBrokenLinks () {
@@ -214,7 +209,7 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
         }
         
         final String platformId = this.evaluator.getProperty("platform.active");  //NOI18N
-        final ScalaPlatform activePlatform = J2SEProjectUtil.getActivePlatform (platformId);
+        final JavaPlatform activePlatform = J2SEProjectUtil.getJavaActivePlatform (platformId);
         if (activePlatform == null) {
             return true;
         }        
@@ -227,6 +222,10 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
                 +this.project.getProjectDirectory().getPath());
             return true;
         }
+    }
+
+    private boolean isCompileOnSaveDisabled() {
+         return !J2SEProjectUtil.isCompileOnSaveEnabled(project) && J2SEProjectUtil.isCompileOnSaveSupported(project);
     }
     
     private String[] getBreakableProperties() {
@@ -241,7 +240,15 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
         return result;
     }
     
-    private static Image brokenProjectBadge = Utilities.loadImage("org/netbeans/modules/scala/project/ui/resources/brokenProjectBadge.gif", true);
+    private static Image brokenProjectBadge = ImageUtilities.loadImage("org/netbeans/modules/scala/project/ui/resources/brokenProjectBadge.gif", true);
+    private static final String COMPILE_ON_SAVE_DISABLED_BADGE_PATH = "org/netbeans/modules/scala/project/ui/resources/compileOnSaveDisabledBadge.gif";
+    private static final Image compileOnSaveDisabledBadge;
+
+    static {
+        URL errorBadgeIconURL = J2SELogicalViewProvider.class.getClassLoader().getResource(COMPILE_ON_SAVE_DISABLED_BADGE_PATH);
+        String compileOnSaveDisabledTP = "<img src=\"" + errorBadgeIconURL + "\">&nbsp;" + NbBundle.getMessage(J2SELogicalViewProvider.class, "TP_CompileOnSaveDisabled");
+        compileOnSaveDisabledBadge = ImageUtilities.assignToolTipToImage(ImageUtilities.loadImage(COMPILE_ON_SAVE_DISABLED_BADGE_PATH), compileOnSaveDisabledTP); // NOI18N
+    }
     
     /** Filter node containin additional features for the J2SE physical
      */
@@ -250,9 +257,10 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
         private Action brokenLinksAction;
         private boolean broken;         //Represents a state where project has a broken reference repairable by broken reference support
         private boolean illegalState;   //Represents a state where project is not in legal state, eg invalid source/target level
+        private boolean compileOnSaveDisabled;  //true iff Compile-on-Save is disabled
         
         public J2SELogicalViewRootNode() {
-            super(NodeFactorySupport.createCompositeChildren(project, "Projects/org-netbeans-modules-scala-project/Nodes"), 
+            super(NodeFactorySupport.createCompositeChildren(project, "Projects/org-netbeans-modules-scala-project/Nodes"),
                   Lookups.singleton(project));
             setIconBaseWithExtension("org/netbeans/modules/scala/project/ui/resources/scalaProject.png");
             super.setName( ProjectUtils.getInformation( project ).getDisplayName() );
@@ -262,6 +270,7 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
             else if (hasInvalidJdkVersion ()) {
                 illegalState = true;
             }
+            compileOnSaveDisabled = isCompileOnSaveDisabled();
             brokenLinksAction = new BrokenLinksAction();
         }
 
@@ -271,6 +280,7 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
             return NbBundle.getMessage(J2SELogicalViewProvider.class, "HINT_project_root_node", prjDirDispName);
         }
         
+        @Override
         public String getHtmlDisplayName() {
             String dispName = super.getDisplayName();
             try {
@@ -282,28 +292,44 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
             return broken || illegalState ? "<font color=\"#A40000\">" + dispName + "</font>" : null; //NOI18N
         }
         
+        @Override
         public Image getIcon(int type) {
             Image original = super.getIcon(type);
-            return broken || illegalState ? Utilities.mergeImages(original, brokenProjectBadge, 8, 0) : original;
+
+            if (broken || illegalState) {
+                return ImageUtilities.mergeImages(original, brokenProjectBadge, 8, 0);
+            } else {
+                return compileOnSaveDisabled ? ImageUtilities.mergeImages(original, compileOnSaveDisabledBadge, 8, 0) : original;
+            }
         }
         
+        @Override
         public Image getOpenedIcon(int type) {
             Image original = super.getOpenedIcon(type);
-            return broken || illegalState ? Utilities.mergeImages(original, brokenProjectBadge, 8, 0) : original;
+            
+            if (broken || illegalState) {
+                return ImageUtilities.mergeImages(original, brokenProjectBadge, 8, 0);
+            } else {
+                return compileOnSaveDisabled ? ImageUtilities.mergeImages(original, compileOnSaveDisabledBadge, 8, 0) : original;
+            }
         }
         
+        @Override
         public Action[] getActions( boolean context ) {
             return getAdditionalActions();
         }
         
+        @Override
         public boolean canRename() {
             return true;
         }
         
+        @Override
         public void setName(String s) {
             DefaultProjectOperations.performDefaultRenameOperation(project, s);
         }
         
+        @Override
         public HelpCtx getHelpCtx() {
             return new HelpCtx(J2SELogicalViewRootNode.class);
         }
@@ -368,6 +394,13 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
             fireDisplayNameChange(null, null);
         }
         
+        private void setCompileOnSaveDisabled (boolean value) {
+            this.compileOnSaveDisabled = value;
+            fireIconChange();
+            fireOpenedIconChange();
+            fireDisplayNameChange(null, null);
+        }
+
         /** This action is created only when project has broken references.
          * Once these are resolved the action is disabled.
          */
@@ -382,10 +415,10 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
                 setEnabled(broken);
                 evaluator.addPropertyChangeListener(this);
                 // When evaluator fires changes that platform properties were
-                // removed the platform still exists in ScalaPlatformManager.
+                // removed the platform still exists in JavaPlatformManager.
                 // That's why I have to listen here also on JPM:
-                weakPCL = WeakListeners.propertyChange(this, ScalaPlatformManager.getDefault());
-                ScalaPlatformManager.getDefault().addPropertyChangeListener(weakPCL);
+                weakPCL = WeakListeners.propertyChange(this, JavaPlatformManager.getDefault());
+                JavaPlatformManager.getDefault().addPropertyChangeListener(weakPCL);
                 J2SELogicalViewProvider.this.addChangeListener(WeakListeners.change(this, J2SELogicalViewProvider.this));
             }
             
@@ -419,6 +452,11 @@ public class J2SELogicalViewProvider implements LogicalViewProvider {
                 broken = hasInvalidJdkVersion ();
                 if (old != broken) {
                     setIllegalState(broken);
+                }
+                old = J2SELogicalViewRootNode.this.compileOnSaveDisabled;
+                boolean cosDisabled = isCompileOnSaveDisabled();
+                if (old != cosDisabled) {
+                    setCompileOnSaveDisabled(cosDisabled);
                 }
             }
             
