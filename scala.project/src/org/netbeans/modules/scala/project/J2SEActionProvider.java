@@ -49,6 +49,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,10 +74,14 @@ import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
-import org.netbeans.modules.gsf.api.CancellableTask;
-import org.netbeans.modules.gsf.api.ElementKind;
+import org.netbeans.modules.csl.api.ElementKind;
 import org.netbeans.modules.java.api.common.ant.UpdateHelper;
-import org.netbeans.modules.scala.editing.ScalaMimeResolver;
+import org.netbeans.modules.java.api.common.project.ProjectProperties;
+import org.netbeans.modules.parsing.api.ParserManager;
+import org.netbeans.modules.parsing.api.ResultIterator;
+import org.netbeans.modules.parsing.api.Source;
+import org.netbeans.modules.parsing.api.UserTask;
+import org.netbeans.modules.parsing.spi.ParseException;
 import org.netbeans.modules.scala.editing.ScalaParserResult;
 import org.netbeans.modules.scala.editing.ast.AstDef;
 import org.netbeans.modules.scala.editing.ast.AstRootScope;
@@ -84,9 +89,6 @@ import org.netbeans.modules.scala.project.classpath.ClassPathProviderImpl;
 import org.netbeans.modules.scala.project.ui.customizer.J2SEProjectProperties;
 import org.netbeans.modules.scala.project.ui.customizer.MainClassChooser;
 import org.netbeans.modules.scala.project.ui.customizer.MainClassWarning;
-import org.netbeans.napi.gsfret.source.CompilationController;
-import org.netbeans.napi.gsfret.source.Phase;
-import org.netbeans.napi.gsfret.source.Source;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.support.ant.AntProjectHelper;
 import org.netbeans.spi.project.support.ant.EditableProperties;
@@ -239,9 +241,9 @@ class J2SEActionProvider implements ActionProvider {
     }
 
     private void modification(FileObject f) {
-        final Iterable <? extends FileObject> roots = getRoots();
-        assert roots != null;
-        for (FileObject root : roots) {
+        final Iterable <? extends FileObject> _roots = getRoots();
+        assert _roots != null;
+        for (FileObject root : _roots) {
             String path = FileUtil.getRelativePath(root, f);
             if (path != null) {
                 synchronized (this) {
@@ -368,7 +370,7 @@ class J2SEActionProvider implements ActionProvider {
     /*private*/ String[] getTargetNames(String command, Lookup context, Properties p) throws IllegalArgumentException {
         if (Arrays.asList(platformSensitiveActions).contains(command)) {
             final String activePlatformId = this.project.evaluator().getProperty("platform.active");  //NOI18N
-            if (J2SEProjectUtil.getActivePlatform (activePlatformId) == null) {
+            if (J2SEProjectUtil.getJavaActivePlatform (activePlatformId) == null) {
                 showPlatformWarning ();
                 return null;
             }
@@ -623,7 +625,7 @@ class J2SEActionProvider implements ActionProvider {
                     }
                     dirtyList.append(f);
                 }
-                p.setProperty(J2SEProjectProperties.INCLUDES, dirtyList.toString());
+                p.setProperty(ProjectProperties.INCLUDES, dirtyList.toString());
             }
             dirty.clear();
         }
@@ -740,27 +742,18 @@ class J2SEActionProvider implements ActionProvider {
             return unitTestingSupport_fixClasses;
         }
         final String[] classes = new String[] {""}; //NOI18N
-        Source js = Source.forFileObject(file);
-        if (js != null) {
+        Source source = Source.create(file);
+        if (source != null) {
             try {
-                js.runUserActionTask(new CancellableTask<CompilationController>() { 
-                        
-                    public void cancel() {
-                        
-                    }
-                    
-                    public void run(CompilationController ci) throws Exception {
-                        if (ci.toPhase(Phase.ELEMENTS_RESOLVED).compareTo(Phase.ELEMENTS_RESOLVED) < 0) {
-                            ErrorManager.getDefault().log(ErrorManager.WARNING,
-                                    "Unable to resolve "+ci.getFileObject()+" to phase "+Phase.RESOLVED+", current phase = "+ci.getPhase()+
-                                    "\nFree memory = "+Runtime.getRuntime().freeMemory());
-                            return;
-                        }
-                        AstRootScope rootScope = ((ScalaParserResult) ci.getEmbeddedResult(ScalaMimeResolver.MIME_TYPE, 0)).getRootScope();
+                ParserManager.parse(Collections.singleton(source), new UserTask() {
+
+                    @Override
+                    public void run(ResultIterator resultIterator) throws Exception {
+                        AstRootScope rootScope = ((ScalaParserResult) resultIterator.getParserResult()).rootScope();
                         if (rootScope == null) {
                             return;
                         }
-                        
+
                         List<AstDef> tmpls = rootScope.getVisibleDefs(ElementKind.CLASS);
                         if (tmpls.size() > 0) {
                             for (AstDef tmpl : tmpls) {
@@ -771,9 +764,9 @@ class J2SEActionProvider implements ActionProvider {
                             }
                         }
                     }
-                }, true);
-            } catch (java.io.IOException ioex) {
-                Exceptions.printStackTrace(ioex);
+                });
+            } catch (ParseException ex) {
+                Exceptions.printStackTrace(ex);
             }
         }
         return classes[0];

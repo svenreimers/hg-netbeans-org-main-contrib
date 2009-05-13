@@ -40,13 +40,22 @@
  */
 package org.netbeans.modules.scala.editing;
 
-import javax.swing.text.Document;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.netbeans.api.lexer.TokenHierarchy;
-import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.OffsetRange;
-import org.netbeans.modules.gsf.api.ParserFile;
-import org.netbeans.modules.gsf.api.ParserResult;
+import org.netbeans.modules.csl.api.Error;
+import org.netbeans.modules.csl.api.OffsetRange;
+import org.netbeans.modules.csl.spi.ParserResult;
+import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.scala.editing.ast.AstRootScope;
+import org.netbeans.modules.scala.editing.ast.AstTreeVisitor;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import scala.tools.nsc.CompilationUnits.CompilationUnit;
+import scala.tools.nsc.Global;
+import scala.tools.nsc.util.BatchSourceFile;
 
 /**
  *
@@ -60,39 +69,74 @@ public class ScalaParserResult extends ParserResult {
         Parsed,
         GLOBAL_RESOLVED
     }
-    private AstTreeNode ast;
+    private List<Error> errors;
     private String source;
     private OffsetRange sanitizedRange = OffsetRange.NONE;
     private String sanitizedContents;
     private ScalaParser.Sanitize sanitized;
     private boolean commentsAdded;
     private AstRootScope rootScope;
-    private TokenHierarchy<Document> tokenHierarchy;
+    private AstRootScope rootScopeForDebugger;
     private Phase phase;
+    private ScalaParser parser;
 
-    public ScalaParserResult(ScalaParser parser, ParserFile file,
-            AstRootScope rootScope, AstTreeNode ast, TokenHierarchy<Document> th) {
-        super(parser, file, ScalaMimeResolver.MIME_TYPE);
+    public ScalaParserResult(ScalaParser parser, Snapshot snapshot, AstRootScope rootScope, List<Error> errors) {
+        super(snapshot);
+        this.parser = parser;
         this.rootScope = rootScope;
-        this.ast = ast;
-        this.tokenHierarchy = th;
         this.phase = Phase.Parsed;
+        this.errors = errors;
     }
 
-    public ParserResult.AstTreeNode getAst() {
-        return ast;
+    @Override
+    protected void invalidate() {
+        // XXX: what exactly should we do here?
     }
 
-    public void setAst(AstTreeNode ast) {
-        this.ast = ast;
+    @Override
+    public List<? extends Error> getDiagnostics() {
+        return errors == null ? Collections.<Error>emptyList() : errors;
     }
 
-    public AstRootScope getRootScope() {
+    public void setErrors(List<? extends Error> errors) {
+        this.errors = new ArrayList<Error>(errors);
+    }
+
+    public ScalaParser parser() {
+        return parser;
+    }
+
+    public AstRootScope rootScope() {
         return rootScope;
     }
 
-    public String getSource() {
-        return source;
+    public AstRootScope rootScopeForDebugger() {
+        if (rootScopeForDebugger == null) {
+            FileObject fo = getSnapshot().getSource().getFileObject();
+            File file = fo != null ? FileUtil.toFile(fo) : null;
+            // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
+            String filePath = file != null ? file.getAbsolutePath() : "<current>";
+            TokenHierarchy th = getSnapshot().getTokenHierarchy();
+
+            Global global = parser.global();
+            BatchSourceFile srcFile = new BatchSourceFile(filePath, getSnapshot().getText().toString().toCharArray());
+            try {
+                CompilationUnit unit = ScalaGlobal.compileSourceForDebugger(parser.global(), srcFile);
+                rootScopeForDebugger = new AstTreeVisitor(global, unit, th, srcFile).getRootScope();
+            } catch (AssertionError ex) {
+                // avoid scala nsc's assert error
+                ScalaGlobal.reset();
+            } catch (java.lang.Error ex) {
+                // avoid scala nsc's exceptions
+            } catch (IllegalArgumentException ex) {
+                // An internal exception thrown by ParserScala, just catch it and notify
+            } catch (Exception ex) {
+                // Scala's global throws too many exceptions
+                //ex.printStackTrace();
+            }
+        }
+
+        return rootScopeForDebugger;
     }
 
     public void setSource(String source) {
@@ -105,11 +149,11 @@ public class ScalaParserResult extends ParserResult {
      * This method returns OffsetRange.NONE if the source was not sanitized,
      * otherwise returns the actual sanitized range.
      */
-    public OffsetRange getSanitizedRange() {
+    public OffsetRange sanitizedRange() {
         return sanitizedRange;
     }
 
-    public String getSanitizedContents() {
+    public String sanitizedContents() {
         return sanitizedContents;
     }
 
@@ -134,15 +178,11 @@ public class ScalaParserResult extends ParserResult {
         this.commentsAdded = commentsAdded;
     }
 
-    public TokenHierarchy<Document> getTokenHierarchy() {
-        return tokenHierarchy;
-    }
-
-    public Phase getPhase() {
+    public Phase phase() {
         return phase == null ? Phase.Modified : phase;
     }
 
-    public void toGlobalPhase(CompilationInfo info) {
+    public void toGlobalPhase(ParserResult info) {
         if (rootScope == null) {
             return;
         }
@@ -167,6 +207,6 @@ public class ScalaParserResult extends ParserResult {
 
     @Override
     public String toString() {
-        return "ParserResult(file=" + getFile() + ",rootScope=" + rootScope + ",phase=" + phase + ")";
+        return "ParserResult(file=" + getSnapshot().getSource().getFileObject() + ",rootScope=" + rootScope + ",phase=" + phase + ")";
     }
 }

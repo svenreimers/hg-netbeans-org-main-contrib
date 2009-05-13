@@ -51,23 +51,24 @@ import javax.lang.model.element.ExecutableElement;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
-import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.CodeCompletionHandler;
-import org.netbeans.modules.gsf.api.CompletionProposal;
-import org.netbeans.modules.gsf.api.ElementHandle;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
-import org.netbeans.modules.gsf.api.NameKind;
-import org.netbeans.modules.gsf.api.ParameterInfo;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenId;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.Utilities;
-import org.netbeans.modules.gsf.api.CodeCompletionContext;
-import org.netbeans.modules.gsf.api.CodeCompletionResult;
-import org.netbeans.modules.gsf.api.OffsetRange;
-import org.netbeans.modules.gsf.spi.DefaultCompletionResult;
+import org.netbeans.modules.csl.api.CodeCompletionContext;
+import org.netbeans.modules.csl.api.CodeCompletionHandler;
+import org.netbeans.modules.csl.api.CodeCompletionHandler.QueryType;
+import org.netbeans.modules.csl.api.CodeCompletionResult;
+import org.netbeans.modules.csl.api.CompletionProposal;
+import org.netbeans.modules.csl.api.ElementHandle;
+import org.netbeans.modules.csl.api.HtmlFormatter;
+import org.netbeans.modules.csl.api.OffsetRange;
+import org.netbeans.modules.csl.api.ParameterInfo;
+import org.netbeans.modules.csl.spi.DefaultCompletionResult;
+import org.netbeans.modules.csl.spi.ParserResult;
+import org.netbeans.modules.parsing.spi.indexing.support.QuerySupport;
 import org.netbeans.modules.scala.editing.ScalaCompletionItem.KeywordItem;
 import org.netbeans.modules.scala.editing.ScalaCompletionItem.PackageItem;
 import org.netbeans.modules.scala.editing.ScalaCompletionItem.PlainItem;
@@ -287,23 +288,28 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
     public ScalaCodeCompletion() {
     }
 
+    @Override
+    public String resolveTemplateVariable(String variable, ParserResult info, int caretOffset, String name, Map parameters) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public CodeCompletionResult complete(CodeCompletionContext context) {
-        CompilationInfo info = context.getInfo();
+        ParserResult info = context.getParserResult();
         int lexOffset = context.getCaretOffset();
         String prefix = context.getPrefix();
-        NameKind kind = context.getNameKind();
         QueryType queryType = context.getQueryType();
         this.caseSensitive = context.isCaseSensitive();
-        // Temporary: case insensitive matches don't work very well for JavaScript
-        if (kind == NameKind.CASE_INSENSITIVE_PREFIX) {
-            kind = NameKind.PREFIX;
+        QuerySupport.Kind kind = QuerySupport.Kind.PREFIX;
+        if (kind == QuerySupport.Kind.CASE_INSENSITIVE_PREFIX) {
+            kind = QuerySupport.Kind.PREFIX;
         }
 
         if (prefix == null) {
             prefix = "";
         }
 
-        final Document document = info.getDocument();
+        final Document document = info.getSnapshot().getSource().getDocument(true);
         if (document == null) {
             return CodeCompletionResult.NONE;
         }
@@ -313,7 +319,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         DefaultCompletionResult completionResult = new DefaultCompletionResult(proposals, false);
 
         ScalaParserResult pResult = AstUtilities.getParserResult(info);
-        Global global = ((ScalaParser) pResult.getParser()).getGlobal();
+        Global global = ((ScalaParser) pResult.parser()).global();
 
         // Read-lock due to Token hierarchy use
         doc.readLock();
@@ -322,9 +328,9 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             if (astOffset == -1) {
                 return CodeCompletionResult.NONE;
             }
-            final AstRootScope root = pResult.getRootScope();
-            final TokenHierarchy<Document> th = pResult.getTokenHierarchy();
-            final FileObject fileObject = info.getFileObject();
+            final AstRootScope root = pResult.rootScope();
+            final TokenHierarchy th = pResult.getSnapshot().getTokenHierarchy();
+            final FileObject fileObject = pResult.getSnapshot().getSource().getFileObject();
 
             // Carry completion context around since this logic is split across lots of methods
             // and I don't want to pass dozens of parameters from method to method; just pass
@@ -335,7 +341,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             request.global = global;
             request.lexOffset = lexOffset;
             request.astOffset = astOffset;
-            request.index = ScalaIndex.get(info);
+            request.index = ScalaIndex.get(info.getSnapshot().getSource().getFileObject());
             request.doc = doc;
             request.info = info;
             request.prefix = prefix;
@@ -385,7 +391,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             if (root != null) {
                 int offset = astOffset;
 
-                OffsetRange sanitizedRange = pResult.getSanitizedRange();
+                OffsetRange sanitizedRange = pResult.sanitizedRange();
                 if (sanitizedRange != OffsetRange.NONE && sanitizedRange.containsInclusive(offset)) {
                     offset = sanitizedRange.getStart();
                 }
@@ -476,10 +482,10 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 
     private void addLocals(List<CompletionProposal> proposals, CompletionRequest request) {
         String prefix = request.prefix;
-        NameKind kind = request.kind;
+        QuerySupport.Kind kind = request.kind;
         ScalaParserResult pResult = request.result;
 
-        AstRootScope root = pResult.getRootScope();
+        AstRootScope root = pResult.rootScope();
         if (root == null) {
             return;
         }
@@ -489,20 +495,20 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             return;
         }
 
-        List<AstDef> localVars = closestScope.getVisibleDefs(org.netbeans.modules.gsf.api.ElementKind.FIELD);
-        localVars.addAll(closestScope.getVisibleDefs(org.netbeans.modules.gsf.api.ElementKind.PARAMETER));
-        localVars.addAll(closestScope.getVisibleDefs(org.netbeans.modules.gsf.api.ElementKind.VARIABLE));
+        List<AstDef> localVars = closestScope.getVisibleDefs(org.netbeans.modules.csl.api.ElementKind.FIELD);
+        localVars.addAll(closestScope.getVisibleDefs(org.netbeans.modules.csl.api.ElementKind.PARAMETER));
+        localVars.addAll(closestScope.getVisibleDefs(org.netbeans.modules.csl.api.ElementKind.VARIABLE));
         for (AstDef var : localVars) {
-            if ((kind == NameKind.EXACT_NAME && prefix.equals(var.getName())) ||
-                    (kind != NameKind.EXACT_NAME && startsWith(var.getName(), prefix))) {
+            if ((kind == QuerySupport.Kind.EXACT && prefix.equals(var.getName())) ||
+                    (kind != QuerySupport.Kind.EXACT && startsWith(var.getName(), prefix))) {
                 proposals.add(new PlainProposal(new ScalaElement(var.getSymbol(), request.info, request.global), request));
             }
         }
 
-        List<AstDef> localFuns = closestScope.getVisibleDefs(org.netbeans.modules.gsf.api.ElementKind.METHOD);
+        List<AstDef> localFuns = closestScope.getVisibleDefs(org.netbeans.modules.csl.api.ElementKind.METHOD);
         for (AstDef fun : localFuns) {
-            if ((kind == NameKind.EXACT_NAME && prefix.equals(fun.getName())) ||
-                    (kind != NameKind.EXACT_NAME && startsWith(fun.getName(), prefix))) {
+            if ((kind == QuerySupport.Kind.EXACT && prefix.equals(fun.getName())) ||
+                    (kind != QuerySupport.Kind.EXACT && startsWith(fun.getName(), prefix))) {
                 proposals.add(new FunctionProposal(new ScalaElement(fun.getSymbol(), request.info, request.global), request));
             }
         }
@@ -876,17 +882,16 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
      * kick in.
      */
     @SuppressWarnings("unchecked")
-    public String getPrefix(CompilationInfo info, int lexOffset, boolean upToOffset) {
+    @Override
+    public String getPrefix(ParserResult info, int lexOffset, boolean upToOffset) {
         try {
-            BaseDocument doc = (BaseDocument) info.getDocument();
+            BaseDocument doc = (BaseDocument) info.getSnapshot().getSource().getDocument(true);
             if (doc == null) {
                 return null;
             }
 
-            TokenHierarchy<Document> th = TokenHierarchy.get((Document) doc);
-            doc.readLock(); // Read-lock due to token hierarchy use
+            TokenHierarchy th = info.getSnapshot().getTokenHierarchy();
 
-            try {
 //            int requireStart = ScalaLexUtilities.getRequireStringOffset(lexOffset, th);
 //
 //            if (requireStart != -1) {
@@ -894,41 +899,41 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 //                return doc.getText(requireStart, lexOffset - requireStart);
 //            }
 
-                TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, lexOffset);
+            TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, lexOffset);
 
-                if (ts == null) {
-                    return null;
-                }
+            if (ts == null) {
+                return null;
+            }
 
-                ts.move(lexOffset);
+            ts.move(lexOffset);
 
-                if (!ts.moveNext() && !ts.movePrevious()) {
-                    return null;
-                }
+            if (!ts.moveNext() && !ts.movePrevious()) {
+                return null;
+            }
 
-                if (ts.offset() == lexOffset) {
-                    // We're looking at the offset to the RIGHT of the caret
-                    // and here I care about what's on the left
-                    ts.movePrevious();
-                }
+            if (ts.offset() == lexOffset) {
+                // We're looking at the offset to the RIGHT of the caret
+                // and here I care about what's on the left
+                ts.movePrevious();
+            }
 
-                Token<? extends ScalaTokenId> token = ts.token();
+            Token<? extends ScalaTokenId> token = ts.token();
 
-                if (token != null) {
-                    TokenId id = token.id();
+            if (token != null) {
+                TokenId id = token.id();
 
 
-                    if (id == ScalaTokenId.STRING_BEGIN || id == ScalaTokenId.STRING_END ||
-                            id == ScalaTokenId.StringLiteral || id == ScalaTokenId.REGEXP_LITERAL ||
-                            id == ScalaTokenId.REGEXP_BEGIN || id == ScalaTokenId.REGEXP_END) {
-                        if (lexOffset > 0) {
-                            char prevChar = doc.getText(lexOffset - 1, 1).charAt(0);
-                            if (prevChar == '\\') {
-                                return "\\";
-                            }
-                            return "";
+                if (id == ScalaTokenId.STRING_BEGIN || id == ScalaTokenId.STRING_END ||
+                        id == ScalaTokenId.StringLiteral || id == ScalaTokenId.REGEXP_LITERAL ||
+                        id == ScalaTokenId.REGEXP_BEGIN || id == ScalaTokenId.REGEXP_END) {
+                    if (lexOffset > 0) {
+                        char prevChar = doc.getText(lexOffset - 1, 1).charAt(0);
+                        if (prevChar == '\\') {
+                            return "\\";
                         }
+                        return "";
                     }
+                }
 //                        
 //                // We're within a String that has embedded Js. Drop into the
 //                // embedded language and see if we're within a literal string there.
@@ -1059,89 +1064,87 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 //            }
                 }
 
-                int lineBegin = Utilities.getRowStart(doc, lexOffset);
-                if (lineBegin != -1) {
-                    int lineEnd = Utilities.getRowEnd(doc, lexOffset);
-                    String line = doc.getText(lineBegin, lineEnd - lineBegin);
-                    int lineOffset = lexOffset - lineBegin;
-                    int start = lineOffset;
-                    if (lineOffset > 0) {
-                        for (int i = lineOffset - 1; i >= 0; i--) {
-                            char c = line.charAt(i);
-                            if (!ScalaUtils.isIdentifierChar(c)) {
-                                break;
-                            } else {
-                                start = i;
-                            }
-                        }
-                    }
-
-                    // Find identifier end
-                    String prefix;
-                    if (upToOffset) {
-                        prefix = line.substring(start, lineOffset);
-                    } else {
-                        if (lineOffset == line.length()) {
-                            prefix = line.substring(start);
+            int lineBegin = Utilities.getRowStart(doc, lexOffset);
+            if (lineBegin != -1) {
+                int lineEnd = Utilities.getRowEnd(doc, lexOffset);
+                String line = doc.getText(lineBegin, lineEnd - lineBegin);
+                int lineOffset = lexOffset - lineBegin;
+                int start = lineOffset;
+                if (lineOffset > 0) {
+                    for (int i = lineOffset - 1; i >= 0; i--) {
+                        char c = line.charAt(i);
+                        if (!ScalaUtils.isIdentifierChar(c)) {
+                            break;
                         } else {
-                            int n = line.length();
-                            int end = lineOffset;
-                            for (int j = lineOffset; j < n; j++) {
-                                char d = line.charAt(j);
-                                // Try to accept Foo::Bar as well
-                                if (!ScalaUtils.isStrictIdentifierChar(d)) {
-                                    break;
-                                } else {
-                                    end = j + 1;
-                                }
-                            }
-                            prefix = line.substring(start, end);
+                            start = i;
                         }
-                    }
-
-                    if (prefix.length() > 0) {
-                        if (prefix.endsWith("::")) {
-                            return "";
-                        }
-
-                        if (prefix.endsWith(":") && prefix.length() > 1) {
-                            return null;
-                        }
-
-                        // Strip out LHS if it's a qualified method, e.g.  Benchmark::measure -> measure
-                        int q = prefix.lastIndexOf("::");
-
-                        if (q != -1) {
-                            prefix = prefix.substring(q + 2);
-                        }
-
-                        // The identifier chars identified by JsLanguage are a bit too permissive;
-                        // they include things like "=", "!" and even "&" such that double-clicks will
-                        // pick up the whole "token" the user is after. But "=" is only allowed at the
-                        // end of identifiers for example.
-                        if (prefix.length() == 1) {
-                            char c = prefix.charAt(0);
-                            if (!(Character.isJavaIdentifierPart(c) || c == '@' || c == '$' || c == ':')) {
-                                return null;
-                            }
-                        } else {
-                            for (int i = prefix.length() - 2; i >= 0; i--) { // -2: the last position (-1) can legally be =, ! or ?
-
-                                char c = prefix.charAt(i);
-                                if (i == 0 && c == ':') {
-                                    // : is okay at the begining of prefixes
-                                } else if (!(Character.isJavaIdentifierPart(c) || c == '@' || c == '$')) {
-                                    prefix = prefix.substring(i + 1);
-                                    break;
-                                }
-                            }
-                        }
-
-                        return prefix;
                     }
                 }
-            } finally {
-                doc.readUnlock();
+
+                // Find identifier end
+                String prefix;
+                if (upToOffset) {
+                    prefix = line.substring(start, lineOffset);
+                } else {
+                    if (lineOffset == line.length()) {
+                        prefix = line.substring(start);
+                    } else {
+                        int n = line.length();
+                        int end = lineOffset;
+                        for (int j = lineOffset; j < n; j++) {
+                            char d = line.charAt(j);
+                            // Try to accept Foo::Bar as well
+                            if (!ScalaUtils.isStrictIdentifierChar(d)) {
+                                break;
+                            } else {
+                                end = j + 1;
+                            }
+                        }
+                        prefix = line.substring(start, end);
+                    }
+                }
+
+                if (prefix.length() > 0) {
+                    if (prefix.endsWith("::")) {
+                        return "";
+                    }
+
+                    if (prefix.endsWith(":") && prefix.length() > 1) {
+                        return null;
+                    }
+
+                    // Strip out LHS if it's a qualified method, e.g.  Benchmark::measure -> measure
+                    int q = prefix.lastIndexOf("::");
+
+                    if (q != -1) {
+                        prefix = prefix.substring(q + 2);
+                    }
+
+                    // The identifier chars identified by JsLanguage are a bit too permissive;
+                    // they include things like "=", "!" and even "&" such that double-clicks will
+                    // pick up the whole "token" the user is after. But "=" is only allowed at the
+                    // end of identifiers for example.
+                    if (prefix.length() == 1) {
+                        char c = prefix.charAt(0);
+                        if (!(Character.isJavaIdentifierPart(c) || c == '@' || c == '$' || c == ':')) {
+                            return null;
+                        }
+                    } else {
+                        for (int i = prefix.length() - 2; i >= 0; i--) { // -2: the last position (-1) can legally be =, ! or ?
+
+                            char c = prefix.charAt(i);
+                            if (i == 0 && c == ':') {
+                                // : is okay at the begining of prefixes
+                                } else if (!(Character.isJavaIdentifierPart(c) || c == '@' || c == '$')) {
+                                prefix = prefix.substring(i + 1);
+                                break;
+                            }
+                        }
+                    }
+
+                    return prefix;
+
+                }
             }
             // Else: normal identifier: just return null and let the machinery do the rest
         } catch (BadLocationException ble) {
@@ -1404,7 +1407,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         String prefix = request.prefix;
         int lexOffset = request.lexOffset;
         TokenHierarchy<Document> th = request.th;
-        NameKind kind = request.kind;
+        QuerySupport.Kind kind = request.kind;
 
         TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, lexOffset);
 
@@ -1430,7 +1433,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                 // See if we're in the identifier - "foo" in "def foo"
                 // I could also be a keyword in case the prefix happens to currently
                 // match a keyword, such as "next"
-                if ((id == ScalaTokenId.Identifier) || (id == ScalaTokenId.CONSTANT) || id.primaryCategory().equals("keyword")) {
+                if (id == ScalaTokenId.Identifier || id == ScalaTokenId.CONSTANT || id.primaryCategory().equals("keyword")) {
                     if (!ts.movePrevious()) {
                         return false;
                     }
@@ -1440,22 +1443,23 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                 }
 
                 // If we're not in the identifier we need to be in the whitespace after "def"
-                if (id != ScalaTokenId.Ws && id != ScalaTokenId.Nl) {
+                if (id != ScalaTokenId.Ws && id != ScalaTokenId.Nl & id != ScalaTokenId.Colon) {
                     // Do something about http://www.netbeans.org/issues/show_bug.cgi?id=100452 here
                     // In addition to checking for whitespace I should look for "Foo." here
                     return false;
                 }
 
                 // There may be more than one whitespace; skip them
-                while (ts.movePrevious()) {
-                    token = ts.token();
-
-                    if (token.id() != ScalaTokenId.Ws) {
-                        break;
+                if (id == ScalaTokenId.Ws || id == ScalaTokenId.Nl) {
+                    while (ts.movePrevious()) {
+                        token = ts.token();
+                        if (token.id() != ScalaTokenId.Ws) {
+                            break;
+                        }
                     }
                 }
 
-                if (token.id() == ScalaTokenId.New) {
+                if (token.id() == ScalaTokenId.New || token.id() == ScalaTokenId.Colon) {
                     if (prefix.length() < 2) {
                         /** @todo return imported types */
                         return false;
@@ -1466,7 +1470,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                      * 1. get Type name
                      * 2. get constructors of this type when use pressed enter
                      */
-                    Set<GsfElement> gsdElements = index.getDeclaredTypes(prefix, kind, ScalaIndex.ALL_SCOPE, request.result);
+                    Set<GsfElement> cslElements = index.getDeclaredTypes(prefix, kind, request.result);
                     String lhs = request.call == null ? null : request.call.getLhs();
                     /**
                     if (lhs != null && lhs.length() > 0) {
@@ -1494,9 +1498,9 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                     }
                     }
                     } */
-                    for (GsfElement gsfElement : gsdElements) {
+                    for (GsfElement cslElement : cslElements) {
                         // Hmmm, is this necessary? Filtering should happen in the getInheritedMEthods call
-                        if (!gsfElement.getName().startsWith(prefix)) {
+                        if (!cslElement.getName().startsWith(prefix)) {
                             continue;
                         }
 
@@ -1515,7 +1519,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 //                        } else {
 //                            item = new PlainItem(request, gsfElement);
 //                        }
-                        ScalaCompletionItem item = new PlainItem(gsfElement, request);
+                        ScalaCompletionItem item = new PlainItem(cslElement, request);
                         // Exact matches
 //                        item.setSmart(method.isSmart());
                         proposals.add(item);
@@ -1549,7 +1553,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             fqnPrefix = "";
         }
 
-        for (GsfElement gsfElement : request.index.getPackagesAndContent(fqnPrefix, request.kind, ScalaIndex.ALL_SCOPE)) {
+        for (GsfElement gsfElement : request.index.getPackagesAndContent(fqnPrefix, request.kind)) {
             IndexedElement element = (IndexedElement) gsfElement.getElement();
             if (element.getKind() == ElementKind.PACKAGE) {
                 proposals.add(new PackageItem(new GsfElement(element, request.fileObject, request.info), request));
@@ -1561,6 +1565,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         return true;
     }
 
+    @Override
     public QueryType getAutoQuery(JTextComponent component, String typedText) {
         char c = typedText.charAt(0);
 
@@ -1651,12 +1656,8 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         return true;
     }
 
-    public String resolveTemplateVariable(String variable, CompilationInfo info, int caretOffset,
-            String name, Map parameters) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public String document(CompilationInfo info, ElementHandle element) {
+    @Override
+    public String document(ParserResult info, ElementHandle element) {
         HtmlFormatter sigFormatter = new SignatureHtmlFormatter();
         String comment = null;
         if (element instanceof IndexedElement) {
@@ -1676,6 +1677,9 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         } else if (element instanceof ScalaElementHandle) {
             ScalaElementHandle element1 = (ScalaElementHandle) element;
             try {
+                sigFormatter.appendHtml("<i>");
+                sigFormatter.appendText(element1.getSymbol().enclClass().fullNameString());
+                sigFormatter.appendHtml("</i><p>");
                 sigFormatter.appendText(element1.getSymbol().defString());
             } catch (AssertionError ex) {
                 ScalaGlobal.reset();
@@ -1695,7 +1699,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             return html.toString();
         }
 
-        ScalaCommentFormatter formatter = new ScalaCommentFormatter(comment);
+        ScalaCommentFormatter formatter = new ScalaCommentFormatter(comment);        
         String name = element.getName();
         if (name != null && name.length() > 0) {
             formatter.setSeqName(name);
@@ -1703,7 +1707,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 
         FileObject fo = element.getFileObject();
         if (fo != null) {
-            html.append("<b>").append(fo.getNameExt()).append("</b><br>");
+            html.append("<b>").append(fo.getPath()).append("</b><br>");
         }
 
         html.append(sigFormatter).append("\n<hr>\n").append(formatter.toHtml());
@@ -1772,12 +1776,14 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 //        return html;
     }
 
-    public Set<String> getApplicableTemplates(CompilationInfo info, int selectionBegin,
+    @Override
+    public Set<String> getApplicableTemplates(ParserResult info, int selectionBegin,
             int selectionEnd) {
         return Collections.emptySet();
     }
 
-    public ParameterInfo parameters(CompilationInfo info, int lexOffset,
+    @Override
+    public ParameterInfo parameters(ParserResult info, int lexOffset,
             CompletionProposal proposal) {
         Function[] methodHolder = new Function[1];
         int[] paramIndexHolder = new int[1];
@@ -1830,12 +1836,12 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
      * The argument index is returned in parameterIndexHolder[0] and the method being
      * called in methodHolder[0].
      */
-    boolean computeMethodCall(CompilationInfo info, int lexOffset, int astOffset,
+    boolean computeMethodCall(ParserResult info, int lexOffset, int astOffset,
             ExecutableElement[] methodHolder, int[] parameterIndexHolder, int[] anchorOffsetHolder,
             Set<Function>[] alternativesHolder) {
         try {
             ScalaParserResult pResult = AstUtilities.getParserResult(info);
-            AstRootScope root = pResult.getRootScope();
+            AstRootScope root = pResult.rootScope();
             if (root == null) {
                 return false;
             }
@@ -1849,17 +1855,18 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             int originalAstOffset = astOffset;
 
             // Adjust offset to the left
-            BaseDocument doc = (BaseDocument) info.getDocument();
+            BaseDocument doc = (BaseDocument) info.getSnapshot().getSource().getDocument(true);
             if (doc == null) {
                 return false;
             }
-            TokenHierarchy th = TokenHierarchy.get(doc);
+
+            TokenHierarchy th = info.getSnapshot().getTokenHierarchy();
             int newLexOffset = ScalaLexUtilities.findSpaceBegin(doc, lexOffset);
             if (newLexOffset < lexOffset) {
                 astOffset -= (lexOffset - newLexOffset);
             }
 
-            OffsetRange range = pResult.getSanitizedRange();
+            OffsetRange range = pResult.sanitizedRange();
             if (range != OffsetRange.NONE && range.containsInclusive(astOffset)) {
                 if (astOffset != range.getStart()) {
                     astOffset = range.getStart() - 1;
@@ -1912,7 +1919,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             if (haveSanitizedComma) {
                 // We only care about removed commas since that
                 // affects the parameter count
-                if (pResult.getSanitizedContents().indexOf(',') == -1) {
+                if (pResult.sanitizedContents().indexOf(',') == -1) {
                     haveSanitizedComma = false;
                 }
             }
@@ -1989,6 +1996,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         return true;
     }
 
+    @Override
     public ElementHandle resolveLink(String link, ElementHandle elementHandle) {
         if (link.indexOf(':') != -1) {
             link = link.replace(':', '.');
@@ -2098,7 +2106,8 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         }
 
         if (idToken != null) {
-            AstItem item = rootScope.findItemAt(idToken);
+            //AstItem item = rootScope.findItemAt(idToken);
+            AstItem item = rootScope.findItemAt(th, idToken.offset(th));
             if (times == 0) {
                 if (call.caretAfterDot) {
                     call.base = item;
@@ -2138,7 +2147,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
 
         private DefaultCompletionResult completionResult;
         protected TokenHierarchy<Document> th;
-        protected CompilationInfo info;
+        protected ParserResult info;
         protected AstItem node;
         protected AstRootScope root;
         protected int anchor;
@@ -2147,7 +2156,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         protected BaseDocument doc;
         protected String prefix;
         protected ScalaIndex index;
-        protected NameKind kind;
+        protected QuerySupport.Kind kind;
         protected ScalaParserResult result;
         protected Global global;
         protected QueryType queryType;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2008 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2008 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -47,9 +47,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -57,7 +59,6 @@ import java.util.Vector;
 import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import javax.swing.ListCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -67,54 +68,72 @@ import javax.swing.text.PlainDocument;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.api.project.ant.AntBuildExtender;
 import org.netbeans.modules.java.api.common.SourceRoots;
 import org.netbeans.modules.java.api.common.ant.UpdateHelper;
+import org.netbeans.modules.java.api.common.classpath.ClassPathSupport;
+import org.netbeans.modules.java.api.common.project.ProjectProperties;
+import org.netbeans.modules.java.api.common.project.ui.ClassPathUiSupport;
+import org.netbeans.modules.java.api.common.project.ui.customizer.ClassPathListCellRenderer;
+import org.netbeans.modules.java.api.common.project.ui.customizer.SourceRootsUi;
 import org.netbeans.modules.java.api.common.ui.PlatformUiSupport;
+import org.netbeans.modules.java.api.common.util.CommonProjectUtils;
 import org.netbeans.modules.scala.project.J2SEProject;
 import org.netbeans.modules.scala.project.J2SEProjectType;
 import org.netbeans.modules.scala.project.J2SEProjectUtil;
-import org.netbeans.modules.scala.project.classpath.ClassPathSupport;
 import org.netbeans.spi.java.project.support.ui.IncludeExcludeVisualizer;
+import org.netbeans.spi.java.project.support.ui.SharableLibrariesUtils;
+import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.support.ant.AntProjectHelper;
 import org.netbeans.spi.project.support.ant.EditableProperties;
 import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
 import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.netbeans.spi.project.support.ant.ReferenceHelper;
 import org.netbeans.spi.project.support.ant.ui.StoreGroup;
-import org.openide.DialogDisplayer;
 import org.openide.ErrorManager;
-import org.openide.NotifyDescriptor;
+import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import org.openide.util.Mutex;
 import org.openide.util.MutexException;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
+import org.openide.util.lookup.Lookups;
 
 /**
  * @author Petr Hrebejk
  */
 public class J2SEProjectProperties {
-    
+
     //Hotfix of the issue #70058
     //Should be removed when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel
     private static final Integer BOOLEAN_KIND_TF = new Integer( 0 );
     private static final Integer BOOLEAN_KIND_YN = new Integer( 1 );
     private static final Integer BOOLEAN_KIND_ED = new Integer( 2 );
+    private static final String COS_MARK = ".netbeans_automatic_build";     //NOI18N
     private Integer javacDebugBooleanKind;
     private Integer doJarBooleanKind;
     private Integer javadocPreviewBooleanKind;
-    
+
     // Special properties of the project
     public static final String J2SE_PROJECT_NAME = "j2se.project.name"; // NOI18N
     public static final String JAVA_PLATFORM = "platform.active"; // NOI18N
-    
-    // Properties stored in the PROJECT.PROPERTIES    
+
+    // folowing properties have moved to ProjectProperties in java.api.common module:
+    //public static final String JAVAC_CLASSPATH = "javac.classpath"; // NOI18N
+    //public static final String RUN_CLASSPATH = "run.classpath"; // NOI18N
+    //public static final String JAVAC_TEST_CLASSPATH = "javac.test.classpath"; // NOI18N
+    //public static final String RUN_TEST_CLASSPATH = "run.test.classpath"; // NOI18N
+    //public static final String BUILD_CLASSES_DIR = "build.classes.dir"; // NOI18N
+    //public static final String BUILD_TEST_CLASSES_DIR = "build.test.classes.dir"; // NOI18N
+    //public static final String INCLUDES = "includes"; // NOI18N
+    //public static final String EXCLUDES = "excludes"; // NOI18N
+    //public static final String[] WELL_KNOWN_PATHS = new String[] {
+    //public static final String ANT_ARTIFACT_PREFIX = "${reference."; // NOI18N
+
+    // Properties stored in the PROJECT.PROPERTIES
     public static final String DIST_DIR = "dist.dir"; // NOI18N
     public static final String DIST_JAR = "dist.jar"; // NOI18N
-    public static final String JAVAC_CLASSPATH = "javac.classpath"; // NOI18N
-    public static final String RUN_CLASSPATH = "run.classpath"; // NOI18N
     public static final String RUN_JVM_ARGS = "run.jvmargs"; // NOI18N
     public static final String RUN_WORK_DIR = "work.dir"; // NOI18N
     public static final String DEBUG_CLASSPATH = "debug.classpath"; // NOI18N
@@ -122,29 +141,28 @@ public class J2SEProjectProperties {
     public static final String MAIN_CLASS = "main.class"; // NOI18N
     public static final String JAVAC_SOURCE = "javac.source"; // NOI18N
     public static final String JAVAC_TARGET = "javac.target"; // NOI18N
-    public static final String JAVAC_TEST_CLASSPATH = "javac.test.classpath"; // NOI18N
     public static final String JAVAC_DEBUG = "javac.debug"; // NOI18N
     public static final String JAVAC_DEPRECATION = "javac.deprecation"; // NOI18N
     public static final String JAVAC_COMPILER_ARG = "javac.compilerargs";    //NOI18N
-    public static final String RUN_TEST_CLASSPATH = "run.test.classpath"; // NOI18N
     public static final String BUILD_DIR = "build.dir"; // NOI18N
-    public static final String BUILD_CLASSES_DIR = "build.classes.dir"; // NOI18N
-    public static final String BUILD_TEST_CLASSES_DIR = "build.test.classes.dir"; // NOI18N
     public static final String BUILD_TEST_RESULTS_DIR = "build.test.results.dir"; // NOI18N
     public static final String BUILD_CLASSES_EXCLUDES = "build.classes.excludes"; // NOI18N
     public static final String DIST_JAVADOC_DIR = "dist.javadoc.dir"; // NOI18N
     public static final String NO_DEPENDENCIES="no.dependencies"; // NOI18N
     public static final String DEBUG_TEST_CLASSPATH = "debug.test.classpath"; // NOI18N
     public static final String SOURCE_ENCODING="source.encoding"; // NOI18N
-    /** @since org.netbeans.modules.java.j2seproject/1 1.11 */
-    public static final String INCLUDES = "includes"; // NOI18N
-    /** @since org.netbeans.modules.java.j2seproject/1 1.11 */
-    public static final String EXCLUDES = "excludes"; // NOI18N
     /** @since org.netbeans.modules.java.j2seproject/1 1.12 */
     public static final String DO_DEPEND = "do.depend"; // NOI18N
     /** @since org.netbeans.modules.java.j2seproject/1 1.12 */
     public static final String DO_JAR = "do.jar"; // NOI18N
-    
+    /** @since org.netbeans.modules.java.j2seproject/1 1.21 */
+    public static final String COMPILE_ON_SAVE = "compile.on.save"; // NOI18N
+    /** @since org.netbeans.modules.java.j2seproject/1 1.19 */
+    public static final String COMPILE_ON_SAVE_UNSUPPORTED_PREFIX = "compile.on.save.unsupported"; // NOI18N
+
+    public static final String SYSTEM_PROPERTIES_RUN_PREFIX = "run-sys-prop."; // NOI18N
+    public static final String SYSTEM_PROPERTIES_TEST_PREFIX = "test-sys-prop."; // NOI18N
+
     public static final String JAVADOC_PRIVATE="javadoc.private"; // NOI18N
     public static final String JAVADOC_NO_TREE="javadoc.notree"; // NOI18N
     public static final String JAVADOC_USE="javadoc.use"; // NOI18N
@@ -156,45 +174,36 @@ public class J2SEProjectProperties {
     public static final String JAVADOC_WINDOW_TITLE="javadoc.windowtitle"; // NOI18N
     public static final String JAVADOC_ENCODING="javadoc.encoding"; // NOI18N
     public static final String JAVADOC_ADDITIONALPARAM="javadoc.additionalparam"; // NOI18N
-    
+
     public static final String APPLICATION_TITLE ="application.title"; // NOI18N
     public static final String APPLICATION_VENDOR ="application.vendor"; // NOI18N
     public static final String APPLICATION_DESC ="application.desc"; // NOI18N
     public static final String APPLICATION_HOMEPAGE ="application.homepage"; // NOI18N
     public static final String APPLICATION_SPLASH ="application.splash"; // NOI18N
-    
+
     // Properties stored in the PRIVATE.PROPERTIES
     public static final String APPLICATION_ARGS = "application.args"; // NOI18N
     public static final String JAVADOC_PREVIEW="javadoc.preview"; // NOI18N
+    // Main build.xml location
+    public static final String BUILD_SCRIPT ="buildfile";      //NOI18N
 
-    
-    // Well known paths
-    public static final String[] WELL_KNOWN_PATHS = new String[] {            
-            "${" + JAVAC_CLASSPATH + "}", 
-            "${" + JAVAC_TEST_CLASSPATH  + "}", 
-            "${" + RUN_CLASSPATH  + "}", 
-            "${" + RUN_TEST_CLASSPATH  + "}", 
-            "${" + BUILD_CLASSES_DIR  + "}", 
-            "${" + BUILD_TEST_CLASSES_DIR  + "}", 
-    };
-    
-    // XXX looks like there is some kind of API missing in ReferenceHelper?
-    public static final String ANT_ARTIFACT_PREFIX = "${reference."; // NOI18N
+    //NB 6.1 tracking of files modifications
+    public static final String TRACK_FILE_CHANGES="track.file.changes"; //NOI18N
 
     ClassPathSupport cs;
-    
-    
+
+
     // SOURCE ROOTS
     // public static final String SOURCE_ROOTS = "__virtual_source_roots__";   //NOI18N
     // public static final String TEST_ROOTS = "__virtual_test_roots__"; // NOI18N
-                        
+
     // MODELS FOR VISUAL CONTROLS
-    
+
     // CustomizerSources
     DefaultTableModel SOURCE_ROOTS_MODEL;
     DefaultTableModel TEST_ROOTS_MODEL;
     ComboBoxModel JAVAC_SOURCE_MODEL;
-     
+
     // CustomizerLibraries
     DefaultListModel JAVAC_CLASSPATH_MODEL;
     DefaultListModel JAVAC_TEST_CLASSPATH_MODEL;
@@ -205,66 +214,67 @@ public class J2SEProjectProperties {
     ListCellRenderer PLATFORM_LIST_RENDERER;
     ListCellRenderer JAVAC_SOURCE_RENDERER;
     Document SHARED_LIBRARIES_MODEL;
-    
+
     // CustomizerCompile
-    ButtonModel JAVAC_DEPRECATION_MODEL; 
+    ButtonModel JAVAC_DEPRECATION_MODEL;
     ButtonModel JAVAC_DEBUG_MODEL;
     ButtonModel DO_DEPEND_MODEL;
+    ButtonModel COMPILE_ON_SAVE_MODEL;
     ButtonModel NO_DEPENDENCIES_MODEL;
     Document JAVAC_COMPILER_ARG_MODEL;
-    
+
     // CustomizerCompileTest
-                
+
     // CustomizerJar
-    Document DIST_JAR_MODEL; 
-    Document BUILD_CLASSES_EXCLUDES_MODEL; 
+    Document DIST_JAR_MODEL;
+    Document BUILD_CLASSES_EXCLUDES_MODEL;
     ButtonModel JAR_COMPRESS_MODEL;
     ButtonModel DO_JAR_MODEL;
-                
+
     // CustomizerJavadoc
     ButtonModel JAVADOC_PRIVATE_MODEL;
     ButtonModel JAVADOC_NO_TREE_MODEL;
     ButtonModel JAVADOC_USE_MODEL;
-    ButtonModel JAVADOC_NO_NAVBAR_MODEL; 
-    ButtonModel JAVADOC_NO_INDEX_MODEL; 
-    ButtonModel JAVADOC_SPLIT_INDEX_MODEL; 
-    ButtonModel JAVADOC_AUTHOR_MODEL; 
+    ButtonModel JAVADOC_NO_NAVBAR_MODEL;
+    ButtonModel JAVADOC_NO_INDEX_MODEL;
+    ButtonModel JAVADOC_SPLIT_INDEX_MODEL;
+    ButtonModel JAVADOC_AUTHOR_MODEL;
     ButtonModel JAVADOC_VERSION_MODEL;
     Document JAVADOC_WINDOW_TITLE_MODEL;
-    ButtonModel JAVADOC_PREVIEW_MODEL; 
+    ButtonModel JAVADOC_PREVIEW_MODEL;
     Document JAVADOC_ADDITIONALPARAM_MODEL;
 
     // CustomizerRun
     Map<String/*|null*/,Map<String,String/*|null*/>/*|null*/> RUN_CONFIGS;
     String activeConfig;
-    
+
     // CustomizerApplication
     Document APPLICATION_TITLE_DOC;
     Document APPLICATION_VENDOR_DOC;
     Document APPLICATION_DESC_DOC;
     Document APPLICATION_HOMEPAGE_DOC;
     Document APPLICATION_SPLASH_DOC;
-    
+
     // CustomizerRunTest
 
-    // Private fields ----------------------------------------------------------    
+    // Private fields ----------------------------------------------------------
     private J2SEProject project;
     private UpdateHelper updateHelper;
     private PropertyEvaluator evaluator;
     private ReferenceHelper refHelper;
     private GeneratedFilesHelper genFileHelper;
-    
-    private StoreGroup privateGroup; 
+
+    private StoreGroup privateGroup;
     private StoreGroup projectGroup;
-    
+
     private Map<String,String> additionalProperties;
 
     private String includes, excludes;
-    
+
     J2SEProject getProject() {
         return project;
     }
-    
+
     /** Creates a new instance of J2SEUIProperties and initializes them */
     public J2SEProjectProperties( J2SEProject project, UpdateHelper updateHelper, PropertyEvaluator evaluator, ReferenceHelper refHelper, GeneratedFilesHelper genFileHelper ) {
         this.project = project;
@@ -272,55 +282,55 @@ public class J2SEProjectProperties {
         this.evaluator = evaluator;
         this.refHelper = refHelper;
         this.genFileHelper = genFileHelper;
-        this.cs = new ClassPathSupport( evaluator, refHelper, updateHelper.getAntProjectHelper(), updateHelper, WELL_KNOWN_PATHS, ANT_ARTIFACT_PREFIX );
-                
+        this.cs = new ClassPathSupport(evaluator, refHelper, updateHelper.getAntProjectHelper(), updateHelper, null);
+
         privateGroup = new StoreGroup();
         projectGroup = new StoreGroup();
-        
+
         additionalProperties = new HashMap<String,String>();
-        
-        init(); // Load known properties        
+
+        init(); // Load known properties
     }
 
-    /** Initializes the visual models 
+    /** Initializes the visual models
      */
     private void init() {
-        
-        CLASS_PATH_LIST_RENDERER = new J2SEClassPathUi.ClassPathListCellRenderer(evaluator, project.getProjectDirectory());
-        
+
+        CLASS_PATH_LIST_RENDERER = ClassPathListCellRenderer.createClassPathListRenderer(evaluator, project.getProjectDirectory());
+
         // CustomizerSources
-        SOURCE_ROOTS_MODEL = J2SESourceRootsUi.createModel( project.getSourceRoots() );
-        TEST_ROOTS_MODEL = J2SESourceRootsUi.createModel( project.getTestSourceRoots() );        
-        includes = evaluator.getProperty(INCLUDES);
+        SOURCE_ROOTS_MODEL = SourceRootsUi.createModel( project.getSourceRoots() );
+        TEST_ROOTS_MODEL = SourceRootsUi.createModel( project.getTestSourceRoots() );
+        includes = evaluator.getProperty(ProjectProperties.INCLUDES);
         if (includes == null) {
             includes = "**"; // NOI18N
         }
-        excludes = evaluator.getProperty(EXCLUDES);
+        excludes = evaluator.getProperty(ProjectProperties.EXCLUDES);
         if (excludes == null) {
             excludes = ""; // NOI18N
         }
-                
+
         // CustomizerLibraries
-        EditableProperties projectProperties = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );                
-        
-        JAVAC_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(JAVAC_CLASSPATH)));
-        JAVAC_TEST_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(JAVAC_TEST_CLASSPATH)));
-        RUN_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(RUN_CLASSPATH)));
-        RUN_TEST_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(RUN_TEST_CLASSPATH)));
+        EditableProperties projectProperties = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );
+
+        JAVAC_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(ProjectProperties.JAVAC_CLASSPATH)));
+        JAVAC_TEST_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(ProjectProperties.JAVAC_TEST_CLASSPATH)));
+        RUN_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(ProjectProperties.RUN_CLASSPATH)));
+        RUN_TEST_CLASSPATH_MODEL = ClassPathUiSupport.createListModel(cs.itemsIterator(projectProperties.get(ProjectProperties.RUN_TEST_CLASSPATH)));
         PLATFORM_MODEL = PlatformUiSupport.createPlatformComboBoxModel (evaluator.getProperty(JAVA_PLATFORM));
         PLATFORM_LIST_RENDERER = PlatformUiSupport.createPlatformListCellRenderer();
         JAVAC_SOURCE_MODEL = PlatformUiSupport.createSourceLevelComboBoxModel (PLATFORM_MODEL, evaluator.getProperty(JAVAC_SOURCE), evaluator.getProperty(JAVAC_TARGET));
         JAVAC_SOURCE_RENDERER = PlatformUiSupport.createSourceLevelListCellRenderer ();
-        SHARED_LIBRARIES_MODEL = new PlainDocument(); 
+        SHARED_LIBRARIES_MODEL = new PlainDocument();
         try {
             SHARED_LIBRARIES_MODEL.insertString(0, project.getAntProjectHelper().getLibrariesLocation(), null);
         } catch (BadLocationException ex) {
             Exceptions.printStackTrace(ex);
         }
-                
+
         // CustomizerCompile
         JAVAC_DEPRECATION_MODEL = projectGroup.createToggleButtonModel( evaluator, JAVAC_DEPRECATION );
-                
+
         //Hotfix of the issue #70058
         //Should use the StoreGroup when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel
         Integer[] kind = new Integer[1];
@@ -329,33 +339,35 @@ public class J2SEProjectProperties {
 
         DO_DEPEND_MODEL = privateGroup.createToggleButtonModel(evaluator, DO_DEPEND);
 
+        COMPILE_ON_SAVE_MODEL = privateGroup.createToggleButtonModel(evaluator, COMPILE_ON_SAVE);
+
         NO_DEPENDENCIES_MODEL = projectGroup.createInverseToggleButtonModel( evaluator, NO_DEPENDENCIES );
         JAVAC_COMPILER_ARG_MODEL = projectGroup.createStringDocument( evaluator, JAVAC_COMPILER_ARG );
-        
+
         // CustomizerJar
         DIST_JAR_MODEL = projectGroup.createStringDocument( evaluator, DIST_JAR );
         BUILD_CLASSES_EXCLUDES_MODEL = projectGroup.createStringDocument( evaluator, BUILD_CLASSES_EXCLUDES );
         JAR_COMPRESS_MODEL = projectGroup.createToggleButtonModel( evaluator, JAR_COMPRESS );
         DO_JAR_MODEL = createToggleButtonModel(evaluator, DO_JAR, kind);
         doJarBooleanKind = kind[0];
-        
+
         // CustomizerJavadoc
         JAVADOC_PRIVATE_MODEL = projectGroup.createToggleButtonModel( evaluator, JAVADOC_PRIVATE );
         JAVADOC_NO_TREE_MODEL = projectGroup.createInverseToggleButtonModel( evaluator, JAVADOC_NO_TREE );
         JAVADOC_USE_MODEL = projectGroup.createToggleButtonModel( evaluator, JAVADOC_USE );
         JAVADOC_NO_NAVBAR_MODEL = projectGroup.createInverseToggleButtonModel( evaluator, JAVADOC_NO_NAVBAR );
-        JAVADOC_NO_INDEX_MODEL = projectGroup.createInverseToggleButtonModel( evaluator, JAVADOC_NO_INDEX ); 
+        JAVADOC_NO_INDEX_MODEL = projectGroup.createInverseToggleButtonModel( evaluator, JAVADOC_NO_INDEX );
         JAVADOC_SPLIT_INDEX_MODEL = projectGroup.createToggleButtonModel( evaluator, JAVADOC_SPLIT_INDEX );
         JAVADOC_AUTHOR_MODEL = projectGroup.createToggleButtonModel( evaluator, JAVADOC_AUTHOR );
         JAVADOC_VERSION_MODEL = projectGroup.createToggleButtonModel( evaluator, JAVADOC_VERSION );
         JAVADOC_WINDOW_TITLE_MODEL = projectGroup.createStringDocument( evaluator, JAVADOC_WINDOW_TITLE );
         //Hotfix of the issue #70058
-        //Should use the StoreGroup when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel        
+        //Should use the StoreGroup when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel
         JAVADOC_PREVIEW_MODEL = createToggleButtonModel ( evaluator, JAVADOC_PREVIEW, kind);
         javadocPreviewBooleanKind = kind[0];
-        
+
         JAVADOC_ADDITIONALPARAM_MODEL = projectGroup.createStringDocument( evaluator, JAVADOC_ADDITIONALPARAM );
-        
+
         // CustomizerApplication
         APPLICATION_TITLE_DOC = projectGroup.createStringDocument(evaluator, APPLICATION_TITLE);
         String title = evaluator.getProperty("application.title");
@@ -378,43 +390,58 @@ public class J2SEProjectProperties {
         APPLICATION_DESC_DOC = projectGroup.createStringDocument(evaluator, APPLICATION_DESC);
         APPLICATION_HOMEPAGE_DOC = projectGroup.createStringDocument(evaluator, APPLICATION_HOMEPAGE);
         APPLICATION_SPLASH_DOC = projectGroup.createStringDocument(evaluator, APPLICATION_SPLASH);
-        
+
         // CustomizerRun
         RUN_CONFIGS = readRunConfigs();
         activeConfig = evaluator.getProperty("config");
-                
+
     }
-    
+
     public void save() {
-        try {                        
-            saveLibrariesLocation();
-            // Store properties 
-            boolean result = ProjectManager.mutex().writeAccess(new Mutex.ExceptionAction<Boolean>() {
+        try {
+            if ((genFileHelper.getBuildScriptState(GeneratedFilesHelper.BUILD_IMPL_XML_PATH,J2SEProject.class.getResource("resources/build-impl.xsl")) //NOI18N
+                & GeneratedFilesHelper.FLAG_MODIFIED) == GeneratedFilesHelper.FLAG_MODIFIED) {  //NOI18N
+                //Back up build-impl.xml
                 final FileObject projectDir = updateHelper.getAntProjectHelper().getProjectDirectory();
-                public Boolean run() throws IOException {
-                    if ((genFileHelper.getBuildScriptState(GeneratedFilesHelper.BUILD_IMPL_XML_PATH,
-                        J2SEProject.class.getResource("resources/build-impl.xsl")) //NOI18N
-                        & GeneratedFilesHelper.FLAG_MODIFIED) == GeneratedFilesHelper.FLAG_MODIFIED) {  //NOI18N
-                        if (showModifiedMessage (NbBundle.getMessage(J2SEProjectProperties.class,"TXT_ModifiedTitle"))) {
-                            //Delete user modified build-impl.xml
-                            FileObject fo = projectDir.getFileObject(GeneratedFilesHelper.BUILD_IMPL_XML_PATH);
-                            if (fo != null) {
-                                fo.delete();
+                final FileObject buildImpl = projectDir.getFileObject(GeneratedFilesHelper.BUILD_IMPL_XML_PATH);
+                if (buildImpl  != null) {
+                    final String name = buildImpl.getName();
+                    final String backupext = String.format("%s~",buildImpl.getExt());   //NOI18N
+                    final FileObject oldBackup = buildImpl.getParent().getFileObject(name, backupext);
+                    if (oldBackup != null) {
+                        oldBackup.delete();
+                    }
+                    FileLock lock = buildImpl.lock();
+                    try {
+                        buildImpl.rename(lock, name, backupext);
+                    } finally {
+                        lock.releaseLock();
+                    }
+                }
+            }
+            saveLibrariesLocation();
+            // Store properties
+            ProjectManager.mutex().writeAccess(new Mutex.ExceptionAction<Void>() {
+                public Void run() throws IOException {
+                    storeProperties();
+                    //Delete COS mark
+                    if (!COMPILE_ON_SAVE_MODEL.isSelected()) {
+                        FileObject buildClasses = updateHelper.getAntProjectHelper().resolveFileObject(evaluator.getProperty(ProjectProperties.BUILD_CLASSES_DIR));
+                        if (buildClasses != null) {
+                            FileObject mark = buildClasses.getFileObject(COS_MARK);
+                            if (mark != null) {
+                                final ActionProvider ap = project.getLookup().lookup(ActionProvider.class);
+                                assert ap != null;
+                                ap.invokeAction(ActionProvider.COMMAND_CLEAN, Lookups.fixed(project));
                             }
                         }
-                        else {
-                            return false;
-                        }
                     }
-                    storeProperties();
-                    return true;
+                    return null;
                 }
             });
             // and save the project
-            if (result) {
-                ProjectManager.getDefault().saveProject(project);
-            }
-        } 
+            ProjectManager.getDefault().saveProject(project);
+        }
         catch (MutexException e) {
             ErrorManager.getDefault().notify((IOException)e.getException());
         }
@@ -440,36 +467,36 @@ public class J2SEProjectProperties {
             ErrorManager.getDefault().notify(x);
         }
     }
-        
+
     private void storeProperties() throws IOException {
         // Store special properties
-        
-        // Modify the project dependencies properly        
+
+        // Modify the project dependencies properly
         resolveProjectDependencies();
-        
+
         // Encode all paths (this may change the project properties)
-        String[] javac_cp = cs.encodeToStrings( ClassPathUiSupport.getIterator( JAVAC_CLASSPATH_MODEL ) );
-        String[] javac_test_cp = cs.encodeToStrings( ClassPathUiSupport.getIterator( JAVAC_TEST_CLASSPATH_MODEL ) );
-        String[] run_cp = cs.encodeToStrings( ClassPathUiSupport.getIterator( RUN_CLASSPATH_MODEL ) );
-        String[] run_test_cp = cs.encodeToStrings( ClassPathUiSupport.getIterator( RUN_TEST_CLASSPATH_MODEL ) );
-                
+        String[] javac_cp = cs.encodeToStrings( ClassPathUiSupport.getList( JAVAC_CLASSPATH_MODEL ) );
+        String[] javac_test_cp = cs.encodeToStrings( ClassPathUiSupport.getList( JAVAC_TEST_CLASSPATH_MODEL ) );
+        String[] run_cp = cs.encodeToStrings( ClassPathUiSupport.getList( RUN_CLASSPATH_MODEL ) );
+        String[] run_test_cp = cs.encodeToStrings( ClassPathUiSupport.getList( RUN_TEST_CLASSPATH_MODEL ) );
+
         // Store source roots
         storeRoots( project.getSourceRoots(), SOURCE_ROOTS_MODEL );
         storeRoots( project.getTestSourceRoots(), TEST_ROOTS_MODEL );
-                
+
         // Store standard properties
-        EditableProperties projectProperties = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );        
+        EditableProperties projectProperties = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );
         EditableProperties privateProperties = updateHelper.getProperties( AntProjectHelper.PRIVATE_PROPERTIES_PATH );
-        
+
         // Assure inegrity which can't shound not be assured in UI
         if ( !JAVADOC_NO_INDEX_MODEL.isSelected() ) {
             JAVADOC_SPLIT_INDEX_MODEL.setSelected( false ); // Can't split non existing index
         }
-                                
+
         // Standard store of the properties
-        projectGroup.store( projectProperties );        
+        projectGroup.store( projectProperties );
         privateGroup.store( privateProperties );
-        
+
         storeRunConfigs(RUN_CONFIGS, projectProperties, privateProperties);
         EditableProperties ep = updateHelper.getProperties("nbproject/private/config.properties");
         if (activeConfig == null) {
@@ -478,27 +505,27 @@ public class J2SEProjectProperties {
             ep.setProperty("config", activeConfig);
         }
         updateHelper.putProperties("nbproject/private/config.properties", ep);
-        
+
         //Hotfix of the issue #70058
         //Should use the StoreGroup when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel
         //Save javac.debug
         privateProperties.setProperty(JAVAC_DEBUG, encodeBoolean (JAVAC_DEBUG_MODEL.isSelected(), javacDebugBooleanKind));
         privateProperties.setProperty(DO_JAR, encodeBoolean(DO_JAR_MODEL.isSelected(), doJarBooleanKind));
-                
+
         //Hotfix of the issue #70058
         //Should use the StoreGroup when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel
         //Save javadoc.preview
         privateProperties.setProperty(JAVADOC_PREVIEW, encodeBoolean (JAVADOC_PREVIEW_MODEL.isSelected(), javadocPreviewBooleanKind));
-                
+
         // Save all paths
-        projectProperties.setProperty( JAVAC_CLASSPATH, javac_cp );
-        projectProperties.setProperty( JAVAC_TEST_CLASSPATH, javac_test_cp );
-        projectProperties.setProperty( RUN_CLASSPATH, run_cp );
-        projectProperties.setProperty( RUN_TEST_CLASSPATH, run_test_cp );
-        
+        projectProperties.setProperty( ProjectProperties.JAVAC_CLASSPATH, javac_cp );
+        projectProperties.setProperty( ProjectProperties.JAVAC_TEST_CLASSPATH, javac_test_cp );
+        projectProperties.setProperty( ProjectProperties.RUN_CLASSPATH, run_cp );
+        projectProperties.setProperty( ProjectProperties.RUN_TEST_CLASSPATH, run_test_cp );
+
         //Handle platform selection and javac.source javac.target properties
         PlatformUiSupport.storePlatform (projectProperties, updateHelper, J2SEProjectType.PROJECT_CONFIGURATION_NAMESPACE, PLATFORM_MODEL.getSelectedItem(), JAVAC_SOURCE_MODEL.getSelectedItem());
-                                
+
         // Handle other special cases
         if ( NO_DEPENDENCIES_MODEL.isSelected() ) { // NOI18N
             projectProperties.remove( NO_DEPENDENCIES ); // Remove the property completely if not set
@@ -506,9 +533,9 @@ public class J2SEProjectProperties {
 
         projectProperties.putAll(additionalProperties);
 
-        projectProperties.put(INCLUDES, includes);
-        projectProperties.put(EXCLUDES, excludes);
-        
+        projectProperties.put(ProjectProperties.INCLUDES, includes);
+        projectProperties.put(ProjectProperties.EXCLUDES, excludes);
+
         // Store the property changes into the project
         updateHelper.putProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH, projectProperties );
         updateHelper.putProperties( AntProjectHelper.PRIVATE_PROPERTIES_PATH, privateProperties );
@@ -522,33 +549,33 @@ public class J2SEProjectProperties {
             }
         }
     }
-    
-    /** Finds out what are new and removed project dependencies and 
+
+    /** Finds out what are new and removed project dependencies and
      * applyes the info to the project
      */
     private void resolveProjectDependencies() {
-            
+
         // Create a set of old and new artifacts.
         Set<ClassPathSupport.Item> oldArtifacts = new HashSet<ClassPathSupport.Item>();
-        EditableProperties projectProperties = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );        
-        oldArtifacts.addAll( cs.itemsList( projectProperties.get( JAVAC_CLASSPATH ) ) );
-        oldArtifacts.addAll( cs.itemsList( projectProperties.get( JAVAC_TEST_CLASSPATH ) ) );
-        oldArtifacts.addAll( cs.itemsList( projectProperties.get( RUN_CLASSPATH ) ) );
-        oldArtifacts.addAll( cs.itemsList( projectProperties.get( RUN_TEST_CLASSPATH ) ) );
-                   
+        EditableProperties projectProperties = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );
+        oldArtifacts.addAll( cs.itemsList( projectProperties.get( ProjectProperties.JAVAC_CLASSPATH ) ) );
+        oldArtifacts.addAll( cs.itemsList( projectProperties.get( ProjectProperties.JAVAC_TEST_CLASSPATH ) ) );
+        oldArtifacts.addAll( cs.itemsList( projectProperties.get( ProjectProperties.RUN_CLASSPATH ) ) );
+        oldArtifacts.addAll( cs.itemsList( projectProperties.get( ProjectProperties.RUN_TEST_CLASSPATH ) ) );
+
         Set<ClassPathSupport.Item> newArtifacts = new HashSet<ClassPathSupport.Item>();
         newArtifacts.addAll( ClassPathUiSupport.getList( JAVAC_CLASSPATH_MODEL ) );
         newArtifacts.addAll( ClassPathUiSupport.getList( JAVAC_TEST_CLASSPATH_MODEL ) );
         newArtifacts.addAll( ClassPathUiSupport.getList( RUN_CLASSPATH_MODEL ) );
         newArtifacts.addAll( ClassPathUiSupport.getList( RUN_TEST_CLASSPATH_MODEL ) );
-                
+
         // Create set of removed artifacts and remove them
         Set<ClassPathSupport.Item> removed = new HashSet<ClassPathSupport.Item>(oldArtifacts);
         removed.removeAll( newArtifacts );
         Set<ClassPathSupport.Item> added = new HashSet<ClassPathSupport.Item>(newArtifacts);
         added.removeAll(oldArtifacts);
-        
-        
+
+
         // 1. first remove all project references. The method will modify
         // project property files, so it must be done separately
         for (ClassPathSupport.Item item : removed) {
@@ -556,28 +583,20 @@ public class J2SEProjectProperties {
                     item.getType() == ClassPathSupport.Item.TYPE_JAR ) {
                 refHelper.destroyReference(item.getReference());
                 if (item.getType() == ClassPathSupport.Item.TYPE_JAR) {
-                    //oh well, how do I do this otherwise??
-                    EditableProperties ep = updateHelper.getProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH);
-                    if (item.getJavadocProperty() != null) {
-                        ep.remove(item.getJavadocProperty());
-                    }
-                    if (item.getSourceProperty() != null) {
-                        ep.remove(item.getSourceProperty());
-                    }
-                    updateHelper.putProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH, ep);
+                    item.removeSourceAndJavadoc(updateHelper);
                 }
             }
         }
-        
+
         boolean changed = false;
         // 2. now read project.properties and modify rest
         EditableProperties ep = updateHelper.getProperties( AntProjectHelper.PROJECT_PROPERTIES_PATH );
-        
+
         for (ClassPathSupport.Item item : removed) {
             if (item.getType() == ClassPathSupport.Item.TYPE_LIBRARY) {
                 // remove helper property pointing to library jar if there is any
                 String prop = item.getReference();
-                prop = ClassPathSupport.getAntPropertyName(prop);
+                prop = CommonProjectUtils.getAntPropertyName(prop);
                 ep.remove(prop);
                 changed = true;
             }
@@ -585,37 +604,26 @@ public class J2SEProjectProperties {
         if (changed) {
             updateHelper.putProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH, ep);
         }
-    }            
-    
+    }
+
     private void storeRoots( SourceRoots roots, DefaultTableModel tableModel ) throws MalformedURLException {
         Vector data = tableModel.getDataVector();
         URL[] rootURLs = new URL[data.size()];
         String []rootLabels = new String[data.size()];
         for (int i=0; i<data.size();i++) {
             File f = (File) ((Vector)data.elementAt(i)).elementAt(0);
-            rootURLs[i] = J2SEProjectUtil.getRootURL(f,null);            
+            rootURLs[i] = J2SEProjectUtil.getRootURL(f,null);
             rootLabels[i] = (String) ((Vector)data.elementAt(i)).elementAt(1);
         }
         roots.putRoots(rootURLs,rootLabels);
     }
-    
+
     /* This is used by CustomizerWSServiceHost */
     public void putAdditionalProperty(String propertyName, String propertyValue) {
         additionalProperties.put(propertyName, propertyValue);
     }
-    
-    private static boolean showModifiedMessage (String title) {
-        String message = NbBundle.getMessage(J2SEProjectProperties.class,"TXT_Regenerate");
-        JButton regenerateButton = new JButton (NbBundle.getMessage(J2SEProjectProperties.class,"CTL_RegenerateButton"));
-        regenerateButton.setDefaultCapable(true);
-        regenerateButton.getAccessibleContext().setAccessibleDescription (NbBundle.getMessage(J2SEProjectProperties.class,"AD_RegenerateButton"));
-        NotifyDescriptor d = new NotifyDescriptor.Message (message, NotifyDescriptor.WARNING_MESSAGE);
-        d.setTitle(title);
-        d.setOptionType(NotifyDescriptor.OK_CANCEL_OPTION);
-        d.setOptions(new Object[] {regenerateButton, NotifyDescriptor.CANCEL_OPTION});        
-        return DialogDisplayer.getDefault().notify(d) == regenerateButton;
-    }
-    
+
+
     //Hotfix of the issue #70058
     //Should be removed when the StoreGroup SPI will be extended to allow false default value in ToggleButtonModel
     private static String encodeBoolean (boolean value, Integer kind) {
@@ -629,7 +637,7 @@ public class J2SEProjectProperties {
             return value ? "true" : "false"; // NOI18N
         }
     }
-    
+
     //Hotfix of the issue #70058
     //Should be removed when the StoreGroup SPI will be extended to allow true default value in ToggleButtonModel
     private static JToggleButton.ToggleButtonModel createToggleButtonModel (final PropertyEvaluator evaluator, final String propName, Integer[] kind) {
@@ -654,14 +662,14 @@ public class J2SEProjectProperties {
            if ( lowercaseValue.equals( "true") || // NOI18N
                 lowercaseValue.equals( "yes") ||  // NOI18N
                 lowercaseValue.equals( "on") ) {  // NOI18N
-               isSelected = true;                   
-           } 
+               isSelected = true;
+           }
         }
         JToggleButton.ToggleButtonModel bm = new JToggleButton.ToggleButtonModel();
         bm.setSelected(isSelected );
         return bm;
     }
-    
+
     /**
      * A mess.
      */
@@ -759,7 +767,7 @@ public class J2SEProjectProperties {
             updateHelper.putProperties(sharedPath, updateHelper.getProperties(sharedPath));
         }
     }
-    
+
     void loadIncludesExcludes(IncludeExcludeVisualizer v) {
         Set<File> roots = new HashSet<File>();
         for (DefaultTableModel model : new DefaultTableModel[] {SOURCE_ROOTS_MODEL, TEST_ROOTS_MODEL}) {
@@ -778,6 +786,43 @@ public class J2SEProjectProperties {
     void storeIncludesExcludes(IncludeExcludeVisualizer v) {
         includes = v.getIncludePattern();
         excludes = v.getExcludePattern();
+    }
+
+    boolean makeSharable() {
+        List<String> libs = new ArrayList<String>();
+        List<String> jars = new ArrayList<String>();
+        collectLibs(JAVAC_CLASSPATH_MODEL, libs, jars);
+        collectLibs(JAVAC_TEST_CLASSPATH_MODEL, libs, jars);
+        collectLibs(RUN_CLASSPATH_MODEL, libs, jars);
+        collectLibs(RUN_TEST_CLASSPATH_MODEL, libs, jars);
+        libs.add("CopyLibs"); // #132201 - copylibs is integral part of j2seproject
+        String customTasksLibs = getProject().evaluator().getProperty(AntBuildExtender.ANT_CUSTOMTASKS_LIBS_PROPNAME);
+        if (customTasksLibs != null) {
+            String libIDs[] = customTasksLibs.split(",");
+            for (String libID : libIDs) {
+                libs.add(libID.trim());
+            }
+        }
+        return SharableLibrariesUtils.showMakeSharableWizard(getProject().getAntProjectHelper(),
+                getProject().getReferenceHelper(), libs, jars);
+    }
+    private void collectLibs(DefaultListModel model, List<String> libs, List<String> jarReferences) {
+        for (int i = 0; i < model.size(); i++) {
+            ClassPathSupport.Item item = (ClassPathSupport.Item) model.get(i);
+            if (item.getType() == ClassPathSupport.Item.TYPE_LIBRARY) {
+                if (!item.isBroken() && !libs.contains(item.getLibrary().getName())) {
+                    libs.add(item.getLibrary().getName());
+                }
+            }
+            if (item.getType() == ClassPathSupport.Item.TYPE_JAR) {
+                if (item.getReference() != null && item.getVariableBasedProperty() == null && !jarReferences.contains(item.getReference())) {
+                    //TODO reference is null for not yet persisted items.
+                    // there seems to be no way to generate a reference string without actually
+                    // creating and writing the property..
+                    jarReferences.add(item.getReference());
+                }
+            }
+        }
     }
 
 }

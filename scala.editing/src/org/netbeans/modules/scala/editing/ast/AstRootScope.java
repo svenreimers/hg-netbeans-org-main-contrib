@@ -107,6 +107,14 @@ public class AstRootScope extends AstScope {
         return false;
     }
 
+    /**
+     * @Deprecated This method requires the token is extractly under the same th as th when parsing source file
+     */
+    @Deprecated
+    public AstItem findItemAt(Token token) {
+        return idTokenToItem.get(token);
+    }
+
     @Override
     public AstItem findItemAt(TokenHierarchy th, int offset) {
         List<Token> _tokens = getSortedToken(th);
@@ -128,6 +136,32 @@ public class AstRootScope extends AstScope {
         return null;
     }
 
+    public AstItem findNeastItemAt(TokenHierarchy th, int offset) {
+        List<Token> _tokens = getSortedToken(th);
+
+        int lo = 0;
+        int hi = _tokens.size() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >> 1;
+            Token middle = _tokens.get(mid);
+            if (offset < middle.offset(th)) {
+                hi = mid - 1;
+            } else if (offset > middle.offset(th) + middle.length()) {
+                lo = mid + 1;
+            } else {
+                return idTokenToItem.get(middle);
+            }
+        }
+
+        // * found null, return AstItem at lo, lo is always increasing during above procedure
+        if (lo < _tokens.size()) {
+            Token neastToken = _tokens.get(lo);
+            return idTokenToItem.get(neastToken);
+        } else {
+            return null;
+        }
+    }
+
     private List<Token> getSortedToken(TokenHierarchy th) {
         if (!tokensSorted) {
             tokens = Arrays.asList(idTokenToItem.keySet().toArray(new Token[idTokenToItem.size()]));
@@ -136,10 +170,6 @@ public class AstRootScope extends AstScope {
         }
 
         return tokens == null ? Collections.<Token>emptyList() : tokens;
-    }
-
-    public AstItem findItemAt(Token token) {
-        return idTokenToItem.get(token);
     }
 
     public AstItem findFirstItemWithName(String name) {

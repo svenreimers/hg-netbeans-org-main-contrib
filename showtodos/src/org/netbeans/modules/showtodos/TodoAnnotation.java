@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -34,33 +34,29 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
+ * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.showtodos;
 
-package org.netbeans.modules.scala.util;
-
-import java.net.URL;
-import java.util.List;
-import org.netbeans.api.java.classpath.ClassPath;
-import org.netbeans.napi.gsfret.source.ClasspathInfo;
+import org.openide.text.Annotation;
 
 /**
- *
- * @author dcaoyuan
+ * @author Michel Graciano
  */
-public class JavaClassPathToGsfClassPath {
+public final class TodoAnnotation extends Annotation {
+   private final String message;
 
-    public static org.netbeans.modules.gsfpath.api.classpath.ClassPath convert(ClassPath javaCp) {
-        List<ClassPath.Entry> entries = javaCp.entries();
-        URL[] urls = new URL[javaCp.entries().size()];
-        for (int i = 0; i < urls.length; i++) {
-            urls[i] = entries.get(i).getURL();
-        }
-        return org.netbeans.modules.gsfpath.spi.classpath.support.ClassPathSupport.createClassPath(urls);
-    }
+   public TodoAnnotation(String message) {
+      this.message = message;
+   }
 
-    public static ClasspathInfo createGsfClassPathInfo(ClassPath bootPath, ClassPath classPath, ClassPath sourcePath) {
-        return ClasspathInfo.create(convert(bootPath), convert(classPath), convert(sourcePath));
-    }
+   @Override
+   public String getAnnotationType() {
+      return "org-netbeans-modules-showtodos-parser_annotation_showtodos";
+   }
+
+   @Override
+   public String getShortDescription() {
+      return message;
+   }
 }
-

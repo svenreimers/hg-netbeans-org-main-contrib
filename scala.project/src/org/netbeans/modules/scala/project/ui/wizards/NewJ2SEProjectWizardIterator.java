@@ -52,9 +52,9 @@ import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.progress.ProgressHandle;
+import org.netbeans.modules.java.api.common.project.ProjectProperties;
 import org.netbeans.modules.scala.project.J2SEProjectGenerator;
 import org.netbeans.modules.scala.project.ui.FoldersListSettings;
-import org.netbeans.modules.scala.project.ui.customizer.J2SEProjectProperties;
 import org.netbeans.spi.java.project.support.ui.SharableLibrariesUtils;
 import org.netbeans.spi.project.support.ant.AntProjectHelper;
 import org.netbeans.spi.project.support.ant.EditableProperties;
@@ -72,28 +72,28 @@ import org.openide.util.NbBundle;
 public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressInstantiatingIterator {
 
     enum WizardType {APP, LIB, EXT}
-    
+
     static final String PROP_NAME_INDEX = "nameIndex";      //NOI18N
 
     private static final String MANIFEST_FILE = "manifest.mf"; // NOI18N
 
     private static final long serialVersionUID = 1L;
-    
+
     private WizardType type;
-    
+
     /** Create a new wizard iterator. */
     public NewJ2SEProjectWizardIterator() {
         this(WizardType.APP);
     }
-    
+
     public NewJ2SEProjectWizardIterator(WizardType type) {
         this.type = type;
     }
-        
+
     public static NewJ2SEProjectWizardIterator library() {
         return new NewJ2SEProjectWizardIterator(WizardType.LIB);
     }
-    
+
     public static NewJ2SEProjectWizardIterator existing() {
         return new NewJ2SEProjectWizardIterator(WizardType.EXT);
     }
@@ -112,7 +112,7 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
                 };
         }
     }
-    
+
     private String[] createSteps() {
         switch (type) {
             case EXT:
@@ -127,13 +127,13 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
                 };
         }
     }
-    
-    
+
+
     public Set<?> instantiate() throws IOException {
         assert false : "Cannot call this method if implements WizardDescriptor.ProgressInstantiatingIterator.";
         return null;
     }
-        
+
     public Set<FileObject> instantiate (ProgressHandle handle) throws IOException {
         handle.start (4);
         //handle.progress (NbBundle.getMessage (NewJ2SEProjectWizardIterator.class, "LBL_NewJ2SEProjectWizardIterator_WizardProgress_ReadingProperties"));
@@ -156,18 +156,19 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
         case EXT:
             File[] sourceFolders = (File[])wiz.getProperty("sourceRoot");        //NOI18N
             File[] testFolders = (File[])wiz.getProperty("testRoot");            //NOI18N
+            String buildScriptName = (String) wiz.getProperty("buildScriptName");//NOI18N
             AntProjectHelper h = J2SEProjectGenerator.createProject(dirF, name, sourceFolders, testFolders, MANIFEST_FILE, librariesDefinition);
             EditableProperties ep = h.getProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH);
-            String includes = (String) wiz.getProperty(J2SEProjectProperties.INCLUDES);
+            String includes = (String) wiz.getProperty(ProjectProperties.INCLUDES);
             if (includes == null) {
                 includes = "**"; // NOI18N
             }
-            ep.setProperty(J2SEProjectProperties.INCLUDES, includes);
-            String excludes = (String) wiz.getProperty(J2SEProjectProperties.EXCLUDES);
+            ep.setProperty(ProjectProperties.INCLUDES, includes);
+            String excludes = (String) wiz.getProperty(ProjectProperties.EXCLUDES);
             if (excludes == null) {
                 excludes = ""; // NOI18N
             }
-            ep.setProperty(J2SEProjectProperties.EXCLUDES, excludes);
+            ep.setProperty(ProjectProperties.EXCLUDES, excludes);
             h.putProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH, ep);
             handle.progress (2);
             for (File f : sourceFolders) {
@@ -193,19 +194,22 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
                 }
             }
             // if ( type == TYPE_LIB ) {
-                // resultSet.add( h.getProjectDirectory ().getFileObject ("src") );        //NOI18N 
+                // resultSet.add( h.getProjectDirectory ().getFileObject ("src") );        //NOI18N
                 // resultSet.add( h.getProjectDirectory() ); // Only expand the project directory
             // }
         }
         FileObject dir = FileUtil.toFileObject(dirF);
         switch (type) {
             case APP:
+                createManifest(dir, false);
+                break;
             case EXT:
-                createManifest(dir);
+                createManifest(dir, true);
+                break;
         }
         handle.progress (3);
 
-        // Returning FileObject of project diretory. 
+        // Returning FileObject of project diretory.
         // Project will be open and set as main
         int ind = (Integer) wiz.getProperty(PROP_NAME_INDEX);
         switch (type) {
@@ -218,23 +222,23 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
             case EXT:
                 FoldersListSettings.getDefault().setNewProjectCount(ind);
                 break;
-        }        
+        }
         resultSet.add (dir);
         handle.progress (NbBundle.getMessage (NewJ2SEProjectWizardIterator.class, "LBL_NewJ2SEProjectWizardIterator_WizardProgress_PreparingToOpen"), 4);
         dirF = (dirF != null) ? dirF.getParentFile() : null;
         if (dirF != null && dirF.exists()) {
-            ProjectChooser.setProjectsFolder (dirF);    
+            ProjectChooser.setProjectsFolder (dirF);
         }
-         
+
         SharableLibrariesUtils.setLastProjectSharable(librariesDefinition != null);
         return resultSet;
     }
-    
-        
+
+
     private transient int index;
     private transient WizardDescriptor.Panel[] panels;
     private transient WizardDescriptor wiz;
-    
+
     public void initialize(WizardDescriptor wiz) {
         this.wiz = wiz;
         index = 0;
@@ -276,11 +280,11 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
             panels = null;
         }
     }
-    
+
     public String name() {
         return NbBundle.getMessage(NewJ2SEProjectWizardIterator.class, "LAB_IteratorName", index + 1, panels.length);
     }
-    
+
     public boolean hasNext() {
         return index < panels.length - 1;
     }
@@ -298,18 +302,18 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
     public WizardDescriptor.Panel current () {
         return panels[index];
     }
-    
+
     // If nothing unusual changes in the middle of the wizard, simply:
     public final void addChangeListener(ChangeListener l) {}
     public final void removeChangeListener(ChangeListener l) {}
-    
+
     // helper methods, finds mainclass's FileObject
     private FileObject getMainClassFO (FileObject sourcesRoot, String mainClass) {
         // replace '.' with '/'
         mainClass = mainClass.replace ('.', '/'); // NOI18N
-        
+
         // ignore unvalid mainClass ???
-        
+
         return sourcesRoot.getFileObject (mainClass+ ".scala"); // NOI18N
     }
 
@@ -317,39 +321,44 @@ public class NewJ2SEProjectWizardIterator implements WizardDescriptor.ProgressIn
         StringBuffer builder = new StringBuffer ();
         boolean firstLetter = true;
         for (int i=0; i< displayName.length(); i++) {
-            char c = displayName.charAt(i);            
+            char c = displayName.charAt(i);
             if ((!firstLetter && Character.isJavaIdentifierPart (c)) || (firstLetter && Character.isJavaIdentifierStart(c))) {
                 firstLetter = false;
                 if (Character.isUpperCase(c)) {
                     c = Character.toLowerCase(c);
-                }                    
+                }
                 builder.append(c);
-            }            
+            }
         }
         return builder.length() == 0 ? NbBundle.getMessage(NewJ2SEProjectWizardIterator.class,"TXT_DefaultPackageName") : builder.toString();
     }
-    
+
     /**
      * Create a new application manifest file with minimal initial contents.
      * @param dir the directory to create it in
      * @throws IOException in case of problems
      */
-    private static void createManifest(final FileObject dir) throws IOException {
-        FileObject manifest = dir.createData(MANIFEST_FILE);
-        FileLock lock = manifest.lock();
-        try {
-            OutputStream os = manifest.getOutputStream(lock);
+    private static void createManifest(final FileObject dir, final boolean skeepIfExists) throws IOException {
+        if (skeepIfExists && dir.getFileObject(MANIFEST_FILE) != null) {
+            return;
+        }
+        else {
+            FileObject manifest = dir.createData(MANIFEST_FILE);
+            FileLock lock = manifest.lock();
             try {
-                PrintWriter pw = new PrintWriter(os);
-                pw.println("Manifest-Version: 1.0"); // NOI18N
-                pw.println("X-COMMENT: Main-Class will be added automatically by build"); // NOI18N
-                pw.println(); // safest to end in \n\n due to JRE parsing bug
-                pw.flush();
+                OutputStream os = manifest.getOutputStream(lock);
+                try {
+                    PrintWriter pw = new PrintWriter(os);
+                    pw.println("Manifest-Version: 1.0"); // NOI18N
+                    pw.println("X-COMMENT: Main-Class will be added automatically by build"); // NOI18N
+                    pw.println(); // safest to end in \n\n due to JRE parsing bug
+                    pw.flush();
+                } finally {
+                    os.close();
+                }
             } finally {
-                os.close();
+                lock.releaseLock();
             }
-        } finally {
-            lock.releaseLock();
         }
     }
 

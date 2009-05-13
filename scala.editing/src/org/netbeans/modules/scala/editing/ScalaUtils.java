@@ -32,31 +32,38 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.queries.SourceForBinaryQuery;
+import org.netbeans.api.java.source.ClasspathInfo;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.classfile.ClassFile;
-import org.netbeans.modules.gsf.api.CancellableTask;
-import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.OffsetRange;
-import org.netbeans.modules.gsf.api.ParserResult;
-import org.netbeans.modules.gsf.spi.GsfUtilities;
+import org.netbeans.modules.csl.api.ElementKind;
+import org.netbeans.modules.csl.api.OffsetRange;
+import org.netbeans.modules.csl.spi.ParserResult;
+import org.netbeans.modules.parsing.api.ParserManager;
+import org.netbeans.modules.parsing.api.ResultIterator;
+import org.netbeans.modules.parsing.api.Source;
+import org.netbeans.modules.parsing.api.UserTask;
+import org.netbeans.modules.parsing.spi.ParseException;
+import org.netbeans.modules.parsing.spi.Parser;
+import org.netbeans.modules.scala.editing.ast.AstDef;
+import org.netbeans.modules.scala.editing.ast.AstRootScope;
+import org.netbeans.modules.scala.editing.ast.AstScope;
 import org.netbeans.modules.scala.editing.lexer.ScalaLexUtilities;
 import org.netbeans.modules.scala.editing.nodes.AstElement;
-import org.netbeans.modules.scala.editing.nodes.AstScope;
-import org.netbeans.modules.scala.editing.nodes.tmpls.Template;
 import org.netbeans.modules.scala.editing.rats.LexerScala;
-import org.netbeans.napi.gsfret.source.ClasspathInfo;
-import org.netbeans.napi.gsfret.source.CompilationController;
-import org.netbeans.napi.gsfret.source.Phase;
-import org.netbeans.napi.gsfret.source.Source;
 import org.netbeans.spi.java.classpath.support.ClassPathSupport;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
@@ -68,6 +75,8 @@ import scala.tools.nsc.symtab.Symbols.Symbol;
  * @author Caoyuan Deng
  */
 public class ScalaUtils {
+
+    public final static String ANONFUN = "$anonfun";
 
     private ScalaUtils() {
     }
@@ -291,7 +300,7 @@ public class ScalaUtils {
                 return false;
             }
 
-        // TODO - make this more accurate, like the method validifier
+            // TODO - make this more accurate, like the method validifier
         }
 
         return true;
@@ -324,7 +333,6 @@ public class ScalaUtils {
         return unicoded != null ? unicoded : typeName;
     }
     public static final Map<String, String> STD_LIB_TYPE_UNICODE = new HashMap<String, String>();
-
 
     static {
         STD_LIB_TYPE_UNICODE.put("ZZ8", "\u21248");
@@ -628,35 +636,30 @@ public class ScalaUtils {
     }
     private static Map<FileObject, Reference<Source>> scalaFileToSource =
             new WeakHashMap<FileObject, Reference<Source>>();
-    private static Map<FileObject, Reference<CompilationInfo>> scalaFileToCompilationInfo =
-            new WeakHashMap<FileObject, Reference<CompilationInfo>>();
+    private static Map<FileObject, Reference<Parser.Result>> scalaFileToCompilationInfo =
+            new WeakHashMap<FileObject, Reference<Parser.Result>>();
 
-    public static CompilationInfo getCompilationInfoForScalaFile(FileObject fo) {
-        Reference<CompilationInfo> infoRef = scalaFileToCompilationInfo.get(fo);
-        CompilationInfo info = infoRef != null ? infoRef.get() : null;
+    public static Parser.Result getCompilationInfoForScalaFile(FileObject fo) {
+        Reference<Parser.Result> infoRef = scalaFileToCompilationInfo.get(fo);
+        Parser.Result info = infoRef != null ? infoRef.get() : null;
 
         if (info == null) {
-            final CompilationInfo[] controllers = new CompilationInfo[1];
-
+            final Parser.Result[] pResults = new Parser.Result[1];
             Source source = getSourceForScalaFile(fo);
             try {
-                source.runUserActionTask(new CancellableTask<CompilationController>() {
+                ParserManager.parse(Collections.singleton(source), new UserTask() {
 
-                    public void cancel() {
-                        throw new UnsupportedOperationException("Not supported yet.");
+                    @Override
+                    public void run(ResultIterator resultIterator) throws Exception {
+                        pResults[0] = resultIterator.getParserResult();
                     }
-
-                    public void run(CompilationController controller) throws Exception {
-                        controller.toPhase(Phase.ELEMENTS_RESOLVED);
-                        controllers[0] = controller;
-                    }
-                }, true);
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
+                });
+            } catch (ParseException e) {
+                Exceptions.printStackTrace(e);
             }
 
-            info = controllers[0];
-            scalaFileToCompilationInfo.put(fo, new WeakReference<CompilationInfo>(info));
+            info = pResults[0];
+            scalaFileToCompilationInfo.put(fo, new WeakReference<Parser.Result>(info));
         }
 
         return info;
@@ -672,42 +675,24 @@ public class ScalaUtils {
         Source source = sourceRef != null ? sourceRef.get() : null;
 
         if (source == null) {
-            ClasspathInfo cpInfo = ClasspathInfo.create(fo);
-            source = Source.create(cpInfo, fo);
+            source = Source.create(fo);
             scalaFileToSource.put(fo, new WeakReference<Source>(source));
-
         }
 
         return source;
     }
 
-
-    private static void collectTemplatesByName(AstScope scope, String qName, List<Template> templates) {
-        for (AstElement element : scope.getElements()) {
-            if (element instanceof Template && ((Template) element).getQualifiedName().toString().equals(qName)) {
-                templates.add((Template) element);
-            }
-
-        }
-
-        for (AstScope _scope : scope.getScopes()) {
-            collectTemplatesByName(_scope, qName, templates);
-        }
-
-    }
-
-    public static String getDocComment(CompilationInfo info, AstElement element) {
-        ScalaParserResult pResult = getParserResult(info);
-        if (pResult == null) {
+    public static String getDocComment(Parser.Result info, AstElement element) {
+        if (info == null) {
             return null;
         }
 
-        BaseDocument doc = GsfUtilities.getDocument(info.getFileObject(), true);
+        BaseDocument doc = (BaseDocument) info.getSnapshot().getSource().getDocument(true);
         if (doc == null) {
             return null;
         }
 
-        TokenHierarchy<Document> th = pResult.getTokenHierarchy();
+        TokenHierarchy th = info.getSnapshot().getTokenHierarchy();
 
         doc.readLock(); // Read-lock due to token hierarchy use
         OffsetRange range = ScalaLexUtilities.getDocumentationRange(element, th);
@@ -745,37 +730,26 @@ public class ScalaUtils {
         return null;
     }
 
-    public static int getOffset(CompilationInfo info, AstElement element) {
-        ScalaParserResult pResult = getParserResult(info);
-        if (pResult == null) {
+    public static int getOffset(Parser.Result info, AstElement element) {
+        if (info == null) {
             return -1;
         }
 
-        TokenHierarchy<Document> th = pResult.getTokenHierarchy();
+        TokenHierarchy th = info.getSnapshot().getTokenHierarchy();
         return element.getPickOffset(th);
     }
 
-    public static ScalaParserResult getParserResult(CompilationInfo info) {
-        ParserResult result = info.getEmbeddedResult(ScalaMimeResolver.MIME_TYPE, 0);
-
-        if (result == null) {
-            return null;
-        } else {
-            return (ScalaParserResult) result;
-        }
-    }
-
-    public static FileObject getFileObject(CompilationInfo info, Symbol symbol) {
+    public static FileObject getFileObject(ParserResult info, Symbol symbol) {
         String qName = null;
         try {
-             qName = symbol.enclClass().fullNameString().replace('.', File.separatorChar);
+            qName = symbol.enclClass().fullNameString().replace('.', File.separatorChar);
         } catch (java.lang.Error e) {
             // java.lang.Error: no-symbol does not have owner
             //        at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1565)
             //        at scala.tools.nsc.symtab.Symbols$Symbol.fullNameString(Symbols.scala:1156)
             //        at scala.tools.nsc.symtab.Symbols$Symbol.fullNameString(Symbols.scala:1166)            
         }
-        
+
         if (qName == null) {
             return null;
         }
@@ -789,23 +763,23 @@ public class ScalaUtils {
         String clzName = qName + ".class";
 
         try {
-            org.netbeans.api.java.source.CompilationInfo javaInfo = JavaUtilities.getCompilationInfoForScalaFile(info.getFileObject());
-            org.netbeans.api.java.source.ClasspathInfo cpInfo = javaInfo.getClasspathInfo();
+            FileObject srcFo = info.getSnapshot().getSource().getFileObject();
+            ClasspathInfo cpInfo = ClasspathInfo.create(srcFo);
             ClassPath cp = ClassPathSupport.createProxyClassPath(
                     new ClassPath[]{
-                        cpInfo.getClassPath(org.netbeans.api.java.source.ClasspathInfo.PathKind.SOURCE),
-                        cpInfo.getClassPath(org.netbeans.api.java.source.ClasspathInfo.PathKind.BOOT),
-                        cpInfo.getClassPath(org.netbeans.api.java.source.ClasspathInfo.PathKind.COMPILE)
+                        cpInfo.getClassPath(ClasspathInfo.PathKind.SOURCE),
+                        cpInfo.getClassPath(ClasspathInfo.PathKind.BOOT),
+                        cpInfo.getClassPath(ClasspathInfo.PathKind.COMPILE)
                     });
 
-            String srcName = null;
+            String srcPath = null;
             FileObject clzFo = cp.findResource(clzName);
             if (clzFo != null) {
                 InputStream in = clzFo.getInputStream();
                 try {
-                    ClassFile cFile = new ClassFile(in, false);
-                    if (cFile != null) {
-                        srcName = cFile.getSourceFileName();
+                    ClassFile clzFile = new ClassFile(in, false);
+                    if (clzFile != null) {
+                        srcPath = clzFile.getSourceFileName();
                     }
                 } finally {
                     if (in != null) {
@@ -814,9 +788,9 @@ public class ScalaUtils {
                 }
             }
 
-            if (srcName != null) {
+            if (srcPath != null) {
                 if (pkgName != null) {
-                    srcName = pkgName + File.separatorChar + srcName;
+                    srcPath = pkgName + File.separatorChar + srcPath;
                 }
 
                 FileObject root = cp.findOwnerRoot(clzFo);
@@ -826,12 +800,229 @@ public class ScalaUtils {
                 FileObject[] srcRoots = result.getRoots();
                 ClassPath srcCp = ClassPathSupport.createClassPath(srcRoots);
 
-                return srcCp.findResource(srcName);
+                return srcCp.findResource(srcPath);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         return null;
+    }
+    private static final Set<ElementKind> TMPL_KINDS = EnumSet.of(ElementKind.CLASS, ElementKind.MODULE);
+
+    public static String getBinaryClassName(ScalaParserResult pResult, int offset) {
+        TokenHierarchy th = pResult.getSnapshot().getTokenHierarchy();
+        AstRootScope rootScope = pResult.rootScopeForDebugger();
+        String clzName = "";
+
+        AstDef enclDfn = rootScope.getEnclosingDef(TMPL_KINDS, th, offset);
+        if (enclDfn != null) {
+
+            Symbol sym = enclDfn.getSymbol();
+            if (sym != null) {
+                // "scalarun.Dog.$talk$1"
+                StringBuilder fqn = new StringBuilder(sym.fullNameString('.'));
+
+                // * getTopLevelClassName "scalarun.Dog"
+                Symbol topSym = sym.toplevelClass();
+                String topClzName = topSym.fullNameString('.');
+
+                // "scalarun.Dog$$talk$1"
+                for (int i = topClzName.length(); i < fqn.length(); i++) {
+                    if (fqn.charAt(i) == '.') {
+                        fqn.setCharAt(i, '$');
+                    }
+                }
+
+                // * According to Symbol#kindString, an object template isModuleClass()
+                // * trait's symbol name has been added "$class" by compiler
+                if (topSym.isModuleClass()) {
+                    fqn.append("$");
+                }
+                clzName = fqn.toString();
+            }
+        }
+
+        if (clzName.length() == 0) {
+            clzName = null;
+        }
+
+//        AstDef tmpl = rootScope.getEnclosinDef(ElementKind.CLASS, th, offset);
+//        if (tmpl == null) {
+//            tmpl = rootScope.getEnclosinDef(ElementKind.MODULE, th, offset);
+//        }
+//        if (tmpl == null) {
+//            ErrorManager.getDefault().log(ErrorManager.WARNING,
+//                    "No enclosing class for " + pResult.getSnapshot().getSource().getFileObject() + ", offset = " + offset);
+//        }
+//
+//        String className = tmpl.getBinaryName();
+//
+//        String enclosingPackage = tmpl.getPackageName();
+//        if (enclosingPackage == null || enclosingPackage != null && enclosingPackage.length() == 0) {
+//            result[0] = className;
+//        } else {
+//            result[0] = enclosingPackage + "." + className;
+//        }
+        return clzName;
+    }
+
+    /**
+     * Returns classes declared in the given source file which have the main method.
+     * @param fo source file
+     * @return the classes containing main method
+     * @throws IllegalArgumentException when file does not exist or is not a java source file.
+     */
+    public static Collection<AstDef> getMainClasses(final FileObject fo) {
+        if (fo == null || !fo.isValid() || fo.isVirtual()) {
+            throw new IllegalArgumentException();
+        }
+        final Source source = Source.create(fo);
+        if (source == null) {
+            throw new IllegalArgumentException();
+        }
+        try {
+            final List<AstDef> result = new ArrayList<AstDef>();
+            ParserManager.parse(Collections.singleton(source), new UserTask() {
+
+                @Override
+                public void run(ResultIterator resultIterator) throws Exception {
+                    ScalaParserResult pResult = (ScalaParserResult) resultIterator.getParserResult();
+                    AstRootScope rootScope = pResult.rootScope();
+                    if (rootScope == null) {
+                        return;
+                    }
+                    // Get all defs will return all visible packages from the root and down
+                    final List<AstDef> visibleDefs = getAllDefs(rootScope, ElementKind.PACKAGE);
+                    for (AstDef packaging : visibleDefs) {
+                        // Only go through the defs for each package scope.
+                        // Sub-packages are handled by the fact that
+                        // getAllDefs will find them.
+                        List<AstDef> objs = packaging.getBindingScope().getDefs();
+                        for (AstDef obj : objs) {
+                            if (isMainMethodPresent(obj)) {
+                                result.add(obj);
+                            }
+                        }
+                    }
+                    for (AstDef obj : rootScope.getVisibleDefs(ElementKind.MODULE)) {
+                        if (isMainMethodPresent(obj)) {
+                            result.add(obj);
+                        }
+                    }
+                }
+
+                public List<AstDef> getAllDefs(AstScope rootScope, ElementKind kind) {
+                    List<AstDef> result = new ArrayList<AstDef>();
+                    getAllDefs(rootScope, kind, result);
+
+                    return result;
+                }
+
+                private final void getAllDefs(AstScope astScope, ElementKind kind, List<AstDef> result) {
+                    for (AstDef def : astScope.getDefs()) {
+                        if (def.getKind() == kind) {
+                            result.add(def);
+                        }
+                    }
+                    for (AstScope childScope : astScope.getSubScopes()) {
+                        getAllDefs(childScope, kind, result);
+                    }
+                }
+            });
+
+            return result;
+        } catch (ParseException ex) {
+            Exceptions.printStackTrace(ex);
+            return Collections.<AstDef>emptySet();
+        }
+    }
+
+    public static boolean isMainMethodPresent(AstDef obj) {
+        final scala.List<Symbol> members = obj.getType().members();
+        for (int j = 0; j < members.length(); j++) {
+            Symbol methodCandidate = members.apply(j);
+            if (methodCandidate.isMethod() && isMainMethod(methodCandidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the method is a main method
+     * @param method to be checked
+     * @return true when the method is a main method
+     */
+    public static boolean isMainMethod(final Symbol method) {
+        if (!method.nameString().equals("main")) {                //NOI18N
+            return false;
+        }
+        method.tpe().paramTypes();
+        scala.List params = method.tpe().paramTypes();
+        if (params != null && params.size() != 1) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns classes declared under the given source roots which have the main method.
+     * @param sourceRoots the source roots
+     * @return the classes containing the main methods
+     * Currently this method is not optimized and may be slow
+     */
+    public static Collection<AstDef> getMainClasses(final FileObject[] sourceRoots) {
+        final List<AstDef> result = new LinkedList<AstDef>();
+        for (FileObject root : sourceRoots) {
+            result.addAll(getMainClasses(root));
+            try {
+                ClassPath bootPath = ClassPath.getClassPath(root, ClassPath.BOOT);
+                ClassPath compilePath = ClassPath.getClassPath(root, ClassPath.COMPILE);
+                ClassPath srcPath = ClassPathSupport.createClassPath(new FileObject[]{root});
+                ClasspathInfo cpInfo = ClasspathInfo.create(bootPath, compilePath, srcPath);
+//                final Set<AstElement> classes = cpInfo.getClassIndex().getDeclaredTypes("", ClassIndex.NameKind.PREFIX, EnumSet.of(ClassIndex.SearchScope.SOURCE));
+//                Source js = Source.create(cpInfo);
+//                js.runUserActionTask(new CancellableTask<CompilationController>() {
+//
+//                    public void cancel() {
+//                    }
+//
+//                    public void run(CompilationController control) throws Exception {
+//                        for (AstElement cls : classes) {
+//                            TypeElement te = cls.resolve(control);
+//                            if (te != null) {
+//                                Iterable<? extends ExecutableElement> methods = ElementFilter.methodsIn(te.getEnclosedElements());
+//                                for (ExecutableElement method : methods) {
+//                                    if (isMainMethod(method)) {
+//                                        if (isIncluded(cls, control.getClasspathInfo())) {
+//                                            result.add(cls);
+//                                        }
+//                                        break;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }, false);
+            } catch (Exception ioe) {
+                Exceptions.printStackTrace(ioe);
+                return Collections.<AstDef>emptySet();
+            }
+        }
+        return result;
+    }
+
+    public static ClasspathInfo getClasspathInfoForFileObject(FileObject fo) {
+
+        ClassPath bootPath = ClassPath.getClassPath(fo, ClassPath.BOOT);
+        ClassPath compilePath = ClassPath.getClassPath(fo, ClassPath.COMPILE);
+        ClassPath srcPath = ClassPath.getClassPath(fo, ClassPath.SOURCE);
+
+        if (bootPath == null || compilePath == null || srcPath == null) {
+            return null;
+        }
+
+        return ClasspathInfo.create(bootPath, compilePath, srcPath);
     }
 }

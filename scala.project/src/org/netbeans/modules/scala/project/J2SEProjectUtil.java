@@ -46,15 +46,20 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map.Entry;
 import org.netbeans.api.java.classpath.ClassPath;
+import org.netbeans.api.java.platform.JavaPlatform;
+import org.netbeans.api.java.platform.JavaPlatformManager;
 import org.netbeans.api.java.source.ClasspathInfo;
 import org.netbeans.api.scala.platform.ScalaPlatform;
 import org.netbeans.api.scala.platform.ScalaPlatformManager;
 import org.netbeans.api.scala.platform.Specification;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.scala.editing.SourceUtils;
+import org.netbeans.modules.scala.editing.ScalaUtils;
 import org.netbeans.modules.scala.editing.ast.AstDef;
+import org.netbeans.modules.scala.project.ui.customizer.J2SEProjectProperties;
 import org.netbeans.modules.scala.project.ui.customizer.MainClassChooser;
+import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
@@ -108,7 +113,7 @@ public class J2SEProjectUtil {
         if (fo == null || MainClassChooser.unitTestingSupport_hasMainMethodResult != null) {
             return Collections.<AstDef>emptySet();
         }
-        return SourceUtils.getMainClasses(fo);
+        return ScalaUtils.getMainClasses(fo);
     }
 
         
@@ -170,4 +175,62 @@ public class J2SEProjectUtil {
             return null;
         }
     }
+
+    /**
+     * Returns the active platform used by the project or null if the active
+     * project platform is broken.
+     * @param activePlatformId the name of platform used by Ant script or null
+     * for default platform.
+     * @return active {@link JavaPlatform} or null if the project's platform
+     * is broken
+     */
+    public static JavaPlatform getJavaActivePlatform (final String activePlatformId) {
+        final JavaPlatformManager pm = JavaPlatformManager.getDefault();
+        if (activePlatformId == null) {
+            return pm.getDefaultPlatform();
+        }
+        else {
+            JavaPlatform[] installedPlatforms = pm.getPlatforms(null, new org.netbeans.api.java.platform.Specification ("j2se",null));   //NOI18N
+            for (JavaPlatform p : installedPlatforms) {
+                String antName = p.getProperties().get("platform.ant.name"); // NOI18N
+                if (antName != null && antName.equals(activePlatformId)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+    }
+
+    public static String getBuildXmlName (final J2SEProject project) {
+        assert project != null;
+        String buildScriptPath = project.evaluator().getProperty(J2SEProjectProperties.BUILD_SCRIPT);
+        if (buildScriptPath == null) {
+            buildScriptPath = GeneratedFilesHelper.BUILD_XML_PATH;
+        }
+        return buildScriptPath;
+    }
+
+    public static FileObject getBuildXml (final J2SEProject project) {
+        return project.getProjectDirectory().getFileObject (getBuildXmlName(project));
+    }
+
+    public static boolean isCompileOnSaveSupported(final J2SEProject project) {
+        for (Entry<String, String> e :project.evaluator().getProperties().entrySet()) {
+            if (e.getKey().startsWith(J2SEProjectProperties.COMPILE_ON_SAVE_UNSUPPORTED_PREFIX)) {
+                if (e.getValue() != null && Boolean.valueOf(e.getValue())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean isCompileOnSaveEnabled(final J2SEProject project) {
+        String compileOnSaveProperty = project.evaluator().getProperty(J2SEProjectProperties.COMPILE_ON_SAVE);
+
+        return (compileOnSaveProperty != null && Boolean.valueOf(compileOnSaveProperty)) && J2SEProjectUtil.isCompileOnSaveSupported(project);
+    }
+
+
 }
