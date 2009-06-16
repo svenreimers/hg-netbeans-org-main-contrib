@@ -74,20 +74,21 @@ generic Attribute =
   / AttrVal
   / SYNTAX_ERROR
   )
+/ void:"-":s !"spec" AtomId     // -else -endif etc
 ;
 
 // ----- predefined attributes
 
 generic PredAttr =
-  void:"-":s "define"     void:"(":s ( AtomId / VarId ) ( void:"(":s MacroParams? void:")":s )? ( COMMA_E Expr )*      void:")":s
-/ void:"-":s "record"     void:"(":s ( AtomId / VarId ) COMMA_E void:"{":s RecordFieldNames void:"}":s                 void:")":s
-/ void:"-":s "module"     void:"(":s AtomId ( void:".":s AtomId )* ( COMMA_E ModuleParams )?                          void:")":s
-/ void:"-":s "import"     void:"(":s AtomId ( void:".":s AtomId )* ( COMMA_E void:"[":s FunctionNames? void:"]":s )? void:")":s
-/ void:"-":s "export"     void:"(":s void:"[":s FunctionNames? void:"]":s                                               void:")":s
-/ void:"-":s "include"    void:"(":s String void:")":s
-/ void:"-":s "includelib" void:"(":s String void:")":s
-/ void:"-":s "compile"    void:"(":s Exprs  void:")":s
-/ void:"-":s "file"       void:"(":s String COMMA_E Integer void:")":s
+  void:"-":s "define"      void:"(":s ( AtomId / VarId ) ( void:"(":s MacroParams? void:")":s )? ( COMMA_E Expr )*      void:")":s
+/ void:"-":s "record"      void:"(":s ( AtomId / VarId ) COMMA_E void:"{":s RecordFieldNames void:"}":s                 void:")":s
+/ void:"-":s "module"      void:"(":s AtomId ( void:".":s AtomId )* ( COMMA_E ModuleParams )?                          void:")":s
+/ void:"-":s "import"      void:"(":s AtomId ( void:".":s AtomId )* ( COMMA_E void:"[":s FunctionNames? void:"]":s )? void:")":s
+/ void:"-":s "export"      void:"(":s void:"[":s FunctionNames? void:"]":s                                               void:")":s
+/ void:"-":s "include"     void:"(":s String void:")":s
+/ void:"-":s "include_lib" void:"(":s String void:")":s
+/ void:"-":s "compile"     void:"(":s Exprs  void:")":s
+/ void:"-":s "file"        void:"(":s String COMMA_E Integer void:")":s
 ;
 
 generic ModuleParams =
@@ -322,8 +323,13 @@ generic LcExpr =
 transient generic Tuple = void:"{":s Exprs? void:"}":s ;
 
 transient generic RecordExpr =
-  ( RecId / void:"#":s MacroId ) ( void:".":s ( AtomId / MacroId ) / RecordTuple )
-/ ExprMax ( RecId / void:"#":s MacroId ) ( void:".":s ( AtomId / MacroId ) / RecordTuple )
+  RecordExpr1
+/ ExprMax RecordExpr1
+;
+
+transient generic RecordExpr1 = 
+  RecId              ( void:".":s ( AtomId / MacroId ) / RecordTuple )
+/ void:"#":s MacroId ( void:".":s ( AtomId / MacroId ) / RecordTuple )
 ;
 
 transient generic RecordTuple = void:"{":s RecordFields? void:"}":s ;
@@ -358,7 +364,7 @@ generic ReceiveExpr =
 
 generic FunExpr =
   void:"fun":k ( AtomId / MacroId ) void:":":s FunctionName
-/ void:"fun":k                                  FunctionName
+/ void:"fun":k                                 FunctionName
 / void:"fun":k FunClauses END_E
 ;
 
@@ -377,8 +383,8 @@ transient generic TryClauses = TryClause ( SEMI_E TryClause )* ;
 
 generic TryClause =
   AtomId void:":":s Expr ClauseGuard? ClauseBody
-/ VarId   void:":":s Expr ClauseGuard? ClauseBody
-/                    Expr ClauseGuard? ClauseBody
+/ VarId  void:":":s Expr ClauseGuard? ClauseBody
+/                   Expr ClauseGuard? ClauseBody
 ;
 
 transient generic QueryExpr = void:"query":s ListComprehension END_E ;

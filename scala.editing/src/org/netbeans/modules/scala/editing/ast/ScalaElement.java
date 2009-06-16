@@ -50,11 +50,12 @@ import javax.lang.model.element.Element;
 import javax.swing.text.BadLocationException;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.editor.BaseDocument;
-import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.ElementHandle;
-import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.Modifier;
-import org.netbeans.modules.gsf.spi.GsfUtilities;
+import org.netbeans.modules.csl.api.ElementHandle;
+import org.netbeans.modules.csl.api.ElementKind;
+import org.netbeans.modules.csl.api.Modifier;
+import org.netbeans.modules.csl.api.OffsetRange;
+import org.netbeans.modules.csl.spi.GsfUtilities;
+import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.scala.editing.JavaUtilities;
 import org.netbeans.modules.scala.editing.ScalaGlobal;
 import org.netbeans.modules.scala.editing.ScalaMimeResolver;
@@ -78,7 +79,7 @@ public class ScalaElement implements ScalaElementHandle {
 
     private Symbol symbol;
     private final Global global;
-    private CompilationInfo info;
+    private ParserResult info;
     private ElementKind kind;
     private Set<Modifier> modifiers;
     private boolean inherited;
@@ -94,7 +95,7 @@ public class ScalaElement implements ScalaElementHandle {
      * @param element, that to be wrapped
      * @param info, CompilationInfo
      */
-    public ScalaElement(Symbol symbol, CompilationInfo info, Global global) {
+    public ScalaElement(Symbol symbol, ParserResult info, Global global) {
         this.symbol = symbol;
         this.info = info;
         this.global = global;
@@ -113,6 +114,7 @@ public class ScalaElement implements ScalaElementHandle {
         return getSymbol().tpe();
     }
 
+    @Override
     public FileObject getFileObject() {
         if (fo == null) {
             AbstractFile srcFile = symbol.sourceFile();
@@ -141,18 +143,22 @@ public class ScalaElement implements ScalaElementHandle {
         return fo;
     }
 
+    @Override
     public String getIn() {
         return symbol.owner().nameString();
     }
 
+    @Override
     public ElementKind getKind() {
         return getKind(symbol);
     }
 
+    @Override
     public String getMimeType() {
         return ScalaMimeResolver.MIME_TYPE;
     }
 
+    @Override
     public Set<Modifier> getModifiers() {
         if (modifiers == null) {
             modifiers = getModifiers(symbol);
@@ -161,10 +167,12 @@ public class ScalaElement implements ScalaElementHandle {
         return modifiers;
     }
 
+    @Override
     public String getName() {
         return symbol.nameString();
     }
 
+    @Override
     public boolean signatureEquals(ElementHandle handle) {
         return false;
     }
@@ -181,7 +189,7 @@ public class ScalaElement implements ScalaElementHandle {
             } else {
                 if (javaElement != null) {
                     try {
-                        String docComment = JavaUtilities.getDocComment(JavaUtilities.getCompilationInfoForScalaFile(info.getFileObject()), javaElement);
+                        String docComment = JavaUtilities.getDocComment(JavaUtilities.getCompilationInfoForScalaFile(info.getSnapshot().getSource().getFileObject()), javaElement);
                         if (docComment != null) {
                             return new StringBuilder(docComment.length() + 5).append("/**").append(docComment).append("*/").toString();
                         }
@@ -203,7 +211,7 @@ public class ScalaElement implements ScalaElementHandle {
         if (isJava()) {
             if (javaElement != null) {
                 try {
-                    return JavaUtilities.getOffset(JavaUtilities.getCompilationInfoForScalaFile(info.getFileObject()), javaElement);
+                    return JavaUtilities.getOffset(JavaUtilities.getCompilationInfoForScalaFile(info.getSnapshot().getSource().getFileObject()), javaElement);
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);
                 }
@@ -216,6 +224,11 @@ public class ScalaElement implements ScalaElementHandle {
         }
 
         return offset;
+    }
+
+    @Override
+    public OffsetRange getOffsetRange(ParserResult result) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public BaseDocument getDoc() {
@@ -245,7 +258,7 @@ public class ScalaElement implements ScalaElementHandle {
         }
 
         if (isJava()) {
-            javaElement = JavaUtilities.getJavaElement(JavaUtilities.getCompilationInfoForScalaFile(info.getFileObject()), symbol);
+            javaElement = JavaUtilities.getJavaElement(JavaUtilities.getCompilationInfoForScalaFile(info.getSnapshot().getSource().getFileObject()), symbol);
         } else {
             BaseDocument srcDoc = getDoc();
             if (srcDoc != null) {
@@ -253,7 +266,7 @@ public class ScalaElement implements ScalaElementHandle {
                 try {
                     char[] text = srcDoc.getChars(0, srcDoc.getLength());
                     BatchSourceFile srcFile = new BatchSourceFile(path, text);
-                    TokenHierarchy th = TokenHierarchy.get(doc);
+                    TokenHierarchy th = TokenHierarchy.get(srcDoc);
                     if (th == null) {
                         return;
                     }
@@ -265,7 +278,7 @@ public class ScalaElement implements ScalaElementHandle {
                      * position via the AST Tree, or use a tree visitor to update
                      * all symbols Position
                      */
-                    CompilationUnit unit = ScalaGlobal.compileSource(global, srcFile);
+                    CompilationUnit unit = ScalaGlobal.compileSourceForPresentation(global, srcFile);
                     if (unit != null) {
                         AstRootScope root = new AstTreeVisitor(global, unit, th, srcFile).getRootScope();
                         AstDef def = root.findDefMatched(symbol);

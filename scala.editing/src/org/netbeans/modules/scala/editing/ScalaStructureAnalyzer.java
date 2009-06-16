@@ -47,20 +47,19 @@ import java.util.Set;
 import java.util.Stack;
 import javax.swing.ImageIcon;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.Utilities;
-import org.netbeans.modules.gsf.api.CompilationInfo;
-import org.netbeans.modules.gsf.api.ElementHandle;
-import org.netbeans.modules.gsf.api.ElementKind;
-import org.netbeans.modules.gsf.api.HtmlFormatter;
-import org.netbeans.modules.gsf.api.Modifier;
-import org.netbeans.modules.gsf.api.OffsetRange;
-import org.netbeans.modules.gsf.api.StructureItem;
-import org.netbeans.modules.gsf.api.StructureScanner;
+import org.netbeans.modules.csl.api.ElementHandle;
+import org.netbeans.modules.csl.api.ElementKind;
+import org.netbeans.modules.csl.api.HtmlFormatter;
+import org.netbeans.modules.csl.api.Modifier;
+import org.netbeans.modules.csl.api.OffsetRange;
+import org.netbeans.modules.csl.api.StructureItem;
+import org.netbeans.modules.csl.api.StructureScanner;
+import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.scala.editing.ast.AstDef;
 import org.netbeans.modules.scala.editing.ast.AstRootScope;
 import org.netbeans.modules.scala.editing.ast.AstScope;
@@ -77,13 +76,14 @@ public class ScalaStructureAnalyzer implements StructureScanner {
     public static final String NETBEANS_IMPORT_FILE = "__netbeans_import__"; // NOI18N
     private static final String DOT_CALL = ".call"; // NOI18N
 
-    public List<? extends StructureItem> scan(CompilationInfo info) {
+    @Override
+    public List<? extends StructureItem> scan(ParserResult info) {
         ScalaParserResult pResult = AstUtilities.getParserResult(info);
         if (pResult == null) {
             return Collections.emptyList();
         }
 
-        AstRootScope rootScope = pResult.getRootScope();
+        AstRootScope rootScope = pResult.rootScope();
         if (rootScope == null) {
             return Collections.emptyList();
         }
@@ -94,7 +94,7 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         return items;
     }
 
-    private void scanTopTmpls(AstScope scope, List<StructureItem> items, CompilationInfo info) {
+    private void scanTopTmpls(AstScope scope, List<StructureItem> items, ParserResult info) {
         for (AstDef def : scope.getDefs()) {
             ElementKind kind = def.getKind();
             if (kind == ElementKind.CLASS || kind == ElementKind.MODULE) {
@@ -107,13 +107,14 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         }
     }
 
-    public Map<String, List<OffsetRange>> folds(CompilationInfo info) {
+    @Override
+    public Map<String, List<OffsetRange>> folds(ParserResult info) {
         ScalaParserResult pResult = AstUtilities.getParserResult(info);
         if (pResult == null) {
             return Collections.emptyMap();
         }
 
-        AstRootScope rootScope = pResult.getRootScope();
+        AstRootScope rootScope = pResult.rootScope();
         if (rootScope == null) {
             return Collections.emptyMap();
         }
@@ -122,18 +123,15 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         List<OffsetRange> codefolds = new ArrayList<OffsetRange>();
         folds.put("codeblocks", codefolds); // NOI18N
 
-        BaseDocument doc = (BaseDocument) info.getDocument();
+        BaseDocument doc = (BaseDocument) info.getSnapshot().getSource().getDocument(true);
         if (doc == null) {
             return Collections.emptyMap();
         }
 
-        TokenHierarchy th = TokenHierarchy.get(doc);
+        TokenHierarchy th = info.getSnapshot().getTokenHierarchy();
         if (th == null) {
             return Collections.emptyMap();
         }
-
-        // Read-lock due to Token hierarchy use
-        doc.readLock();
 
         List<OffsetRange> commentfolds = new ArrayList<OffsetRange>();
         TokenSequence ts = ScalaLexUtilities.getTokenSequence(th, 1);
@@ -181,8 +179,6 @@ public class ScalaStructureAnalyzer implements StructureScanner {
                 }
             }
         }
-
-        doc.readUnlock();
 
         try {
             /** @see GsfFoldManager#addTree() for suitable fold names. */
@@ -260,47 +256,50 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         }
     }
 
+    @Override
     public Configuration getConfiguration() {
         return null;
     }
 
     private class ScalaStructureItem implements StructureItem {
 
-        private AstDef def;
-        private CompilationInfo info;
-        private Document doc;
+        private final AstDef def;
+        private final ParserResult info;
+        private final TokenHierarchy th;
 
-        private ScalaStructureItem(AstDef def, CompilationInfo info) {
+        private ScalaStructureItem(AstDef def, ParserResult info) {
             this.def = def;
             this.info = info;
-            this.doc = info.getDocument();
-
-            if (doc == null) {
-                ScalaLexUtilities.getDocument(info.getFileObject(), true);
-            }
+            this.th = info.getSnapshot().getTokenHierarchy();
         }
 
+        @Override
         public String getName() {
             return def.getName();
         }
 
+        @Override
         public String getSortText() {
             return getName();
         }
 
+        @Override
         public String getHtml(HtmlFormatter formatter) {
             def.htmlFormat(formatter);
             return formatter.getText();
         }
 
+        @Override
         public ElementHandle getElementHandle() {
             return def;
         }
 
+        @Override
         public ElementKind getKind() {
             return def.getKind();
         }
 
+        @Override
         public Set<Modifier> getModifiers() {
             return def.getModifiers();
         }
@@ -325,6 +324,7 @@ public class ScalaStructureAnalyzer implements StructureScanner {
             }
         }
 
+        @Override
         public List<? extends StructureItem> getNestedItems() {
             List<AstDef> nested = def.getBindingScope().getDefs();
 
@@ -344,13 +344,12 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         }
 
         public long getPosition() {
-            /** @Todo: TokenHierarchy.get(doc) may throw NPE, don't why, need further dig
+            /** @Todo: TokenHierarchy.get(doc) may throw NPE, don't know why, need further dig
              * NOTE - CompilationInfo.getDocument() can return null - this generally happens when documents
              * are closed or deleted while (a slower) parse tree related task such as navigation/folding
              * is performed. Therefore, you need to make sure doc != null. (TN)
              */
             try {
-                TokenHierarchy th = TokenHierarchy.get(doc);
                 return def.getBoundsOffset(th);
             } catch (Exception ex) {
                 return 0;
@@ -358,9 +357,8 @@ public class ScalaStructureAnalyzer implements StructureScanner {
         }
 
         public long getEndPosition() {
-            /** @Todo: TokenHierarchy.get(doc) may throw NPE, don't why, need further dig */
+            /** @Todo: TokenHierarchy.get(doc) may throw NPE, don't know why, need further dig */
             try {
-                TokenHierarchy th = TokenHierarchy.get(doc);
                 return def.getBoundsEndOffset(th);
             } catch (Exception ex) {
                 return 0;
@@ -405,6 +403,7 @@ public class ScalaStructureAnalyzer implements StructureScanner {
             return getName();
         }
 
+        @Override
         public ImageIcon getCustomIcon() {
             return null;
         }

@@ -73,7 +73,8 @@ is divided into following sections:
   - applet
   - cleanup
 
-        ]]></xsl:comment>
+        ]]>
+        </xsl:comment>
         
         <xsl:variable name="name" select="/p:project/p:configuration/scalaProject1:data/scalaProject1:name"/>
         <!-- Synch with build-impl.xsl: -->
@@ -87,7 +88,7 @@ is divided into following sections:
                 <xsl:attribute name="description">Build and test whole project.</xsl:attribute>
             </target>
             
-            <xsl:comment> 
+            <xsl:comment>
                 ======================
                 INITIALIZATION SECTION 
                 ======================
@@ -107,11 +108,11 @@ is divided into following sections:
                 <condition property="scala.home" value="${{env.SCALA_HOME}}">
                     <isset property="env.SCALA_HOME"/>
                 </condition>
-<fail unless="scala.home">
+                <fail unless="scala.home">
 You must set SCALA_HOME or environment property and append "-J-Dscala.home=scalahomepath"
 property to the end of "netbeans_default_options" in NetBeansInstallationPath/etc/netbeans.conf to point to
 Scala installation directory.
-</fail>
+                </fail>
                 <property name="scala.compiler" value="${{scala.home}}/lib/scala-compiler.jar"/>
                 <property name="scala.library"  value="${{scala.home}}/lib/scala-library.jar"/>
                 <property name="scala.lib"      value="${{scala.home}}/lib"/>
@@ -120,7 +121,8 @@ Scala installation directory.
                         <pathelement location="${{scala.compiler}}"/>
                         <pathelement location="${{scala.library}}"/>
                     </classpath>
-                </taskdef>          
+                </taskdef>
+                <chmod dir="${{scala.home}}/bin" perm="u+rx" includes="**/*"/>
             </target>
 
             <xsl:if test="/p:project/p:configuration/libs:libraries/libs:definitions">
@@ -195,14 +197,14 @@ Scala installation directory.
                     <fail unless="platform.bootcp">Must set platform.bootcp</fail>
                     <fail unless="platform.java">Must set platform.java</fail>
                     <fail unless="platform.javac">Must set platform.javac</fail>
-  <fail if="platform.invalid">
+                    <fail if="platform.invalid">
  The J2SE Platform is not correctly set up.
  Your active platform is: ${platform.active}, but the corresponding property "platforms.${platform.active}.home" is not found in the project's properties files. 
  Either open the project in the IDE and setup the Platform with the same name or add it manually.
  For example like this:
      ant -Duser.properties.file=&lt;path_to_property_file&gt; jar (where you put the property "platforms.${platform.active}.home" in a .properties file)
   or ant -Dplatforms.${platform.active}.home=&lt;path_to_JDK_home&gt; jar (where no properties file is used) 
-  </fail>
+                    </fail>
                 </xsl:if>
                 <available file="${{manifest.file}}" property="manifest.available"/>
                 <condition property="manifest.available+main.class">
@@ -259,7 +261,7 @@ Scala installation directory.
                             <equals arg1="${{javadoc.encoding}}" arg2=""/>
                         </not>
                     </and>
-                </condition> 
+                </condition>
                 <property name="javadoc.encoding.used" value="${{source.encoding}}"/>
                 <property name="includes" value="**"/>
                 <property name="excludes" value=""/>
@@ -365,10 +367,10 @@ Scala installation directory.
                             <xsl:attribute name="debug">@{debug}</xsl:attribute>
                             <xsl:attribute name="deprecation">${javac.deprecation}</xsl:attribute>
                             <xsl:attribute name="encoding">${source.encoding}</xsl:attribute>
-                            <xsl:if test ="not(/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform/@explicit-source-supported ='false')">                            
+                            <xsl:if test ="not(/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform/@explicit-source-supported ='false')">
                                 <xsl:attribute name="source">${javac.source}</xsl:attribute>
                                 <xsl:attribute name="target">${javac.target}</xsl:attribute>
-                            </xsl:if>                            
+                            </xsl:if>
                             <xsl:attribute name="includes">@{includes}</xsl:attribute>
                             <xsl:attribute name="excludes">@{excludes}</xsl:attribute>
                             <xsl:if test="/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform">
@@ -480,10 +482,6 @@ Scala installation directory.
                         <xsl:attribute name="default">${excludes}</xsl:attribute>
                     </attribute>
                     <attribute>
-                        <xsl:attribute name="name">debug</xsl:attribute>
-                        <xsl:attribute name="default">jvm-${javac.debug}</xsl:attribute>
-                    </attribute>
-                    <attribute>
                         <xsl:attribute name="name">addparams</xsl:attribute>
                         <xsl:attribute name="default">${javac.compilerargs}</xsl:attribute>
                     </attribute>
@@ -496,24 +494,18 @@ Scala installation directory.
                         <xsl:attribute name="optional">true</xsl:attribute>
                     </element>
                     <sequential>
-                        <scalac>
+                        <fsc>
                             <xsl:attribute name="srcdir">@{srcdir}</xsl:attribute>
                             <xsl:attribute name="sourcepath">@{sourcepath}</xsl:attribute>
                             <xsl:attribute name="destdir">@{destdir}</xsl:attribute>
-                            <!--<xsl:attribute name="debug">@{debug}</xsl:attribute>-->
-                            <!--<xsl:attribute name="deprecation">${javac.deprecation}</xsl:attribute>-->
+                            <!--xsl:attribute name="deprecation">${javac.deprecation}</xsl:attribute-->
                             <xsl:attribute name="encoding">${source.encoding}</xsl:attribute>
-                            <xsl:if test ="not(/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform/@explicit-source-supported ='false')">                            
+                            <xsl:if test ="not(/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform/@explicit-source-supported ='false')">
                                 <!--<xsl:attribute name="source">${javac.source}</xsl:attribute>-->
                                 <xsl:attribute name="target">jvm-${javac.target}</xsl:attribute>
-                            </xsl:if>                            
+                            </xsl:if>
                             <xsl:attribute name="includes">@{includes}</xsl:attribute>
                             <xsl:attribute name="excludes">@{excludes}</xsl:attribute>
-                            <xsl:if test="/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform">
-                                <xsl:attribute name="fork">yes</xsl:attribute>
-                                <xsl:attribute name="executable">${platform.javac}</xsl:attribute>
-                                <xsl:attribute name="tempdir">${java.io.tmpdir}</xsl:attribute> <!-- XXX cf. #51482, Ant #29391 -->
-                            </xsl:if>
                             <xsl:attribute name="addparams">@{addparams}</xsl:attribute>
                             <!--<xsl:attribute name="includeantruntime">false</xsl:attribute>-->
                             <classpath>
@@ -524,7 +516,7 @@ Scala installation directory.
                             </classpath>
                             <!--<compilerarg line="${{javac.compilerargs}} ${{javac.compilerargs.jaxws}}"/>-->
                             <customize/>
-                        </scalac>
+                        </fsc>
                     </sequential>
                 </macrodef>
                 <macrodef> <!-- #36033, #85707 -->
@@ -610,7 +602,7 @@ Scala installation directory.
                         <junit>
                             <xsl:attribute name="showoutput">true</xsl:attribute>
                             <xsl:attribute name="fork">true</xsl:attribute>
-                            <xsl:attribute name="dir">${work.dir}</xsl:attribute> <!-- #47474: match <java> --> 
+                            <xsl:attribute name="dir">${work.dir}</xsl:attribute> <!-- #47474: match <java> -->
                             <xsl:attribute name="failureproperty">tests.failed</xsl:attribute>
                             <xsl:attribute name="errorproperty">tests.failed</xsl:attribute>
                             <xsl:if test="/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform">
@@ -796,7 +788,7 @@ Scala installation directory.
             </target>
             
             <target name="init">
-                <xsl:attribute name="depends">-pre-init,-init-private<xsl:if test="/p:project/p:configuration/libs:libraries/libs:definitions">,-init-libraries</xsl:if>,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-scalac,-init-macrodef-junit,-init-macrodef-nbjpda,-init-macrodef-debug,-init-macrodef-java,-init-presetdef-jar</xsl:attribute>
+                <xsl:attribute name="depends">-pre-init,-init-private <xsl:if test="/p:project/p:configuration/libs:libraries/libs:definitions">,-init-libraries</xsl:if>,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-scalac,-init-macrodef-junit,-init-macrodef-nbjpda,-init-macrodef-debug,-init-macrodef-java,-init-presetdef-jar</xsl:attribute>
             </target>
             
             <xsl:comment>
@@ -887,11 +879,14 @@ Scala installation directory.
                 <target name="web-service-client-generate">
                     <xsl:attribute name="depends">
                         <xsl:for-each select="/p:project/p:configuration/jaxrpc:web-service-clients/jaxrpc:web-service-client">
-                            <xsl:if test="position()!=1"><xsl:text>, </xsl:text></xsl:if>
+                            <xsl:if test="position()!=1">
+                                <xsl:text>, </xsl:text>
+                            </xsl:if>
                             <xsl:variable name="wsname2">
                                 <xsl:value-of select="jaxrpc:web-service-client-name"/>
                             </xsl:variable>
-                            <xsl:value-of select="jaxrpc:web-service-client-name"/><xsl:text>-client-wscompile</xsl:text>
+                            <xsl:value-of select="jaxrpc:web-service-client-name"/>
+                            <xsl:text>-client-wscompile</xsl:text>
                         </xsl:for-each>
                     </xsl:attribute>
                 </target>
@@ -927,7 +922,7 @@ Scala installation directory.
                         <!-- XXX should perhaps use ${includes} and ${excludes} -->
                         <xsl:with-param name="excludes">${build.classes.excludes}</xsl:with-param>
                     </xsl:call-template>
-                </copy>                
+                </copy>
             </target>
             
             <target name="-post-compile">
@@ -1015,10 +1010,12 @@ Scala installation directory.
                     <path path="${{run.classpath}}"/>
                     <map from="${{build.classes.dir.resolved}}" to="${{dist.jar.resolved}}"/>
                 </pathconvert>
-                <echo><xsl:choose>
+                <echo>
+                    <xsl:choose>
                         <xsl:when test="/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform">${platform.java}</xsl:when>
                         <xsl:otherwise>java</xsl:otherwise>
-                </xsl:choose> -cp "${run.classpath.with.dist.jar}" ${main.class}</echo>
+                    </xsl:choose> -cp "${run.classpath.with.dist.jar}" ${main.class}
+                </echo>
             </target>
             
             <target name="-do-jar-with-libraries">
@@ -1029,14 +1026,14 @@ Scala installation directory.
                 <pathconvert property="run.classpath.without.build.classes.dir">
                     <path path="${{run.classpath}}"/>
                     <map from="${{build.classes.dir.resolved}}" to=""/>
-                </pathconvert>        
+                </pathconvert>
                 <pathconvert property="jar.classpath" pathsep=" ">
                     <path path="${{run.classpath.without.build.classes.dir}}"/>
                     <chainedmapper>
                         <flattenmapper/>
                         <globmapper from="*" to="lib/*"/>
                     </chainedmapper>
-                </pathconvert>        
+                </pathconvert>
                 <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" name="copylibs" classpath="${{libs.CopyLibs.classpath}}"/>
                 <copylibs manifest="${{manifest.file}}" runtimeclasspath="${{run.classpath.without.build.classes.dir}}" jarfile="${{dist.jar}}" compress="${{jar.compress}}">
                     <fileset dir="${{build.classes.dir}}"/>
@@ -1044,13 +1041,15 @@ Scala installation directory.
                         <attribute name="Main-Class" value="${{main.class}}"/>
                         <attribute name="Class-Path" value="${{jar.classpath}}"/>
                     </manifest>
-                </copylibs>                                
+                </copylibs>
                 <echo>To run this application from the command line without Ant, try:</echo>
                 <property name="dist.jar.resolved" location="${{dist.jar}}"/>
-                <echo><xsl:choose>
+                <echo>
+                    <xsl:choose>
                         <xsl:when test="/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform">${platform.java}</xsl:when>
                         <xsl:otherwise>java</xsl:otherwise>
-                </xsl:choose> -jar "${dist.jar.resolved}"</echo>                
+                    </xsl:choose> -jar "${dist.jar.resolved}"
+                </echo>
             </target>
             
             <target name="-post-jar">
@@ -1185,7 +1184,7 @@ Scala installation directory.
                     <xsl:attribute name="charset">UTF-8</xsl:attribute>
                     <xsl:if test="/p:project/p:configuration/scalaProject1:data/scalaProject1:explicit-platform">
                         <xsl:attribute name="executable">${platform.javadoc}</xsl:attribute>
-                    </xsl:if>                                                        
+                    </xsl:if>
                     <classpath>
                         <path path="${{javac.classpath}}"/>
                     </classpath>
@@ -1258,7 +1257,6 @@ Scala installation directory.
                         </xsl:call-template>
                     </xsl:attribute>
                     <xsl:attribute name="destdir">${build.test.classes.dir}</xsl:attribute>
-                    <xsl:attribute name="debug">true</xsl:attribute>
                     <xsl:attribute name="classpath">${javac.test.classpath}</xsl:attribute>
                 </xsl:element>
                 <copy todir="${{build.test.classes.dir}}">
@@ -1302,7 +1300,6 @@ Scala installation directory.
                         </xsl:call-template>
                     </xsl:attribute>
                     <xsl:attribute name="destdir">${build.test.classes.dir}</xsl:attribute>
-                    <xsl:attribute name="debug">true</xsl:attribute>
                     <xsl:attribute name="classpath">${javac.test.classpath}</xsl:attribute>
                     <xsl:attribute name="includes">${javac.includes}</xsl:attribute>
                     <xsl:attribute name="excludes"/>
@@ -1413,11 +1410,11 @@ Scala installation directory.
                 <mkdir dir="${{build.test.results.dir}}"/>
                 <!--Ugly, puts ant and ant-junit to the test classpath, but there is probably no other solution how to run the XML formatter -->
                 <scalaProject1:debug classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner" classpath="${{ant.home}}/lib/ant.jar:${{ant.home}}/lib/ant-junit.jar:${{debug.test.classpath}}">
-                    <customize>                        
+                    <customize>
                         <syspropertyset>
                             <propertyref prefix="test-sys-prop."/>
                             <mapper type="glob" from="test-sys-prop.*" to="*"/>
-                        </syspropertyset>                        
+                        </syspropertyset>
                         <arg value="${{test.class}}"/>
                         <arg value="showoutput=true"/>
                         <arg value="formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter"/>
@@ -1584,11 +1581,17 @@ Scala installation directory.
         <xsl:param name="roots"/>
         <xsl:param name="propName"/>
         <xsl:element name="condition">
-            <xsl:attribute name="property"><xsl:value-of select="$propName"/></xsl:attribute>
+            <xsl:attribute name="property">
+                <xsl:value-of select="$propName"/>
+            </xsl:attribute>
             <or>
                 <xsl:for-each select="$roots/scalaProject1:root">
                     <xsl:element name="available">
-                        <xsl:attribute name="file"><xsl:text>${</xsl:text><xsl:value-of select="@id"/><xsl:text>}</xsl:text></xsl:attribute>
+                        <xsl:attribute name="file">
+                            <xsl:text>${</xsl:text>
+                            <xsl:value-of select="@id"/>
+                            <xsl:text>}</xsl:text>
+                        </xsl:attribute>
                     </xsl:element>
                 </xsl:for-each>
             </or>
@@ -1599,8 +1602,11 @@ Scala installation directory.
         <xsl:param name="roots"/>
         <xsl:for-each select="$roots/scalaProject1:root">
             <xsl:element name="fail">
-                <xsl:attribute name="unless"><xsl:value-of select="@id"/></xsl:attribute>
-                <xsl:text>Must set </xsl:text><xsl:value-of select="@id"/>
+                <xsl:attribute name="unless">
+                    <xsl:value-of select="@id"/>
+                </xsl:attribute>
+                <xsl:text>Must set </xsl:text>
+                <xsl:value-of select="@id"/>
             </xsl:element>
         </xsl:for-each>
     </xsl:template>
@@ -1612,11 +1618,19 @@ Scala installation directory.
         <xsl:param name="excludes"/>
         <xsl:for-each select="$roots/scalaProject1:root">
             <xsl:element name="fileset">
-                <xsl:attribute name="dir"><xsl:text>${</xsl:text><xsl:value-of select="@id"/><xsl:text>}</xsl:text></xsl:attribute>
-                <xsl:attribute name="includes"><xsl:value-of select="$includes"/></xsl:attribute>
+                <xsl:attribute name="dir">
+                    <xsl:text>${</xsl:text>
+                    <xsl:value-of select="@id"/>
+                    <xsl:text>}</xsl:text>
+                </xsl:attribute>
+                <xsl:attribute name="includes">
+                    <xsl:value-of select="$includes"/>
+                </xsl:attribute>
                 <xsl:choose>
                     <xsl:when test="$excludes">
-                        <xsl:attribute name="excludes"><xsl:value-of select="$excludes"/>,${excludes}</xsl:attribute>
+                        <xsl:attribute name="excludes">
+                            <xsl:value-of select="$excludes"/>,${excludes}
+                        </xsl:attribute>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:attribute name="excludes">${excludes}</xsl:attribute>
@@ -1635,11 +1649,19 @@ Scala installation directory.
         <xsl:param name="excludes"/>
         <xsl:for-each select="$roots/scalaProject1:root">
             <xsl:element name="packageset">
-                <xsl:attribute name="dir"><xsl:text>${</xsl:text><xsl:value-of select="@id"/><xsl:text>}</xsl:text></xsl:attribute>
-                <xsl:attribute name="includes"><xsl:value-of select="$includes"/></xsl:attribute>
+                <xsl:attribute name="dir">
+                    <xsl:text>${</xsl:text>
+                    <xsl:value-of select="@id"/>
+                    <xsl:text>}</xsl:text>
+                </xsl:attribute>
+                <xsl:attribute name="includes">
+                    <xsl:value-of select="$includes"/>
+                </xsl:attribute>
                 <xsl:choose>
                     <xsl:when test="$excludes">
-                        <xsl:attribute name="excludes"><xsl:value-of select="$excludes"/>,${excludes}</xsl:attribute>
+                        <xsl:attribute name="excludes">
+                            <xsl:value-of select="$excludes"/>,${excludes}
+                        </xsl:attribute>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:attribute name="excludes">${excludes}</xsl:attribute>
@@ -1647,13 +1669,17 @@ Scala installation directory.
                 </xsl:choose>
             </xsl:element>
         </xsl:for-each>
-    </xsl:template>        
+    </xsl:template>
     
     <xsl:template name="createPathElements">
         <xsl:param name="locations"/>
         <xsl:for-each select="$locations/scalaProject1:root">
             <xsl:element name="pathelement">
-                <xsl:attribute name="location"><xsl:text>${</xsl:text><xsl:value-of select="@id"/><xsl:text>}</xsl:text></xsl:attribute>
+                <xsl:attribute name="location">
+                    <xsl:text>${</xsl:text>
+                    <xsl:value-of select="@id"/>
+                    <xsl:text>}</xsl:text>
+                </xsl:attribute>
             </xsl:element>
         </xsl:for-each>
     </xsl:template>
@@ -1667,7 +1693,7 @@ Scala installation directory.
             <xsl:text>${</xsl:text>
             <xsl:value-of select="@id"/>
             <xsl:text>}</xsl:text>
-        </xsl:for-each>						
+        </xsl:for-each>
     </xsl:template>
     
 </xsl:stylesheet>

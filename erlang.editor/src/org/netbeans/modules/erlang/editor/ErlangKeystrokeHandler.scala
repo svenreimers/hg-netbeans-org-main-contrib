@@ -334,12 +334,12 @@ class ErlangKeystrokeHandler extends KeystrokeHandler {
                 val afterSlash = begin + 2
                 val line = doc.getText(afterSlash, Utilities.getRowEnd(doc, afterSlash) - afterSlash)
                 val l = line.length
-                def loop(i:Int) :Unit = line.charAt(i) match {                        
+                def loop(i:Int) :Unit = line.charAt(i) match {
                     case _ if i >= l =>
-                    case c@(' ' | '\t') => 
+                    case c@(' ' | '\t') =>
                         sb.append(c)
                         loop(i + 1)
-                    case _ =>               
+                    case _ =>
                 }
                 loop(0)
 
@@ -551,53 +551,25 @@ class ErlangKeystrokeHandler extends KeystrokeHandler {
         val token = ts.token
         val id = token.id
         var stringTokens :Array[TokenId] = null
-        var beginTokenId :Array[TokenId] = null
+        var beginTokenId :TokenId = null
 
         // "/" is handled AFTER the character has been inserted since we need the lexer's help
-        //        if (ch == '\"' || ch == '\'') {
-        //            stringTokens = STRING_TOKENS
-        //            beginTokenId = ErlangTokenId.STRING_BEGIN
-        //        } else if (id == ErlangTokenId.Error) {
-        //            //String text = token.text.toString
-        //
-        //            ts.movePrevious
-        //
-        //            val prevId = ts.token.id
-        //
-        //            if (prevId == ErlangTokenId.STRING_BEGIN) {
-        //                stringTokens = STRING_TOKENS
-        //                beginTokenId = prevId
-        //            } else if (prevId == ErlangTokenId.REGEXP_BEGIN) {
-        //                stringTokens = REGEXP_TOKENS
-        //                beginTokenId = ErlangTokenId.REGEXP_BEGIN
-        //            }
-        //        } else if ((id == ErlangTokenId.STRING_BEGIN) &&
-        //                   (caretOffset == (ts.offset + 1))) {
-        //            if (!Character.isLetter(ch)) { // %q, %x, etc. Only %[], %!!, %<space> etc. is allowed
-        //                stringTokens = STRING_TOKENS
-        //                beginTokenId = id
-        //            }
-        //        } else if (((id == ErlangTokenId.STRING_BEGIN) && (caretOffset == (ts.offset + 2))) ||
-        //                   (id == ErlangTokenId.STRING_END)) {
-        //            stringTokens = STRING_TOKENS
-        //            beginTokenId = ErlangTokenId.STRING_BEGIN
-        //        } else if (((id == ErlangTokenId.REGEXP_BEGIN) && (caretOffset == (ts.offset + 2))) ||
-        //                   (id == ErlangTokenId.REGEXP_END)) {
-        //            stringTokens = REGEXP_TOKENS
-        //            beginTokenId = ErlangTokenId.REGEXP_BEGIN
-        //        }
-        //
-        //        if (stringTokens != null) {
-        //            val inserted = completeQuote(doc, caretOffset, caret, ch, stringTokens, beginTokenId)
-        //
-        //            if (inserted) {
-        //                caret.setDot(caretOffset + 1)
-        //
-        //                return true
-        //            } else {
-        //                return false
-        //            }
-        //        }
+        if (ch == '\"' || ch == '\'') {
+            stringTokens = STRING_TOKENS
+            beginTokenId = ErlangTokenId.StringLiteral
+        } 
+      
+        if (stringTokens != null) {
+            val inserted = completeQuote(doc, caretOffset, caret, ch, stringTokens, beginTokenId)
+      
+            if (inserted) {
+                caret.setDot(caretOffset + 1)
+      
+                return true
+            } else {
+                return false
+            }
+        }
 
         return false
     }
@@ -821,7 +793,7 @@ class ErlangKeystrokeHandler extends KeystrokeHandler {
                         LexUtil.findBwd(ts, ErlangTokenId.LBrace, ErlangTokenId.RBrace)
                     case ErlangTokenId.RBracket =>
                         LexUtil.findBwd(ts, ErlangTokenId.LBracket, ErlangTokenId.RBracket)
-                    case ErlangTokenId.End => 
+                    case ErlangTokenId.End =>
                         LexUtil.findBwd(ts, PAIRS.get(ErlangTokenId.End).get, ErlangTokenId.End)
                     case _ => OffsetRange.NONE
                         //LexUtil.findBegin(doc, ts)
@@ -1012,7 +984,7 @@ class ErlangKeystrokeHandler extends KeystrokeHandler {
                     nextToken = ts.token
                     loopToken
                 }
-            }            
+            }
             loopToken
 
             // token var points to the last bracket in a group of two or more right brackets
