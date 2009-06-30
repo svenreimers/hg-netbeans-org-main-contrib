@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
  * 
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -34,25 +34,34 @@
  * 
  * Contributor(s):
  * 
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
+ * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.autoproject.java;
+/*
+ * Definition of Rats lexical tokens.
+ * 
+ * @author Caoyuan Deng
+ */
+module org.netbeans.modules.rats.editor.rats.LexerRats;
 
-public class JavaCacheConstants {
+import org.netbeans.modules.rats.editor.rats.RatsBasic;
 
-    private JavaCacheConstants() {}
+option flatten;
 
-    public static final String SOURCE = "#source";
-    public static final String CLASSPATH = "#classpath";
-    public static final String BOOTCLASSPATH = "#bootclasspath";
-    public static final String BINARY = "#binary";
-    public static final String SOURCE_LEVEL = "#sourcelevel";
-    public static final String INCLUDES = "#includes";
-    public static final String EXCLUDES = "#excludes";
-    /**
-     * Original location of classes packed into a JAR. Key is JAR, value is dir or path of dirs.
-     */
-    public static final String JAR = "#jar";
+// ----- public entrance
+public generic Token =
+  DocComment
+/ BlockComment
+/ LineComment
+/ Keyword
+/ Word
+/ Nl
+/ Ws
+/ Literal
+/ CharacterRange
+/ Action
+/ Separator
+/ Error
+/ EOF
+;
 
-}

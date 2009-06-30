@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,7 +20,13 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- * 
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -31,28 +37,32 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
- * 
- * Contributor(s):
- * 
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.rats.editor;
 
-package org.netbeans.modules.autoproject.java;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.MIMEResolver;
 
-public class JavaCacheConstants {
+/**
+ * Recognize Erlang file types
+ * 
+ * 
+ * @author Caoyuan Deng
+ */
+@org.openide.util.lookup.ServiceProvider{val service = classOf[org.openide.filesystems.MIMEResolver]}
+class RatsMimeResolver extends MIMEResolver {
+  def findMIMEType(fo:FileObject) :String = {
+    if (RatsMimeResolver.isRatsExt(fo.getExt)) RatsMimeResolver.MIME_TYPE else null
+  }
+}
 
-    private JavaCacheConstants() {}
+object RatsMimeResolver {
+  val MIME_TYPE = "text/x-rats"; // NOI18N
 
-    public static final String SOURCE = "#source";
-    public static final String CLASSPATH = "#classpath";
-    public static final String BOOTCLASSPATH = "#bootclasspath";
-    public static final String BINARY = "#binary";
-    public static final String SOURCE_LEVEL = "#sourcelevel";
-    public static final String INCLUDES = "#includes";
-    public static final String EXCLUDES = "#excludes";
-    /**
-     * Original location of classes packed into a JAR. Key is JAR, value is dir or path of dirs.
-     */
-    public static final String JAR = "#jar";
+  /**
+   * Extensions recognized as being Erlang.
+   */
+  private val EXTENSIONS = Array("rats") // NOI18N
 
+  def isRatsExt(ext:String) :Boolean = EXTENSIONS.exists(_ equalsIgnoreCase ext)
 }
