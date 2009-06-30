@@ -50,18 +50,22 @@ made subject to such option by the copyright holder.
                     <file name="scala-project-separator-1.instance">
                         <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
                         <attr name="position" intvalue="530"/>
+                        <attr name="misplaced.action.allowed" boolvalue="true"/>
                     </file>
                     <file name="RunFile.instance">
                         <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.project.ScalaProjectModule.run"/>
                         <attr name="position" intvalue="550"/>
+                        <attr name="misplaced.action.allowed" boolvalue="true"/>
                     </file>
                     <file name="DebugFile.instance">
                         <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.project.ScalaProjectModule.debug"/>
                         <attr name="position" intvalue="560"/>
+                        <attr name="misplaced.action.allowed" boolvalue="true"/>
                     </file>
                     <file name="DebugTestFile.instance">
                         <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.project.ScalaProjectModule.debugTest"/>
                         <attr name="position" intvalue="570"/>
+                        <attr name="misplaced.action.allowed" boolvalue="true"/>
                     </file>
                 </folder>
             </folder>
@@ -126,7 +130,7 @@ made subject to such option by the copyright holder.
                 <attr name="position" intvalue="200"/>
                 <attr name="template" boolvalue="true"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.project.ui.resources.Bundle"/>
-                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:org/netbeans/modules/scala/project/ui/resources/class.png"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/project/ui/resources/class.png"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/project/ui/resources/EmptyScalaClassFileDescription.html"/>
                 <attr name="templateCategory" stringvalue="scala-classes,,java-classes"/>
             </file>
@@ -135,7 +139,7 @@ made subject to such option by the copyright holder.
                 <attr name="position" intvalue="300"/>
                 <attr name="template" boolvalue="true"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.project.ui.resources.Bundle"/>
-                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:org/netbeans/modules/scala/project/ui/resources/class.png"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/project/ui/resources/class.png"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/project/ui/resources/EmptyScalaObjectFileDescription.html"/>
                 <attr name="templateCategory" stringvalue="scala-classes,,java-classes"/>
             </file>
@@ -144,7 +148,7 @@ made subject to such option by the copyright holder.
                 <attr name="position" intvalue="400"/>
                 <attr name="template" boolvalue="true"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.project.ui.resources.Bundle"/>
-                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:org/netbeans/modules/scala/project/ui/resources/class.png"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/project/ui/resources/class.png"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/project/ui/resources/EmptyScalaTraitFileDescription.html"/>
                 <attr name="templateCategory" stringvalue="scala-classes,,java-classes"/>
             </file>

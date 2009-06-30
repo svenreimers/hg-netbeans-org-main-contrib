@@ -36,30 +36,33 @@
  *
  * Portions Copyrighted 2007 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.erlang.editor.util
+package org.netbeans.modules.erlang.editor
 
 import _root_.java.util.Collections
 import javax.swing.text.{BadLocationException,Document}
 import org.netbeans.editor.{BaseDocument,Utilities}
 import org.netbeans.api.lexer.{TokenHierarchy}
+import org.netbeans.api.java.classpath.GlobalPathRegistry
+import org.netbeans.api.java.classpath.ClassPath
 import org.netbeans.modules.csl.api.OffsetRange
 import org.netbeans.modules.parsing.api.{ParserManager,ResultIterator,Source,UserTask}
 import org.netbeans.modules.parsing.spi.{ParseException}
 
 import org.netbeans.modules.erlang.editor.lexer.LexUtil
-import org.netbeans.modules.erlang.editor.ErlangParserResult
 import org.netbeans.modules.erlang.editor.ast.{AstDfn,AstRootScope,AstSym}
 import org.netbeans.modules.erlang.editor.node.ErlSymbol._
 import org.openide.filesystems.{FileObject,FileChangeAdapter,FileEvent,FileRenameEvent}
 
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  *  @author Caoyuan Deng
  */
-object ErlangUtil {
+object ErlangGlobal {
    val FoToRootScope = new HashMap[FileObject, AstRootScope]
+   val ModuleToDfns = new HashMap[String, Seq[AstDfn]]
 
    private class FoChangeAdapter extends FileChangeAdapter {
       override
@@ -73,7 +76,15 @@ object ErlangUtil {
 
       private def reset(fo:FileObject) :Unit = {
          fo.removeFileChangeListener(this)
-         FoToRootScope.removeKey(fo)
+         FoToRootScope.get(fo) match {
+            case None =>
+            case Some(scope) =>
+               FoToRootScope.removeKey(fo)
+               scope.findAllDfnSyms(classOf[ErlModule]) match {
+                  case module :: _ => ModuleToDfns.removeKey(module.name)
+                  case _ =>
+               }
+         }
       }
    }
 
@@ -88,9 +99,10 @@ object ErlangUtil {
                      def run(resultIterator:ResultIterator) :Unit = {
                         resultIterator.getParserResult match {
                            case r:ErlangParserResult =>
-                              r.rootScope.foreach{x =>
+                              for (scope <- r.rootScope) {
                                  fo.addFileChangeListener(new FoChangeAdapter)
-                                 FoToRootScope + (fo -> x)
+                                 FoToRootScope + (fo -> scope)
+                                 cacheDfns(scope)
                               }
                            case _ =>
                         }
@@ -99,7 +111,28 @@ object ErlangUtil {
             } catch {case e:ParseException =>}
                 
             FoToRootScope.get(fo)
-         case some => some
+         case x => x
+      }
+   }
+
+   /** Only cache export functions for .erl file */
+   def cacheDfns(rootScope:AstRootScope) :Unit = {
+      val module = rootScope.findAllDfnSyms(classOf[ErlModule]) match {
+         case x :: _ => x.name
+         case _ => return
+      }
+      
+      val exports  = rootScope.findAllDfnsOf(classOf[ErlExport])
+      ModuleToDfns += (module -> exports)
+   }
+
+   def findFunction(module:String, functionName:String, arity:Int) :Option[AstDfn] = {
+      ModuleToDfns.get(module) match {
+         case None => None
+         case Some(dfns) => dfns.find{x => x.symbol match {
+               case ErlFunction(_, `functionName`, `arity`) => true
+               case _ => false
+            }}
       }
    }
 
@@ -127,6 +160,35 @@ object ErlangUtil {
       }
 
       null
+   }
+
+   def libFo :Option[FileObject] = {
+      val classpaths = GlobalPathRegistry.getDefault.getPaths(ErlangLanguage.BOOT);
+      val itr = classpaths.iterator
+      if (itr.hasNext) {
+         val roots = itr.next.getRoots
+         if (roots.size > 0) {
+            return Some(roots(0))
+         }
+      }
+      None
+   }
+
+   def getClasspathRoots(fo:FileObject, classpathId:String) :Seq[FileObject] = {
+      if (fo != null) {
+         val classpath = ClassPath.getClassPath(fo, classpathId);
+         if (classpath != null) {
+            classpath.getRoots()
+         } else Array()
+      } else {
+         var roots = new ArrayBuffer[FileObject]
+         val classpaths = GlobalPathRegistry.getDefault.getPaths(classpathId);
+         val itr = classpaths.iterator
+         while (itr.hasNext) {
+            roots ++= itr.next.getRoots
+         }
+         roots
+      }
    }
 
 }
