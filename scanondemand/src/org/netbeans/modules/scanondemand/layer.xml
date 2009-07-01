@@ -10,6 +10,7 @@
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
                 <attr name="noIconInMenu" boolvalue="false"/>
             </file>
+            <file name="org-netbeans-modules-scanondemand-RefreshFolderAction.instance"/>
         </folder>
     </folder>
     <folder name="Menu">
@@ -29,7 +30,8 @@
         <folder name="folder">
             <folder name="any">
                 <folder name="Actions">
-                    <file name="org-netbeans-modules-scanondemand-RefreshFolderAction.instance">
+                    <file name="org-netbeans-modules-scanondemand-RefreshFolderAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/System/org-netbeans-modules-scanondemand-RefreshFolderAction.instance"/>
                         <attr name="position" intvalue="1525"/>
                     </file>
                 </folder>

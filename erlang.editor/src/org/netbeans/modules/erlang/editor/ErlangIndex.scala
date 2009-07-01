@@ -48,7 +48,6 @@ import org.netbeans.modules.parsing.spi.indexing.support.{IndexResult,QuerySuppo
 import org.netbeans.modules.erlang.editor.ast.{AstDfn,AstItem}
 import org.netbeans.modules.erlang.editor.lexer.LexUtil
 import org.netbeans.modules.erlang.editor.node.ErlSymbol._
-import org.netbeans.modules.erlang.editor.util.ErlangUtil
 import org.openide.filesystems.{FileObject,FileUtil}
 import org.openide.util.Exceptions
 
@@ -99,7 +98,7 @@ class ErlangIndex(querySupport:QuerySupport) {
             val fo = FileUtil.toFileObject(new File(r.getUrl.toURI))
             for (signature <- signatures) {
                val symbol = createFuntion(signature)
-               ErlangUtil.resolveDfn(fo, symbol).foreach{functionsBuf + _}
+               ErlangGlobal.resolveDfn(fo, symbol).foreach{functionsBuf + _}
             }
          }
       }
@@ -107,35 +106,55 @@ class ErlangIndex(querySupport:QuerySupport) {
    }
 
    def queryFunction(module:String, functionName:String, arity:Int) :Option[AstDfn] = {
-      for (r <- queryFiles(module, QuerySupport.Kind.EXACT, ErlangIndexer.FIELD_FUNCTION)) {
-         val signatures = r.getValues(ErlangIndexer.FIELD_FUNCTION)
-         if (signatures != null) {
-            val fo = FileUtil.toFileObject(new File(r.getUrl.toURI))
-            for (signature <- signatures) {
-               createFuntion(signature) match {
-                  case symbol@ErlFunction(_, `functionName`, `arity`) =>
-                     return ErlangUtil.resolveDfn(fo, symbol)
-                  case _ =>
+      ErlangGlobal.findFunction(module, functionName, arity) match {
+         case None =>
+            for (r <- queryFiles(module, QuerySupport.Kind.EXACT, ErlangIndexer.FIELD_FUNCTION)) {
+               val signatures = r.getValues(ErlangIndexer.FIELD_FUNCTION)
+               if (signatures != null) {
+                  val fo = FileUtil.toFileObject(new File(r.getUrl.toURI))
+                  for (signature <- signatures) {
+                     createFuntion(signature) match {
+                        case symbol@ErlFunction(_, `functionName`, `arity`) =>
+                           return ErlangGlobal.resolveDfn(fo, symbol)
+                        case _ =>
+                     }
+                  }
                }
+            }
+            None
+         case x => x
+      }
+   }
+
+   def queryRecord(includes:Seq[ErlInclude], recordName:String) :Option[AstDfn] = {
+      for (include <- includes) {
+         val name = if (include.isLib) "lib;" + include.path.replace('/', '.') else include.path.replace('/', '.')
+         queryRecord(name, recordName, QuerySupport.Kind.EXACT) match {
+            case None =>
+            case x => return x
+         }
+         // * in case of source file itself is under lib, the header file may be used as "include(...)" instead of "include_lib(...)"
+         if (!include.isLib) {
+            val regex = ".*\\." + name
+            queryRecord(regex, recordName, QuerySupport.Kind.REGEXP) match {
+               case None =>
+               case x => return x
             }
          }
       }
       None
    }
 
-   def queryRecord(includes:Seq[ErlInclude], recordName:String) :Option[AstDfn] = {
-      for (include <- includes) {
-         val name = if (include.isLib) "lib;" + include.path.replace('/', '.') else include.path.replace('/', '.')
-         for (r <- queryFiles(name, QuerySupport.Kind.EXACT, ErlangIndexer.FIELD_RECORD)) {
-            val signatures = r.getValues(ErlangIndexer.FIELD_RECORD)
-            if (signatures != null) {
-               val fo = FileUtil.toFileObject(new File(r.getUrl.toURI))
-               for (signature <- signatures) {
-                  createRecord(signature) match {
-                     case symbol@ErlRecord(`recordName`, _) =>
-                        return ErlangUtil.resolveDfn(fo, symbol)
-                     case _ =>
-                  }
+   def queryRecord(includeFileName:String, recordName:String, kind:QuerySupport.Kind) :Option[AstDfn] = {
+      for (r <- queryFiles(includeFileName, kind, ErlangIndexer.FIELD_RECORD)) {
+         val signatures = r.getValues(ErlangIndexer.FIELD_RECORD)
+         if (signatures != null) {
+            val fo = FileUtil.toFileObject(new File(r.getUrl.toURI))
+            for (signature <- signatures) {
+               createRecord(signature) match {
+                  case symbol@ErlRecord(`recordName`, _) =>
+                     return ErlangGlobal.resolveDfn(fo, symbol)
+                  case _ =>
                }
             }
          }
@@ -154,7 +173,7 @@ class ErlangIndex(querySupport:QuerySupport) {
                for (signature <- signatures) {
                   createMacro(signature) match {
                      case symbol@ErlMacro(`macroName`, _, _) =>
-                        return ErlangUtil.resolveDfn(fo, symbol)
+                        return ErlangGlobal.resolveDfn(fo, symbol)
                      case _ =>
                   }
                }
