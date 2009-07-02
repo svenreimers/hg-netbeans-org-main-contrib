@@ -47,6 +47,7 @@ import _root_.java.util.HashSet
 import _root_.java.util.Map
 import _root_.java.util.Arrays
 
+import org.netbeans.api.java.lexer.JavaTokenId;
 import org.netbeans.api.lexer.InputAttributes
 import org.netbeans.api.lexer.Language
 import org.netbeans.api.lexer.LanguagePath
@@ -127,13 +128,7 @@ object RatsTokenId extends Enumeration {
   val Dot = V("Dot", ".", "separator")
   val Eq = V("Eq", "=", "separator")
   val Slash = V("Slash", "/", "separator")
-  val And = V("And", "&", "separator")
-  val Not = V("Not", "!", "separator")
-  val Caret = V("Caret", "^", "separator")
   val Colon = V("Colon", ":", "separator")
-  val Question = V("Question", "?", "separator")
-  val Star = V("Star", "*", "separator")
-  val Plus = V("Plus", "+", "separator")
   val LParen = V("LParen", "(", "separator")
   val RParen = V("RParen", ")", "separator")
   val LBrace = V("LBrace", "{", "separator")
@@ -144,6 +139,15 @@ object RatsTokenId extends Enumeration {
   val At = V("At", "@", "separator")
   val Underscore = V("Underscore", "_", "separator")
 
+  val And = V("And", "&", "prefix")
+  val Not = V("Not", "!", "prefix")
+  val Caret = V("Caret", "^", "prefix")
+  val Question = V("Question", "?", "suffix")
+  val Star = V("Star", "*", "suffix")
+  val Plus = V("Plus", "+", "suffix")
+
+  // - Do we need this token to separator the ActionBody ?
+  val Delimiter = V("Delimiter", null, "separator")
   
   /**
    * MIME type for Erlang. Don't change this without also consulting the various XML files
@@ -172,7 +176,10 @@ object RatsTokenId extends Enumeration {
     }
 
     override protected def embedding(token:Token[TokenId], languagePath:LanguagePath, inputAttributes:InputAttributes) = {
-      null // No embedding
+      token.id match {
+        case ActionBody => LanguageEmbedding.create(JavaTokenId.language, 0, 0, true);
+        case _ => null
+      }
     }
   }.language
 
