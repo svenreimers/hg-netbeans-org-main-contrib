@@ -7,7 +7,7 @@
  * http://www.sun.com/
  *
  * The Original Code is NetBeans. The Initial Developer of the Original
- * Code is Sun Microsystems, Inc. Portions Copyright 1997-2004 Sun
+ * Code is Sun Microsystems, Inc. Portions Copyright 1997-2009 Sun
  * Microsystems, Inc. All Rights Reserved.
 
 If you wish your version of this file to be governed by only the CDDL
@@ -29,7 +29,6 @@ import java.util.*;
 
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.dbschema.SchemaElement;
 import org.netbeans.modules.erd.io.DocumentSave;
 import org.netbeans.modules.erd.io.ERDContext;
 import org.netbeans.spi.project.ui.templates.support.Templates;
@@ -43,7 +42,8 @@ import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
-import sun.net.www.protocol.doc.DocURLConnection;
+import org.openide.loaders.DataObject;
+//import sun.net.www.protocol.doc.DocURLConnection;
 
 /** Iterator implementation which can iterate through two
 * panels which forms dbschema template wizard
@@ -76,7 +76,7 @@ public class ERDWizard implements TemplateWizard.Iterator {
         return instance;
     }
 
-    public Set instantiate(TemplateWizard wiz) throws IOException {
+    public Set<DataObject> instantiate(TemplateWizard wiz) throws IOException {
          
         
          
@@ -109,7 +109,8 @@ public class ERDWizard implements TemplateWizard.Iterator {
         return (WizardContext)wizardDescriptor.getProperty(WIZARD_CONTEXT);
     }
     
-    public org.openide.WizardDescriptor.Panel current() {
+    @SuppressWarnings("unchecked")
+    public org.openide.WizardDescriptor.Panel<WizardDescriptor> current() {
         return panels[panelIndex];
     }
 

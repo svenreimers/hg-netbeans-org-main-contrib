@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2009 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -44,7 +44,6 @@ package org.netbeans.modules.erd.graphics;
 
 
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Paint;
@@ -52,43 +51,25 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
 import org.netbeans.api.visual.widget.ConnectionWidget;
 import org.netbeans.api.visual.widget.LayerWidget;
 import org.netbeans.api.visual.widget.Widget;
-import org.netbeans.api.visual.anchor.*;
 import org.netbeans.api.visual.graph.GraphPinScene;
-import org.netbeans.api.visual.router.CollisionsCollector;
-import org.netbeans.api.visual.router.CollisionsCollector;
 import javax.swing.*;
 import org.netbeans.api.visual.action.ActionFactory;
-import org.netbeans.api.visual.action.MoveProvider;
 import org.netbeans.api.visual.action.PopupMenuProvider;
 import org.netbeans.api.visual.action.ResizeStrategy;
 import org.netbeans.api.visual.action.WidgetAction;
-import org.netbeans.api.visual.vmd.VMDNodeWidget;
 import org.netbeans.modules.erd.model.ERDDocument;
 import org.netbeans.api.visual.anchor.*;
-import org.netbeans.api.visual.graph.layout.GraphLayout;
 import org.netbeans.api.visual.graph.layout.GridGraphLayout;
 import org.netbeans.api.visual.layout.SceneLayout;
-import org.netbeans.modules.erd.model.ERDComponent;
-import org.netbeans.modules.erd.model.component.TableDescriptor;
-import org.netbeans.api.visual.graph.layout.GraphLayoutListener;
-import org.netbeans.api.visual.graph.layout.UniversalGraph;
 import org.netbeans.api.visual.layout.LayoutFactory;
 import org.netbeans.api.visual.widget.SwingScrollWidget;
-import org.netbeans.api.visual.border.BorderFactory;
 import org.netbeans.api.visual.router.RouterFactory;
 import org.netbeans.modules.erd.actions.PngAction;
-import org.netbeans.modules.erd.graphics.ResizeStrategyImpl;
-import org.netbeans.modules.erd.graphics.TableWidget;
-import org.netbeans.modules.erd.graphics.TableWidget;
-import org.netbeans.modules.erd.graphics.TableWidget;
 import org.netbeans.modules.erd.model.ERDDocumentAwareness;
-import org.openide.actions.RedoAction;
-import org.openide.actions.UndoAction;
+import org.openide.util.ImageUtilities;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
@@ -181,7 +162,7 @@ public class ERDScene extends GraphPinScene<String, String, String>  implements 
         // widget.setMinimumBounds (new Rectangle (100, 200));
         // widget.setMaximumBounds (new Rectangle (500, 500));
         
-        widget.getView().setLayout(LayoutFactory.createVerticalLayout());;
+        widget.getView().setLayout(LayoutFactory.createVerticalFlowLayout());
         addSceneListener((SceneListener)table.getView());
         mainLayer.addChild(widget);
         
@@ -265,7 +246,7 @@ public class ERDScene extends GraphPinScene<String, String, String>  implements 
     
      private static Paint PAINT_BACKGROUND;
      static {
-        Image sourceImage = Utilities.loadImage ("org/netbeans/modules/vmd/flow/resources/paper_grid.png"); // NOI18N
+        Image sourceImage = ImageUtilities.loadImage ("org/netbeans/modules/erd/resources/paper_grid.png"); // NOI18N
         int width = sourceImage.getWidth (null);
         int height = sourceImage.getHeight (null);
         BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_RGB);
