@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2009 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -68,10 +68,12 @@ public class ERDDataLoader extends UniFileLoader {
         super("org.netbeans.modules.erd.io.ERDDataObject");
     }
     
+    @Override
     protected String defaultDisplayName() {
         return NbBundle.getMessage(ERDDataLoader.class, "LBL_ERD_loader_name");
     }
     
+    @Override
     protected void initialize() {
         super.initialize();
         getExtensions().addMimeType(REQUIRED_MIME);
@@ -84,7 +86,9 @@ public class ERDDataLoader extends UniFileLoader {
    /* protected String actionsContext() {
         return "Loaders/" + REQUIRED_MIME + "/Actions";
     }*/
-    
+
+    @Override
+    @SuppressWarnings("deprecation")
     protected SystemAction[] defaultActions() {
 		// TODO Auto-generated method stub
 	return new SystemAction[]{

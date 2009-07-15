@@ -126,7 +126,11 @@ public class StaticImport extends AbstractHint {
                 fixes.add(new FixImpl(TreePathHandle.create(treePath, info), fqn, sn));
             }
         } else {
-            Element klass = info.getTrees().getElement(getContainingClass(treePath));
+            TreePath cc = getContainingClass(treePath);
+            if (cc == null){
+                return null;
+            }
+            Element klass = info.getTrees().getElement(cc);
             String fqn = null;
             String fqn1 = getMethodFqn(e);
             if (!isSubTypeOrInnerOfSubType(info, klass, enclosingEl) && !isStaticallyImported(info, fqn1)) {
@@ -432,6 +436,9 @@ public class StaticImport extends AbstractHint {
         System.out.println("GUESS " + klass + "." + sn);
         Pair<Map<String, List<TypeElement>>, Map<String, List<TypeElement>>> candidates = new ComputeImports().computeCandidates(info);
         Set<String> fqns = new HashSet<String>();
+        if (candidates == null || candidates.a == null) {
+            return fqns;
+        }
         for (String k : candidates.a.keySet()) {
             if (!klass.equals(k)) {
                 continue;
