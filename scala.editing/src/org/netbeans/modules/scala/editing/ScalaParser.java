@@ -77,6 +77,9 @@ import org.openide.util.Exceptions;
 import scala.Option;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
+import scala.tools.nsc.io.AbstractFile;
+import scala.tools.nsc.io.PlainFile;
+import scala.tools.nsc.io.VirtualFile;
 import scala.tools.nsc.reporters.Reporter;
 import scala.tools.nsc.util.BatchSourceFile;
 import scala.tools.nsc.util.Position;
@@ -543,7 +546,7 @@ public class ScalaParser extends Parser {
 
         File file = context.fileObject() != null ? FileUtil.toFile(context.fileObject()) : null;
         // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
-        String filePath = file != null ? file.getAbsolutePath() : "<current>";
+        //String filePath = file != null ? file.getAbsolutePath() : "<current>";
 
         AstRootScope rootScope = null;
 
@@ -552,7 +555,8 @@ public class ScalaParser extends Parser {
         global = ScalaGlobal.getGlobal(context.fileObject());
         global.reporter_$eq(reporter);
 
-        BatchSourceFile srcFile = new BatchSourceFile(filePath, source.toCharArray());
+        AbstractFile af = file != null ?  new PlainFile(file) : new VirtualFile("<current>", "");
+        BatchSourceFile srcFile = new BatchSourceFile(af, source.toCharArray());
         try {
             CompilationUnit unit = ScalaGlobal.compileSourceForPresentation(global, srcFile);
             rootScope = new AstTreeVisitor(global, unit, th, srcFile).getRootScope();

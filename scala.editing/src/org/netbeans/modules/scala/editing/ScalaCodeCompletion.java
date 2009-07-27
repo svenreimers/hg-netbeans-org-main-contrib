@@ -420,6 +420,12 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
                             }
                         }
                     }
+
+                    if (call.caretAfterDot) {
+                        // it should be expecting call proposals, so just return right now to avoid keyword local vars proposals
+                        return completionResult;
+                    }
+
                 }
             }
 
@@ -1699,7 +1705,7 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
             return html.toString();
         }
 
-        ScalaCommentFormatter formatter = new ScalaCommentFormatter(comment);        
+        ScalaCommentFormatter formatter = new ScalaCommentFormatter(comment);
         String name = element.getName();
         if (name != null && name.length() > 0) {
             formatter.setSeqName(name);
@@ -2022,8 +2028,8 @@ public class ScalaCodeCompletion implements CodeCompletionHandler {
         }
 
         try {
-            scala.List members = resType.members();
-            for (scala.Iterator itr = members.elements(); itr.hasNext();) {
+            scala.collection.immutable.List members = resType.members();
+            for (scala.collection.Iterator itr = members.elements(); itr.hasNext();) {
                 Symbol member = (Symbol) itr.next();
 
                 if (!JavaUtilities.startsWith(member.nameString(), prefix)) {

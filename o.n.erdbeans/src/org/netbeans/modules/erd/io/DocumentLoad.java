@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2009 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -41,8 +41,6 @@
 
 package org.netbeans.modules.erd.io;
 
-import com.sun.net.ssl.internal.ssl.Debug;
-import java.awt.Point;
 import org.netbeans.modules.dbschema.SchemaElement;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileLock;
@@ -55,15 +53,10 @@ import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.visual.widget.Scene;
-import org.netbeans.api.visual.widget.Widget;
 import org.netbeans.modules.dbschema.SchemaElementUtil;
 
-import org.netbeans.modules.erd.graphics.ERDScene;
-import org.netbeans.modules.erd.io.ERDContext;
 import org.netbeans.modules.erd.model.DocumentBuilder;
 import org.netbeans.modules.erd.model.ERDComponent;
 import org.netbeans.modules.erd.model.ERDDocument;
