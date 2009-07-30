@@ -135,8 +135,8 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
     for (items <- rootScope.idTokenToItems(th).valuesIterator;
          item <- items;
          name = item.getName; idToken = item.idToken;
-         if idToken != None && name != "this" && name != "super") {
-
+         if idToken != None && name != "this" && name != "super")
+    {
       val hiToken = idToken.get
 
       // token may be xml tokens, @see AstVisit#getTokenId
@@ -144,12 +144,24 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
         case ScalaTokenId.Identifier | ScalaTokenId.This | ScalaTokenId.Super =>
           val hiRange = ScalaLexUtil.getRangeOfToken(th, hiToken)
           item match {
+            case dfn:ScalaDfn =>
+              dfn.getKind match {
+                case ElementKind.MODULE =>
+                  highlights.put(hiRange, ColoringAttributes.CLASS_SET)
+                case ElementKind.CLASS =>
+                  highlights.put(hiRange, ColoringAttributes.CLASS_SET)
+                case ElementKind.METHOD =>
+                  highlights.put(hiRange, ColoringAttributes.METHOD_SET)
+                  //                case ElementKind.FIELD =>
+                  //                    highlights.put(idRange, ColoringAttributes.FIELD_SET);
+                case _ =>
+              }
             case ref:ScalaRef => ref.getKind match {
                 case ElementKind.CLASS =>
                   highlights.put(hiRange, ColoringAttributes.STATIC_SET)
                 case ElementKind.MODULE =>
                   highlights.put(hiRange, ColoringAttributes.GLOBAL_SET)
-                case ElementKind.METHOD =>
+                case ElementKind.CALL =>
                   try {
                     ref.symbol.value.tpe match {
                       // @todo doesn't work yet
@@ -165,18 +177,8 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
                   } catch {
                     case t:Throwable =>
                   }
-                case _ =>
-              }
-            case dfn:ScalaDfn =>
-              dfn.getKind match {
-                case ElementKind.MODULE =>
-                  highlights.put(hiRange, ColoringAttributes.CLASS_SET)
-                case ElementKind.CLASS =>
-                  highlights.put(hiRange, ColoringAttributes.CLASS_SET)
-                case ElementKind.METHOD =>
-                  highlights.put(hiRange, ColoringAttributes.METHOD_SET)
-                  //                case ElementKind.FIELD =>
-                  //                    highlights.put(idRange, ColoringAttributes.FIELD_SET);
+                case ElementKind.RULE =>
+                  highlights.put(hiRange, ColoringAttributes.UNUSED_SET) // implicit call
                 case _ =>
               }
           }
