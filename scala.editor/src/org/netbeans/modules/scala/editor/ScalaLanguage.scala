@@ -97,7 +97,10 @@ class ScalaLanguage extends DefaultLanguageConfig {
   override def getCompletionHandler = new ScalaCodeCompletion
   
   override def getKeystrokeHandler = new ScalaKeystrokeHandler
-
+  
+  override def hasFormatter =  true
+  override def getFormatter = new ScalaFormatter
+  
   override def getHintsProvider = new ScalaHintsProvider
   override def hasHintsProvider = true
   //
