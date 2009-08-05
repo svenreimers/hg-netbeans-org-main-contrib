@@ -41,9 +41,7 @@
 
 package org.netbeans.modules.omnidebugger;
 
-import java.io.IOException;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
@@ -51,10 +49,8 @@ import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
 import org.netbeans.spi.project.ui.support.MainProjectSensitiveActions;
 import org.netbeans.spi.project.ui.support.ProjectActionPerformer;
-import org.netbeans.spi.project.ui.support.ProjectSensitiveActions;
 import org.openide.filesystems.FileObject;
-import org.openide.util.Exceptions;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities;
 
 /**
  * Action to debug the main class of a project.
@@ -62,19 +58,12 @@ import org.openide.util.Utilities;
  */
 public class DebugProjectAction implements ProjectActionPerformer {
     
-    public static Action createProjectSensitiveAction() {
-        return ProjectSensitiveActions.projectSensitiveAction(
-                new DebugProjectAction(),
-                "Omniscient Debug {0,choice,0#Project|1#\"{1}\"}", // XXX I18N
-                null);
-    }
-    
-    public static Action createMainProjectSensitiveAction() {
+    public static Action create() {
         String icon = "org/netbeans/modules/omnidebugger/omnidebugProject.gif"; // NOI18N
         Action a = MainProjectSensitiveActions.mainProjectSensitiveAction(
                 new DebugProjectAction(),
-                "Omniscient Debug Main Project", // XXX I18N
-                new ImageIcon(Utilities.loadImage(icon, true)));
+                "Omniscient Debug {0,choice,-1#Main Project|0#Project|1#Project ({1})|1<{0} Projects}", // XXX I18N
+                ImageUtilities.loadImageIcon(icon, true));
         // Make sure 24x24 variant is available:
         a.putValue("iconBase", icon); // NOI18N
         return a;
@@ -107,11 +96,7 @@ public class DebugProjectAction implements ProjectActionPerformer {
     }
 
     public void perform(Project project) {
-        try {
-            Debug.start(findMainClass(project));
-        } catch (IOException x) {
-            Exceptions.printStackTrace(x);
-        }
+        Debug.start(findMainClass(project));
     }
     
 }

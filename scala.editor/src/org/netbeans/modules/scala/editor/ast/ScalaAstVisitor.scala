@@ -91,10 +91,13 @@ import _root_.scala.tools.nsc.ast.Trees
 //import scala.tools.nsc.ast.Trees.Typed;
 //import scala.tools.nsc.ast.Trees.UnApply;
 //import scala.tools.nsc.ast.Trees.ValDef;
-import _root_.scala.tools.nsc.symtab.{SymbolTable}
+
+import org.netbeans.modules.scala.editor.ScalaGlobal
+
+import _root_.scala.tools.nsc.symtab.{Symbols, SymbolTable}
 import _root_.scala.tools.nsc.symtab.Flags._
 import _root_.scala.tools.nsc.util.{BatchSourceFile, Position}
-import _root_.scala.collection.immutable.{Stack, HashSet}
+import _root_.scala.collection.mutable.{Stack, HashSet}
 
 /**
  *
@@ -107,30 +110,35 @@ import _root_.scala.collection.immutable.{Stack, HashSet}
  */
 abstract class ScalaAstVisitor {
 
-  val trees: SymbolTable
-  import trees._
+  val global: ScalaGlobal
+  import global._
 
   val EOL = System.getProperty("line.separator", "\n")
 
-  protected var debug :Boolean = _
-  protected var indentLevel :Int = _
-  protected var astPath :Stack[Tree] = new Stack[Tree]
-  //protected var exprs :Stack[AstExpr] = new Stack[AstExpr]
-  protected var visited :Set[Tree] = new HashSet[Tree]
+  private var debug: Boolean = _
+  private var indentLevel: Int = _
+  private var astPath: Stack[Tree] = _
+  //private var exprs: Stack[AstExpr] = new Stack
+  private var visited: Set[Tree] = _
 
-  protected var scopes :Stack[AstScope] = _
-  protected var rootScope :ScalaRootScope = _
+  private var scopes: Stack[AstScope] = _
+  private var rootScope: ScalaRootScope = _
 
-  protected var fo :Option[FileObject] = _
-  protected var th :TokenHierarchy[_] = _
+  private var fo: Option[FileObject] = _
+  private var th: TokenHierarchy[_] = _
 
-  def visit(unit:CompilationUnit, th:TokenHierarchy[_]) :ScalaRootScope = {
+  def reset: Unit = {
+    this.scopes = new Stack
+    this.visited = Set()
+    this.astPath = new Stack
+  }
+  
+  def visit(unit: CompilationUnit, th: TokenHierarchy[_]): ScalaRootScope = {
     this.th = th
     val srcFile = unit.source
     this.fo = if (srcFile ne null) {
       val file = new File(srcFile.path)
-      if (file != null && file.exists) {
-        // it's a real file and not archive file
+      if (file != null && file.exists) { // it's a real file and not archive file
         FileUtil.toFileObject(file) match {
           case null => None
           case x => Some(x)
@@ -139,28 +147,30 @@ abstract class ScalaAstVisitor {
     } else None
     
     if (unit.body ne null) {
-      this.scopes = new Stack[AstScope]
-      val rootTree = unit.body.asInstanceOf[Tree]
+      reset
+      val rootTree = unit.body
       this.rootScope = ScalaRootScope(getBoundsTokens(offset(rootTree), srcFile.length))
-      scopes.push(rootScope)
+      scopes push rootScope
       //exprs.push(rootScope.getExprContainer());
       //visit(rootTree)
       if (debug) {
         //rootScope.getExprContainer().print();
       }
       
-      (new NodeVisitor).visit(unit.body)
+      (new TreeVisitor) visit unit.body
       rootScope
-    } else ScalaRootScope(Array())
+    } else ScalaRootScope.EMPTY
   }
 
   object InfoLevel extends Enumeration {val Quiet, Normal, Verbose = Value}
   var infolevel = InfoLevel.Quiet
 
-  class NodeVisitor {
+  class TreeVisitor {
 
     private val buf = new StringBuilder
-    
+
+    private var maybeType: Option[Type] = None
+
     def visit(tree: Tree): String = {
       def traverse(tree: Tree, level: Int, comma: Boolean) {
         def println(s: String) {
@@ -292,60 +302,48 @@ abstract class ScalaAstVisitor {
         }
         
         def nodeinfo2(tree: Tree): String = {if (comma) "," else ""} + nodeinfo(tree)
+
+        def isTupleClass(symbol: Symbol): Boolean = {
+          if (symbol ne null) {
+            symbol.ownerChain.map{_.rawname.decode} match {
+              case List(a, "scala", "<root>") if a.startsWith("Tuple") => true
+              case _ => false
+            }
+          } else false
+        }
+
+        if (visited.contains(tree)) {
+          return
+        } else {
+          visited += tree
+        }
+
+        astPath push tree
         
         tree match {
-          case AppliedTypeTree(tpt, args) =>
-            println("AppliedTypeTree(" + nodeinfo(tree))
-            traverse(tpt, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
-            else {
-              val n = args.length
-              println("  List( // " + n + " arguments(s)")
-              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
-              println("  )")
-            }
-            printcln(")")
-          case Apply(fun, args) =>
-            println("Apply(" + nodeinfo(tree))
-            traverse(fun, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
-            else {
-              val n = args.length
-              println("  List( // " + n + " argument(s)")
-              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
-              println("  )")
-            }
-            printcln(")")
-          case ApplyDynamic(fun, args) =>
-            println("ApplyDynamic(" + nodeinfo(tree))
-            traverse(fun, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
-            else {
-              val n = args.length
-              println("  List( // " + n + " argument(s)")
-              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
-              println("  )")
-            }
-            printcln(")")
-          case Block(stats, expr) =>
-            println("Block(" + nodeinfo(tree))
-            if (stats.isEmpty) println("  List(), // no statement")
-            else {
-              val n = stats.length
-              println("  List( // " + n + " statement(s)")
-              for (i <- 0 until n) traverse(stats(i), level + 2, i < n-1)
-              println("  ),")
-            }
-            traverse(expr, level + 1, false)
-            printcln(")")
-          case ClassDef(mods, name, tparams, impl) =>
-            val scope = AstScope(getBoundsToken(offset(tree)))
+          case PackageDef(name, stats) =>
+            val scope = ScalaScope(getBoundsTokens(tree))
             scopes.top.addScope(scope)
 
-            val dfn = ScalaDfn(ScalaSymbol(tree.symbol), getIdToken(tree), ElementKind.CLASS, scope, fo)
+            val dfn = ScalaDfn(tree.symbol, getIdToken(tree), ElementKind.PACKAGE, scope, fo)
             if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
 
-            scopes.push(scope)
+            scopes push scope
+            println("PackageDef("+name+", ")
+            for (stat <- stats) traverse(stat, level + 1, false)
+            printcln(")")
+            scopes pop
+
+          case ClassDef(mods, name, tparams, impl) =>
+            val scope = ScalaScope(getBoundsTokens(tree))
+            scopes.top.addScope(scope)
+
+            (if (mods.isTrait) "trait " else "class ")
+
+            val dfn = ScalaDfn(tree.symbol, getIdToken(tree), ElementKind.CLASS, scope, fo)
+            if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
+
+            scopes push scope
 
             println("ClassDef(" + nodeinfo(tree))
             println("  " + symflags(tree))
@@ -359,8 +357,30 @@ abstract class ScalaAstVisitor {
             }
             traverse(impl, level + 1, false)
             printcln(")")
-            scopes.pop
+            scopes pop
+
+          case ModuleDef(mods, name, impl) =>
+            val scope = ScalaScope(getBoundsTokens(tree))
+            scopes.top.addScope(scope)
+
+            val dfn = ScalaDfn(tree.symbol, getIdToken(tree), ElementKind.MODULE, scope, fo)
+            if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
+
+            scopes push scope
+            traverse(impl, level + 1, false)
+            scopes pop
+
           case DefDef(mods, name, tparams, vparamss, tpt, rhs) =>
+            val scope = ScalaScope(getBoundsTokens(tree))
+            scopes.top.addScope(scope)
+
+            val kind = if (tree.symbol.isConstructor) ElementKind.CONSTRUCTOR else ElementKind.METHOD
+
+            val dfn = ScalaDfn(tree.symbol, getIdToken(tree), kind, scope, fo)
+            if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
+
+            scopes push scope
+
             println("DefDef(" + nodeinfo(tree))
             println("  " + symflags(tree))
             println("  \"" + name + "\",")
@@ -387,23 +407,219 @@ abstract class ScalaAstVisitor {
             println("  " + tpt + ",")
             traverse(rhs, level + 1, false)
             printcln(")")
+
+            scopes pop
+
+          case ValDef(mods, name, tpt, rhs) =>
+            val scope = ScalaScope(getBoundsTokens(tree))
+            scopes.top.addScope(scope)
+
+            val kind = getCurrentParent match {
+              case _: Template => ElementKind.FIELD
+              case _: DefDef => ElementKind.PARAMETER
+              case _: Function => ElementKind.PARAMETER
+              case _ => ElementKind.VARIABLE
+            }
+
+            // special case for: val (a, b, c) = (1, 2, 3)
+            if (!isTupleClass(tpt.symbol)) {
+              val dfn = ScalaDfn(tree.symbol, getIdToken(tree), kind, scope, fo)
+              if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
+            }
+
+            scopes push scope
+            println("ValDef(" + nodeinfo(tree))
+            println("  " + symflags(tree))
+            println("  \"" + name + "\",")
+            traverse(tpt, level + 1, true) // tpe is usually a TypeTree
+            traverse(rhs, level + 1, false)
+            printcln(")")
+            scopes pop
+
+          case Bind(name, body) =>
+            val scope = ScalaScope(getBoundsTokens(tree))
+            scopes.top.addScope(scope)
+
+            /**
+             * case c => println(c), will define a bind val "c"
+             */
+            val dfn = ScalaDfn(tree.symbol, getIdToken(tree), ElementKind.VARIABLE, scope, fo)
+            if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
+
+            traverse(body, level, false)
+
+          case theTree@TypeTree() =>
+            tree.symbol match {
+              case null =>
+                // * in case of: <type ?>
+                //println("Null symbol found, tree is:" + tree)
+              case NoSymbol =>
+                // * type tree in case def, for example: case Some(_),
+                // * since the symbol is NoSymbol, we should visit its original type
+                val original = theTree.original
+                if (original != null && original != tree && !isTupleClass(original.symbol)) {
+                  traverse(original, level, false)
+                }
+              case sym =>
+                // * We'll drop tuple type, since all elements in tuple have their own type trees:
+                // * for example: val (a, b), where (a, b) as a whole has a type tree, but we only
+                // * need binding trees of a and b
+                if (!isTupleClass(sym)) {
+                  val ref = ScalaRef(sym, getIdToken(tree), ElementKind.CLASS)
+                  if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
+                }
+                
+                val original = theTree.original
+                if (original != null && original != tree) {
+                  traverse(original, level, false)
+                }
+            }
+
+            printcln("TypeTree()" + nodeinfo2(tree))
+
+          case Select(qualifier, selector) =>
+            /**
+             * For error Select tree, for example a.p, the error part's offset will be set to 'p',
+             * The tree.qualifier() part's offset will be 'a'
+             */
+            val sym = tree.symbol
+            val kind = if (sym hasFlag IMPLICIT) {
+              ElementKind.RULE
+            } else if (sym hasFlag METHOD) {
+              ElementKind.CALL
+            } else if (sym hasFlag MODULE) {
+              ElementKind.MODULE
+            } else {
+              ElementKind.FIELD
+            }
+
+            val name = selector.decode.trim
+            if (!name.startsWith("<error")) {
+              val idToken = getIdToken(tree, name)
+              val ref = ScalaRef(sym, idToken, kind)
+              if (sym != null && sym == NoSymbol && maybeType.isDefined) {
+                ref.resultType = maybeType.get
+              }
+              if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
+            }
+
+            /**
+             * For error Select tree, the qual type may stored, try to fetch it now
+             */
+            def guessMaybeType {
+              val qualSym = qualifier.symbol
+              if (qualSym != null && qualSym == NoSymbol && global != null) {
+                maybeType = global.selectTypeErrors.get(tree)
+              }
+            }
+
+            qualifier match {
+              case Ident(name) => guessMaybeType
+              case Apply(fun, args) => guessMaybeType
+              case Select(qualifier, selector) => guessMaybeType
+              case _ =>
+            }
+
+            println("Select(" + nodeinfo(tree))
+            traverse(qualifier, level + 1, true)
+            printcln("  \"" + selector + "\")")
+
+            maybeType = None
+
+          case Ident(name) =>
+            val sym = tree.symbol
+            if (sym != null) {
+              val ref = ScalaRef(sym, getIdToken(tree, name.decode.trim), ElementKind.OTHER)
+              /**
+               * @Note: this symbol may be NoSymbol, for example, an error tree,
+               * to get error recover in code completion, we need to also add it as a ref
+               */
+              if (sym == NoSymbol && maybeType.isDefined) {
+                ref.resultType = maybeType.get
+              }
+
+              if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
+            }
+
+            printcln("Ident(\"" + name + "\")" + nodeinfo2(tree))
+
+          case Import(expr, selectors) =>
+            traverse(expr, level, false)
+            selectors foreach {
+              case (x:Name, y:Name) =>
+              case (x:Name, null) =>
+              case _ =>
+            }
+
+          case Function(vparams, body) =>
+            vparams foreach {traverse(_, level, false)}
+            traverse(body, level, false)
+
+          case AppliedTypeTree(tpt, args) =>
+            println("AppliedTypeTree(" + nodeinfo(tree))
+            traverse(tpt, level + 1, true)
+            if (args.isEmpty) println("  List() // no argument")
+            else {
+              val n = args.length
+              println("  List( // " + n + " arguments(s)")
+              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
+              println("  )")
+            }
+            printcln(")")
+
+          case Apply(fun, args) =>
+            println("Apply(" + nodeinfo(tree))
+            traverse(fun, level + 1, true)
+            if (args.isEmpty) println("  List() // no argument")
+            else {
+              val n = args.length
+              println("  List( // " + n + " argument(s)")
+              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
+              println("  )")
+            }
+            printcln(")")
+
+          case ApplyDynamic(fun, args) =>
+            println("ApplyDynamic(" + nodeinfo(tree))
+            traverse(fun, level + 1, true)
+            if (args.isEmpty) println("  List() // no argument")
+            else {
+              val n = args.length
+              println("  List( // " + n + " argument(s)")
+              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
+              println("  )")
+            }
+            printcln(")")
+
+          case Block(stats, expr) =>
+            println("Block(" + nodeinfo(tree))
+            if (stats.isEmpty) println("  List(), // no statement")
+            else {
+              val n = stats.length
+              println("  List( // " + n + " statement(s)")
+              for (i <- 0 until n) traverse(stats(i), level + 2, i < n-1)
+              println("  ),")
+            }
+            traverse(expr, level + 1, false)
+            printcln(")")
+            
           case EmptyTree =>
             printcln("EmptyTree")
-          case Ident(name) =>
-            printcln("Ident(\"" + name + "\")" + nodeinfo2(tree))
+
           case Literal(value) =>
             printcln("Literal(" + value + ")")
+
           case New(tpt) =>
             println("New(" + nodeinfo(tree))
             traverse(tpt, level + 1, false)
             printcln(")")
-          case Select(qualifier, selector) =>
-            println("Select(" + nodeinfo(tree))
-            traverse(qualifier, level + 1, true)
-            printcln("  \"" + selector + "\")")
+
           case Super(qual, mix) =>
             printcln("Super(\"" + qual + "\", \"" + mix + "\")" + nodeinfo2(tree))
+
           case Template(parents, self, body) =>
+            parents foreach {traverse(_, level, false)}
+            
             println("Template(" + nodeinfo(tree))
             println("  " + parents.map(p =>
                 if (p.tpe ne null) p.tpe.typeSymbol else "null-" + p
@@ -417,8 +633,10 @@ abstract class ScalaAstVisitor {
               println("  )")
             }
             printcln(")")
+
           case This(qual) =>
             println("This(\"" + qual + "\")" + nodeinfo2(tree))
+
           case TypeApply(fun, args) =>
             println("TypeApply(" + nodeinfo(tree))
             traverse(fun, level + 1, true)
@@ -431,32 +649,13 @@ abstract class ScalaAstVisitor {
               println("  )")
             }
             printcln(")")
-          case TypeTree() =>
-            printcln("TypeTree()" + nodeinfo2(tree))
+
           case Typed(expr, tpt) =>
             println("Typed(" + nodeinfo(tree))
             traverse(expr, level + 1, true)
             traverse(tpt, level + 1, false)
             printcln(")")
-          case ValDef(mods, name, tpt, rhs) =>
-            println("ValDef(" + nodeinfo(tree))
-            println("  " + symflags(tree))
-            println("  \"" + name + "\",")
-            traverse(tpt, level + 1, true)
-            traverse(rhs, level + 1, false)
-            printcln(")")
-          case PackageDef(name, stats) =>
-            val scope = AstScope(getBoundsToken(offset(tree)))
-            scopes.top.addScope(scope)
 
-            val dfn = ScalaDfn(ScalaSymbol(tree.symbol), getIdToken(tree), ElementKind.PACKAGE, scope, fo)
-            if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
-
-            scopes.push(scope)
-            println("PackageDef("+name+", ")
-            for (stat <- stats) traverse(stat, level + 1, false)
-            printcln(")")
-            scopes.pop
           case _ => tree match {
               case p: Product =>
                 if (p.productArity != 0) {
@@ -478,15 +677,19 @@ abstract class ScalaAstVisitor {
                 } else printcln(p.productPrefix)
             }
         }
+
+        astPath pop
       }
+      
       buf setLength 0
       traverse(tree, 0, false)
+      //rootScope.debugPrintTokens(th)
       buf.toString
     }
   }
 
   /*_
-   protected def visit(trees:List[Tree]) :Unit = {
+   protected def visit(trees:List[Tree]): Unit = {
    trees.foreach {
    case x:Tree => visit(x)
    case x:Tree => visit(x)
@@ -508,7 +711,7 @@ abstract class ScalaAstVisitor {
    }
    }
 
-   protected def visit(tree:global.Tree) :Unit = {
+   protected def visit(tree:global.Tree): Unit = {
    if (tree == null) {
    return
    }
@@ -633,12 +836,12 @@ abstract class ScalaAstVisitor {
    */
   
   // ---- Helper methods
-  protected def getCurrentParent :Tree = {
+  protected def getCurrentParent: Tree = {
     assert(astPath.size >= 2)
     astPath(astPath.size - 2)
   }
 
-  protected def getAstPathString :String = {
+  protected def getAstPathString: String = {
     val sb = new StringBuilder
     val itr = astPath.iterator
     while (itr.hasNext) {
@@ -651,7 +854,7 @@ abstract class ScalaAstVisitor {
     sb.toString
   }
 
-  protected def enter(tree:Tree) :Unit = {
+  protected def enter(tree: Tree): Unit = {
     indentLevel += 1
     astPath.push(tree)
 
@@ -660,24 +863,13 @@ abstract class ScalaAstVisitor {
     }
   }
 
-  protected def exit(node:Tree) :Unit = {
+  protected def exit(node: Tree): Unit = {
     indentLevel -= 1
     astPath.pop
   }
 
-  protected def offset(tree:Tree) :Int = {
-    offset(tree.pos.offset)
-  }
-
-  protected def offset(symbol:Symbol) :Unit = {
-    offset(symbol.pos.offset)
-  }
-
-  protected def offset(intOption:Option[Int]) :Int = {
-    intOption match {
-      case None => -1
-      case Some(i) => i
-    }
+  protected def offset(tree: Tree): Int = {
+    tree.pos.startOrPoint
   }
 
   /**
@@ -685,15 +877,18 @@ abstract class ScalaAstVisitor {
    * following void productions, but nameString has stripped the void productions,
    * so we should adjust nameRange according to name and its length.
    */
-  protected def getIdToken(tree:Tree) :Option[Token[TokenId]] = {
-    val symbol = tree.symbol
-    if (symbol == null) {
+  protected def getIdToken(tree: Tree, knownName: String = ""): Option[Token[TokenId]] = {
+    val sym = tree.symbol
+    if (sym == null) {
       return None
     }
 
-    /** Do not use symbol.nameString() here, for example, a constructor Dog()'s nameString maybe "this" */
-    //String name = symbol.idString();
-    val name = symbol.rawname.decode.trim
+    /** Do not use symbol.nameString or idString) here, for example, a constructor Dog()'s nameString maybe "this" */
+    val name = if (sym != NoSymbol) sym.rawname.decode.trim else knownName
+    if (name == "") {
+      return None
+    }
+    
     val offset1 = offset(tree)
     val ts = ScalaLexUtil.getTokenSequence(th, offset1)
     ts.move(offset1)
@@ -701,11 +896,11 @@ abstract class ScalaAstVisitor {
       assert(false, "Should not happen!")
     }
 
-    var altToken :Token[TokenId] = null
+    var altToken: Token[TokenId] = null
     var token = (tree, name) match {
-      case (x:This, _)     => ScalaLexUtil.findNext(ts, ScalaTokenId.This)
+      case (_: This, _)    => ScalaLexUtil.findNext(ts, ScalaTokenId.This)
       case (_, "this")     => ScalaLexUtil.findNext(ts, ScalaTokenId.This)
-      case (x:Super, _)    => ScalaLexUtil.findNext(ts, ScalaTokenId.Super)
+      case (_: Super, _)   => ScalaLexUtil.findNext(ts, ScalaTokenId.Super)
       case (_, "super")    => ScalaLexUtil.findNext(ts, ScalaTokenId.Super)
       case (_, "expected") => ts.token
       case (_, "foreach")  =>
@@ -716,20 +911,35 @@ abstract class ScalaAstVisitor {
         } else {
           tk
         }
-      case (_, "_") => ScalaLexUtil.findNext(ts, ScalaTokenId.Wild)
-      case (_, _) if name.startsWith("<error") =>
-        val tk = ts.token
-        if (tk.id == ScalaTokenId.Dot) {
-          // a. where, offset is set to .
-          ScalaLexUtil.findPrevious(ts, ScalaTokenId.Identifier)
-        } else {
-          // a.p where, offset is set to p
-          ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
+      case (_, "*") => ScalaLexUtil.findNext(ts, ScalaTokenId.Wild)
+        //      case (_, _) if name.startsWith("<error") => ts.token.id match {
+        //          case ScalaTokenId.Dot =>
+        //            // a. where, offset is at .
+        //            ScalaLexUtil.findPrevious(ts, ScalaTokenId.Identifier)
+        //          case _ =>
+        //            // a.p where, offset is at p
+        //            ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
+        //        }
+      case _ =>
+        val pos = tree.pos
+        val end = if (pos.isDefined) pos.endOrPoint else -1
+        var tk = ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
+        var curr = offset1 + tk.length
+        while (tk != null && !tokenNameEquals(tk, name) && curr <= end) {
+          if (ts.moveNext) {
+            tk = ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
+            curr = ts.offset + tk.length
+          } else {
+            tk = null
+          }
         }
-      case _ => ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
+
+        if (tk != null && tokenNameEquals(tk, name)) {
+          tk
+        } else null
     }
 
-    if (token.isFlyweight) {
+    if (token != null && token.isFlyweight) {
       token = ts.offsetToken
     }
 
@@ -740,11 +950,30 @@ abstract class ScalaAstVisitor {
     if (token == null) None else Some(token)
   }
 
-  protected def getBoundsTokens(offset:Int, endOffset:Int) :Array[Token[TokenId]] = {
+  protected def tokenNameEquals(token: Token[_], name: String) = {
+    val t = token.text.toString.trim
+    val text = token.id match {
+      case ScalaTokenId.SymbolLiteral => t.substring(1, t.length - 1) // strip '`'
+      case _ => t
+    }
+    
+    text == name
+  }
+
+  protected def getBoundsTokens(offset: Int, endOffset: Int): Array[Token[TokenId]] = {
     Array(getBoundsToken(offset), getBoundsEndToken(endOffset))
   }
 
-  protected def getBoundsToken(offset:Int) :Token[TokenId]  = {
+  protected def getBoundsTokens(tree: Tree): Array[Token[TokenId]] = {
+    val pos = tree.pos
+    val (offset, endOffset) = if (tree.pos.isDefined) {
+      (pos.startOrPoint, pos.endOrPoint)
+    } else (-1, -1)
+    
+    getBoundsTokens(offset, endOffset)
+  }
+  
+  protected def getBoundsToken(offset: Int): Token[TokenId]  = {
     if (offset == -1) {
       return null
     }
@@ -768,7 +997,7 @@ abstract class ScalaAstVisitor {
     startToken
   }
 
-  protected def getBoundsEndToken(endOffset:Int) :Token[TokenId] = {
+  protected def getBoundsEndToken(endOffset: Int): Token[TokenId] = {
     if (endOffset == -1) {
       return null
     }
@@ -788,7 +1017,7 @@ abstract class ScalaAstVisitor {
     endToken
   }
 
-  protected def info(message:String) :Unit = {
+  protected def info(message: String): Unit = {
     if (!debug) {
       return
     }
@@ -796,7 +1025,7 @@ abstract class ScalaAstVisitor {
     println(message)
   }
 
-  protected def info(message:String, item:AstItem) :Unit = {
+  protected def info(message: String, item: AstItem): Unit = {
     if (!debug) {
       return
     }
@@ -805,7 +1034,7 @@ abstract class ScalaAstVisitor {
     println(item)
   }
 
-  protected def debugPrintAstPath(tree:Tree) :Unit = {
+  protected def debugPrintAstPath(tree: Tree): Unit = {
     if (!debug) {
       return
     }
@@ -820,6 +1049,40 @@ abstract class ScalaAstVisitor {
 
     val pos = tree.pos
 
-    println(getAstPathString + "(" + offset(pos.line) + ":" + offset(pos.column) + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
+    println(getAstPathString + "(" + pos.line + ":" + pos.column + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr)
+  }
+
+  /**
+   * Used when endOffset of tree is not available.
+   * @Note from scala-2.8.x, the endOffset has been added, just keep this method
+   * here for reference.
+   */
+  private def setBoundsEndToken(fromScope: AstScope) {
+    assert(fromScope.isScopesSorted == false)
+
+    val children = fromScope.subScopes
+    val itr = children.iterator
+    var curr = if (itr.hasNext) itr.next else null
+    while (curr != null) {
+      if (itr.hasNext) {
+        val next = itr.next
+        val offset = next.boundsOffset(th)
+        if (offset != -1) {
+          val endToken = getBoundsEndToken(offset - 1)
+          curr.boundsEndToken = Some(endToken)
+        } else {
+          println("Scope without start token: " + next);
+        }
+        curr = next
+      } else {
+        curr.parent match {
+          case Some(x) => curr.boundsEndToken = x.boundsEndToken
+          case None =>
+        }
+        curr = null
+      }
+    }
+
+    children foreach {setBoundsEndToken(_)}
   }
 }

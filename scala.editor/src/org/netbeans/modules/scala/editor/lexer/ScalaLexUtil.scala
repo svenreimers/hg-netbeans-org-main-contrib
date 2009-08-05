@@ -73,20 +73,20 @@ object ScalaLexUtil extends LexUtil {
 
   override val LANGUAGE = ScalaTokenId.language
 
-  override val WS_COMMENTS :Set[TokenId] = Set(
-    ScalaTokenId.Ws,
-    ScalaTokenId.Nl,
-    ScalaTokenId.LineComment,
-    ScalaTokenId.DocCommentStart,
-    ScalaTokenId.DocCommentEnd,
-    ScalaTokenId.BlockCommentStart,
-    ScalaTokenId.BlockCommentEnd,
-    ScalaTokenId.BlockCommentData
+  override val WS_COMMENTS: Set[TokenId] = Set(ScalaTokenId.Ws,
+                                               ScalaTokenId.Nl,
+                                               ScalaTokenId.LineComment,
+                                               ScalaTokenId.DocCommentStart,
+                                               ScalaTokenId.DocCommentData,
+                                               ScalaTokenId.DocCommentEnd,
+                                               ScalaTokenId.BlockCommentStart,
+                                               ScalaTokenId.BlockCommentEnd,
+                                               ScalaTokenId.BlockCommentData,
+                                               ScalaTokenId.CommentTag
   )
 
-  override val WS :Set[TokenId] = Set(
-    ScalaTokenId.Ws,
-    ScalaTokenId.Nl
+  override val WS: Set[TokenId] = Set(ScalaTokenId.Ws,
+                                      ScalaTokenId.Nl
   )
 
   /**
@@ -95,42 +95,39 @@ object ScalaLexUtil extends LexUtil {
    * structure for indentation.
    *
    */
-  override val INDENT_WORDS :Set[TokenId] = Set(
-    ScalaTokenId.Class,
-    ScalaTokenId.Object,
-    ScalaTokenId.Trait,
-    ScalaTokenId.Do,
-    ScalaTokenId.For,
-    ScalaTokenId.While,
-    ScalaTokenId.Case,
-    ScalaTokenId.If,
-    ScalaTokenId.Else
+  override val INDENT_WORDS: Set[TokenId] = Set(ScalaTokenId.Class,
+                                                ScalaTokenId.Object,
+                                                ScalaTokenId.Trait,
+                                                ScalaTokenId.Do,
+                                                ScalaTokenId.For,
+                                                ScalaTokenId.While,
+                                                ScalaTokenId.Case,
+                                                ScalaTokenId.If,
+                                                ScalaTokenId.Else
   )
 
-  override val BLOCK_COMMENTS :Set[TokenId] = Set(
-    ScalaTokenId.BlockCommentStart,
-    ScalaTokenId.BlockCommentEnd,
-    ScalaTokenId.BlockCommentData,
-    ScalaTokenId.CommentTag
+  override val BLOCK_COMMENTS: Set[TokenId] = Set(ScalaTokenId.BlockCommentStart,
+                                                  ScalaTokenId.BlockCommentEnd,
+                                                  ScalaTokenId.BlockCommentData,
+                                                  ScalaTokenId.CommentTag
   )
 
-  override val DOC_COMMENTS :Set[TokenId] = Set(
-    ScalaTokenId.DocCommentStart,
-    ScalaTokenId.DocCommentEnd,
-    ScalaTokenId.DocCommentData,
-    ScalaTokenId.CommentTag
+  override val DOC_COMMENTS: Set[TokenId] = Set(ScalaTokenId.DocCommentStart,
+                                                ScalaTokenId.DocCommentEnd,
+                                                ScalaTokenId.DocCommentData,
+                                                ScalaTokenId.CommentTag
   )
 
-  override val LINE_COMMENTS :Set[TokenId] = Set(
+  override val LINE_COMMENTS: Set[TokenId] = Set(
     ScalaTokenId.LineComment
   )
 
-  override val WHITE_SPACE :TokenId = ScalaTokenId.Ws
-  override val NEW_LINE :TokenId = ScalaTokenId.Nl
-  override val LPAREN :TokenId = ScalaTokenId.LParen
-  override val RPAREN :TokenId = ScalaTokenId.RParen
+  override val WHITE_SPACE: TokenId = ScalaTokenId.Ws
+  override val NEW_LINE: TokenId = ScalaTokenId.Nl
+  override val LPAREN: TokenId = ScalaTokenId.LParen
+  override val RPAREN: TokenId = ScalaTokenId.RParen
 
-  override def getDocCommentRangeBefore(th:TokenHierarchy[_], lexOffset:Int) :OffsetRange = {
+  override def getDocCommentRangeBefore(th: TokenHierarchy[_], lexOffset: Int): OffsetRange = {
     val ts = getTokenSequence(th, lexOffset)
     if (ts == null) {
       return OffsetRange.NONE
@@ -145,7 +142,7 @@ object ScalaLexUtil extends LexUtil {
 
       if (id == ScalaTokenId.DocCommentEnd) {
         val token = ts.offsetToken
-        endOffset = token.offset(th) + token.length();
+        endOffset = token.offset(th) + token.length
       } else if (id == ScalaTokenId.DocCommentStart) {
         val token = ts.offsetToken
         offset = token.offset(th)
@@ -157,13 +154,11 @@ object ScalaLexUtil extends LexUtil {
 
     if (offset != -1 && endOffset != -1) {
       new OffsetRange(offset, endOffset)
-    } else {
-      OffsetRange.NONE
-    }
+    } else OffsetRange.NONE
   }
 
 
-  private def findMultilineRange(ts:TokenSequence[TokenId]) :OffsetRange = {
+  private def findMultilineRange(ts: TokenSequence[TokenId]): OffsetRange = {
     val startOffset = ts.offset
     val token = ts.token
     var id = token.id
@@ -199,12 +194,10 @@ object ScalaLexUtil extends LexUtil {
     // if we found end of sequence or end of line
     if (ts.token == null || (ts.token.id != ScalaTokenId.LBrace && eolFound)) {
       new OffsetRange(startOffset, lastEolOffset);
-    } else {
-      OffsetRange.NONE
-    }
+    } else OffsetRange.NONE
   }
 
-  def getMultilineRange(doc:BaseDocument, ts:TokenSequence[TokenId]) :OffsetRange = {
+  def getMultilineRange(doc :BaseDocument, ts :TokenSequence[TokenId]): OffsetRange = {
     val index = ts.index
     val offsetRange = findMultilineRange(ts)
     ts.moveIndex(index)
@@ -212,30 +205,34 @@ object ScalaLexUtil extends LexUtil {
     offsetRange
   }
 
-  val PotentialIdTokens :Set[TokenId] = Set(
-    ScalaTokenId.Identifier,
-    ScalaTokenId.True,
-    ScalaTokenId.False,
-    ScalaTokenId.Null,
-    ScalaTokenId.XmlAttName,
-    ScalaTokenId.XmlAttValue,
-    ScalaTokenId.XmlCDData,
-    ScalaTokenId.XmlCDEnd,
-    ScalaTokenId.XmlComment,
-    ScalaTokenId.XmlSTagName,
-    ScalaTokenId.XmlSTagName,
-    ScalaTokenId.XmlCharData
+  val PotentialIdTokens: Set[TokenId] = Set(ScalaTokenId.Identifier,
+                                            ScalaTokenId.True,
+                                            ScalaTokenId.False,
+                                            ScalaTokenId.Null,
+                                            ScalaTokenId.SymbolLiteral,
+                                            ScalaTokenId.IntegerLiteral,
+                                            ScalaTokenId.FloatingPointLiteral,
+                                            ScalaTokenId.StringLiteral,
+                                            ScalaTokenId.CharacterLiteral,
+                                            ScalaTokenId.XmlAttName,
+                                            ScalaTokenId.XmlAttValue,
+                                            ScalaTokenId.XmlCDData,
+                                            ScalaTokenId.XmlCDEnd,
+                                            ScalaTokenId.XmlComment,
+                                            ScalaTokenId.XmlSTagName,
+                                            ScalaTokenId.XmlSTagName,
+                                            ScalaTokenId.XmlCharData
   )
 
   /** Some AstItems have Xml Nl etc type of idToken, here we just pick following as proper one */
-  def isProperIdToken(id:TokenId) :Boolean = {
+  def isProperIdToken(id: TokenId): Boolean = {
     id match {
       case ScalaTokenId.Identifier | ScalaTokenId.This | ScalaTokenId.Super | ScalaTokenId.Wild => true
       case _ => false
     }
   }
 
-  def findImportPrefix(th:TokenHierarchy[_], lexOffset:Int) :List[Token[_ <: TokenId]] = {
+  def findImportPrefix(th: TokenHierarchy[_], lexOffset: Int): List[Token[_ <: TokenId]] = {
     val ts = getTokenSequence(th, lexOffset)
     ts.move(lexOffset)
 
@@ -275,8 +272,7 @@ object ScalaLexUtil extends LexUtil {
             extractBehindComma = true
           }
         case id if isWsComment(id) =>
-        case _ =>
-          return Nil
+        case _ => return Nil
       }
     }
 

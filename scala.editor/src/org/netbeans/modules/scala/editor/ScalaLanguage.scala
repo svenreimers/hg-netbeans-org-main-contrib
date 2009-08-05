@@ -68,9 +68,9 @@ class ScalaLanguage extends DefaultLanguageConfig {
 
   override def getLineCommentPrefix = "//" // NOI18N
  
-  override def getDisplayName :String =  "Scala" // NOI18N
+  override def getDisplayName: String =  "Scala" // NOI18N
     
-  override def getPreferredExtension :String = "Scala" // NOI18N
+  override def getPreferredExtension: String = "scala" // NOI18N
 
   /**
    * @see org.netbeans.modules.scala.platform.ScalaPlatformClassPathProvider and ModuleInstall
@@ -81,29 +81,28 @@ class ScalaLanguage extends DefaultLanguageConfig {
     
   override def getParser = new ScalaParser
   
-  //   override def hasStructureScanner = true
-  //
-  //   override def getStructureScanner = new ScalaStructureAnalyzer
-  //
-  //   override def getSemanticAnalyzer = new ScalaSemanticAnalyzer
-  //
-  //   override def hasOccurrencesFinder = true
-  //
-  //   override def getOccurrencesFinder = new ScalaOccurrencesFinder
-  //
-  //   override def getKeystrokeHandler = new ScalaKeystrokeHandler
-  //
-  //   override def hasFormatter =  true
-  //
-  //   override def getFormatter = new ScalaFormatter
-  //
-  //   override def getInstantRenamer = new ScalaInstantRenamer
-  //
-  //   override def getDeclarationFinder = new ScalaDeclarationFinder
+  override def getSemanticAnalyzer = new ScalaSemanticAnalyzer
+
+  override def hasStructureScanner = true
+  override def getStructureScanner = new ScalaStructureAnalyzer
+  
+  override def hasOccurrencesFinder = true
+  override def getOccurrencesFinder = new ScalaOccurrencesFinder
+  
+  override def getDeclarationFinder = new ScalaDeclarationFinder
+
+  override def getInstantRenamer = new ScalaInstantRenamer
+  
+  override def getCompletionHandler = new ScalaCodeCompletion
+  
+  override def getKeystrokeHandler = new ScalaKeystrokeHandler
+  
+  override def hasFormatter =  true
+  override def getFormatter = new ScalaFormatter
+  
   //
   //   override def getIndexerFactory = new ScalaIndexer.Factory
   //
-  //   override def getCompletionHandler = new ScalaCodeCompletion
 }
 
 object ScalaLanguage {

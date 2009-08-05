@@ -48,29 +48,29 @@ import org.netbeans.modules.csl.api.ElementKind
  * 
  * @author Caoyuan Deng
  */
-abstract class AstRef(_idToken:Option[Token[TokenId]], _kind:ElementKind) extends AstItem {
+abstract class AstRef(_idToken: Option[Token[TokenId]], _kind: ElementKind) extends AstItem {
   make(_idToken, _kind)
 
-  def this(idToken:Option[Token[TokenId]]) = this(idToken, ElementKind.OTHER)
+  def this(idToken: Option[Token[TokenId]]) = this(idToken, ElementKind.OTHER)
     
-  override def getKind :ElementKind = {
+  override def getKind: ElementKind = {
     super.getKind match {
       // if it's a OTHER, we could try to get its kind from its dfn
       case x@ElementKind.OTHER => enclosingScope match {
-          case None => x
           case Some(scope) => scope.findDfnOf(this) match {
-              case None => x
               case Some(dfn) => dfn.getKind
+              case None => x
             }
+          case None => x
         }
       case x => x
     }
   }
 
   override def toString = {
-    "Ref: " + name + " (idToken=" + super.idToken + ")"
+    "Ref: " + "name=" + name + ", idToken=" + super.idToken + ", kind=" + _kind + ", symbol=" + symbol
   }
 
-  def isOccurrence(ref:AstRef) :Boolean
+  def isOccurrence(ref: AstRef): Boolean
 }
 

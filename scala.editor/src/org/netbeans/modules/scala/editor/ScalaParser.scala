@@ -70,34 +70,34 @@ import _root_.scala.tools.nsc.util.{BatchSourceFile, Position,SourceFile}
 class ScalaParser extends Parser {
   import ScalaParser._
   
-  private var lastResult :ScalaParserResult = _
-  var global :ScalaGlobal = _
+  private var lastResult: ScalaParserResult = _
+  var global: ScalaGlobal = _
 
-  private def asString(sequence:CharSequence) :String = sequence match {
+  private def asString(sequence: CharSequence): String = sequence match {
     case x:String => x
     case _ => sequence.toString
   }
 
   @throws(classOf[ParseException])
-  override def parse(snapshot:Snapshot, task:Task, event:SourceModificationEvent) :Unit = {
+  override def parse(snapshot: Snapshot, task: Task, event: SourceModificationEvent): Unit = {
     val context = new Context(snapshot, event)
     lastResult = parseBuffer(context, Sanitize.NONE)
     lastResult.errors = context.errors
   }
 
   @throws(classOf[ParseException])
-  override def getResult(task:Task) :Parser.Result = {
+  override def getResult(task: Task): Parser.Result = {
     assert(lastResult != null, "getResult() called prior parse()") //NOI18N
     lastResult
   }
 
   override def cancel {}
 
-  override def addChangeListener(changeListener:ChangeListener) :Unit = {
+  override def addChangeListener(changeListener: ChangeListener): Unit = {
     // no-op, we don't support state changes
   }
 
-  override def removeChangeListener(changeListener:ChangeListener) :Unit = {
+  override def removeChangeListener(changeListener: ChangeListener): Unit = {
     // no-op, we don't support state changes
   }
 
@@ -108,7 +108,7 @@ class ScalaParser extends Parser {
   //        ParseListener listener = job.listener;
   //        SourceFileReader reader = job.reader;
   //
-  //        for (ParserFile file : job.files) {
+  //        for (ParserFile file:  job.files) {
   //            long start = System.currentTimeMillis();
   //
   //            ParseEvent beginEvent = new ParseEvent(ParseEvent.Kind.PARSE, file, null);
@@ -142,7 +142,7 @@ class ScalaParser extends Parser {
   //    }
   
   private final class Factory extends ParserFactory {
-    override def createParser(snapshots:Collection[Snapshot]) :Parser = {
+    override def createParser(snapshots: Collection[Snapshot]): Parser = {
       new ScalaParser
     }
   }
@@ -161,7 +161,7 @@ class ScalaParser extends Parser {
    * @todo Handle sanitizing "new ^" from parse errors
    * @todo Replace "end" insertion fix with "}" insertion
    */
-  private def sanitizeSource(context:Context, sanitizing:Sanitize) :Boolean = {
+  private def sanitizeSource(context: Context, sanitizing: Sanitize): Boolean = {
 
     if (sanitizing == Sanitize.MISSING_END) {
       context.sanitizedSource = context.source + "end"
@@ -193,21 +193,21 @@ class ScalaParser extends Parser {
 
     try {
       // Sometimes the offset shows up on the next line
-      if (ScalaUtil.isRowEmpty(source, offset) || ScalaUtil.isRowWhite(source, offset)) {
-        offset = ScalaUtil.getRowStart(source, offset) - 1
+      if (ScalaSourceUtil.isRowEmpty(source, offset) || ScalaSourceUtil.isRowWhite(source, offset)) {
+        offset = ScalaSourceUtil.getRowStart(source, offset) - 1
         if (offset < 0) {
           offset = 0
         }
       }
 
-      if (!(ScalaUtil.isRowEmpty(source, offset) || ScalaUtil.isRowWhite(source, offset))) {
+      if (!(ScalaSourceUtil.isRowEmpty(source, offset) || ScalaSourceUtil.isRowWhite(source, offset))) {
         if ((sanitizing == Sanitize.EDITED_LINE) || (sanitizing == Sanitize.ERROR_LINE)) {
           // See if I should try to remove the current line, since it has text on it.
-          val lineEnd = ScalaUtil.getRowLastNonWhite(source, offset)
+          val lineEnd = ScalaSourceUtil.getRowLastNonWhite(source, offset)
 
           if (lineEnd != -1) {
             val sb = new StringBuilder(source.length)
-            val lineStart = ScalaUtil.getRowStart(source, offset)
+            val lineStart = ScalaSourceUtil.getRowStart(source, offset)
             val rest = lineStart + 1
 
             sb.append(source.substring(0, lineStart))
@@ -227,7 +227,7 @@ class ScalaParser extends Parser {
           assert(sanitizing == Sanitize.ERROR_DOT || sanitizing == Sanitize.EDITED_DOT)
           // Try nuking dots/colons from this line
           // See if I should try to remove the current line, since it has text on it.
-          val lineStart = ScalaUtil.getRowStart(source, offset)
+          val lineStart = ScalaSourceUtil.getRowStart(source, offset)
           var lineEnd = offset - 1
           var break = false
           while (lineEnd >= lineStart && lineEnd < source.length && !break) {
@@ -300,13 +300,13 @@ class ScalaParser extends Parser {
         }
       }
     } catch {
-      case ble:BadLocationException => Exceptions.printStackTrace(ble)
+      case ble: BadLocationException => Exceptions.printStackTrace(ble)
     }
 
     false
   }
 
-  private def sanitize(context:Context, sanitizing:Sanitize) :ScalaParserResult = {
+  private def sanitize(context: Context, sanitizing: Sanitize): ScalaParserResult = {
 
     sanitizing match {
       case Sanitize.NEVER =>
@@ -366,124 +366,7 @@ class ScalaParser extends Parser {
     createParserResult(context)
   }
 
-  //    protected ScalaParserResult parseBuffer_old(final Context context, final Sanitize sanitizing) {
-  //        boolean sanitizedSource = false;
-  //        String source = context.source;
-  //
-  //        if (!((sanitizing == Sanitize.NONE) || (sanitizing == Sanitize.NEVER))) {
-  //            boolean ok = sanitizeSource(context, sanitizing);
-  //
-  //            if (ok) {
-  //                assert context.sanitizedSource != null;
-  //                sanitizedSource = true;
-  //                source = context.sanitizedSource;
-  //            } else {
-  //                // Try next trick
-  //                return sanitize(context, sanitizing);
-  //            }
-  //        }
-  //
-  //        TokenHierarchy th = null;
-  //
-  //        BaseDocument doc = null;
-  //        /** If this file is under editing, always get th from incrementally lexed th via opened document */
-  //        JTextComponent target = EditorRegistry.lastFocusedComponent();
-  //        if (target != null) {
-  //            doc = (BaseDocument) target.getDocument();
-  //            if (doc != null) {
-  //                FileObject fileObject = NbEditorUtilities.getFileObject(doc);
-  //                if (fileObject == context.file.getFileObject()) {
-  //                    th = TokenHierarchy.get(doc);
-  //                }
-  //            }
-  //        }
-  //
-  //        if (th == null) {
-  //            th = TokenHierarchy.create(source, ScalaTokenId.language());
-  //        }
-  //
-  //        context.th = th;
-  //
-  //        final boolean ignoreErrors = sanitizedSource;
-  //
-  //        Reader in = new StringReader(source);
-  //        String fileName = context.file != null ? context.file.getNameExt() : "<current>";
-  //        ParserScala parser = new ParserScala(in, fileName);
-  //        context.parser = parser;
-  //
-  //        if (sanitizing == Sanitize.NONE) {
-  //            context.errorOffset = -1;
-  //        }
-  //
-  //        AstScope rootScope = null;
-  //        List<GNode> errors = null;
-  //        if (doc != null) {
-  //            // Read-lock due to Token hierarchy use
-  //            doc.readLock();
-  //        }
-  //        try {
-  //            ParseError error = null;
-  //            Result r = parser.pCompilationUnit(0);
-  //            if (r.hasValue()) {
-  //                SemanticValue v = (SemanticValue) r;
-  //                GNode node = (GNode) v.value;
-  //
-  //                AstNodeVisitor visitor = new AstNodeVisitor(node, th);
-  //                visitor.visit(node);
-  //                rootScope = visitor.getRootScope();
-  //
-  //                ScalaTypeInferencer inferencer = new ScalaTypeInferencer(rootScope, th);
-  //                inferencer.infer();
-  //
-  //                errors = visitor.getErrors();
-  //                for (GNode errorNode : errors) {
-  //                    String msg = errorNode.getString(0);
-  //                    Location loc = errorNode.getLocation();
-  //                    notifyError(context, "SYNTAX_ERROR", msg,
-  //                            loc.offset, loc.endOffset, sanitizing, Severity.ERROR, new Object[]{loc.offset, errorNode});
-  //                }
-  //            } else {
-  //                error = r.parseError();
-  //            }
-  //
-  //            if (error != null) {
-  //                if (!ignoreErrors) {
-  //                    int start = 0;
-  //                    if (error.index != -1) {
-  //                        start = error.index;
-  //                    }
-  //                    notifyError(context, "SYNTAX_ERROR", "Syntax error",
-  //                            start, start, sanitizing, Severity.ERROR, new Object[]{error.index, error});
-  //                }
-  //
-  //                System.err.println(error.msg);
-  //            }
-  //
-  //        } catch (IOException e) {
-  //            e.printStackTrace();
-  //        } catch (IllegalArgumentException e) {
-  //            // An internal exception thrown by ParserScala, just catch it and notify
-  //            notifyError(context, "SYNTAX_ERROR", e.getMessage(),
-  //                    0, 0, sanitizing, Severity.ERROR, new Object[]{e});
-  //        } finally {
-  //            if (doc != null) {
-  //                doc.readUnlock();
-  //            }
-  //        }
-  //
-  //
-  //        if (rootScope != null) {
-  //            context.sanitized = sanitizing;
-  //            ScalaParserResult pResult = createParseResult(context.file, rootScope, null, context.th, null);
-  //            pResult.setSanitized(context.sanitized, context.sanitizedRange, context.sanitizedContents);
-  //            pResult.setSource(source);
-  //            return pResult;
-  //        } else {
-  //            return sanitize(context, sanitizing);
-  //        }
-  //    }
-
-  protected def parseBuffer(context:Context, sanitizing:Sanitize) :ScalaParserResult = {
+  protected def parseBuffer(context: Context, sanitizing: Sanitize): ScalaParserResult = {
     var sanitizedSource = false
     var source = context.source
 
@@ -512,9 +395,9 @@ class ScalaParser extends Parser {
 
     val file = if (context.fileObject != null) FileUtil.toFile(context.fileObject) else null
     // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
-    //String filePath = file != null ? file.getAbsolutePath() : "<current>";
+    //String filePath = file != null ? file.getAbsolutePath():  "<current>";
 
-    var rootScope :ScalaRootScope = null
+    var rootScope: Option[ScalaRootScope] = None
 
     // Scala global parser
     val reporter = new ErrorReporter(context, doc, sanitizing)
@@ -524,23 +407,24 @@ class ScalaParser extends Parser {
     val af = if (file != null)  new PlainFile(file) else new VirtualFile("<current>", "")
     val srcFile = new BatchSourceFile(af, source.toCharArray)
     try {
-      rootScope = global.compileSourceForPresentation(srcFile, th)
+      rootScope = Some(global.compileSourceForPresentation(srcFile, th))
     } catch {
-      case ex:AssertionError =>
+      case ex: AssertionError =>
         // avoid scala nsc's assert error
         ScalaGlobal.reset
-      case ex:_root_.java.lang.Error =>
+      case ex: _root_.java.lang.Error =>
         // avoid scala nsc's exceptions
-      case ex:IllegalArgumentException =>
+        ex.printStackTrace
+      case ex: IllegalArgumentException =>
         // An internal exception thrown by ParserScala, just catch it and notify
         notifyError(context, "SYNTAX_ERROR", ex.getMessage,
                     0, 0, true, sanitizing, Severity.ERROR, Array(ex))
-      case ex:Exception =>
+      case ex: Exception =>
         // Scala's global throws too many exceptions
-        //ex.printStackTrace();
+        ex.printStackTrace
     }
 
-    if (rootScope != null) {
+    if (rootScope != None) {
       context.rootScope = rootScope
       context.sanitized = sanitizing
       val pResult = createParserResult(context)
@@ -555,7 +439,7 @@ class ScalaParser extends Parser {
     }
   }
 
-  private def createParserResult(context:Context) :ScalaParserResult = {
+  private def createParserResult(context: Context): ScalaParserResult = {
     if (!context.errors.isEmpty) {
       val fo = context.fileObject
       if (fo != null) {
@@ -575,7 +459,7 @@ class ScalaParser extends Parser {
     new ScalaParserResult(this, context.snapshot, context.rootScope, context.errors)
   }
 
-  private def processObjectSymbolError(context:Context, root:ScalaRootScope) :Sanitize = {
+  private def processObjectSymbolError(context: Context, root: ScalaRootScope): Sanitize = {
     val errors = context.errors
     val th = context.snapshot.getTokenHierarchy
     if (errors.isEmpty || th == null) {
@@ -609,7 +493,7 @@ class ScalaParser extends Parser {
     Sanitize.NONE
   }
 
-  private def computeLinesOffset(source:String) :Seq[Int] = {
+  private def computeLinesOffset(source: String): Seq[Int] = {
     val length = source.length
 
     val linesOffset = new ArrayBuffer[Int](length / 25)
@@ -627,11 +511,11 @@ class ScalaParser extends Parser {
     linesOffset
   }
 
-  protected def notifyError(context:Context, key:String, msg:String,
-                            start:Int, end:Int, isLineError:Boolean, 
-                            sanitizing:Sanitize, severity:Severity,
-                            params:Object
-  ) :Unit = {
+  protected def notifyError(context: Context, key: String, msg: String,
+                            start: Int, end: Int, isLineError: Boolean,
+                            sanitizing: Sanitize, severity: Severity,
+                            params: Object
+  ): Unit = {
 
     val error = DefaultError.createDefaultError(key, msg, msg, context.fileObject,
                                                 start, end, isLineError, severity).asInstanceOf[DefaultError]
@@ -648,29 +532,29 @@ class ScalaParser extends Parser {
     }
   }
 
-  def getGlobal :Global = {
+  def getGlobal: Global = {
     global
   }
 
   /** Parsing context */
-  class Context(val snapshot:Snapshot, event:SourceModificationEvent) {
+  class Context(val snapshot: Snapshot, event: SourceModificationEvent) {
 
-    val fileObject :FileObject = snapshot.getSource.getFileObject
-    val source :String = asString(snapshot.getText)
-    var errorOffset :Int = _
-    var caretOffset :Int = GsfUtilities.getLastKnownCaretOffset(snapshot, event)
-    var sanitizedSource :String = _
-    var sanitizedRange :OffsetRange = OffsetRange.NONE
-    var sanitizedContents :String = _
-    var sanitized :Sanitize = Sanitize.NONE
-    var errors :List[Error] = Nil
-    var rootScope :ScalaRootScope = _
+    val fileObject: FileObject = snapshot.getSource.getFileObject
+    val source: String = asString(snapshot.getText)
+    var errorOffset: Int = _
+    var caretOffset: Int = GsfUtilities.getLastKnownCaretOffset(snapshot, event)
+    var sanitizedSource: String = _
+    var sanitizedRange: OffsetRange = OffsetRange.NONE
+    var sanitizedContents: String = _
+    var sanitized: Sanitize = Sanitize.NONE
+    var errors: List[Error] = Nil
+    var rootScope: Option[ScalaRootScope] = None
 
-    def notifyError(error:Error) :Unit = {
+    def notifyError(error: Error): Unit = {
       errors = error :: errors
     }
 
-    def cleanErrors :Unit =  {
+    def cleanErrors: Unit =  {
       errors = Nil
     }
 
@@ -680,20 +564,18 @@ class ScalaParser extends Parser {
 
   }
 
-  private class ErrorReporter(context:Context, doc:BaseDocument, sanitizing:Sanitize) extends Reporter {
+  private class ErrorReporter(context: Context, doc: BaseDocument, sanitizing: Sanitize) extends Reporter {
 
-    override def info0(pos:Position, msg:String, severity:Severity, force:Boolean) {
+    override def info0(pos: Position, msg: String, severity: Severity, force: Boolean) {
       val ignoreError = context.sanitizedSource != null
       if (!ignoreError) {
         // * It seems scalac's errors may contain those from other source files that are deep referred, try to filter them here
-        pos.source match {
-          case Some(sourceFile) if !context.fileObject.getPath.equals(sourceFile.file.path) =>
-            //System.out.println("Error in source: " + sourceFile);
-            return
-          case _ =>
+        if (!context.fileObject.getPath.equals(pos.source.file.path)) {
+          //System.out.println("Error in source: " + sourceFile);
+          return
         }
-
-        val offset = ScalaUtil.getOffset(pos)
+        
+        val offset = pos.startOrPoint
         val sev = severity.id match {
           case 0 => return
           case 1 => org.netbeans.modules.csl.api.Severity.WARNING
@@ -704,15 +586,13 @@ class ScalaParser extends Parser {
         var end = try {
           // * @Note row should plus 1 to equal NetBeans' doc offset
           Utilities.getRowLastNonWhite(doc, offset) + 1
-        } catch {
-          case ex:BadLocationException => -1
-        }
+        } catch {case ex: BadLocationException => -1}
 
         if (end != -1 && end <= offset) {
           end += 1
         }
 
-        val isLineError = end == -1
+        val isLineError = (end == -1)
         notifyError(context, "SYNTAX_ERROR", msg,
                     offset, end, isLineError, sanitizing, sev, Array(offset, msg))
       }
@@ -721,7 +601,7 @@ class ScalaParser extends Parser {
 }
 
 object ScalaParser {
-  private var version :Long = _
+  private var version: Long = _
   private val profile = Array(0.0f, 0.0f)
 
   /** Attempts to sanitize the input buffer */

@@ -43,20 +43,22 @@ import org.netbeans.modules.csl.api.{ElementKind, ElementHandle, Modifier, Offse
 import org.netbeans.modules.csl.spi.{ParserResult}
 import org.openide.filesystems.{FileObject}
 
-import _root_.scala.collection.mutable.{HashMap}
-
 /**
  *
  * @author Caoyuan Deng
  */
 trait AstItem extends ForElementHandle {
 
-  def make(idToken:Option[Token[TokenId]], kind:ElementKind) :Unit = {
+  type S  // type of symbol
+  type T // type of symbol's type
+
+  def make(idToken: Option[Token[TokenId]], kind: ElementKind): Unit = {
     this.idToken = idToken
     this.kind = kind
   }
 
-  var resultType :String = _
+  var resultType: T = _
+  
   /**
    * @Note:
    * 1. Not all AstItem has pickToken, such as Expr etc.
@@ -64,35 +66,35 @@ trait AstItem extends ForElementHandle {
    *    pickToken's text as name, pickToken may be <null> and pickToken.text()
    *    will return null when an Identifier token modified, seems sync issue
    */
-  private var _symbol :AstSymbol[_] = _
-  private var _idToken :Option[Token[TokenId]] = None
-  private var _name :String = _
-  private var _enclosingScope :Option[AstScope] = _
-  private var properties :Option[HashMap[String, Any]] = None
-  var kind :ElementKind = ElementKind.OTHER
+  private var _symbol: S = _
+  private var _idToken: Option[Token[TokenId]] = None
+  private var _name: String = _
+  private var _enclosingScope: Option[AstScope] = None
+  private var _properties: Map[String, Any] = Map()
+  var kind: ElementKind = ElementKind.OTHER
 
   def symbol = _symbol
-  def symbol_=(symbol:AstSymbol[_]) = {
+  def symbol_=(symbol: S) = {
     this._symbol = symbol
-    symbol.item = this
   }
 
   def idToken = _idToken
-  def idToken_=(idToken:Option[Token[TokenId]]) = idToken foreach {
+  def idToken_=(idToken: Option[Token[TokenId]]) = idToken foreach {
     x => this._idToken = idToken; name = x.text.toString
   }
 
   def name = _name
-  def name_=(name:String) = this._name = name
-  def name_=(idToken:Token[TokenId]) = {
+  def name_=(name: String) = this._name = name
+  def name_=(idToken: Token[TokenId]): Unit = {
     if (idToken == null) {
       _name = "" // should not happen?
+      return
     }
         
     try {
       _name = idToken.text.toString
     } catch {
-      case ex:Exception =>
+      case ex: Exception =>
         val l = idToken.length
         val sb = new StringBuilder(l)
         var i = 0
@@ -105,23 +107,27 @@ trait AstItem extends ForElementHandle {
     }
   }
 
-  def idOffset(th:TokenHierarchy[_]) = idToken match {
-    case None =>
-      assert(false, getName + ": Should implement offset(th)")
-      -1
-    case Some(x) => x.offset(th)
+  def idOffset(th: TokenHierarchy[_]): Int = {
+    idToken match {
+      case None =>
+        assert(false, getName + ": Should implement offset(th)")
+        -1
+      case Some(x) => x.offset(th)
+    }
   }
 
-  def idEndOffset(th:TokenHierarchy[_]) :Int = idToken match {
-    case None =>
-      assert(false, name + ": Should implement getIdEndOffset(th)")
-      -1
-    case Some(x) => x.offset(th) + x.length
+  def idEndOffset(th: TokenHierarchy[_]): Int = {
+    idToken match {
+      case None =>
+        assert(false, name + ": Should implement getIdEndOffset(th)")
+        -1
+      case Some(x) => x.offset(th) + x.length
+    }
   }
 
   def binaryName = name
 
-  def enclosingDfn[A <: AstDfn](clazz:Class[A]) :Option[A] = {
+  def enclosingDfn[A <: AstDfn](clazz: Class[A]): Option[A] = {
     enclosingScope.get.enclosingDfn(clazz)
   }
 
@@ -129,7 +135,7 @@ trait AstItem extends ForElementHandle {
    * @Note: enclosingScope will be set when call
    *   {@link AstScope#addElement(Element)} or {@link AstScope#addMirror(Mirror)}
    */
-  def enclosingScope_=(enclosingScope:AstScope) :AstItem = {
+  def enclosingScope_=(enclosingScope: AstScope): AstItem = {
     enclosingScope match {
       case null => this._enclosingScope = None
       case _ => this._enclosingScope = Some(enclosingScope)
@@ -140,46 +146,42 @@ trait AstItem extends ForElementHandle {
   /**
    * @return the scope that encloses this item
    */
-  def enclosingScope :Option[AstScope] = {
+  def enclosingScope: Option[AstScope] = {
     assert(_enclosingScope != None, name + ": Each item should set enclosing scope!, except native TypeRef")
     _enclosingScope
   }
 
-  def rootScope :AstRootScope = enclosingScope.get.root
+  def rootScope: AstRootScope = enclosingScope.get.root
 
-  def property(k:String, v:Any) :Unit = {
-    if (properties == None) {
-      properties = Some(new HashMap)
-    }
-    for (_properties <- properties) {
-      _properties + (k -> v)
-    }
+  def property(k: String, v: Any): Unit = {
+    _properties += (k -> v)
   }
 
-  def property(k:String) :Option[Any] = {
-    for (_properties <- properties) {
-      return _properties.get(k)
-    }
-    None
+  def property(k: String): Option[Any] = {
+    _properties.get(k)
+  }
+
+  override def toString = {
+    symbol.toString
   }
 }
 
 /**
  * Wrap functions that implemented some ElementHandle's methods
  */
-trait ForElementHandle {self:AstItem =>
+trait ForElementHandle {self: AstItem =>
     
-  def getMimeType :String
+  def getMimeType: String
 
   def getName = self.name
 
-  def getIn :String = ""
+  def getIn: String = ""
 
-  def getKind :ElementKind = self.kind
+  def getKind: ElementKind = self.kind
 
-  def signatureEquals(handle:ElementHandle) = false
+  def signatureEquals(handle: ElementHandle) = false
 
-  def getModifiers :_root_.java.util.Set[Modifier] = _root_.java.util.Collections.emptySet[Modifier]
+  def getModifiers: _root_.java.util.Set[Modifier] = _root_.java.util.Collections.emptySet[Modifier]
 
-  def getOffsetRange(result:ParserResult) :OffsetRange = OffsetRange.NONE
+  def getOffsetRange(result: ParserResult): OffsetRange = OffsetRange.NONE
 }

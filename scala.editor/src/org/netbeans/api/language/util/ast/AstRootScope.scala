@@ -41,60 +41,47 @@ package org.netbeans.api.language.util.ast
 import org.netbeans.api.lexer.{Token, TokenId, TokenHierarchy}
 import org.netbeans.modules.csl.api.{ElementKind}
 
-import _root_.scala.collection.mutable.{ArrayBuffer, HashMap}
-
 /**
  *
  * @author Caoyuan Deng
  */
-class AstRootScope(boundsTokens:Array[Token[TokenId]]) extends AstScope(boundsTokens) {
+class AstRootScope(boundsTokens: Array[Token[TokenId]]) extends AstScope(boundsTokens) {
 
-  protected val _idTokenToItem = new HashMap[Token[TokenId], AstItem]
-  private var tokens :List[Token[TokenId]] = Nil
-  private var tokensSorted :Boolean = false
+  protected var _idTokenToItems: Map[Token[TokenId], List[AstItem]] = Map.empty
+  private var sortedTokens: List[Token[TokenId]] = Nil
+  private var tokensSorted = false
 
-  def contains(idToken:Token[TokenId]) :Boolean = _idTokenToItem.contains(idToken)
+  def contains(idToken: Token[TokenId]): Boolean = _idTokenToItems.contains(idToken)
 
-  def idTokenToItem(th:TokenHierarchy[_]) :HashMap[Token[TokenId], AstItem] = {
-    if (!tokensSorted) {
-      tokens = _idTokenToItem.keySet.toList.sort{compareToken(th, _, _)}
-      tokensSorted = true
-    }
-
-    _idTokenToItem
+  def idTokenToItems(th: TokenHierarchy[_]): Map[Token[TokenId], List[AstItem]] = {
+    _idTokenToItems
   }
 
-  private def sortedToken(th:TokenHierarchy[_]) :List[Token[TokenId]] = {
+  private def sortedTokens(th: TokenHierarchy[_]): List[Token[TokenId]] = {
     if (!tokensSorted) {
-      tokens = _idTokenToItem.keySet.toList.sort{compareToken(th, _, _)}
+      sortedTokens = _idTokenToItems.keySet.toList sort {compareToken(th, _, _)}
       tokensSorted = true
     }
-
-    tokens
+    sortedTokens
   }
 
   /**
-   * To make sure each idToken only corresponds to one AstItem, if more than
-   * one AstItem point to the same idToken, only the first one will be stored
+   * each idToken may correspond to more then one AstItems
    */
-  protected def tryToPut(idToken:Token[TokenId], item:AstItem) :Boolean = {
-    _idTokenToItem.get(idToken) match {
-      case None =>
-        _idTokenToItem + (idToken -> item)
-        tokensSorted = false
-        true
-      case Some(exsitOne) =>
-        // if existOne is dfn and with narrow visible than new one, replace it
-        if (item.isInstanceOf[AstDfn]) {
-          _idTokenToItem + (idToken -> item)
-          tokensSorted = false
-          true
-        } else false
+  protected def put(idToken: Token[TokenId], item: AstItem) = {
+    _idTokenToItems += idToken -> (item :: _idTokenToItems.getOrElse(idToken, Nil))
+    tokensSorted = false
+  }
+
+  override def findItemAt(th: TokenHierarchy[_], offset: Int): Option[AstItem] = {
+    findItemsAt(th, offset) match {
+      case x :: xs => Some(x)
+      case _ => None
     }
   }
-   
-  override def findItemAt(th:TokenHierarchy[_], offset:Int) :Option[AstItem] = {
-    val tokens1 = sortedToken(th)
+
+  def findItemsAt(th: TokenHierarchy[_], offset: Int): List[AstItem] = {
+    val tokens1 = sortedTokens(th)
 
     var lo = 0
     var hi = tokens1.size - 1
@@ -106,37 +93,53 @@ class AstRootScope(boundsTokens:Array[Token[TokenId]]) extends AstScope(boundsTo
       } else if (offset > middle.offset(th) + middle.length) {
         lo = mid + 1
       } else {
-        return _idTokenToItem.get(middle)
+        return _idTokenToItems.get(middle) match {
+          case Some(x) => x
+          case None => Nil
+        }
       }
     }
 
-    None
+    Nil
   }
 
-  def findItemAt(token:Token[TokenId]) :Option[AstItem] = _idTokenToItem.get(token)
-
-  def findAllDfnSyms[A <: AstSymbol[_]](clazz:Class[A]) :List[A] = {
-    findAllDfnsOf(clazz).map(_.symbol).asInstanceOf[List[A]]
-  }
-
-  def findAllDfnsOf[A <: AstSymbol[_]](clazz:Class[A]) :List[AstDfn] = {
-    _idTokenToItem.values.filter{item =>
-      item.isInstanceOf[AstDfn] && clazz.isInstance(item.symbol)
-    }.toList.asInstanceOf[List[AstDfn]]
-  }
-
-  def findFirstItemWithName(name:String) :Option[AstItem] = {
-    _idTokenToItem.find{case (token, item) => token.text.toString == name} match {
-      case None => None
-      case Some((token, item)) => Some(item)
+  def findItemsAt(token: Token[TokenId]): List[AstItem] = {
+    _idTokenToItems.get(token) match {
+      case Some(x) => x
+      case None => Nil
     }
   }
 
-  private def compareToken(th:TokenHierarchy[_], o1:Token[TokenId], o2:Token[TokenId]) :Boolean = {
+  def findAllDfnSyms[A <: AnyRef](clazz: Class[A]): List[A] = {
+    findAllDfnsOf(clazz).map(_.symbol).asInstanceOf[List[A]]
+  }
+
+  def findAllDfnsOf[A <: AnyRef](clazz: Class[A]): List[AstDfn] = {
+    var result: List[AstDfn] = Nil
+    for (items <- _idTokenToItems.valuesIterator;
+         item <- items if item.isInstanceOf[AstDfn] && clazz.isInstance(item.symbol)) {
+      result = item.asInstanceOf[AstDfn] :: result
+    }
+    result
+  }
+
+  def findFirstItemWithName(name: String): Option[AstItem] = {
+    _idTokenToItems.find{case (token, items) => token.text.toString == name} match {
+      case Some((token, x :: xs)) => Some(x)
+      case _ => None
+    }
+  }
+
+  private def compareToken(th: TokenHierarchy[_], o1: Token[TokenId], o2: Token[TokenId]): Boolean = {
     o1.offset(th) < o2.offset(th)
   }
 
-  protected def debugPrintTokens(th:TokenHierarchy[_]) :Unit = {
-    sortedToken(th).foreach{token => println("AstItem: " + _idTokenToItem.get(token))}
+  def debugPrintTokens(th: TokenHierarchy[_]): Unit = {
+    sortedTokens(th) foreach {token =>
+      println("<" + token + "> ->")
+      _idTokenToItems.getOrElse(token, Nil) foreach {println(_)}
+      println
+    }
+    println
   }
 }

@@ -50,8 +50,8 @@ import org.openide.filesystems.MIMEResolver
  * @author Caoyuan Deng
  */
 @org.openide.util.lookup.ServiceProvider(service = classOf[org.openide.filesystems.MIMEResolver])
-class ScalaMimeResolver extends MIMEResolver {
-  def findMIMEType(fo:FileObject) :String = {
+class ScalaMimeResolver extends MIMEResolver(ScalaMimeResolver.MIME_TYPE) {
+  def findMIMEType(fo: FileObject): String = {
     if (ScalaMimeResolver isScalaExt fo.getExt) ScalaMimeResolver.MIME_TYPE else null
   }
 }
@@ -64,7 +64,7 @@ object ScalaMimeResolver {
    */
   private val EXTENSIONS = Array("scala") // NOI18N
 
-  def isScalaExt(ext:String) :Boolean = EXTENSIONS.exists(_ equalsIgnoreCase ext)
+  def isScalaExt(ext: String): Boolean = EXTENSIONS.exists(_ equalsIgnoreCase ext)
 }
 
 
