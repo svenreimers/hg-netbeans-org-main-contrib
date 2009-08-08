@@ -64,6 +64,7 @@ class WebModuleProviderImpl extends J2eeModuleProvider implements WebModuleProvi
 
     private static final Logger LOG = Logger.getLogger(WebModuleProviderImpl.class.getName());
     private static final Map<Project,Map<FileObject, WebModule>> webModules = new WeakHashMap<Project,Map<FileObject, WebModule>>();
+    private static final Map<Project, WebModule> webModulesWithoutDocRoot = new WeakHashMap<Project, WebModule>();
     
     private Project p;
     private String root;
@@ -80,31 +81,33 @@ class WebModuleProviderImpl extends J2eeModuleProvider implements WebModuleProvi
     public WebModule findWebModule (FileObject file) {
         assert p.equals(FileOwnerQuery.getOwner(file));
 
-        String docBaseFolders = Cache.get(root + WebCacheConstants.DOCROOT);
-        if (docBaseFolders == null) {
-            return null;
-        }
         FileObject docRoot = null;
-        for (String piece : docBaseFolders.split("[:;]")) {
-            FileObject aRoot = FileUtil.toFileObject(new File(piece));
-            if (aRoot != null && (FileUtil.isParentOf(aRoot, file) || aRoot == file)) {
-                docRoot = aRoot;
-                break;
+        String docBaseFolders = Cache.get(root + WebCacheConstants.DOCROOT);
+        if (docBaseFolders != null) {
+            for (String piece : docBaseFolders.split("[:;]")) {
+                FileObject aRoot = FileUtil.toFileObject(new File(piece));
+                if (aRoot != null && (FileUtil.isParentOf(aRoot, file) || aRoot == file)) {
+                    docRoot = aRoot;
+                    break;
+                }
             }
         }
         if (docRoot == null) {
             LOG.log(Level.FINE, "Found no docroot for {0} in {1}", new Object[] {file, p.getProjectDirectory()});
-            return null;
         }
         Map<FileObject, WebModule> projectWebModules = webModules.get(p);
         if (projectWebModules == null) {
             projectWebModules = new HashMap<FileObject, WebModule>();
             webModules.put(p, projectWebModules);
         }
-        WebModule wm = projectWebModules.get(docRoot);
+        WebModule wm = docRoot != null ? projectWebModules.get(docRoot) : webModulesWithoutDocRoot.get(p);
         if (wm == null) {
             wm = WebModuleFactory.createWebModule(new WebModuleImpl(docRoot, root, cpp, this));
-            projectWebModules.put(docRoot, wm);
+            if (docRoot != null) {
+                projectWebModules.put(docRoot, wm);
+            } else {
+                webModulesWithoutDocRoot.put(p, wm);
+            }
         }
         return wm;
     }
@@ -112,21 +115,18 @@ class WebModuleProviderImpl extends J2eeModuleProvider implements WebModuleProvi
     @Override
     public J2eeModule getJ2eeModule() {
         if (j2eeModule == null) {
-            String docBaseFolders = Cache.get(root + WebCacheConstants.DOCROOT);
-            if (docBaseFolders == null) {
-                return null;
-            }
             FileObject docRoot = null;
-            for (String piece : docBaseFolders.split("[:;]")) {
-                FileObject aRoot = FileUtil.toFileObject(new File(piece));
-                if (aRoot != null) {
-                    docRoot = aRoot;
-                    break;
+            String docBaseFolders = Cache.get(root + WebCacheConstants.DOCROOT);
+            if (docBaseFolders != null) {
+                for (String piece : docBaseFolders.split("[:;]")) {
+                    FileObject aRoot = FileUtil.toFileObject(new File(piece));
+                    if (aRoot != null) {
+                        docRoot = aRoot;
+                        break;
+                    }
                 }
             }
-            if (docRoot != null) {
-                j2eeModule = J2eeModuleFactory.createJ2eeModule(new WebModuleImpl(docRoot, root, cpp, this));
-            }
+            j2eeModule = J2eeModuleFactory.createJ2eeModule(new WebModuleImpl(docRoot, root, cpp, this));
         }
         return j2eeModule;
     }

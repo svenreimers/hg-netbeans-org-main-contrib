@@ -65,8 +65,10 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import scala.Option;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
-import scala.tools.nsc.Global;
+import scala.tools.nsc.interactive.Global;
 import scala.tools.nsc.io.AbstractFile;
+import scala.tools.nsc.io.PlainFile;
+import scala.tools.nsc.io.VirtualFile;
 import scala.tools.nsc.symtab.Symbols.Symbol;
 import scala.tools.nsc.symtab.Types.Type;
 import scala.tools.nsc.util.BatchSourceFile;
@@ -265,7 +267,11 @@ public class ScalaElement implements ScalaElementHandle {
                 assert path != null;
                 try {
                     char[] text = srcDoc.getChars(0, srcDoc.getLength());
-                    BatchSourceFile srcFile = new BatchSourceFile(path, text);
+                    File f = new File(path);
+                    BatchSourceFile srcFile;
+                    AbstractFile af = f != null ? new PlainFile(f) : new VirtualFile("<current>", "");
+                    srcFile = new BatchSourceFile(af, text);
+                    
                     TokenHierarchy th = TokenHierarchy.get(srcDoc);
                     if (th == null) {
                         return;
@@ -332,14 +338,14 @@ public class ScalaElement implements ScalaElementHandle {
         return symbol.toString();
     }
 
-    public scala.List paramNames() {
+    public scala.collection.immutable.List paramNames() {
         assert symbol.isMethod();
 
         /** @todo not work yet */
         scala.collection.mutable.HashMap argNamesMap = global.methodArgumentNames();
         if (argNamesMap != null) {
             Option argNames = argNamesMap.get(symbol);
-            return argNames.isDefined() ? (scala.List) argNames.get() : null;
+            return argNames.isDefined() ? (scala.collection.immutable.List) argNames.get() : null;
         }
 
         return null;

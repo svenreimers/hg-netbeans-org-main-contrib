@@ -7,7 +7,7 @@
  * http://www.sun.com/
  *
  * The Original Code is NetBeans. The Initial Developer of the Original
- * Code is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Code is Sun Microsystems, Inc. Portions Copyright 1997-2009 Sun
  * Microsystems, Inc. All Rights Reserved.
 
 If you wish your version of this file to be governed by only the CDDL
@@ -27,15 +27,8 @@ package org.netbeans.modules.erd.wizard;
 
 
 import java.awt.Component;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.ResourceBundle;
-import java.util.Set;
 import javax.swing.event.*;
-import org.netbeans.api.db.explorer.ConnectionListener;
 import org.netbeans.api.db.explorer.ConnectionManager;
 import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.netbeans.api.db.explorer.DatabaseException;
@@ -43,16 +36,12 @@ import org.netbeans.api.db.explorer.JDBCDriver;
 import org.netbeans.api.db.explorer.JDBCDriverManager;
 import org.netbeans.api.db.explorer.support.DatabaseExplorerUIs;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.dbschema.SchemaElement;
-import org.netbeans.modules.j2ee.common.DatasourceUIHelper;
 import org.netbeans.modules.j2ee.deployment.common.api.Datasource;
-import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
@@ -66,8 +55,6 @@ public class DataSourcePanelUI extends javax.swing.JPanel implements ListDataLis
 
     static final long serialVersionUID = 5364628520334696421L;
 
-    private ArrayList dbconns;
-    private ArrayList list=new ArrayList();
     private WizardContext data;
     private Node dbNode;
     private Node[] drvNodes;
@@ -76,9 +63,6 @@ public class DataSourcePanelUI extends javax.swing.JPanel implements ListDataLis
     
     
     public DataSourcePanelUI() {
-        
-        dbconns = new ArrayList();
-        
 
         putClientProperty("WizardPanel_contentSelectedIndex", new Integer(1)); //NOI18N
         setName(bundle.getString("DataSource")); //NOI18N
@@ -87,10 +71,6 @@ public class DataSourcePanelUI extends javax.swing.JPanel implements ListDataLis
         resize();
         initAccessibility();
 
-        
-        
-        
-        
     }
     
     
@@ -126,13 +106,13 @@ public class DataSourcePanelUI extends javax.swing.JPanel implements ListDataLis
         changeSupport.addChangeListener(listener);
     }
     
-    private void initializeWithDatasources(Project project) {
-        org.openide.awt.Mnemonics.setLocalizedText(datasourceRadioButton, "Datasource");
-        J2eeModuleProvider provider = (J2eeModuleProvider)project.getLookup().lookup(J2eeModuleProvider.class);
-        DatasourceUIHelper.connect(provider, datasourceComboBox);
-    }
-    
-    
+//    private void initializeWithDatasources(Project project) {
+//        org.openide.awt.Mnemonics.setLocalizedText(datasourceRadioButton, "Datasource");
+//        J2eeModuleProvider provider = (J2eeModuleProvider)project.getLookup().lookup(J2eeModuleProvider.class);
+//        DatasourceUIHelper.connect(provider, datasourceComboBox);
+//    }
+//
+//
     private void initializeWithDbConnections() {
         org.openide.awt.Mnemonics.setLocalizedText(datasourceRadioButton,bundle.getString("Connection"));
         DatabaseExplorerUIs.connect(datasourceComboBox, ConnectionManager.getDefault());
@@ -177,7 +157,7 @@ public class DataSourcePanelUI extends javax.swing.JPanel implements ListDataLis
 
     private final ResourceBundle bundle = NbBundle.getBundle("org.netbeans.modules.erd.wizard.Bundle"); //NOI18N
 
-    public boolean isValid() {
+    public boolean isPanelValid() {
        boolean datasource=datasourceComboBox.getSelectedItem() instanceof DatabaseConnection && datasourceRadioButton.isSelected();
        boolean schema=  dbschemaComboBox.getSelectedItem() instanceof FileObject && dbschemaRadioButton.isSelected();
        return datasource | schema; 
@@ -445,7 +425,7 @@ public class DataSourcePanelUI extends javax.swing.JPanel implements ListDataLis
 
         public boolean isValid() {
            
-            return getTypedComponent().isValid();
+            return getTypedComponent().isPanelValid();
         }
 
         public void storeSettings(Object settings) {

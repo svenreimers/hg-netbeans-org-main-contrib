@@ -67,8 +67,9 @@ import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.JarFileSystem;
 import org.openide.util.Exceptions;
+import org.openide.util.RequestProcessor;
 import scala.tools.nsc.CompilationUnits.CompilationUnit;
-import scala.tools.nsc.Global;
+import scala.tools.nsc.interactive.Global;
 import scala.tools.nsc.Settings;
 import scala.tools.nsc.util.BatchSourceFile;
 
@@ -77,6 +78,8 @@ import scala.tools.nsc.util.BatchSourceFile;
  * @author Caoyuan Deng
  */
 public class ScalaGlobal {
+    //a source group type for separate scala source roots, as seen in maven projects for example.
+    public static final String SOURCES_TYPE_SCALA = "scala"; //NOI18N
 
     private static boolean debug = false;
     private final static Map<Project, Reference<Global>> ProjectToGlobal =
@@ -168,8 +171,9 @@ public class ScalaGlobal {
                 settings.verbose().value_$eq(false);
             }
 
-            settings.sourcepath().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-sourcepath", srcPath}));
-            settings.outdir().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-d", outPath}));
+            settings.sourcepath().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{srcPath}));
+            //settings.outdir().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-d", outPath}));
+            settings.outputDirs().setSingleOutput(outPath);
 
             // add boot, compile classpath
             ClassPath bootCp = null;
@@ -191,16 +195,16 @@ public class ScalaGlobal {
 
             StringBuilder sb = new StringBuilder();
             computeClassPath(project, sb, bootCp);
-            settings.bootclasspath().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-bootclasspath", sb.toString()}));
+            settings.bootclasspath().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{sb.toString()}));
 
             sb.delete(0, sb.length());
             computeClassPath(project, sb, compCp);
             if (forTest && !inStdLib && dirs.outDir != null) {
                 sb.append(File.pathSeparator).append(dirs.outDir);
             }
-            settings.classpath().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-classpath", sb.toString()}));
+            settings.classpath().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{sb.toString()}));
 
-            global = new Global(settings) {
+            global = new Global(settings, null) {
 
                 @Override
                 public boolean onlyPresentation() {
@@ -297,7 +301,11 @@ public class ScalaGlobal {
     private static SrcOutDirs findDirsInfo(Project project) {
         SrcOutDirs dirs = new SrcOutDirs();
 
-        SourceGroup[] sgs = ProjectUtils.getSources(project).getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
+        SourceGroup[] sgs = ProjectUtils.getSources(project).getSourceGroups(SOURCES_TYPE_SCALA);
+        if (sgs.length == 0) {
+            //as a fallback use java ones..
+            sgs = ProjectUtils.getSources(project).getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
+        }
         if (sgs.length > 0) {
             dirs.srcDir = sgs[0].getRootFolder();
             dirs.outDir = findOutDir(project, dirs.srcDir);
@@ -451,11 +459,11 @@ public class ScalaGlobal {
             //scala.List a = scala.Nil$;
 
             global.settings().stop().value_$eq(scala.netbeans.Wrapper$.MODULE$.stringNil());
-            global.settings().stop().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-Ystop:" + stopPhase.name()}));
+            global.settings().stop().tryToSetColon(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{stopPhase.name()}));
             Global.Run run = global.new Run();
             global.resetSelectTypeErrors();
 
-            scala.List srcFiles = scala.netbeans.Wrapper$.MODULE$.srcFileList(new BatchSourceFile[]{srcFile});
+            scala.collection.immutable.List srcFiles = scala.netbeans.Wrapper$.MODULE$.srcFileList(new BatchSourceFile[]{srcFile});
             try {
                 run.compileSources(srcFiles);
             } catch (AssertionError ex) {
@@ -475,19 +483,19 @@ public class ScalaGlobal {
                 System.out.println("selectTypeErrors:" + selectTypeErrors);
             }
 
-            scala.Iterator units = run.units();
+            scala.collection.Iterator units = run.units();
             while (units.hasNext()) {
                 CompilationUnit unit = (CompilationUnit) units.next();
                 if (unit.source() == srcFile) {
                     if (debug) {
                         final CompilationUnit unit1 = unit;
-                        Runnable browser = new Runnable() {
-
-                            public void run() {
-                                global.treeBrowser().browse(unit1.body());
+                        RequestProcessor.getDefault().post(
+                            new Runnable() {
+                                public void run() {
+                                    global.treeBrowser().browse(unit1.body());
+                                }
                             }
-                        };
-                        new Thread(browser).start();
+                        );
                     }
                     return unit;
                 }

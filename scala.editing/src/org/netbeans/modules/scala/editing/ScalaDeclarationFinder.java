@@ -66,7 +66,7 @@ import org.netbeans.modules.scala.editing.nodes.FieldCall;
 import org.netbeans.modules.scala.editing.nodes.FunctionCall;
 import org.netbeans.modules.scala.editing.nodes.types.Type;
 import org.openide.filesystems.FileObject;
-import scala.tools.nsc.Global;
+import scala.tools.nsc.interactive.Global;
 
 /**
  * 
@@ -118,7 +118,7 @@ public class ScalaDeclarationFinder implements DeclarationFinder {
             }
         }
 
-        if (id == ScalaTokenId.Identifier || id == ScalaTokenId.This || id == ScalaTokenId.Super) {
+        if (id == ScalaTokenId.Identifier || id == ScalaTokenId.This || id == ScalaTokenId.Super || id == ScalaTokenId.LArrow || id == ScalaTokenId.RArrow) {
             return new OffsetRange(ts.offset(), ts.offset() + token.length());
         }
 

@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.util.Properties;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
@@ -64,13 +66,24 @@ public final class RunSeleniumTestsAction extends ExtendedAction {
             FileObject buildXML = findBuildXml(project);
             Properties p = new Properties();
             p.setProperty("forceRedeploy", "false"); //NOI18N
+            if (buildXML == null){
+                NotifyDescriptor desc = new NotifyDescriptor.Message(NbBundle.getMessage(RunSeleniumTestsAction.class, "No_Build_XML"), NotifyDescriptor.INFORMATION_MESSAGE);
+                DialogDisplayer.getDefault().notifyLater(desc);
+                return;
+            }
             try {
                 ExecutorTask task = ActionUtils.runTarget(buildXML, new String[]{"run-deploy"}, p);
                 //wait deployment finished
                 task.result();
 
-                FileObject seleniumSources = SeleniumSupport.getSelenimDir(project);
-                p.setProperty("test.includes", listAllTestIncludes(seleniumSources));
+                FileObject seleniumSources = SeleniumSupport.getSeleniumDir(project);
+                String includes = listAllTestIncludes(seleniumSources);
+                if (includes == null){
+                    NotifyDescriptor desc = new NotifyDescriptor.Message(NbBundle.getMessage(RunSeleniumTestsAction.class, "No_Selenium_Tests"), NotifyDescriptor.INFORMATION_MESSAGE);
+                    DialogDisplayer.getDefault().notifyLater(desc);
+                    return;
+                }
+                p.setProperty("test.includes", includes);
                 p.setProperty("javac.includes", ActionUtils.antIncludesList(seleniumSources.getChildren(), seleniumSources));
                 ActionUtils.runTarget(buildXML, new String[]{"test-single"}, p);
             } catch (IOException ex) {

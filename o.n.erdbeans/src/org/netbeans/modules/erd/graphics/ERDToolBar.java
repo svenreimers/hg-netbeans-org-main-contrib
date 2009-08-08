@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2009 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -39,15 +39,9 @@
  * made subject to such option by the copyright holder.
  */
 
-/*
- * DesignerToolBar.java
- *
- * Created on Jul 9, 2004
- */
 package org.netbeans.modules.erd.graphics;
 
 import org.openide.util.NbBundle;
-import org.openide.util.Utilities;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -55,17 +49,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ResourceBundle;
 import org.netbeans.modules.erd.editor.ERDTopComponent;
+import org.openide.util.ImageUtilities;
 
 
 
 public class ERDToolBar extends JToolBar {
     static ResourceBundle bundle = NbBundle.getBundle("org.netbeans.modules.erd.graphics.Bundle");
-    public static final Image zoominImage = Utilities.loadImage ("org/netbeans/modules/erd/resources/zoomin.gif"); // NOI18N
-    public static final Image zoomoutImage = Utilities.loadImage ("org/netbeans/modules/erd/resources/zoomout.gif"); // NOI18N
-    public static final Image gridImage = Utilities.loadImage ("org/netbeans/modules/erd/resources/snap-to-grid.png"); // NOI18N
-    public static final Image layoutImage = Utilities.loadImage ("org/netbeans/modules/erd/resources/realign-screens.png"); // NOI18N
+    public static final Image zoominImage = ImageUtilities.loadImage ("org/netbeans/modules/erd/resources/zoomin.gif"); // NOI18N
+    public static final Image zoomoutImage = ImageUtilities.loadImage ("org/netbeans/modules/erd/resources/zoomout.gif"); // NOI18N
+    public static final Image gridImage = ImageUtilities.loadImage ("org/netbeans/modules/erd/resources/snap-to-grid.png"); // NOI18N
+    public static final Image layoutImage = ImageUtilities.loadImage ("org/netbeans/modules/erd/resources/realign-screens.png"); // NOI18N
 
-   ERDTopComponent topComponent;
+    private static final long serialVersionUID = -1;
+    ERDTopComponent topComponent;
 
     public ERDToolBar (ERDTopComponent topComponent) {
         super ();

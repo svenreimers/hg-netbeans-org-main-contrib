@@ -32,11 +32,11 @@ import org.netbeans.api.visual.widget.ConnectionWidget;
 import org.netbeans.api.visual.widget.LayerWidget;
 import org.netbeans.api.visual.widget.Widget;
 import org.netbeans.api.visual.widget.general.IconNodeWidget;
-import org.openide.util.Utilities;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
+import org.openide.util.ImageUtilities;
 
 
 /**
@@ -44,7 +44,7 @@ import java.util.Collections;
  */
 public class DemoGraphScene extends GraphScene.StringGraph {
     
-    private static final Image IMAGE = Utilities.loadImage("test/resources/node.png"); // NOI18N
+    private static final Image IMAGE = ImageUtilities.loadImage("test/resources/node.png"); // NOI18N
     
     private LayerWidget mainLayer;
     private LayerWidget connectionLayer;
@@ -56,7 +56,6 @@ public class DemoGraphScene extends GraphScene.StringGraph {
     private WidgetAction connectAction = ActionFactory.createExtendedConnectAction(interractionLayer, new SceneConnectProvider(this));
     private WidgetAction reconnectAction = ActionFactory.createReconnectAction(new SceneReconnectProvider(this));
     private WidgetAction moveControlPointAction = ActionFactory.createFreeMoveControlPointAction();
-    private WidgetAction selectAction = ActionFactory.createSelectAction(new ObjectSelectProvider());
 
     private NodeMenu nodeMenu=new NodeMenu(this);
     private EdgeMenu edgeMenu=new EdgeMenu(this);
@@ -80,6 +79,7 @@ public class DemoGraphScene extends GraphScene.StringGraph {
         label.setToolTipText("Hold 'Ctrl'+'Mouse Right Button' to create Edge");
         label.setLabel(node);
         label.setImage(IMAGE);
+        label.getActions().addAction(createSelectAction());
         label.getActions().addAction(connectAction);
         label.getActions().addAction(moveAction);
         mainLayer.addChild(label);
@@ -137,7 +137,7 @@ public class DemoGraphScene extends GraphScene.StringGraph {
     }
     
     public void initGrids(){
-        Image sourceImage = Utilities.loadImage("test/resources/paper_grid17.png"); // NOI18N
+        Image sourceImage = ImageUtilities.loadImage("test/resources/paper_grid17.png"); // NOI18N
         int width = sourceImage.getWidth(null);
         int height = sourceImage.getHeight(null);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);

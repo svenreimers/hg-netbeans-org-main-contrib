@@ -53,7 +53,7 @@ import scala.tools.nsc.CompilationUnits.CompilationUnit;
 import scala.tools.nsc.Global;
 import scala.tools.nsc.ast.Trees.Alternative;
 import scala.tools.nsc.ast.Trees.Annotated;
-import scala.tools.nsc.ast.Trees.Annotation;
+//import scala.tools.nsc.ast.Trees.Annotation;
 import scala.tools.nsc.ast.Trees.AppliedTypeTree;
 import scala.tools.nsc.ast.Trees.Apply;
 import scala.tools.nsc.ast.Trees.ApplyDynamic;
@@ -99,6 +99,7 @@ import scala.tools.nsc.ast.Trees.UnApply;
 import scala.tools.nsc.ast.Trees.ValDef;
 import scala.tools.nsc.symtab.Symbols.Symbol;
 import scala.tools.nsc.util.BatchSourceFile;
+import scala.tools.nsc.util.NoPosition;
 import scala.tools.nsc.util.Position;
 
 /**
@@ -128,27 +129,23 @@ public abstract class AstVisitor {
         rootScope = new AstRootScope(getBoundsTokens(offset(rootTree), sourceFile.length()));
         scopes.push(rootScope);
         exprs.push(rootScope.getExprContainer());
-        visit(rootTree);
-        if (debug) {
-            rootScope.getExprContainer().print();
-        }
     }
 
     public AstRootScope getRootScope() {
         return rootScope;
     }
 
-    protected void visit(scala.List trees) {
+    protected void visit(scala.collection.immutable.List trees) {
         if (trees.isEmpty()) {
             return;
         }
 
-        for (scala.Iterator itr = trees.elements(); itr.hasNext();) {
+        for (scala.collection.Iterator itr = trees.elements(); itr.hasNext();) {
             Object tree = itr.next();
             if (tree instanceof Tree) {
                 visit((Tree) tree);
-            } else if (tree instanceof scala.List) {
-                visit((scala.List) tree);
+            } else if (tree instanceof scala.collection.immutable.List) {
+                visit((scala.collection.immutable.List) tree);
             } else if (tree instanceof Tuple2) {
                 /*
                 System.out.println("Visit Tuple: " + tree + " class=" + tree.getClass().getCanonicalName());
@@ -208,8 +205,8 @@ public abstract class AstVisitor {
                 visitLabelDef((LabelDef) tree);
             } else if (tree instanceof Import) {
                 visitImport((Import) tree);
-            } else if (tree instanceof Annotation) {
-                visitAnnotation((Annotation) tree);
+//            } else if (tree instanceof Annotation) {
+//                visitAnnotation((Annotation) tree);
             } else if (tree instanceof Template) {
                 visitTemplate((Template) tree);
             } else if (tree instanceof Block) {
@@ -286,7 +283,8 @@ public abstract class AstVisitor {
                 System.out.println("Visit Unknow tree: " + tree + " class=" + tree.getClass().getCanonicalName());
             }
         } catch (Throwable ex) {
-            System.out.println("Exception when visit tree: " + tree + "\n" + ex.getMessage());
+            System.out.println("Exception when visit tree: " + tree );
+            ex.printStackTrace();
         }
         exit(tree);
     }
@@ -315,9 +313,8 @@ public abstract class AstVisitor {
     public void visitImport(Import tree) {
     }
 
-    public void visitAnnotation(Annotation tree) {
-    }
-
+//    public void visitAnnotation(Annotation tree) {
+//    }
     public void visitTemplate(Template tree) {
     }
 
@@ -460,13 +457,21 @@ public abstract class AstVisitor {
     }
 
     protected int offset(Tree tree) {
-        Option offsetOpt = tree.pos().offset();
-        return offset(offsetOpt);
+        Position pos = tree.pos();
+        if (pos.isDefined()) {
+            return tree.pos().startOrPoint();
+        } else {
+            return -1;
+        }
     }
 
     protected int offset(Symbol symbol) {
-        Option offsetOpt = symbol.pos().offset();
-        return offset(offsetOpt);
+        Position pos = symbol.pos();
+        if (pos.isDefined()) {
+            return symbol.pos().startOrPoint();
+        } else {
+            return -1;
+        }
     }
 
     protected int offset(Option intOption) {
@@ -478,7 +483,7 @@ public abstract class AstVisitor {
      * following void productions, but nameString has stripped the void productions,
      * so we should adjust nameRange according to name and its length.
      */
-    protected Token getIdToken(Tree tree) {
+    protected Token getIdToken(Tree tree, String knownName) {
         Symbol symbol = tree.symbol();
         if (symbol == null) {
             return null;
@@ -486,7 +491,11 @@ public abstract class AstVisitor {
 
         /** Do not use symbol.nameString() here, for example, a constructor Dog()'s nameString maybe "this" */
         //String name = symbol.idString();
-        String name = symbol.rawname().decode();
+        String name = isNoSymbol(symbol) ? knownName : symbol.rawname().decode().trim();
+        if (name.equals("")) {
+            return null;
+        }
+
         int offset = offset(tree);
         TokenSequence<ScalaTokenId> ts = ScalaLexUtilities.getTokenSequence(th, offset);
         ts.move(offset);
@@ -495,35 +504,55 @@ public abstract class AstVisitor {
         }
 
         Token token;
+        Token altToken = null;
         if (tree instanceof This || name.equals("this")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.This);
         } else if (tree instanceof Super || name.equals("super")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Super);
         } else if (name.endsWith("expected")) {
             token = ts.token();
-        } else if (name.startsWith("<error")) { // <error: <none>>
-            Token tk = ts.token();
-            if (tk.id() == ScalaTokenId.Dot) {
-                // a. where, offset is set to .
-                token = ScalaLexUtilities.findPrevious(ts, ScalaTokenId.Identifier);
-            } else {
-                // a.p where, offset is set to p
-                token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
-            }
-        } else if (name.equals("_")) {
+//        } else if (name.startsWith("<error")) { // <error: <none>>
+//            Token tk = ts.token();
+//            if (tk.id() == ScalaTokenId.Dot) {
+//                // a. where, offset is set to .
+//                token = ScalaLexUtilities.findPrevious(ts, ScalaTokenId.Identifier);
+//            } else {
+//                // a.p where, offset is set to p
+//                token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
+//            }
+        } else if (name.equals("*")) {
             token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Wild);
+        } else if (name.equals("foreach")) {
+            token = ScalaLexUtilities.findNext(ts, ScalaTokenId.Identifier);
+            altToken = token;
+            if (token != null && !token.text().toString().equals("foreach")) {
+                token = ScalaLexUtilities.findNext(ts, ScalaTokenId.LArrow);
+            }
         } else {
+            int end = tree.pos().isDefined() ? tree.pos().endOrPoint() : -1;
             token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
+            int curr = offset + token.length();
+            while (token != null && !token.text().toString().equals(name) && curr <= end) {
+                if (ts.moveNext()) {
+                    token = ScalaLexUtilities.findNextIn(ts, ScalaLexUtilities.PotentialIdTokens);
+                    curr = ts.offset() + token.length();
+                } else {
+                    token = null;
+                }
+            }
+            if (token != null && !token.text().toString().equals(name)) {
+                token = null;
+            }
         }
 
-        if (token.isFlyweight()) {
+        if (token != null && token.isFlyweight()) {
             token = ts.offsetToken();
         }
 
         // root expr is just a container
-        if (!exprs.peek().isRoot()) {
-            exprs.peek().addToken(token);
-        }
+//        if (!exprs.peek().isRoot()) {
+//            exprs.peek().addToken(token);
+//        }
 
         return token;
     }
@@ -575,6 +604,10 @@ public abstract class AstVisitor {
         return endToken;
     }
 
+    protected boolean isNoSymbol(Symbol symbol) {
+        return symbol.toString().equals("<none>");
+    }
+
     protected void info(String message) {
         if (!debug) {
             return;
@@ -597,7 +630,7 @@ public abstract class AstVisitor {
             return;
         }
 
-        Token idToken = getIdToken(tree);
+        Token idToken = getIdToken(tree, "");
         String idTokenStr = idToken == null ? "<null>" : idToken.text().toString();
 
         Symbol symbol = tree.symbol();
@@ -605,6 +638,6 @@ public abstract class AstVisitor {
 
         Position pos = tree.pos();
 
-        System.out.println(getAstPathString() + "(" + offset(pos.line()) + ":" + offset(pos.column()) + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
+        System.out.println(getAstPathString() + "(" + pos.line() + ":" + pos.column() + ")" + ", idToken: " + idTokenStr + ", symbol: " + symbolStr);
     }
 }

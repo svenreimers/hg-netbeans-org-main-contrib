@@ -68,7 +68,7 @@ public abstract class ExtendedAction extends NodeAction {
     protected boolean enable(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
             Project proj = getProjectForNode(node);
-            if ((proj != null) && SeleniumSupport.hasSeleniumDir(proj)) {
+            if ((proj != null) && SeleniumSupport.hasSeleniumDir(proj) && findBuildXml(proj) != null) {
                 return true;
             }
         }
@@ -110,9 +110,6 @@ public abstract class ExtendedAction extends NodeAction {
                     result = result + INCLUDES_DELIMITER + FileUtil.getRelativePath(file, next) + "/*Test.java";
                 }
             }
-        }
-        if (result == null){
-            return "";
         }
         return result;
     }
