@@ -40,7 +40,7 @@ package org.netbeans.modules.scala.editor.ast
 
 import _root_.java.io.File
 import org.netbeans.api.lexer.{Token, TokenId, TokenHierarchy, TokenSequence}
-import org.netbeans.modules.csl.api.ElementKind
+import org.netbeans.modules.csl.api.{ElementKind, Modifier}
 import org.netbeans.modules.parsing.api.Snapshot
 import org.openide.filesystems.{FileObject, FileUtil}
 //import scala.tools.nsc.ast.Trees.Annotated;
@@ -93,12 +93,12 @@ import org.netbeans.api.language.util.ast.{AstItem, AstScope}
 import org.netbeans.modules.scala.editor.ScalaGlobal
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 
-import _root_.scala.tools.nsc.{CompilationUnits, Global}
-import _root_.scala.tools.nsc.ast.Trees
-import _root_.scala.tools.nsc.symtab.{Symbols, SymbolTable}
-import _root_.scala.tools.nsc.symtab.Flags._
-import _root_.scala.tools.nsc.util.{BatchSourceFile, Position, SourceFile}
-import _root_.scala.collection.mutable.{Stack, HashSet}
+import scala.tools.nsc.{CompilationUnits, Global}
+import scala.tools.nsc.ast.Trees
+import scala.tools.nsc.symtab.{Symbols, SymbolTable}
+import scala.tools.nsc.symtab.Flags._
+import scala.tools.nsc.util.{BatchSourceFile, Position, SourceFile}
+import scala.collection.mutable.{Stack, HashSet}
 
 /**
  *
@@ -119,7 +119,6 @@ abstract class ScalaAstVisitor {
   private var debug: Boolean = _
   private var indentLevel: Int = _
   private var astPath: Stack[Tree] = _
-  //private var exprs: Stack[AstExpr] = new Stack
   private var visited: Set[Tree] = _
 
   private var scopes: Stack[AstScope] = _
@@ -155,11 +154,6 @@ abstract class ScalaAstVisitor {
       val rootTree = unit.body
       this.rootScope = ScalaRootScope(getBoundsTokens(getOffset(rootTree), srcFile.length))
       scopes push rootScope
-      //exprs.push(rootScope.getExprContainer());
-      //visit(rootTree)
-      if (debug) {
-        //rootScope.getExprContainer().print();
-      }
       
       (new TreeVisitor) visit unit.body
       rootScope
@@ -264,10 +258,10 @@ abstract class ScalaAstVisitor {
           if (sym hasFlag LOCKED       ) buf.append(" | LOCKED")
 
           val annots = ", annots=" + (
-            if (!sym.annotations.isEmpty)
-            sym.annotations.map(annotationInfoToString).mkString("[", ",", "]")
-            else
-            tree.asInstanceOf[MemberDef].mods.annotations)
+            try {
+              if (!sym.annotations.isEmpty) sym.annotations.map(annotationInfoToString).mkString("[", ",", "]")
+              else tree.asInstanceOf[MemberDef].mods.annotations
+            } catch {case _ => ""})
           (if (buf.length() > 2) buf.substring(3)
            else "0") + ", // flags=" + flagsToString(sym.flags) + annots
         }
@@ -392,8 +386,7 @@ abstract class ScalaAstVisitor {
             else {
               val n = tparams.length
               println("  List( // " + n + " type parameter(s)")
-              for (i <- 0 until n)
-              traverse(tparams(i), level + 2, i < n-1)
+              for (i <- 0 until n) traverse(tparams(i), level + 2, i < n-1)
               println("  ),")
             }
             val n = vparamss.length
@@ -408,6 +401,7 @@ abstract class ScalaAstVisitor {
               }
               println("  ),")
             }
+            traverse(tpt, level, false)
             println("  " + tpt + ",")
             traverse(rhs, level + 1, false)
             printcln(")")
@@ -435,7 +429,7 @@ abstract class ScalaAstVisitor {
             println("ValDef(" + nodeinfo(tree))
             println("  " + symflags(tree))
             println("  \"" + name + "\",")
-            traverse(tpt, level + 1, true) // tpe is usually a TypeTree
+            traverse(tpt, level, false) // tpe is usually a TypeTree
             traverse(rhs, level + 1, false)
             printcln(")")
             scopes pop
@@ -512,7 +506,7 @@ abstract class ScalaAstVisitor {
              */
             def guessMaybeType {
               val qualSym = qualifier.symbol
-              if (qualSym != null && qualSym == NoSymbol && global != null) {
+              if (qualSym != null && qualSym == NoSymbol) {
                 maybeType = global.selectTypeErrors.get(tree)
               }
             }
@@ -692,153 +686,6 @@ abstract class ScalaAstVisitor {
     }
   }
 
-  /*_
-   protected def visit(trees:List[Tree]): Unit = {
-   trees.foreach {
-   case x:Tree => visit(x)
-   case x:Tree => visit(x)
-   case x:List[_] => visit(x)
-   case x:Tuple2[_, _] =>
-   /*
-    System.out.println("Visit Tuple: " + tree + " class=" + tree.getClass().getCanonicalName());
-
-    Object o1 = ((Tuple2) tree)._1();
-    if (o1 != null) {
-    System.out.println("Visit Tuple: " + o1 + " class=" + o1.getClass().getCanonicalName());
-    }
-    Object o2 = ((Tuple2) tree)._2();
-    if (o2 != null) {
-    System.out.println("Visit Tuple: " + o2 + " class=" + o2.getClass().getCanonicalName());
-    }
-    */
-   case x => println("Try to visit unknown: " + x + " class=" + x.getClass.getCanonicalName);
-   }
-   }
-
-   protected def visit(tree:global.Tree): Unit = {
-   if (tree == null) {
-   return
-   }
-
-   if (offset(tree) == -1) {
-   /** It may be EmptyTree, emptyValDef$, or remote TypeTree which presents an inferred Type etc */
-   return
-   }
-
-   /**
-    * @Note: For some reason, or bug in Scala's native compiler, the tree will
-    * be recursively linked to itself via childern. Which causes infinite loop,
-    * We have to avoid this happens:
-    */
-   if (visited.contains(tree)) {
-   //System.out.println("Detected a possible infinite loop of visiting: " + tree);
-   return
-   } else {
-   visited += tree
-   }
-
-   enter(tree)
-   try {
-   if (tree instanceof PackageDef) {
-   visitPackageDef((PackageDef) tree);
-   } else if (tree instanceof ClassDef) {
-   visitClassDef((ClassDef) tree);
-   } else if (tree instanceof ModuleDef) {
-   visitModuleDef((ModuleDef) tree);
-   } else if (tree instanceof ValDef) {
-   visitValDef((ValDef) tree);
-   } else if (tree instanceof DefDef) {
-   visitDefDef((DefDef) tree);
-   } else if (tree instanceof TypeDef) {
-   visitTypeDef((TypeDef) tree);
-   } else if (tree instanceof LabelDef) {
-   visitLabelDef((LabelDef) tree);
-   } else if (tree instanceof Import) {
-   visitImport((Import) tree);
-   //            } else if (tree instanceof Annotation) {
-   //                visitAnnotation((Annotation) tree);
-   } else if (tree instanceof Template) {
-   visitTemplate((Template) tree);
-   } else if (tree instanceof Block) {
-   visitBlock((Block) tree);
-   } else if (tree instanceof Match) {
-   visitMatch((Match) tree);
-   } else if (tree instanceof CaseDef) {
-   visitCaseDef((CaseDef) tree);
-   } else if (tree instanceof Sequence) {
-   visitSequence((Sequence) tree);
-   } else if (tree instanceof Alternative) {
-   visitAlternative((Alternative) tree);
-   } else if (tree instanceof Star) {
-   visitStar((Star) tree);
-   } else if (tree instanceof Bind) {
-   visitBind((Bind) tree);
-   } else if (tree instanceof UnApply) {
-   visitUnApply((UnApply) tree);
-   } else if (tree instanceof ArrayValue) {
-   visitArrayValue((ArrayValue) tree);
-   } else if (tree instanceof Function) {
-   visitFunction((Function) tree);
-   } else if (tree instanceof Assign) {
-   visitAssign((Assign) tree);
-   } else if (tree instanceof If) {
-   visitIf((If) tree);
-   } else if (tree instanceof Return) {
-   visitReturn((Return) tree);
-   } else if (tree instanceof Try) {
-   visitTry((Try) tree);
-   } else if (tree instanceof Throw) {
-   visitThrow((Throw) tree);
-   } else if (tree instanceof New) {
-   visitNew((New) tree);
-   } else if (tree instanceof Typed) {
-   visitTyped((Typed) tree);
-   } else if (tree instanceof TypeApply) {
-   visitTypeApply((TypeApply) tree);
-   } else if (tree instanceof Apply) {
-   visitApply((Apply) tree);
-   } else if (tree instanceof ApplyDynamic) {
-   visitApplyDynamic((ApplyDynamic) tree);
-   } else if (tree instanceof Super) {
-   visitSuper((Super) tree);
-   } else if (tree instanceof This) {
-   visitThis((This) tree);
-   } else if (tree instanceof Select) {
-   visitSelect((Select) tree);
-   } else if (tree instanceof Ident) {
-   visitIdent((Ident) tree);
-   } else if (tree instanceof Literal) {
-   visitLiteral((Literal) tree);
-   } else if (tree instanceof TypeTree) {
-   visitTypeTree((TypeTree) tree);
-   } else if (tree instanceof Annotated) {
-   visitAnnotated((Annotated) tree);
-   } else if (tree instanceof SingletonTypeTree) {
-   visitSingletonTypeTree((SingletonTypeTree) tree);
-   } else if (tree instanceof SelectFromTypeTree) {
-   visitSelectFromTypeTree((SelectFromTypeTree) tree);
-   } else if (tree instanceof CompoundTypeTree) {
-   visitCompoundTypeTree((CompoundTypeTree) tree);
-   } else if (tree instanceof AppliedTypeTree) {
-   visitAppliedTypeTree((AppliedTypeTree) tree);
-   } else if (tree instanceof TypeBoundsTree) {
-   visitTypeBoundsTree((TypeBoundsTree) tree);
-   } else if (tree instanceof ExistentialTypeTree) {
-   visitExistentialTypeTree((ExistentialTypeTree) tree);
-   } else if (tree instanceof StubTree) {
-   visitStubTree((StubTree) tree);
-   } else if (tree instanceof DocDef) {
-   visitDocDef((DocDef) tree)
-   } else {
-   println("Visit Unknow tree: " + tree + " class=" + tree.getClass.getCanonicalName)
-   }
-   } catch {
-   case ex:Throwable => println("Exception when visit tree: " + tree + "\n" + ex.getMessage)
-   }
-   exit(tree)
-   }
-   */
-  
   // ---- Helper methods
   protected def getCurrentParent: Tree = {
     assert(astPath.size >= 2)
@@ -916,7 +763,7 @@ abstract class ScalaAstVisitor {
       case _ if name == "this"  => ScalaLexUtil.findNext(ts, ScalaTokenId.This)
       case _ if name == "super" => ScalaLexUtil.findNext(ts, ScalaTokenId.Super)
       case _ if name == "expected" => ts.token
-      case _ if name == "*" => ScalaLexUtil.findNext(ts, ScalaTokenId.Wild)
+      case _ if name == "_" => ScalaLexUtil.findNext(ts, ScalaTokenId.Wild)
         //      case (_, _) if name.startsWith("<error") => ts.token.id match {
         //          case ScalaTokenId.Dot =>
         //            // a. where, offset is at .
@@ -925,6 +772,14 @@ abstract class ScalaAstVisitor {
         //            // a.p where, offset is at p
         //            ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
         //        }
+      case Select(qual, selector) if sym hasFlag IMPLICIT =>
+        // * for Select tree that is implicit call, will look forward for the nearest item, it will be added
+        rootScope.findNeastItemAt(th, offset) match {
+          case Some(x) => x.kind = ElementKind.RULE
+          case _ =>
+        }
+        null
+        
       case Select(qual, selector) if endOffset > 0 =>
         // * for Select tree, will look backward from endOffset
         //val chars = srcFile.content.subSequence(offset, endOffset)
@@ -965,7 +820,7 @@ abstract class ScalaAstVisitor {
       token = if (ts.moveNext) {
         ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
       } else null
-      curr = ts.offset + token.length
+      if (token != null) curr = ts.offset + token.length
     }
 
     if (token != null && tokenNameEquals(token, name)) {
@@ -982,7 +837,7 @@ abstract class ScalaAstVisitor {
       token = if (ts.movePrevious) {
         ScalaLexUtil.findPreviousIn(ts, ScalaLexUtil.PotentialIdTokens)
       } else null
-      curr = ts.offset
+      if (token != null) curr = ts.offset
     }
 
     if (token != null && tokenNameEquals(token, name)) {
@@ -994,7 +849,8 @@ abstract class ScalaAstVisitor {
     val text = token.text.toString.trim
     token.id match {
       case ScalaTokenId.SymbolLiteral => text.substring(1, text.length - 1) == name // strip '`'
-      case ScalaTokenId.LArrow => name == "foreach" | name == "map"
+      case ScalaTokenId.LArrow => name == "foreach" || name == "map"
+      case _ if name.endsWith("_=") => text + "_=" == name
       case _ => text == name
     }
   }

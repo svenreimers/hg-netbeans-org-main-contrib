@@ -42,9 +42,9 @@ package org.netbeans.modules.scala.editor
 import javax.swing.text.Document
 import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenId}
 import org.netbeans.api.language.util.ast.{AstDfn, AstRef, AstItem}
-import org.netbeans.modules.csl.api.{ElementKind, ColoringAttributes, OffsetRange, SemanticAnalyzer}
+import org.netbeans.modules.csl.api.{ElementKind, Modifier, ColoringAttributes, OffsetRange, SemanticAnalyzer}
 import org.netbeans.modules.parsing.spi.{Parser, Scheduler, SchedulerEvent}
-import org.netbeans.modules.scala.editor.ast.{ScalaRootScope}
+import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRefs, ScalaRootScope}
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 
 /**
@@ -127,7 +127,10 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
     } else null
   }
 
-  val IMPLICIT_METHOD = Set(ColoringAttributes.INTERFACE)
+  val DEPRECATED = new _root_.java.util.HashSet[ColoringAttributes]
+  DEPRECATED.add(ColoringAttributes.DEPRECATED)
+  val IMPLICIT = new _root_.java.util.HashSet[ColoringAttributes]
+  IMPLICIT.add(ColoringAttributes.INTERFACE)
 
   private def visitItems(th: TokenHierarchy[_], rootScope: ScalaRootScope,
                          highlights: _root_.java.util.Map[OffsetRange, _root_.java.util.Set[ColoringAttributes]]): Unit =
@@ -143,7 +146,7 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
         case ScalaTokenId.Identifier | ScalaTokenId.This | ScalaTokenId.Super =>
           val hiRange = ScalaLexUtil.getRangeOfToken(th, idToken)
           item match {
-            case dfn: ScalaGlobal#ScalaDfn =>
+            case dfn: ScalaDfns#ScalaDfn =>
               dfn.getKind match {
                 case ElementKind.MODULE =>
                   highlights.put(hiRange, ColoringAttributes.CLASS_SET)
@@ -155,7 +158,7 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
                   //                    highlights.put(idRange, ColoringAttributes.FIELD_SET);
                 case _ =>
               }
-            case ref: ScalaGlobal#ScalaRef => ref.getKind match {
+            case ref: ScalaRefs#ScalaRef => ref.getKind match {
                 case ElementKind.CLASS =>
                   highlights.put(hiRange, ColoringAttributes.STATIC_SET)
                 case ElementKind.MODULE =>
@@ -179,9 +182,13 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
                   }
                 case ElementKind.RULE =>
                   // * implicit call
-                  highlights.put(hiRange, ColoringAttributes.UNUSED_SET) 
+                  highlights.put(hiRange, IMPLICIT)
                 case _ =>
               }
+          }
+          
+          if (item.getModifiers.contains(Modifier.DEPRECATED)) {
+            highlights.put(hiRange, DEPRECATED)
           }
         case _ =>
       }

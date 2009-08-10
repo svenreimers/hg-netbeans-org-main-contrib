@@ -37,30 +37,8 @@
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.scanondemand;
+package org.netbeans.modules.scala.editor.actions
 
-import java.util.logging.Logger;
-import org.netbeans.modules.parsing.impl.indexing.friendapi.IndexingActivityInterceptor;
-import org.openide.filesystems.FileEvent;
+import javax.swing.Icon
 
-/**
- * Used to intercept indexing when event is not expected.
- *
- * @author Pavel Flaska
- */
-@org.openide.util.lookup.ServiceProvider(service=IndexingActivityInterceptor.class)
-public class NoIndexingActivity implements IndexingActivityInterceptor {
-    
-    public static final Logger LOG = Logger.getLogger(NoIndexingActivity.class.getName());
-
-    @Override
-    public Authorization authorizeFileSystemEvent(FileEvent event) {
-        if (event.isExpected()) {
-            LOG.finest("Process file event " + event.getFile().getName());
-            return Authorization.PROCESS;
-        } else {
-            LOG.finest("Ignore file event " + event.getFile().getName());
-            return Authorization.IGNORE;
-        }
-    }
-}
+case class ImportCandidate(name: String, fqnName: String, icon: Icon, importantsLevel: Int) {}

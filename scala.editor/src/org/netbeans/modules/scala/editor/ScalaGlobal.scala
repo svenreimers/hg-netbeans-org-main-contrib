@@ -57,10 +57,11 @@ import org.netbeans.api.language.util.ast.{AstScope}
 import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRefs, ScalaRootScope, ScalaAstVisitor, ScalaUtils}
 import org.netbeans.modules.scala.editor.element.{ScalaElements}
 
-import _root_.scala.tools.nsc.{Phase, Settings}
-import _root_.scala.tools.nsc.interactive.Global
-import _root_.scala.tools.nsc.symtab.{SymbolTable}
-import _root_.scala.tools.nsc.util.BatchSourceFile
+import scala.tools.nsc.{Phase, Settings}
+import scala.tools.nsc.interactive.Global
+import scala.tools.nsc.symtab.{SymbolTable}
+import scala.tools.nsc.util.BatchSourceFile
+import scala.tools.nsc.io.AbstractFile
 
 /**
  *
@@ -68,10 +69,25 @@ import _root_.scala.tools.nsc.util.BatchSourceFile
  */
 object ScalaGlobal {
   private class SrcOutDirs {
-    var srcDir: FileObject = _
-    var outDir: FileObject = _
-    var testSrcDir: FileObject = _
-    var testOutDir: FileObject = _
+    var srcOutDirs: Map[FileObject, FileObject] = Map()
+    var testSrcOutDirs: Map[FileObject, FileObject] = Map()
+
+    def srcOutDirsPath = toDirPaths(srcOutDirs)
+    def testSrcOutDirsPath = toDirPaths(testSrcOutDirs)
+
+    def scalaSrcOutDirs: Map[AbstractFile, AbstractFile] = toScalaDirs(srcOutDirs)
+    def scalaTestSrcOutDirs: Map[AbstractFile, AbstractFile] = toScalaDirs(testSrcOutDirs)
+
+    private def toDirPaths(dirs: Map[FileObject, FileObject]): Map[String, String] = {
+      for ((src, out) <- dirs) yield (toDirPath(src), toDirPath(out))
+    }
+
+    private def toScalaDirs(dirs: Map[FileObject, FileObject]): Map[AbstractFile, AbstractFile] = {
+      for ((src, out) <- dirs) yield (toScalaDir(src), toScalaDir(out))
+    }
+
+    private def toDirPath(fo: FileObject) = FileUtil.toFile(fo).getAbsolutePath
+    private def toScalaDir(fo: FileObject) = AbstractFile.getDirectory(FileUtil.toFile(fo))
   }
 
   private val debug = false
@@ -84,13 +100,17 @@ object ScalaGlobal {
   private val ProjectToDirs = new WeakHashMap[Project, Reference[SrcOutDirs]]
   private val ProjectToGlobal = new WeakHashMap[Project, Reference[ScalaGlobal]]
   private val ProjectToGlobalForTest = new WeakHashMap[Project, Reference[ScalaGlobal]]
-  private var GlobalForStdLid: Option[ScalaGlobal] = None
+  private var GlobalForStdLib: Option[ScalaGlobal] = None
 
-  def reset {
+  def resetAll {
     ProjectToGlobal.clear
-    GlobalForStdLid = None
+    GlobalForStdLib = None
   }
 
+  def reset(global: Global) {
+    ProjectToGlobal.remove(global)
+    if (global == GlobalForStdLib) GlobalForStdLib = None
+  }
 
   /**
    * Scala's global is not thread safed
@@ -104,10 +124,10 @@ object ScalaGlobal {
     val project = FileOwnerQuery.getOwner(fo)
     if (project == null) {
       // it may be a standalone file, or file in standard lib
-      return GlobalForStdLid match {
+      return GlobalForStdLib match {
         case None =>
           val g = ScalaHome.getGlobalForStdLib
-          GlobalForStdLid = Some(g)
+          GlobalForStdLib = Some(g)
           g
         case Some(x) => x
       }
@@ -115,41 +135,29 @@ object ScalaGlobal {
 
     val dirs = ProjectToDirs.get(project) match {
       case null =>
-        val dirsx = findDirsInfo(project);
+        val dirsx = findDirResouces(project)
         ProjectToDirs.put(project, new WeakReference(dirsx))
         dirsx
       case ref =>
         ref.get match {
           case null =>
-            val dirsx = findDirsInfo(project);
+            val dirsx = findDirResouces(project)
             ProjectToDirs.put(project, new WeakReference(dirsx))
             dirsx
           case x => x
         }
     }
-    // is fo under test source?
-    val forTest = if (dirs.testSrcDir != null && (dirs.testSrcDir.equals(fo) ||
-                                                  FileUtil.isParentOf(dirs.testSrcDir, fo))) {
-      true
-    } else {
-      false
-    }
 
-    // Do not use srcCp as the key, different fo under same src dir seems returning diff instance of srcCp
+    // * is this `fo` under test source?
+    val forTest = dirs.testSrcOutDirs.find{case (src, _) => src.equals(fo) || FileUtil.isParentOf(src, fo)}.isDefined
+
+    // * Do not use srcCp as the key, different fo under same src dir seems returning diff instance of srcCp
     val globalRef = if (forTest) ProjectToGlobalForTest.get(project) else ProjectToGlobal.get(project)
     if (globalRef != null) {
       globalRef.get match {
         case null =>
         case global => return global
       }
-    }
-
-    val (srcPath, outPath) = if (forTest) {
-      (if (dirs.testSrcDir == null) "" else FileUtil.toFile(dirs.testSrcDir).getAbsolutePath,
-       if (dirs.testOutDir == null) "" else FileUtil.toFile(dirs.testOutDir).getAbsolutePath)
-    } else {
-      (if (dirs.srcDir == null) "" else FileUtil.toFile(dirs.srcDir).getAbsolutePath,
-       if (dirs.outDir == null) "" else FileUtil.toFile(dirs.outDir).getAbsolutePath)
     }
 
     val settings = new Settings
@@ -160,19 +168,37 @@ object ScalaGlobal {
       settings.verbose.value = false
     }
 
-    settings.sourcepath.tryToSet(List(srcPath))
-    //settings.outdir().tryToSet(scala.netbeans.Wrapper$.MODULE$.stringList(new String[]{"-d", outPath}));
+    var outPath = ""
+    var srcPaths: List[String] = Nil
+    for ((src, out) <- if (forTest) dirs.testSrcOutDirsPath else dirs.srcOutDirsPath) {
+      srcPaths = src :: srcPaths
+      if (outPath == "") {
+        outPath = out
+      }
+    }
+    settings.sourcepath.tryToSet(srcPaths.reverse)
     settings.outputDirs.setSingleOutput(outPath)
 
-    // add boot, compile classpath
+    /** @Note: settings.outputDirs.add(src, out) seems cannot resolve symbols in other source files, why? */
+    /*_
+     for ((src, out) <- if (forTest) dirs.scalaTestSrcOutDirs else dirs.scalaSrcOutDirs) {
+     settings.outputDirs.add(src, out)
+     }
+     */
+
+    // * add boot, compile classpath
     val cpp = project.getLookup.lookup(classOf[ClassPathProvider])
-    var (bootCp, compCp): (ClassPath, ClassPath) = if (cpp != null) {
-      (cpp.findClassPath(fo, ClassPath.BOOT), cpp.findClassPath(fo, ClassPath.COMPILE))
-    } else (null, null)
+    var (bootCp, compCp, srcCp): (ClassPath, ClassPath, ClassPath) = if (cpp != null) {
+      (cpp.findClassPath(fo, ClassPath.BOOT), 
+       cpp.findClassPath(fo, ClassPath.COMPILE),
+       cpp.findClassPath(fo, ClassPath.SOURCE))
+    } else (null, null, null)
+
+    if (srcCp != null) println("project's srcDir: [" + srcCp.getRoots.mkString(", ") + "]") else println("project's srcDir is empty !")
 
     var inStdLib = false
     if (bootCp == null || compCp == null) {
-      // in case of fo in standard libaray
+      // * in case of `fo` in standard libaray
       inStdLib = true
       bootCp = ClassPath.getClassPath(fo, ClassPath.BOOT)
       compCp = ClassPath.getClassPath(fo, ClassPath.COMPILE)
@@ -184,17 +210,22 @@ object ScalaGlobal {
 
     sb.delete(0, sb.length)
     computeClassPath(project, sb, compCp)
-    if (forTest && !inStdLib && dirs.outDir != null) {
-      sb.append(File.pathSeparator).append(dirs.outDir)
+    if (forTest && !inStdLib) {
+      var visited = Set[FileObject]()
+      for ((src, out) <- dirs.srcOutDirs if !visited.contains(out)) {
+        sb.append(File.pathSeparator).append(out)
+        visited += out
+      }
     }
     settings.classpath.tryToSet(List(sb.toString))
 
     val global = new ScalaGlobal(settings)
 
     if (forTest) {
-      ProjectToGlobalForTest.put(project, new WeakReference[ScalaGlobal](global))
-      if (dirs.testOutDir != null) {
-        dirs.testOutDir.addFileChangeListener(new FileChangeAdapter {
+      ProjectToGlobalForTest.put(project, new WeakReference(global))
+      var visited = Set[FileObject]()
+      for ((src, out) <- dirs.testSrcOutDirs if !visited.contains(out)) {
+        out.addFileChangeListener(new FileChangeAdapter {
 
             override def fileChanged(fe: FileEvent): Unit = {
               ProjectToGlobalForTest.remove(project)
@@ -207,17 +238,20 @@ object ScalaGlobal {
             }
 
             override def fileDeleted(fe: FileEvent): Unit = {
-              // maybe a clean task invoked
+              // * maybe a clean task invoked
               ProjectToGlobalForTest.remove(project)
               ProjectToDirs.remove(project)
             }
           })
+
+        visited += out
       }
 
-      if (dirs.outDir != null) {
-        // monitor outDir's changes,
+      visited = Set[FileObject]()
+      for ((src, out) <- dirs.srcOutDirs if !visited.contains(out)) {
+        // * monitor outDir's changes,
         /** @Todo should reset global for any changes under out dir, including subdirs */
-        dirs.outDir.addFileChangeListener(new FileChangeAdapter {
+        out.addFileChangeListener(new FileChangeAdapter {
 
             override def fileChanged(fe: FileEvent): Unit = {
               ProjectToGlobalForTest.remove(project)
@@ -234,11 +268,14 @@ object ScalaGlobal {
               ProjectToDirs.remove(project)
             }
           })
+
+        visited += out
       }
     } else {
       ProjectToGlobal.put(project, new WeakReference(global))
-      if (dirs.outDir != null) {
-        dirs.outDir.addFileChangeListener(new FileChangeAdapter {
+      var visited = Set[FileObject]()
+      for ((src, out) <- dirs.srcOutDirs if !visited.contains(out)) {
+        out.addFileChangeListener(new FileChangeAdapter {
 
             override def fileChanged(fe: FileEvent): Unit = {
               ProjectToGlobal.remove(project)
@@ -256,34 +293,40 @@ object ScalaGlobal {
               ProjectToDirs.remove(project)
             }
           })
+        
+        visited += out
       }
     }
     
     global
   }
 
-  private def findDirsInfo(project: Project): SrcOutDirs = {
+  private def findDirResouces(project: Project): SrcOutDirs = {
     val dirs = new SrcOutDirs
 
-    val sgs = ProjectUtils.getSources(project).getSourceGroups(SOURCES_TYPE_SCALA) match {
-      case Array() =>
-        // as a fallback use java ones..
-        ProjectUtils.getSources(project).getSourceGroups(SOURCES_TYPE_JAVA)
-      case x => x
-    }
+    val sources = ProjectUtils.getSources(project)
+    val scalaSgs = sources.getSourceGroups(SOURCES_TYPE_SCALA)
+    val javaSgs = sources.getSourceGroups(SOURCES_TYPE_JAVA)
 
-    sgs match {
-      case Array(src) =>
-        dirs.srcDir = src.getRootFolder
-        dirs.outDir = findOutDir(project, dirs.srcDir)
-      case Array(src, test, _*) =>
-        dirs.srcDir = src.getRootFolder
-        dirs.outDir = findOutDir(project, dirs.srcDir)
-        dirs.testSrcDir = test.getRootFolder
-        dirs.testOutDir = findOutDir(project, dirs.testSrcDir)
-      case _ =>
-    }
+    println("project's src group[Scala] dir: [" + scalaSgs.map{_.getRootFolder}.mkString(", ") + "]")
+    println("project's src group[Java] dir: [" + javaSgs.map{_.getRootFolder}.mkString(", ") + "]")
 
+    List(scalaSgs, javaSgs) foreach {sgs =>
+      if (sgs.size > 0) {
+        val src = sgs(0).getRootFolder
+        val out = findOutDir(project, src)
+        dirs.srcOutDirs += (src -> out)
+      }
+
+      if (sgs.size > 1) { // the 2nd one is test src
+        val src = sgs(1).getRootFolder
+        val out = findOutDir(project, src)
+        dirs.testSrcOutDirs += (src -> out)
+      }
+
+      // @todo add other srcs
+    }
+    
     dirs
   }
 
@@ -439,11 +482,12 @@ with ScalaUtils {
       run.compileSources(srcFiles)
     } catch {
       case ex: AssertionError =>
-        /**@Note: avoid scala nsc's assert error. Since global's
+        /**
+         * @Note: avoid scala nsc's assert error. Since global's
          * symbol table may have been broken, we have to reset ScalaGlobal
          * to clean this global
          */
-        ScalaGlobal.reset
+        ScalaGlobal.reset(this)
       case ex: _root_.java.lang.Error => // avoid scala nsc's Error error
       case ex: Throwable => // just ignore all ex
     }
