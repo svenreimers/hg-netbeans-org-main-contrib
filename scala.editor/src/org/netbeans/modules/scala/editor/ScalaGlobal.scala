@@ -63,8 +63,7 @@ import scala.tools.nsc.{Phase, Settings}
 import scala.tools.nsc.interactive.Global
 import scala.tools.nsc.symtab.{SymbolTable}
 import scala.tools.nsc.io.AbstractFile
-import scala.tools.nsc.reporters.ConsoleReporter
-import scala.tools.nsc.reporters.Reporter
+import scala.tools.nsc.reporters.{Reporter}
 import scala.tools.nsc.util.{Position, SourceFile}
 
 /**
@@ -448,9 +447,7 @@ object ScalaGlobal {
             case null => projectDir.createFolder(tmpClasses)
             case x => x
           }
-        } catch {
-          case ex: IOException => Exceptions.printStackTrace(ex)
-        }
+        } catch {case ex: IOException => Exceptions.printStackTrace(ex)}
       }
     }
 
@@ -472,9 +469,7 @@ object ScalaGlobal {
             case _ => FileUtil.toFile(entryRoot)
           }
         } else null
-      } catch {
-        case ex:FileStateInvalidException => Exceptions.printStackTrace(ex); null
-      }
+      } catch {case ex:FileStateInvalidException => Exceptions.printStackTrace(ex); null}
 
       if (rootFile != null) {
         FileUtil.toFileObject(rootFile).addFileChangeListener(new FileChangeAdapter {
@@ -577,9 +572,7 @@ class ScalaGlobal(settings: Settings) extends Global(settings, null)
       case ex: Throwable => // just ignore all ex
     }
 
-    if (ScalaGlobal.debug) {
-      println("selectTypeErrors:" + selectTypeErrors)
-    }
+    //println("selectTypeErrors:" + selectTypeErrors)
 
     val units = run.units
     while (units.hasNext) {
