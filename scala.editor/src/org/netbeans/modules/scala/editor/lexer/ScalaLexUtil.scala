@@ -40,8 +40,7 @@
  */
 package org.netbeans.modules.scala.editor.lexer
 
-import _root_.java.io.IOException
-import _root_.java.util.{ArrayList, Arrays, Collections, HashSet, LinkedList, Stack}
+import java.io.IOException
 import javax.swing.text.{BadLocationException, Document}
 
 import org.netbeans.modules.csl.api.OffsetRange
@@ -53,10 +52,7 @@ import org.openide.filesystems.{FileObject, FileUtil}
 import org.openide.loaders.{DataObject, DataObjectNotFoundException}
 import org.openide.util.Exceptions
 
-//import org.netbeans.modules.scala.editor.nodes.AstNode;
-import org.netbeans.modules.scala.editor.lexer.ScalaTokenId._
-
-import _root_.scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuffer
 
 import org.netbeans.api.language.util.lex.LexUtil
 
@@ -127,6 +123,26 @@ object ScalaLexUtil extends LexUtil {
   override val LPAREN: TokenId = ScalaTokenId.LParen
   override val RPAREN: TokenId = ScalaTokenId.RParen
 
+  val PotentialIdTokens: Set[TokenId] = Set(ScalaTokenId.Identifier,
+                                            ScalaTokenId.True,
+                                            ScalaTokenId.False,
+                                            ScalaTokenId.Null,
+                                            ScalaTokenId.SymbolLiteral,
+                                            ScalaTokenId.IntegerLiteral,
+                                            ScalaTokenId.FloatingPointLiteral,
+                                            ScalaTokenId.StringLiteral,
+                                            ScalaTokenId.CharacterLiteral,
+                                            ScalaTokenId.XmlAttName,
+                                            ScalaTokenId.XmlAttValue,
+                                            ScalaTokenId.XmlCDData,
+                                            ScalaTokenId.XmlCDEnd,
+                                            ScalaTokenId.XmlComment,
+                                            ScalaTokenId.XmlSTagName,
+                                            ScalaTokenId.XmlSTagName,
+                                            ScalaTokenId.XmlCharData,
+                                            ScalaTokenId.LArrow
+  )
+
   override def getDocCommentRangeBefore(th: TokenHierarchy[_], lexOffset: Int): OffsetRange = {
     val ts = getTokenSequence(th, lexOffset) match {
       case Some(x) => x
@@ -163,10 +179,10 @@ object ScalaLexUtil extends LexUtil {
     val token = ts.token
     var id = token.id
     id match {
-      case Else =>
+      case ScalaTokenId.Else =>
         ts.moveNext
         id = ts.token.id
-      case If | For | While =>
+      case ScalaTokenId.If | ScalaTokenId.For | ScalaTokenId.While =>
         ts.moveNext
         if (!skipParenthesis(ts, false)) {
           return OffsetRange.NONE
@@ -205,26 +221,6 @@ object ScalaLexUtil extends LexUtil {
     offsetRange
   }
 
-  val PotentialIdTokens: Set[TokenId] = Set(ScalaTokenId.Identifier,
-                                            ScalaTokenId.True,
-                                            ScalaTokenId.False,
-                                            ScalaTokenId.Null,
-                                            ScalaTokenId.SymbolLiteral,
-                                            ScalaTokenId.IntegerLiteral,
-                                            ScalaTokenId.FloatingPointLiteral,
-                                            ScalaTokenId.StringLiteral,
-                                            ScalaTokenId.CharacterLiteral,
-                                            ScalaTokenId.XmlAttName,
-                                            ScalaTokenId.XmlAttValue,
-                                            ScalaTokenId.XmlCDData,
-                                            ScalaTokenId.XmlCDEnd,
-                                            ScalaTokenId.XmlComment,
-                                            ScalaTokenId.XmlSTagName,
-                                            ScalaTokenId.XmlSTagName,
-                                            ScalaTokenId.XmlCharData,
-                                            ScalaTokenId.LArrow
-  )
-
   /** Some AstItems have Xml Nl etc type of idToken, here we just pick following as proper one */
   def isProperIdToken(id: TokenId): Boolean = {
     id match {
@@ -233,7 +229,7 @@ object ScalaLexUtil extends LexUtil {
     }
   }
 
-  def findImportPrefix(th: TokenHierarchy[_], lexOffset: Int): List[Token[_ <: TokenId]] = {
+  def findImportPrefix(th: TokenHierarchy[_], lexOffset: Int): List[Token[TokenId]] = {
     val ts = getTokenSequence(th, lexOffset) match {
       case Some(x) => x
       case None => return Nil
@@ -243,14 +239,14 @@ object ScalaLexUtil extends LexUtil {
     var lbraceMet = false
     var lbraceExpected = false
     var extractBehindComma = false
-    val paths = new ArrayBuffer[Token[_ <: TokenId]]
+    var paths = new ArrayBuffer[Token[TokenId]]
     while (ts.isValid && ts.movePrevious) {
       val token = ts.token
       token.id match {
         case ScalaTokenId.Import =>
           if (!lbraceExpected || lbraceExpected && lbraceMet) {
-            paths.reverse
-            return paths.toList
+            // * since we are looking backward, should reverse the final result
+            return paths.reverse.toList
           }
         case ScalaTokenId.Dot =>
           paths += token
@@ -258,12 +254,12 @@ object ScalaLexUtil extends LexUtil {
           paths += token
         case ScalaTokenId.LBrace =>
           if (lbraceMet) {
-            // we can only meet LBrace once
+            // * we can only meet LBrace one time
             return Nil
           }
           lbraceMet = true
-          if (paths.size > 0) {
-            // keep first met id token only
+          if (!paths.isEmpty) {
+            // * keep first met idToken only
             val idToken = paths(0)
             paths.clear
             if (!extractBehindComma) {
@@ -281,6 +277,18 @@ object ScalaLexUtil extends LexUtil {
     }
 
     Nil
+  }
+
+  /** @Require: move ts to `else` token first */
+  def findMatchedIfOfElse(ts: TokenSequence[_]) = {
+    assert(ts.token.id == ScalaTokenId.Else, "Should move TokenSequence to `else` token first!")
+
+    while (ts.movePrevious) {
+      ts.token.id match {
+        case ScalaTokenId.If =>
+        
+      }
+    }
   }
 }
 

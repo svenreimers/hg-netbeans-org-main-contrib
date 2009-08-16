@@ -102,6 +102,11 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
     }
   }
 
+  /** replaced by ScalaBracesMatcher#findMatching */
+  override def findMatching(document: Document, aoffset: Int /*, boolean simpleSearch*/): OffsetRange = {
+    OffsetRange.NONE
+  }
+
   @throws(classOf[BadLocationException])
   override def beforeBreak(document: Document, aoffset: Int, target: JTextComponent): Int = {
     var offset = aoffset
@@ -133,7 +138,7 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
     val token = ts.token
     var id = token.id
 
-    // Insert an end statement? Insert a } marker?
+    // Insert an `end` statement? Insert a `}` marker?
     val insertEndResult = Array(false)
     val insertRBraceResult = Array(false)
     val indentResult = Array(1)
@@ -144,18 +149,18 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
       val insertRBrace = insertRBraceResult(0)
       val indent = indentResult(0)
 
-      val afterLastNonWhite = Utilities.getRowLastNonWhite(doc, offset)
+      val offsetLastNonWhite = Utilities.getRowLastNonWhite(doc, offset)
 
       // We've either encountered a further indented line, or a line that doesn't
       // look like the end we're after, so insert a matching end.
       val sb = new StringBuilder
-      if (offset > afterLastNonWhite) {
+      if (offset > offsetLastNonWhite) {
         sb.append("\n") // XXX On Windows, do \r\n?
         sb.append(IndentUtils.createIndentString(doc, indent))
       } else {
         // I'm inserting a newline in the middle of a sentence, such as the scenario in #118656
         // I should insert the end AFTER the text on the line
-        val restOfLine = doc.getText(offset, Utilities.getRowEnd(doc, afterLastNonWhite) - offset)
+        val restOfLine = doc.getText(offset, Utilities.getRowEnd(doc, offsetLastNonWhite) - offset)
         sb.append(restOfLine)
         sb.append("\n")
         sb.append(IndentUtils.createIndentString(doc, indent))
@@ -482,7 +487,7 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
       startOffsetResult(0) = Utilities.getRowFirstNonWhite(doc, offset)
     }
 
-    val beginEndBalance = ScalaLexUtil.getBeginEndLineBalance(doc, offset, true);
+    val beginEndBalance = ScalaLexUtil.getBeginEndLineBalance(doc, offset, true)
     val braceBalance = ScalaLexUtil.getLineBalance(doc, offset, ScalaTokenId.LBrace, ScalaTokenId.RBrace)
 
     /** Do not try to guess the condition when offset is before the unbalanced brace */
@@ -497,7 +502,6 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
       var insertRBrace = braceBalance.size > 0
       var next = Utilities.getRowEnd(doc, offset) + 1
       while (next < length) {
-        //for (; next < length; next = Utilities.getRowEnd(doc, next) + 1) {
         if (Utilities.isRowEmpty(doc, next) || Utilities.isRowWhite(doc, next) ||
             ScalaLexUtil.isCommentOnlyLine(doc, next)) {
         } else {
@@ -539,27 +543,23 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
         indentResult(0) = indent
       }
 
-      return insertEnd || insertRBrace
-    }
-
-    false
+      insertEnd || insertRBrace
+    } else false
   }
 
   @throws(classOf[BadLocationException])
-  override def beforeCharInserted(document: Document, acaretOffset: Int, target: JTextComponent, ch: char): Boolean = {
-    var caretOffset = acaretOffset
-    isAfter = false
-    val caret = target.getCaret
+  override def beforeCharInserted(document: Document, acaretOffset: Int, target: JTextComponent, c: char): Boolean = {
     val doc =  document.asInstanceOf[BaseDocument]
-
     if (!isInsertMatchingEnabled(doc)) {
       return false
     }
-
-    //dumpTokens(doc, caretOffset);
+    
+    var caretOffset = acaretOffset
+    isAfter = false
+    val caret = target.getCaret
 
     if (target.getSelectionStart != -1) {
-      val isCodeTemplateEditing = false // GsfUtilities.isCodeTemplateEditing(doc)
+      val isCodeTemplateEditing = GsfUtilities.isCodeTemplateEditing(doc)
       if (isCodeTemplateEditing) {
         val start = target.getSelectionStart
         val end = target.getSelectionEnd
@@ -570,37 +570,45 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
           caret.setDot(caretOffset)
           doc.remove(start, end - start)
         }
-        // Fall through to do normal insert matching work
-      } else if (ch == '"' || ch == '\'' || ch == '(' || ch == '{' || ch == '[' || ch == '/') {
-        // Bracket the selection
-        val selection = target.getSelectedText
-        if (selection != null && selection.length > 0) {
-          val firstChar = selection.charAt(0)
-          if (firstChar != ch) {
-            val start = target.getSelectionStart
-            val end = target.getSelectionEnd
-            ScalaLexUtil.getPositionedSequence(doc, start) foreach {
-              case ts if ts.token.id != ScalaTokenId.StringLiteral =>
-                // Not inside strings!
-                var lastChar = selection.charAt(selection.length - 1)
-                // Replace the surround-with chars?
-                firstChar match {
-                  case '"' | '\'' | '(' | '{' | '[' |  '/' if selection.length > 1 && lastChar == matching(firstChar) =>
-                    doc.remove(end - 1, 1)
-                    doc.insertString(end - 1, "" + matching(ch), null)
-                    doc.remove(start, 1)
-                    doc.insertString(start, "" + ch, null)
-                    target.getCaret.setDot(end)
+      } else { // Fall through to do normal insert matching work
+        c match {
+          case '"' | '\'' | '`' | '(' | '{' | '[' | '/' =>
+            // Bracket the selection
+            val selection = target.getSelectedText
+            if (selection != null && selection.length > 0) {
+              val firstChar = selection.charAt(0)
+              if (firstChar != c) {
+                val start = target.getSelectionStart
+                val end = target.getSelectionEnd
+                ScalaLexUtil.getPositionedSequence(doc, start) foreach {
+                  case ts if ts.token.id != ScalaTokenId.StringLiteral =>
+                    // * Not inside strings!
+                    val lastChar = selection.charAt(selection.length - 1)
+                    // * Replace the surround-with chars?
+                    firstChar match {
+                      case '"' | '\'' | '`' | '(' | '{' | '[' | '/' if selection.length > 1 && lastChar == matching(firstChar) =>
+                        doc.remove(end - 1, 1)
+                        doc.insertString(end - 1, "" + matching(c), null)
+                        doc.remove(start, 1)
+                        doc.insertString(start, "" + c, null)
+                        target.getCaret.setDot(end)
+                      case _ if c == '/' =>
+                        // * No, insert around with /* */
+                        doc.remove(start, end - start)
+                        doc.insertString(start, "/* " + selection + " */", null)
+                        target.getCaret.setDot(start + selection.length + 6)
+                      case _ =>
+                        // * No, insert around
+                        doc.remove(start, end - start)
+                        doc.insertString(start, c + selection + matching(c), null)
+                        target.getCaret.setDot(start + selection.length + 2)
+                    }
+                    return true
                   case _ =>
-                    // No, insert around
-                    doc.remove(start, end - start)
-                    doc.insertString(start, ch + selection + matching(ch), null)
-                    target.getCaret.setDot(start + selection.length + 2)
                 }
-                return true
-              case _ =>
+              }
             }
-          }
+          case _ =>
         }
       }
     }
@@ -617,82 +625,72 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
     val token = ts.token
     val id = token.id
-    var stringTokens: Set[TokenId] = null
-    var beginTokenId: TokenId = null
 
     // "/" is handled AFTER the character has been inserted since we need the lexer's help
-    if (ch == '\"' || ch == '\'') {
-      stringTokens = STRING_TOKENS
-      beginTokenId = ScalaTokenId.STRING_BEGIN
-    } else {
-      id match {
-        case ScalaTokenId.Error if ts.movePrevious =>
-          ts.token.id match {
-            case prevId@ScalaTokenId.STRING_BEGIN =>
-              stringTokens = STRING_TOKENS
-              beginTokenId = prevId
-            case ScalaTokenId.REGEXP_BEGIN =>
-              stringTokens = REGEXP_TOKENS
-              beginTokenId = ScalaTokenId.REGEXP_BEGIN
-            case _ =>
-          }
-        case ScalaTokenId.STRING_BEGIN if caretOffset == ts.offset + 1 && !Character.isLetter(ch) => // %q, %x, etc. Only %[], %!!, %<space> etc. is allowed
-          stringTokens = STRING_TOKENS
-          beginTokenId = id
-        case ScalaTokenId.STRING_BEGIN if caretOffset == ts.offset + 2 =>
-          stringTokens = STRING_TOKENS
-          beginTokenId = ScalaTokenId.STRING_BEGIN
-        case ScalaTokenId.STRING_END =>
-          stringTokens = STRING_TOKENS
-          beginTokenId = ScalaTokenId.STRING_BEGIN
-        case ScalaTokenId.REGEXP_BEGIN if caretOffset == ts.offset + 2 =>
-          stringTokens = REGEXP_TOKENS
-          beginTokenId = ScalaTokenId.REGEXP_BEGIN
-        case ScalaTokenId.REGEXP_END =>
-          stringTokens = REGEXP_TOKENS
-          beginTokenId = ScalaTokenId.REGEXP_BEGIN
-        case _ =>
-      }
+    val (stringTokens, beginTokenId): (Set[TokenId], TokenId) = c match {
+      case '"' | '\'' =>
+        (STRING_TOKENS, ScalaTokenId.STRING_BEGIN)
+      case _ =>
+        id match {
+          case ScalaTokenId.Error if ts.movePrevious =>
+            ts.token.id match {
+              case ScalaTokenId.STRING_BEGIN =>
+                (STRING_TOKENS, ScalaTokenId.STRING_BEGIN)
+              case ScalaTokenId.REGEXP_BEGIN =>
+                (REGEXP_TOKENS, ScalaTokenId.REGEXP_BEGIN)
+              case _ => (Set(), null)
+            }
+          case ScalaTokenId.STRING_BEGIN if caretOffset == ts.offset + 1 && !Character.isLetter(c) => // %q, %x, etc. Only %[], %!!, %<space> etc. is allowed
+            (STRING_TOKENS, ScalaTokenId.STRING_BEGIN)
+          case ScalaTokenId.STRING_BEGIN if caretOffset == ts.offset + 2 =>
+            (STRING_TOKENS, ScalaTokenId.STRING_BEGIN)
+          case ScalaTokenId.STRING_END =>
+            (STRING_TOKENS, ScalaTokenId.STRING_BEGIN)
+          case ScalaTokenId.REGEXP_BEGIN if caretOffset == ts.offset + 2 =>
+            (REGEXP_TOKENS, ScalaTokenId.REGEXP_BEGIN)
+          case ScalaTokenId.REGEXP_END =>
+            (REGEXP_TOKENS, ScalaTokenId.REGEXP_BEGIN)
+          case _ => (Set(), null)
+        }
     }
 
-    if (stringTokens != null) {
-      val inserted = completeQuote(doc, caretOffset, caret, ch, stringTokens, beginTokenId)
+    if (!stringTokens.isEmpty) {
+      val inserted = completeQuote(doc, caretOffset, caret, c, stringTokens, beginTokenId)
       if (inserted) {
         caret.setDot(caretOffset + 1)
-
-        return true
-      } else {
-        return false
-      }
-    }
-
-    false
+        true
+      } else false
+    } else false
   }
 
-  // For debugging purposes
-  // Probably obsolete - see the tokenspy utility in gsf debugging tools for better help
-  //private void dumpTokens(doc: BaseDocument, int dot) {
-  //    TokenSequence< ?extends ScalaTokenId> ts = ScalaLexUtil.getTokenSequence(doc);
-  //
-  //    System.out.println("Dumping tokens for dot=" + dot);
-  //    int prevOffset = -1;
-  //    if (ts != null) {
-  //        ts.moveFirst();
-  //        int index = 0;
-  //        do {
-  //            Token<? extends ScalaTokenId> token = ts.token();
-  //            int offset = ts.offset();
-  //            String id = token.id().toString();
-  //            String text = token.text().toString().replaceAll("\n", "\\\\n");
-  //            if (prevOffset < dot && dot <= offset) {
-  //                System.out.print(" ===> ");
-  //            }
-  //            System.out.println("Token " + index + ": offset=" + offset + ": id=" + id + ": text=" + text);
-  //            index++;
-  //            prevOffset = offset;
-  //        } while (ts.moveNext());
-  //    }
-  //}
+  /**
+   * For debugging purposes
+   * Probably obsolete - see the tokenspy utility in gsf debugging tools for better help
+   */
+  private def dumpTokens(doc: BaseDocument, dot: Int) {
+    val ts = ScalaLexUtil.getTokenSequence(doc, dot) match {
+      case Some(x) => x
+      case None => return false
+    }
+  
+    println("Dumping tokens for dot=" + dot)
+    var prevOffset = -1
+    ts.moveStart
+    var index = 0
+    do {
+      val token = ts.token
+      val offset = ts.offset
+      val id = token.id.toString
+      val text = token.text.toString.replaceAll("\n", "\\\\n")
+      if (prevOffset < dot && dot <= offset) {
+        print(" ===> ")
+      }
+      println("Token " + index + ": offset=" + offset + ": id=" + id + ": text=" + text)
+      index += 1
+      prevOffset = offset
+    } while (ts.moveNext)
+  }
+  
   /**
    * A hook method called after a character was inserted into the
    * document. The function checks for special characters for
@@ -793,15 +791,20 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
           case None => return true
         }
 
-        // Reindent blocks (won't do anything if } is not at the beginning of a line
+        // Reindent blocks (won't do anything if `}` is not at the beginning of a line
         ch match {
           case '}' =>
             reindent(doc, dotPos, ScalaTokenId.RBrace, caret)
           case ']' =>
             reindent(doc, dotPos, ScalaTokenId.RBracket, caret)
+          case ')' =>
+            reindent(doc, dotPos, ScalaTokenId.RBracket, caret)
           case _ =>
         }
         
+      case 'e' =>
+        //* See if it's the end of and `case`, if so, reindent
+        reindent(doc, dotPos, ScalaTokenId.Case, caret)
 
 
         //        case 'e':
@@ -868,36 +871,38 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
   @throws(classOf[BadLocationException])
   private def reindent(doc: BaseDocument, offset: Int, id: TokenId, caret: Caret): Unit = {
-    ScalaLexUtil.getTokenSequence(doc, offset) foreach {ts =>
+    for (ts <- ScalaLexUtil.getTokenSequence(doc, offset)) {
       ts.move(offset)
       if (!ts.moveNext && !ts.movePrevious) {
         return
       }
 
       val token = ts.token
-
+      
       if (token.id == id) {
         val rowFirstNonWhite = Utilities.getRowFirstNonWhite(doc, offset)
         // Ensure that this token is at the beginning of the line
         if (ts.offset > rowFirstNonWhite) {
-          //                    if (RubyUtils.isRhtmlDocument(doc)) {
-          //                        // Allow "<%[whitespace]*" to preceed
-          //                        String s = doc.getText(rowFirstNonWhite, ts.offsetg-rowFirstNonWhite);
-          //                        if (!s.matches("<%\\s*")) {
-          //                            return;
-          //                        }
-          //                    } else {
           return
-          //                    }
         }
 
         val begin = id match {
-          case ScalaTokenId.RBrace   =>
+          case ScalaTokenId.RBrace =>
             ScalaLexUtil.findBwd(doc, ts, ScalaTokenId.LBrace, ScalaTokenId.RBrace)
           case ScalaTokenId.RBracket =>
             ScalaLexUtil.findBwd(doc, ts, ScalaTokenId.LBracket, ScalaTokenId.RBracket)
-          case _ =>
-            ScalaLexUtil.findBegin(doc, ts)
+          case ScalaTokenId.Case =>
+            // * find the first unmatched LBrace, then next `case`
+            ScalaLexUtil.findBwd(doc, ts, ScalaTokenId.LBrace, ScalaTokenId.RBrace) match {
+              case OffsetRange.NONE => OffsetRange.NONE
+              case _ if ts.moveNext => // found LBrace, now find followed `case`
+                ScalaLexUtil.findNextNoWsNoComment(ts) match {
+                  case Some(tk) if tk.id == ScalaTokenId.Case =>
+                    new OffsetRange(ts.offset, ts.offset + 1)
+                  case _ => OffsetRange.NONE
+                }
+            }
+          case _ => OffsetRange.NONE
         }
 
         if (begin != OffsetRange.NONE) {
@@ -909,11 +914,6 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
         }
       }
     }
-  }
-
-  /** replaced by ScalaBracesMatcher#findMatching */
-  override def findMatching(document: Document, aoffset: Int /*, boolean simpleSearch*/): OffsetRange = {
-    OffsetRange.NONE
   }
 
   /**
@@ -1387,13 +1387,14 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
    */
   private def matching(bracket: Char): Char = {
     bracket match {
+      case '"'  => '"'
+      case '\'' => '\''
       case '('  => ')'
       case '/'  => '/'
       case '['  => ']'
-      case '\"' => '\"'
-      case '\'' => '\''
       case '{'  => '}'
       case '}'  => '{'
+      case '`'  => '`'
       case _ => bracket
     }
   }

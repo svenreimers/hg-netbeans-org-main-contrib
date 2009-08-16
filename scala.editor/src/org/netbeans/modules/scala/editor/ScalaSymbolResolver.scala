@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -21,12 +21,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * Contributor(s):
- *
- * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -37,26 +31,54 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
+ *
+ * Contributor(s):
+ *
+ * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.mount;
+package org.netbeans.modules.scala.editor
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.netbeans.modules.mount.MountTab;
-import org.openide.util.ImageUtilities;
-import org.openide.windows.TopComponent;
+import org.netbeans.api.lexer.TokenSequence
+import org.netbeans.api.lexer.TokenHierarchy
 
-public class MountTabAction extends AbstractAction {
+import org.netbeans.api.language.util.ast.AstItem
 
-    public MountTabAction() {
-        super("Filesystems", ImageUtilities.loadImageIcon("org/netbeans/modules/mount/mount.gif", true));
+import lexer.{ScalaTokenId, ScalaLexUtil}
+import ast.ScalaDfns
+
+import scala.tools.nsc.reporters.{Reporter}
+import scala.tools.nsc.io.VirtualFile
+import scala.tools.nsc.util.BatchSourceFile
+import scala.tools.nsc.util.{Position, SourceFile}
+
+abstract class ScalaSymbolResolver {
+  
+  private val dummyReport = new Reporter {def info0(pos: Position, msg: String, severity: Severity, force: Boolean) {}}
+
+  val global: ScalaGlobal
+  import global._
+
+  def resolveQualifieredName(srcPkg: String, fqn: String): Option[AstItem] = {
+    val sb = new StringBuilder
+    if (srcPkg.length > 0) {
+      sb.append("package ").append(srcPkg)
     }
+    sb.append("object NetBeansErrorRecover {")
+    sb.append(fqn).append(".") // should put a `.` at the end to create a Select tree and corresponding selectTypeErrors
+    sb.append("}")
 
-    public void actionPerformed(ActionEvent e) {
-        TopComponent tc = MountTab.findDefault();
-        tc.open();
-        tc.requestActive();
+    val srcFile = new BatchSourceFile(new VirtualFile("<NetBeansErrorRecover.scala>", ""), sb)
+    val th = TokenHierarchy.create(sb.toString, ScalaTokenId.language)
+    global.reporter = dummyReport
+    val rootScope = global.compileSourceForPresentation(srcFile, th)
+    
+    val lastDot = fqn.lastIndexOf('.')
+    val lastPart = if (lastDot == -1) fqn else fqn.substring(lastDot + 1, fqn.length)
+
+    rootScope.findFirstItemWithName(lastPart) match {
+      case None => None
+      case x => x
     }
-
+  }
 }

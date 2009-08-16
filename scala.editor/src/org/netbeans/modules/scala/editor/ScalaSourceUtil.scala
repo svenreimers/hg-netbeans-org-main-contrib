@@ -27,8 +27,7 @@
  */
 package org.netbeans.modules.scala.editor
 
-import _root_.java.io.{File, IOException, InputStream}
-import _root_.java.lang.ref.{Reference, WeakReference}
+import java.io.{File, IOException, InputStream}
 import javax.swing.text.BadLocationException
 import org.netbeans.api.java.classpath.ClassPath
 import org.netbeans.api.java.queries.SourceForBinaryQuery
@@ -46,12 +45,12 @@ import org.openide.util.{Exceptions, NbBundle}
 
 import org.netbeans.api.language.util.ast.{AstDfn, AstScope}
 import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRootScope}
-import org.netbeans.modules.scala.editor.element.{JavaElement}
+import org.netbeans.modules.scala.editor.element.{JavaElements}
 import org.netbeans.modules.scala.editor.lexer.ScalaLexUtil
 
-import _root_.scala.tools.nsc.util.Position
-import _root_.scala.tools.nsc.symtab.Symbols
-import _root_.scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.util.Position
+import scala.tools.nsc.symtab.Symbols
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
@@ -251,34 +250,32 @@ object ScalaSourceUtil {
     }
   }
 
-  val scalaFileToSource = new _root_.java.util.WeakHashMap[FileObject, Reference[Source]]
-  val scalaFileToCompilationInfo = new _root_.java.util.WeakHashMap[FileObject, Reference[Parser.Result]]
+  val scalaFileToSource = new java.util.WeakHashMap[FileObject, Source]
+  val scalaFileToParserResult = new java.util.WeakHashMap[FileObject, Parser.Result]
 
-  def getCompilationInfoForScalaFile(fo: FileObject): Parser.Result = {
-    var info: Parser.Result = scalaFileToCompilationInfo.get(fo) match {
+  def getParserResultForScalaFile(fo: FileObject): Option[Parser.Result] = {
+    var info: Parser.Result = scalaFileToParserResult.get(fo) match {
       case null => null
-      case ref => ref.get
+      case ref => ref
     }
 
     if (info == null) {
       val pResults = new Array[Parser.Result](1)
       val source = getSourceForScalaFile(fo)
       try {
-        ParserManager.parse(_root_.java.util.Collections.singleton(source), new UserTask {
+        ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
             @throws(classOf[Exception])
             override def run(resultIterator: ResultIterator): Unit = {
               pResults(0) = resultIterator.getParserResult
             }
           })
-      } catch {
-        case ex:ParseException => Exceptions.printStackTrace(ex)
-      }
+      } catch {case ex:ParseException => Exceptions.printStackTrace(ex)}
 
       info = pResults(0)
-      scalaFileToCompilationInfo.put(fo, new WeakReference[Parser.Result](info))
+      scalaFileToParserResult.put(fo, info)
     }
 
-    info
+    if (info == null) None else Some(info)
   }
 
   /**
@@ -289,18 +286,19 @@ object ScalaSourceUtil {
   private def getSourceForScalaFile(fo: FileObject): Source = {
     var source: Source = scalaFileToSource.get(fo) match {
       case null => null
-      case ref => ref.get
+      case ref => ref
     }
 
     if (source == null) {
       source = Source.create(fo)
-      scalaFileToSource.put(fo, new WeakReference[Source](source))
+      scalaFileToSource.put(fo, source)
     }
 
     source
   }
 
-  def getDocComment(info: Parser.Result, element: JavaElement): String = {
+  /** @todo */
+  def getDocComment(info: Parser.Result, element: JavaElements#JavaElement): String = {
     if (info == null) {
       return null
     }
@@ -313,7 +311,8 @@ object ScalaSourceUtil {
     val th = info.getSnapshot.getTokenHierarchy
 
     doc.readLock // Read-lock due to token hierarchy use
-    val range = ScalaLexUtil.getDocumentationRange(th, element.getBoundsOffset(th))
+    val offset = 0//element.getBoundsOffset(th)
+    val range = ScalaLexUtil.getDocumentationRange(th, offset)
     doc.readUnlock
 
     if (range.getEnd < doc.getLength) {
@@ -348,13 +347,15 @@ object ScalaSourceUtil {
     ""
   }
 
-  def getOffset(info: Parser.Result, element: JavaElement): Int = {
+  /** @todo */
+  def getOffset(info: Parser.Result, element: JavaElements#JavaElement): Int = {
     if (info == null) {
       return -1
     }
 
     val th = info.getSnapshot.getTokenHierarchy
-    element.getPickOffset(th)
+    //element.getPickOffset(th)
+    return -1
   }
 
   def getFileObject(info: ParserResult, symbol: Symbols#Symbol): Option[FileObject] = {
@@ -378,7 +379,7 @@ object ScalaSourceUtil {
     val qName: String = try {
       symbol.enclClass.fullNameString.replace('.', File.separatorChar)
     } catch {
-      case ex:_root_.java.lang.Error => null
+      case ex: java.lang.Error => null
         // java.lang.Error: no-symbol does not have owner
         //        at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1565)
         //        at scala.tools.nsc.symtab.Symbols$Symbol.fullNameString(Symbols.scala:1156)
@@ -521,7 +522,7 @@ object ScalaSourceUtil {
     }
     try {
       val result = new ArrayBuffer[ScalaDfns#ScalaDfn]
-      ParserManager.parse(_root_.java.util.Collections.singleton(source), new UserTask {
+      ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
           @throws(classOf[Exception])
           override def run(resultIterator: ResultIterator): Unit = {
             val pResult = resultIterator.getParserResult.asInstanceOf[ScalaParserResult]
@@ -565,8 +566,8 @@ object ScalaSourceUtil {
     }
   }
 
-  def getMainClassesAsJavaCollection(fo: FileObject): _root_.java.util.Collection[AstDfn] = {
-    val result = new _root_.java.util.ArrayList[AstDfn]
+  def getMainClassesAsJavaCollection(fo: FileObject): java.util.Collection[AstDfn] = {
+    val result = new java.util.ArrayList[AstDfn]
     getMainClasses(fo) foreach {result.add(_)}
     result
   }
@@ -577,8 +578,8 @@ object ScalaSourceUtil {
    * @return the classes containing the main methods
    * Currently this method is not optimized and may be slow
    */
-  def getMainClassesAsJavaCollection(sourceRoots: Array[FileObject]): _root_.java.util.Collection[AstDfn] = {
-    val result = new _root_.java.util.ArrayList[AstDfn]
+  def getMainClassesAsJavaCollection(sourceRoots: Array[FileObject]): java.util.Collection[AstDfn] = {
+    val result = new java.util.ArrayList[AstDfn]
     for (root <- sourceRoots) {
       result.addAll(getMainClassesAsJavaCollection(root))
       try {
@@ -613,7 +614,7 @@ object ScalaSourceUtil {
         result
       } catch {case ioe: Exception =>
           Exceptions.printStackTrace(ioe)
-          return _root_.java.util.Collections.emptySet[AstDfn]
+          return java.util.Collections.emptySet[AstDfn]
       }
     }
     result
@@ -621,9 +622,7 @@ object ScalaSourceUtil {
 
   
   def isMainMethodExists(obj: ScalaDfns#ScalaDfn): Boolean = {
-    obj.symbol.tpe.members exists {
-      member => member.isMethod && isMainMethod(member)
-    }
+    obj.symbol.tpe.members exists {member => member.isMethod && isMainMethod(member)}
   }
 
   /**

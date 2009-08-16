@@ -42,15 +42,25 @@ package org.netbeans.modules.scala.editor
 import javax.swing.ImageIcon
 import javax.swing.text.BadLocationException
 import org.netbeans.editor.Utilities
-import org.netbeans.modules.csl.api.{CompletionProposal, ElementHandle, ElementKind, HtmlFormatter, Modifier}
-import org.openide.util.Exceptions
+import org.netbeans.modules.csl.api.{CompletionProposal, ElementHandle, ElementKind, HtmlFormatter, Modifier,OffsetRange}
+import org.netbeans.modules.csl.spi.ParserResult
+import org.openide.filesystems.FileObject
+import org.openide.util.{Exceptions, ImageUtilities}
+
+import org.netbeans.api.language.util.ast.{AstElementHandle}
 
 /**
  *
  * @author Caoyuan Deng
  */
 trait ScalaCompletionProposals {self: ScalaGlobal =>
-  abstract class ScalaCompletionProposal(element: ScalaElement, request: CompletionRequest) extends CompletionProposal {
+
+  object ScalaCompletionProposal {
+    val KEYWORD = "org/netbeans/modules/scala/editor/resources/scala16x16.png" //NOI18N
+    val keywordIcon = ImageUtilities.loadImageIcon(KEYWORD, false)
+  }
+
+  abstract class ScalaCompletionProposal(element: AstElementHandle, request: ScalaCodeCompletion.CompletionRequest) extends CompletionProposal {
 
     def getAnchorOffset: Int = {
       request.anchor
@@ -107,17 +117,21 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
 
     override def getRhsHtml(formatter: HtmlFormatter): String = {
-      val symbol = element.symbol
+      element match {
+        case x: ScalaElement =>
+          val sym = x.symbol
 
-      formatter.`type`(true)
-      val retType =  try {
-        symbol.tpe.resultType
-      } catch {case ex: Throwable => ScalaGlobal.reset(self); null}
-    
-      if (retType != null && !symbol.isConstructor) {
-        formatter.appendText(ScalaUtil.typeToString(retType))
+          formatter.`type`(true)
+          val retType =  try {
+            sym.tpe.resultType
+          } catch {case ex: Throwable => ScalaGlobal.reset(self); null}
+
+          if (retType != null && !sym.isConstructor) {
+            formatter.appendText(ScalaUtil.typeToString(retType))
+          }
+          formatter.`type`(false)
+        case _ =>
       }
-      formatter.`type`(false)
 
       formatter.getText
     }
@@ -143,7 +157,7 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
   }
 
-  case class FunctionProposal(element: ScalaElement, request: CompletionRequest) extends ScalaCompletionProposal(element, request) {
+  case class FunctionProposal(element: ScalaElement, request: ScalaCodeCompletion.CompletionRequest) extends ScalaCompletionProposal(element, request) {
 
     private val methodType: Type = element.symbol.tpe
 
@@ -236,25 +250,19 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
         return sb.toString
       }
 
-      val startDelimiter = "("
-      val endDelimiter = ")"
-
-      sb.append(startDelimiter)
+      sb.append("(")
 
       var id = 1
       val itr = params.iterator
       while (itr.hasNext) {
         val paramDesc = itr.next
         sb.append("${") //NOI18N
-        // Ensure that we don't use one of the "known" logical parameters
-        // such that a parameter like "path" gets replaced with the source file
-        // path!
 
-        sb.append("js-cc-") // NOI18N
+        sb.append("scala-cc-") // NOI18N
         id += 1
-        sb.append(Integer.toString(id))
+        sb.append(id)
+        
         sb.append(" default=\"") // NOI18N
-
         val typeIndex = paramDesc.indexOf(':')
         if (typeIndex != -1) {
           sb.append(paramDesc.toArray, 0, typeIndex)
@@ -269,13 +277,13 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
           sb.append(", ") //NOI18N
         }
       }
-      sb.append(endDelimiter)
 
+      sb.append(")")
       sb.append("${cursor}") // NOI18N
 
       // Facilitate method parameter completion on this item
       try {
-        CompletionRequest.callLineStart = Utilities.getRowStart(request.doc, request.anchor)
+        ScalaCodeCompletion.CompletionRequest.callLineStart = Utilities.getRowStart(request.doc, request.anchor)
         //ScalaCodeCompletion.callMethod = function;
       } catch {case ble: BadLocationException => Exceptions.printStackTrace(ble)}
 
@@ -283,12 +291,7 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
   }
 
-  object KeywordProposal {
-    private val KEYWORD = "org/netbeans/modules/scala/editor/resources/scala16x16.png" //NOI18N
-    private val keywordIcon: ImageIcon = new ImageIcon(org.openide.util.Utilities.loadImage(KEYWORD))
-
-  }
-  case class KeywordProposal(keyword: String, description: String, request: CompletionRequest) extends ScalaCompletionProposal(null, request) {
+  case class KeywordProposal(keyword: String, description: String, request: ScalaCodeCompletion.CompletionRequest) extends ScalaCompletionProposal(null, request) {
     import KeywordProposal._
 
     override def getName: String = {
@@ -319,11 +322,11 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
 
     override def getIcon: ImageIcon = {
-      keywordIcon
+      ScalaCompletionProposal.keywordIcon
     }
 
-    override def getModifiers: _root_.java.util.Set[Modifier] = {
-      return _root_.java.util.Collections.emptySet[Modifier]
+    override def getModifiers: java.util.Set[Modifier] = {
+      return java.util.Collections.emptySet[Modifier]
     }
 
     override def getElement: ElementHandle = {
@@ -336,9 +339,9 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
   }
 
  
-  case class PlainProposal(element: ScalaElement, request: CompletionRequest) extends ScalaCompletionProposal(element, request) {}
+  case class PlainProposal(element: AstElementHandle, request: ScalaCodeCompletion.CompletionRequest) extends ScalaCompletionProposal(element, request) {}
 
-  case class PackageItem(element: ScalaElement, request: CompletionRequest) extends ScalaCompletionProposal(element, request) {
+  case class PackageItem(element: AstElementHandle, request: ScalaCodeCompletion.CompletionRequest) extends ScalaCompletionProposal(element, request) {
 
     override def getKind: ElementKind = {
       ElementKind.PACKAGE
@@ -370,7 +373,7 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
   }
 
-  class TypeProposal(element: ScalaElement, request: CompletionRequest) extends ScalaCompletionProposal(element, request) {
+  class TypeProposal(element: AstElementHandle, request: ScalaCodeCompletion.CompletionRequest) extends ScalaCompletionProposal(element, request) {
 
     override def getKind: ElementKind = {
       ElementKind.CLASS
@@ -405,26 +408,23 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
   }
 
-  case class PseudoElement(name:String, kind:ElementKind) extends ElementHandle {
-    import org.netbeans.modules.csl.api.OffsetRange
-    import org.netbeans.modules.csl.spi.ParserResult
-    import org.openide.filesystems.FileObject
+  case class PseudoElement(name: String, kind: ElementKind) extends ElementHandle {
 
-    def getFileObject :FileObject = null
+    def getFileObject: FileObject = null
 
-    def getMimeType :String = "text/x-scala"
+    def getMimeType: String = "text/x-scala"
 
     def getName :String = name
 
-    def getIn : String = null
+    def getIn: String = null
 
-    def getKind :ElementKind = kind
+    def getKind: ElementKind = kind
 
-    def getModifiers :_root_.java.util.Set[Modifier] = _root_.java.util.Collections.emptySet[Modifier]
+    def getModifiers: java.util.Set[Modifier] = java.util.Collections.emptySet[Modifier]
 
-    def signatureEquals(handle:ElementHandle) :Boolean = false
+    def signatureEquals(handle: ElementHandle): Boolean = false
 
-    def getOffsetRange(result:ParserResult) :OffsetRange = OffsetRange.NONE
+    def getOffsetRange(result: ParserResult): OffsetRange = OffsetRange.NONE
   }
 
 }

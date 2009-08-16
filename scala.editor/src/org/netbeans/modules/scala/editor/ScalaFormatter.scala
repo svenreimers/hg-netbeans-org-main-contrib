@@ -76,6 +76,7 @@ object ScalaFormatter {
 
 class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) extends Formatter {
   import ScalaFormatter._
+  import org.netbeans.modules.csl.api.OffsetRange
 
   def this() = this(-1)
   
@@ -86,11 +87,11 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
   }
 
   override def reindent(context: Context): Unit = {
-    reindent(context, context.document, context.startOffset, context.endOffset, null, true);
+    reindent(context, context.document, context.startOffset, context.endOffset, null, true)
   }
 
   override def reformat(context: Context, info: ParserResult): Unit =  {
-    reindent(context, context.document, context.startOffset, context.endOffset, info, false);
+    reindent(context, context.document, context.startOffset, context.endOffset, info, false)
   }
 
   def indentSize: Int = {
@@ -118,7 +119,12 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
     do {
       val token = ts.token
       token.id match {
-        case ScalaTokenId.Object | ScalaTokenId.Trait | ScalaTokenId.Class => return ts.offset
+        case ScalaTokenId.Object | ScalaTokenId.Trait | ScalaTokenId.Class => 
+          // * is this `class`/`object`/`trait` enlcosed in an outer `class`/`object`/`trait`?
+          ScalaLexUtil.findBwd(doc, ts, ScalaTokenId.LBrace, ScalaTokenId.RBrace) match {
+            case OffsetRange.NONE => return ts.offset
+            case range => // go on for outer `class`/`object`/`trait`
+          }
         case _ =>
       }
     } while (ts.movePrevious)
@@ -159,7 +165,7 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
         endOffset = doc.getLength
       }
 
-      startOffset = Utilities.getRowStart(doc, startOffset);
+      startOffset = Utilities.getRowStart(doc, startOffset)
       val lineStart = startOffset //Utilities.getRowStart(doc, startOffset);
 
       var initialOffset = 0
@@ -169,16 +175,6 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
         initialOffset = getFormatStableStart(doc, prevOffset)
         initialIndent = GsfUtilities.getLineIndent(doc, initialOffset)
       }
-
-      // Build up a set of offsets and indents for lines where I know I need
-      // to adjust the offset. I will then go back over the document and adjust
-      // lines that are different from the intended indent. By doing piecemeal
-      // replacements in the document rather than replacing the whole thing,
-      // a lot of things will work better: breakpoints and other line annotations
-      // will be left in place, semantic coloring info will not be temporarily
-      // damaged, and the caret will stay roughly where it belongs.
-      val offsets = new ArrayBuffer[Int]
-      val indents = new ArrayBuffer[Int]
 
       // When we're formatting sections, include whitespace on empty lines; this
       // is used during live code template insertions for example. However, when
@@ -190,8 +186,15 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
       // we need includeEnd.
       val includeEnd = endOffset == doc.getLength || indentOnly
 
+      // Build up a set of offsets and indents for lines where I know I need
+      // to adjust the offset. I will then go back over the document and adjust
+      // lines that are different from the intended indent. By doing piecemeal
+      // replacements in the document rather than replacing the whole thing,
+      // a lot of things will work better: breakpoints and other line annotations
+      // will be left in place, semantic coloring info will not be temporarily
+      // damaged, and the caret will stay roughly where it belongs.
       // TODO - remove initialbalance etc.
-      computeIndents(doc, initialIndent, initialOffset, endOffset, info, offsets, indents, indentEmptyLines, includeEnd);
+      val (offsets, indents) =  computeIndents(doc, initialIndent, initialOffset, endOffset, info, indentEmptyLines, includeEnd);
 
       doc.runAtomic(new Runnable {
           def run {
@@ -257,7 +260,25 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
     } catch {case ble: BadLocationException => Exceptions.printStackTrace(ble)}
   }
 
-  def computeIndents(doc: BaseDocument, initialIndent: Int, startOffset: Int, endOffset: Int, info: ParserResult, offsets: ArrayBuffer[Int], indents: ArrayBuffer[Int], indentEmptyLines: Boolean, includeEnd: Boolean): Unit = {
+  protected class Brace {
+
+    var token: Token[TokenId] = _
+    var lineIdx: Int = _ // idx of `offsets` and `indents` arrays
+    var offsetOnline: Int = _ // offset of this token on its line after indent
+    var isLatestOnLine: Boolean = _ // last one on this line?
+    var onProcessingLine: Boolean = _ // on the processing line?
+    var lasestTokenOnLine: Token[TokenId] = _ // lastest non-white token on this line
+
+    override def toString = {
+      token.text.toString
+    }
+  }
+
+  def computeIndents(doc: BaseDocument, initialIndent: Int, startOffset: Int, endOffset: Int, info: ParserResult,
+                     indentEmptyLines: Boolean, includeEnd: Boolean): (Array[Int], Array[Int]) = {
+
+    val offsets = new ArrayBuffer[Int]
+    val indents = new ArrayBuffer[Int]
     // PENDING:
     // The reformatting APIs in NetBeans should be lexer based. They are still
     // based on the old TokenID apis. Once we get a lexer version, convert this over.
@@ -298,14 +319,18 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
       var continueIndent = -1
 
       val openingBraces = new Stack[Brace]
+      val specialTokens = new Stack[Brace]
 
-      while ((!includeEnd && offset < end) || (includeEnd && offset <= end)) {
+      var idx = 0
+      while (!includeEnd && offset < end || includeEnd && offset <= end) {
         val lineBegin = Utilities.getRowFirstNonWhite(doc, offset)
         val lineEnd = Utilities.getRowEnd(doc, offset)
 
         if (lineBegin != -1) {
           val results = computeLineIndent(indent, prevIndent, continueIndent,
-                                          openingBraces, doc, lineBegin, lineEnd);
+                                          openingBraces, specialTokens,
+                                          offsets, indents,
+                                          doc, lineBegin, lineEnd, idx)
 
           indent = results(0)
           nextIndent = results(1)
@@ -325,6 +350,7 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
         if (lineBegin != -1 || indentEmptyLines) {
           indents + indent
           offsets + offset
+          idx += 1
         }
 
         // Shift to next line
@@ -333,43 +359,36 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
         indent = nextIndent
       }
     } catch {case ble: BadLocationException => Exceptions.printStackTrace(ble)}
-  }
 
-  private class Brace {
-
-    var token: Token[TokenId] = _
-    var offsetOnline: int = _ // offset of this token on its line after indent
-    var ordinalOnline: int = _ // ordinal of this token on its line (we only count non-white tokens)
-    var isLatestOnLine: Boolean = _ // last one on this line?
-    var onProcessingLine: boolean = _ // on the processing line?
-    var lasestTokenOnLine: Token[TokenId] = _ // lastest non-white token on this line
-
-    override def toString = {
-      token.text.toString
-    }
+    (offsets.toArray, indents.toArray)
   }
 
   /**
    * Compute indent for next line, and adjust this line's indent if necessary
-   * @return int[]
-   *      int[0] - adjusted indent of this line
-   *      int[1] - indent for next line
+   * @return Array[Int]
+   *      int(0) - adjusted indent of this line
+   *      int(1) - indent for next line
    */
   private def computeLineIndent(aindent: Int, prevIndent: Int, acontinueIndent: Int,
-                                openBraces: Stack[Brace], doc: BaseDocument, lineBegin: Int, lineEnd: Int): Array[Int] = {
+                                openingBraces: Stack[Brace], specialBraces: Stack[Brace],
+                                offsets: ArrayBuffer[Int], indents: ArrayBuffer[Int],
+                                doc: BaseDocument, lineBegin: Int, lineEnd: Int, lineIdx: Int): Array[Int] = {
 
-    // Well, a new line begin
-    openBraces foreach {_.onProcessingLine = false}
+    // * Well, a new line begin
+    openingBraces foreach {_.onProcessingLine = false}
+    specialBraces foreach {_.onProcessingLine = false}
 
-    //StringBuilder sb = new StringBuilder(); // for debug
-    // Compute new balance and adjust indent of this line
+    //val sb = new StringBuilder(); // for debug
+    
+    // --- Compute new balance and adjust indent (computed by previous `computeLineIndent`) of this line
 
     var indent = aindent
     var continueIndent = acontinueIndent
-    // token index on this line (we only count not-white tokens,
-    // if notWhiteIdx == 0, means the first non-white token on this line
-    var notWSIdx = -1
-    var latestNotWSToken: Token[TokenId] = null
+    // * token index on this line (we only count not-white tokens,
+    // * if noWSIdx == 0, means the first non-white token on this line
+    var noWSIdx = -1
+    var latestNoWSToken: Token[TokenId] = null
+    var latestNoWSTokenOffset: Int = -1
 
     ScalaLexUtil.getTokenSequence(doc, lineBegin) foreach {ts =>
       try {
@@ -384,98 +403,226 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
             //sb.append(text); // for debug
 
             if (!ScalaLexUtil.isWsComment(id)) {
-              notWSIdx += 1
-              latestNotWSToken = token
+              noWSIdx += 1
+              latestNoWSToken = token
+              latestNoWSTokenOffset = offset
             }
 
-            // match/add brace
-            if (id.primaryCategory.equals("keyword") ||
-                id.primaryCategory.equals("separator") ||
-                id.primaryCategory.equals("operator") ||
-                id.primaryCategory.equals("xml") ||
-                id.primaryCategory.equals("comment")) {
+            // * match/add brace
+            id.primaryCategory match {
+              case "keyword" | "s_keyword" | "separator" | "operator" | "xml" | "comment" =>
 
-              var justClosedBrace: Brace = null
+                var justClosedBrace: Brace = null
 
-              if (!openBraces.isEmpty) {
-                val brace = openBraces.top
-                val braceId = brace.token.id
+                if (!openingBraces.isEmpty) {
+                  val brace = openingBraces.top
+                  val braceId = brace.token.id
 
-                val matchingIds = BRACE_MATCH_MAP.get(braceId)
-                assert(matchingIds.isDefined)
-                if (matchingIds.get.contains(id)) { // matched
+                  // * `if`, `else`, `for` etc is not contained in BRACE_MATCH_MAP, we'll process them later
+                  val matchingIds = BRACE_MATCH_MAP.get(braceId)
+                  if (matchingIds.isDefined && matchingIds.get.contains(id)) { // matched
 
-                  var numClosed = 1 // default
+                    var numClosed = 1 // default
 
-                  // we may need to lookahead 2 steps for some cases:
-                  if (braceId == ScalaTokenId.Case) {
-                    val backup = openBraces.pop
+                    // we may need to lookahead 2 steps for some cases:
+                    if (braceId == ScalaTokenId.Case) {
+                      val backup = openingBraces.pop
 
-                    if (!openBraces.isEmpty) {
-                      //TokenId lookaheadId = openingBraces.peek().token.id();
-                      // if resolved is "=>", we may have matched two braces:
-                      if (id == ScalaTokenId.RBrace) {
-                        numClosed = 2
+                      if (!openingBraces.isEmpty) {
+                        //TokenId lookaheadId = openingBraces.peek().token.id();
+                        // if resolved is "=>", we may have matched two braces:
+                        if (id == ScalaTokenId.RBrace) {
+                          numClosed = 2
+                        }
+                      }
+
+                      openingBraces push backup
+                    }
+
+                    for (i <- 0 until numClosed) {
+                      justClosedBrace = openingBraces.pop
+                    }
+
+                    if (noWSIdx == 0) {
+                      // * this token is at the beginning of this line, adjust this line's indent if necessary
+                      indent = id match {
+                        case ScalaTokenId.Case | ScalaTokenId.RParen | ScalaTokenId.RBracket | ScalaTokenId.RBrace =>
+                          openingBraces.size * indentSize
+                        case _ => justClosedBrace.offsetOnline
                       }
                     }
 
-                    openBraces.push(backup)
                   }
 
-                  for (i <- 0 until numClosed) {
-                    justClosedBrace = openBraces.pop
-                  }
+                }
 
-                  if (notWSIdx == 0) {
-                    // At the beginning of this line, adjust this line's indent if necessary
-                    indent = id match {
-                      case ScalaTokenId.Case | ScalaTokenId.RParen | ScalaTokenId.RBracket | ScalaTokenId.RBrace =>
-                        openBraces.size * indentSize
-                      case _ =>
-                        justClosedBrace.offsetOnline
+                // * determine some cases when first token is:
+                if (noWSIdx == 0) {
+                  id match {
+                    case ScalaTokenId.With =>
+                      specialBraces.find{_.token.id == ScalaTokenId.Extends} match {
+                        case Some(x) =>
+                          indent = x.offsetOnline + 3 // indent `with` right align with `extends`
+                        case _ =>
+                      }
+                      /* case ScalaTokenId.Else =>
+                       specialBraces.find{_.token.id == ScalaTokenId.If} match {
+                       case Some(x) if x.lineIdx != lineIdx => // not on same line
+                       val nextLineOfIf = x.lineIdx + 1
+                       if (indents.size > nextLineOfIf) {
+                       indent = indents(nextLineOfIf) - indentSize // indent `else` left align with next line of `if`
+                       }
+                       case _ =>
+                       } */
+                    case _ =>
+                  }
+                }
+
+                // * add new special brace
+                id match {
+                  case ScalaTokenId.Extends =>
+                    val newBrace = new Brace
+                    newBrace.token = token
+                    newBrace.lineIdx = lineIdx
+                    // will add indent of this line to offsetOnline later
+                    newBrace.offsetOnline = offset - lineBegin
+                    newBrace.onProcessingLine = true
+                    specialBraces push newBrace
+                    /* case ScalaTokenId.If =>
+                     // * remember `if` for `else`
+                     val newBrace = new Brace
+                     newBrace.token = token
+                     newBrace.lineIdx = lineIdx
+                     // will add indent of this line to offsetOnline later
+                     newBrace.offsetOnline = offset - lineBegin
+                     newBrace.onProcessingLine = true
+                     specialBraces push newBrace */
+                  case _ =>
+                }
+
+                // * add new opening brace
+                if (BRACE_MATCH_MAP.contains(id)) {
+                  var ignore = false
+                  // is it a case object or class?, if so, do not indent
+                  if (id == ScalaTokenId.Case) {
+                    if (ts.moveNext) {
+                      val next = ScalaLexUtil.findNextNoWs(ts).get
+                      next.id match {
+                        case ScalaTokenId.Object | ScalaTokenId.Class =>
+                          ignore = true
+                        case _ =>
+                      }
+                      ts.movePrevious
                     }
                   }
 
-                }
-              }
-
-              // Add new opening brace
-              if (BRACE_MATCH_MAP.contains(id)) {
-                var ignore = false
-                // is it a case object or class?, if so, do not indent
-                if (id == ScalaTokenId.Case) {
-                  if (ts.moveNext) {
-                    val next = ScalaLexUtil.findNextNonWs(ts)
-                    next.id match {
-                      case ScalaTokenId.Object | ScalaTokenId.Class => ignore = true
-                      case _ =>
-                    }
-                    ts.movePrevious
+                  if (!ignore) {
+                    val newBrace = new Brace
+                    newBrace.token = token
+                    // will add indent of this line to offsetOnline later
+                    newBrace.offsetOnline = offset - lineBegin
+                    newBrace.onProcessingLine = true
+                    openingBraces push newBrace
                   }
                 }
-
-                if (!ignore) {
-                  val newBrace = new Brace
-                  newBrace.token = token
-                  // will add indent of this line to offsetOnline later
-                  newBrace.offsetOnline = offset - lineBegin
-                  newBrace.ordinalOnline = notWSIdx
-                  newBrace.onProcessingLine = true
-                  openBraces push newBrace
+              case _ if (id == ScalaTokenId.XmlCDData || (id == ScalaTokenId.StringLiteral && offset < lineBegin)) =>
+                // * A literal string with more than one line is a whole token and when goes
+                // * to second or following lines, will has offset < lineBegin
+                if (noWSIdx == 0 || noWSIdx == -1) {
+                  // * No indentation for literal strings from 2nd line.
+                  indent = -1
                 }
-              }
-            } else if (id == ScalaTokenId.XmlCDData || (id == ScalaTokenId.StringLiteral && offset < lineBegin)) {
-              /**
-               * A literal string with more than one line is a whole token and when goes
-               * to second or following lines, will has offset < lineBegin
-               */
-              if (notWSIdx == 0 || notWSIdx == -1) {
-                // No indentation for literal strings from 2nd line.
-                indent = -1
-              }
+              case _ =>
             }
           }
         } while (ts.moveNext && ts.offset < lineEnd)
+        
+        // --- now tokens of this line have been processed totally, let's go on some special cases
+
+        if (!openingBraces.isEmpty) {
+          openingBraces.top.token.id match {
+            case ScalaTokenId.Eq | ScalaTokenId.Else | ScalaTokenId.If | ScalaTokenId.For | ScalaTokenId.Yield | ScalaTokenId.While =>
+              // * close these braces here, now, since the indentation has been done in previous computation
+              openingBraces pop
+            case _ =>
+          }
+        }
+
+        // * special case for next line indent with `=` is at the end of this line, or unfinished `if` `else` `for`
+        // * since this line has been processed totally, we can now traverse ts freely
+        if (latestNoWSToken != null) {
+          // * make sure ts is at latestNoWSToken by these 2 steps:
+          ts.move(latestNoWSTokenOffset); ts.moveNext
+          latestNoWSToken.id match {
+            case ScalaTokenId.Eq | ScalaTokenId.Else | ScalaTokenId.Yield =>
+              val offset = ts.offset
+              val newBrace = new Brace
+              newBrace.token = latestNoWSToken
+              // will add indent of this line to offsetOnline later
+              newBrace.offsetOnline = offset - lineBegin
+              newBrace.onProcessingLine = true
+              openingBraces push newBrace
+            case ScalaTokenId.RParen =>
+              ScalaLexUtil.skipPair(ts, true, ScalaTokenId.LParen, ScalaTokenId.RParen)
+              // * check if there is a `if` or `for` extractly before the matched `LParen`
+              ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+                case Some(x) => x.id match {
+                    case ScalaTokenId.If =>
+                      val offset = ts.offset
+                      val newBrace = new Brace
+                      newBrace.token = x
+                      // will add indent of this line to offsetOnline later
+                      newBrace.offsetOnline = offset - lineBegin
+                      newBrace.onProcessingLine = true
+                      openingBraces push newBrace
+                      
+                      ts.movePrevious
+                      ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+                        case Some(y) if y.id == ScalaTokenId.Else =>
+                          // * "else if": keep `offset` to `else` for later hanging
+                          newBrace.offsetOnline = ts.offset - lineBegin
+                        case _ =>
+                      }
+                    case ScalaTokenId.While =>
+                      val offset = ts.offset
+                      ts.movePrevious
+                      ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+                        case Some(x) if x.id == ScalaTokenId.RBrace =>
+                          ScalaLexUtil.skipPair(ts, true, ScalaTokenId.LBrace, ScalaTokenId.RBrace)
+                          ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+                            case Some(y) if y.id != ScalaTokenId.Do =>
+                              val newBrace = new Brace
+                              newBrace.token = x
+                              // will add indent of this line to offsetOnline later
+                              newBrace.offsetOnline = offset - lineBegin
+                              newBrace.onProcessingLine = true
+                              openingBraces push newBrace
+                            case _ =>
+                          }
+                        case _ =>
+                          val newBrace = new Brace
+                          newBrace.token = x
+                          // will add indent of this line to offsetOnline later
+                          newBrace.offsetOnline = offset - lineBegin
+                          newBrace.onProcessingLine = true
+                          openingBraces push newBrace
+                      }
+                    case ScalaTokenId.For =>
+                      val offset = ts.offset
+                      val newBrace = new Brace
+                      newBrace.token = x
+                      // will add indent of this line to offsetOnline later
+                      newBrace.offsetOnline = offset - lineBegin
+                      newBrace.onProcessingLine = true
+                      openingBraces push newBrace
+                    case _ =>
+                  }
+                case _ =>
+              }
+            case _ =>
+          }
+        }
+
       } catch {case e: AssertionError =>
           doc.getProperty(Document.StreamDescriptionProperty).asInstanceOf[DataObject] match {
             case null =>
@@ -486,39 +633,43 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
       }
     }
 
-    // Now we've got the final indent of this line, adjust offset for new added
-    // braces (which should be on this line)
-    for (brace <- openBraces if brace.onProcessingLine) {
+    // * Now we've got the final indent of this line, adjust offset for new added
+    // * braces (which should be on this line)
+    for (brace <- openingBraces if brace.onProcessingLine) {
       brace.offsetOnline += indent
-      if (brace.ordinalOnline == notWSIdx) {
+      if (brace.token == latestNoWSToken) {
         brace.isLatestOnLine = true
       }
-      brace.lasestTokenOnLine = latestNotWSToken
+      brace.lasestTokenOnLine = latestNoWSToken
     }
 
-    // Compute indent for next line
-    var nextIndent = 0
-    val (latestOpenBrace, latestOpenId) = if (!openBraces.isEmpty) {
-      (openBraces.top, openBraces.top.token.id)
-    } else (null, null)
-
-    // decide if next line is new or continued continute line
-    var isContinueLine = false
-    if (latestNotWSToken == null) {
-      // empty line or comment line
-      isContinueLine = false
-    } else {
-      isContinueLine = false // default
-
-      if (latestNotWSToken.id == ScalaTokenId.Comma) {
-        // * we have special case
-        if (latestOpenBrace != null && latestOpenBrace.isLatestOnLine && (latestOpenId == ScalaTokenId.LParen ||
-                                                                          latestOpenId == ScalaTokenId.LBracket ||
-                                                                          latestOpenId == ScalaTokenId.LBrace)) {
-
-          isContinueLine = true
-        }
+    for (brace <- specialBraces if brace.onProcessingLine) {
+      brace.offsetOnline += indent
+      if (brace.token == latestNoWSToken) {
+        brace.isLatestOnLine = true
       }
+      brace.lasestTokenOnLine = latestNoWSToken
+    }
+
+    // --- Compute indent for next line
+    
+    var nextIndent = 0
+    val latestOpenBrace = if (!openingBraces.isEmpty) {
+      openingBraces.top
+    } else null
+
+    // * decide if next line is new or continued continute line
+    val isContinueLine = if (latestNoWSToken == null) {
+      // * empty line or comment line
+      false
+    } else {
+      if (latestOpenBrace != null && latestOpenBrace.isLatestOnLine) {
+        // * we have special case
+        (latestOpenBrace.token.id, latestNoWSToken.id) match {
+          case (ScalaTokenId.LParen | ScalaTokenId.LBracket | ScalaTokenId.LBrace, ScalaTokenId.Comma) => true
+          case _ => false
+        }
+      } else false
     }
 
     if (isContinueLine) {
@@ -540,16 +691,15 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
         // All braces resolved
         nextIndent = 0
       } else {
-        val offset = latestOpenBrace.offsetOnline
-        nextIndent = latestOpenId match {
+        nextIndent = latestOpenBrace.token.id match {
           case ScalaTokenId.RArrow =>
             var nearestHangableBrace: Brace = null
-            var depth1 = 0
+            var depth = 0
             var break = false
-            val openBraces1 = openBraces.toList
-            for (i <- openBraces.size - 1 to 0 if !break) {
-              val brace = openBraces1(i)
-              depth1 += 1
+            val braces = openingBraces.toList
+            for (i <- openingBraces.size - 1 to 0 if !break) {
+              val brace = braces(i)
+              depth += 1
               if (brace.token.id != ScalaTokenId.RArrow) {
                 nearestHangableBrace = brace
                 break = true
@@ -557,43 +707,33 @@ class ScalaFormatter(/* acodeStyle: CodeStyle ,*/ rightMarginOverride: Int) exte
             }
 
             if (nearestHangableBrace != null) {
-              // Hang it from this brace
-              nearestHangableBrace.offsetOnline + depth1 * indentSize
+              // * Hang it from this brace
+              nearestHangableBrace.offsetOnline + depth * indentSize
             } else {
-              openBraces.size * indentSize
+              openingBraces.size * indentSize
             }
+            
           case ScalaTokenId.LParen | ScalaTokenId.LBracket | ScalaTokenId.LBrace
             if !latestOpenBrace.isLatestOnLine && (latestOpenBrace.lasestTokenOnLine == null ||
                                                    latestOpenBrace.lasestTokenOnLine.id != ScalaTokenId.RArrow) =>
 
-            offset + latestOpenBrace.token.text.toString.length
+            latestOpenBrace.offsetOnline + latestOpenBrace.token.text.length
 
           case ScalaTokenId.BlockCommentStart | ScalaTokenId.DocCommentStart =>
 
-            offset + 1
+            latestOpenBrace.offsetOnline + 1
 
-          case _ => openBraces.size * indentSize // default
+          case ScalaTokenId.Eq | ScalaTokenId.Else | ScalaTokenId.If | ScalaTokenId.For | ScalaTokenId.Yield | ScalaTokenId.While =>
+
+            indent + indentSize
+
+          case _ => openingBraces.size * indentSize // default
         }
       }
     }
 
     Array(indent, nextIndent, continueIndent)
   }
-
-  //    void reformatComments(BaseDocument doc, int start, int end) {
-  //        int rightMargin = rightMarginOverride;
-  //        if (rightMargin == -1) {
-  //            CodeStyle style = codeStyle;
-  //            if (style == null) {
-  //                style = CodeStyle.getDefault(null);
-  //            }
-  //
-  //            rightMargin = style.getRightMargin();
-  //        }
-  //
-  //        ReflowParagraphAction action = new ReflowParagraphAction();
-  //        action.reflowComments(doc, start, end, rightMargin);
-  //    }
 
   /**
    * Ensure that the editor-settings for tabs match our code style, since the

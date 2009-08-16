@@ -61,7 +61,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.{Global, Settings}
 import scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
 import scala.tools.nsc.reporters.Reporter
-import scala.tools.nsc.util.{BatchSourceFile, Position,SourceFile}
+import scala.tools.nsc.util.{Position, SourceFile, BatchSourceFile}
 
 /**
  * 
@@ -476,16 +476,14 @@ class ScalaParser extends Parser {
         ts.move(start - 1)
         if (!ts.moveNext && !ts.movePrevious) {
         } else {
-          var token = ScalaLexUtil.findPreviousNonWsNonComment(ts)
-          if (token != null && token.id == ScalaTokenId.Dot) {
-            if (context.caretOffset == token.offset(th) + 1) {
-              if (ts.movePrevious) {
-                token = ScalaLexUtil.findPreviousNonWsNonComment(ts)
-                if (token != null && token.id == ScalaTokenId.Identifier) {
+          ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+            case Some(tokenx) if tokenx.id == ScalaTokenId.Dot && context.caretOffset == tokenx.offset(th) + 1 && ts.movePrevious =>
+              ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+                case Some(tokeny) if tokeny.id == ScalaTokenId.Identifier =>
                   return Sanitize.EDITED_DOT
-                }
+                case _ =>
               }
-            }
+            case _ =>
           }
         }
       }
