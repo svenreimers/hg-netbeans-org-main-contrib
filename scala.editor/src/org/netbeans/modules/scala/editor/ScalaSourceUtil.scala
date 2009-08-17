@@ -27,8 +27,7 @@
  */
 package org.netbeans.modules.scala.editor
 
-import _root_.java.io.{File, IOException, InputStream}
-import _root_.java.lang.ref.{Reference, WeakReference}
+import java.io.{File, IOException, InputStream}
 import javax.swing.text.BadLocationException
 import org.netbeans.api.java.classpath.ClassPath
 import org.netbeans.api.java.queries.SourceForBinaryQuery
@@ -251,68 +250,18 @@ object ScalaSourceUtil {
     }
   }
 
-  val scalaFileToSource = new java.util.WeakHashMap[FileObject, Reference[Source]]
-  val scalaFileToParserResult = new java.util.WeakHashMap[FileObject, Reference[Parser.Result]]
-
-  def getParserResultForScalaFile(fo: FileObject): Option[Parser.Result] = {
-    var info: Parser.Result = scalaFileToParserResult.get(fo) match {
-      case null => null
-      case ref => ref.get match {
-          case null => null
-          case x => x
-        }
-    }
-
-    if (info == null) {
-      val pResults = new Array[Parser.Result](1)
-      val source = getSourceForScalaFile(fo)
-      try {
-        ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
-            @throws(classOf[Exception])
-            override def run(resultIterator: ResultIterator): Unit = {
-              pResults(0) = resultIterator.getParserResult
-            }
-          })
-      } catch {case ex:ParseException => Exceptions.printStackTrace(ex)}
-
-      info = pResults(0)
-      scalaFileToParserResult.put(fo, new WeakReference[Parser.Result](info))
-    }
-
-    if (info == null) None else Some(info)
-  }
-
-  /**
-   * @Note: We cannot create javasource via JavaSource.forFileObject(fo) here, which
-   * does not support virtual source yet (only ".java" and ".class" files
-   * are supported), but we can create js via JavaSource.create(cpInfo);
-   */
-  private def getSourceForScalaFile(fo: FileObject): Source = {
-    var source: Source = scalaFileToSource.get(fo) match {
-      case null => null
-      case ref => ref.get
-    }
-
-    if (source == null) {
-      source = Source.create(fo)
-      scalaFileToSource.put(fo, new WeakReference[Source](source))
-    }
-
-    source
-  }
-
   /** @todo */
-  def getDocComment(info: Parser.Result, element: JavaElements#JavaElement): String = {
-    if (info == null) {
+  def getDocComment(pResult: Parser.Result, element: JavaElements#JavaElement): String = {
+    if (pResult == null) {
       return null
     }
 
-    val doc = info.getSnapshot.getSource.getDocument(true) match {
+    val doc = pResult.getSnapshot.getSource.getDocument(true) match {
       case null => return null
       case x: BaseDocument => x
     }
 
-    val th = info.getSnapshot.getTokenHierarchy
+    val th = pResult.getSnapshot.getTokenHierarchy
 
     doc.readLock // Read-lock due to token hierarchy use
     val offset = 0//element.getBoundsOffset(th)
@@ -362,7 +311,7 @@ object ScalaSourceUtil {
     return -1
   }
 
-  def getFileObject(info: ParserResult, symbol: Symbols#Symbol): Option[FileObject] = {
+  def getFileObject(pResult: ParserResult, symbol: Symbols#Symbol): Option[FileObject] = {
     val pos = symbol.pos
     if (pos.isDefined) {
       val srcFile = pos.source
@@ -383,7 +332,7 @@ object ScalaSourceUtil {
     val qName: String = try {
       symbol.enclClass.fullNameString.replace('.', File.separatorChar)
     } catch {
-      case ex:_root_.java.lang.Error => null
+      case ex: java.lang.Error => null
         // java.lang.Error: no-symbol does not have owner
         //        at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1565)
         //        at scala.tools.nsc.symtab.Symbols$Symbol.fullNameString(Symbols.scala:1156)
@@ -402,7 +351,7 @@ object ScalaSourceUtil {
     val clzName = qName + ".class"
 
     try {
-      val srcFo = info.getSnapshot.getSource.getFileObject
+      val srcFo = pResult.getSnapshot.getSource.getFileObject
       val cpInfo = ClasspathInfo.create(srcFo)
       val cp = ClassPathSupport.createProxyClassPath(
         Array(cpInfo.getClassPath(ClasspathInfo.PathKind.SOURCE),
@@ -526,7 +475,7 @@ object ScalaSourceUtil {
     }
     try {
       val result = new ArrayBuffer[ScalaDfns#ScalaDfn]
-      ParserManager.parse(_root_.java.util.Collections.singleton(source), new UserTask {
+      ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
           @throws(classOf[Exception])
           override def run(resultIterator: ResultIterator): Unit = {
             val pResult = resultIterator.getParserResult.asInstanceOf[ScalaParserResult]
@@ -570,8 +519,8 @@ object ScalaSourceUtil {
     }
   }
 
-  def getMainClassesAsJavaCollection(fo: FileObject): _root_.java.util.Collection[AstDfn] = {
-    val result = new _root_.java.util.ArrayList[AstDfn]
+  def getMainClassesAsJavaCollection(fo: FileObject): java.util.Collection[AstDfn] = {
+    val result = new java.util.ArrayList[AstDfn]
     getMainClasses(fo) foreach {result.add(_)}
     result
   }
@@ -582,8 +531,8 @@ object ScalaSourceUtil {
    * @return the classes containing the main methods
    * Currently this method is not optimized and may be slow
    */
-  def getMainClassesAsJavaCollection(sourceRoots: Array[FileObject]): _root_.java.util.Collection[AstDfn] = {
-    val result = new _root_.java.util.ArrayList[AstDfn]
+  def getMainClassesAsJavaCollection(sourceRoots: Array[FileObject]): java.util.Collection[AstDfn] = {
+    val result = new java.util.ArrayList[AstDfn]
     for (root <- sourceRoots) {
       result.addAll(getMainClassesAsJavaCollection(root))
       try {
@@ -618,7 +567,7 @@ object ScalaSourceUtil {
         result
       } catch {case ioe: Exception =>
           Exceptions.printStackTrace(ioe)
-          return _root_.java.util.Collections.emptySet[AstDfn]
+          return java.util.Collections.emptySet[AstDfn]
       }
     }
     result

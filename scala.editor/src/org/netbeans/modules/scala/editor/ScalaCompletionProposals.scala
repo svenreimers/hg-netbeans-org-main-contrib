@@ -198,8 +198,10 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
         formatter.appendHtml("]")
       }
 
-      val paramTypes = methodType.paramTypes
-      val paramNames = element.paramNames
+      val paramTypes = try {
+        methodType.paramTypes
+      } catch {case _ => ScalaGlobal.reset(request.global); Nil}
+      val paramNames = ScalaUtil.paramNames(element.symbol)
 
       if (!paramTypes.isEmpty) {
         formatter.appendHtml("(") // NOI18N
@@ -236,7 +238,11 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
     }
 
     def getInsertParams: List[String] = {
-      methodType.paramTypes map {_.typeSymbol.nameString.toLowerCase}
+      val paramTypes = try {
+        methodType.paramTypes
+      } catch {case _ => ScalaGlobal.reset(request.global); Nil}
+
+      paramTypes map {_.typeSymbol.nameString.toLowerCase}
     }
 
     override def getCustomInsertTemplate: String = {
