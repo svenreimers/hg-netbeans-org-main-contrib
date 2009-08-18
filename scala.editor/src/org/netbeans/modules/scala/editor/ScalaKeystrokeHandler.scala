@@ -115,30 +115,32 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
     val caret = target.getCaret
     val doc = document.asInstanceOf[BaseDocument]
 
-    val insertMatching = isInsertMatchingEnabled(doc)
-
-    val lineBegin = Utilities.getRowStart(doc, offset)
+    val lineBeg = Utilities.getRowStart(doc, offset)
     val lineEnd = Utilities.getRowEnd(doc, offset)
 
-    if (lineBegin == offset && lineEnd == offset) {
-      // Pressed return on a blank newline - do nothing
+    if (lineBeg == offset && lineEnd == offset) {
+      // * pressed return on a blank newline - do nothing
       return -1
     }
 
-    val ts = ScalaLexUtil.getTokenSequence(doc, offset) match {
-      case Some(x) => x
-      case None => return -1
-    }
-
+    val ts = ScalaLexUtil.getTokenSequence(doc, offset).getOrElse(return -1)
     ts.move(offset)
     if (!ts.moveNext && !ts.movePrevious) {
       return -1
     }
 
-    val token = ts.token
+    var token = ts.token
     var id = token.id
+    // * I don't know why sometimes the token is `Nl`, anyway if this happens, just movePrevious one step
+    if (id == ScalaTokenId.Nl && ts.movePrevious) {
+      token = ts.token
+      id = token.id
+    }
 
-    // Insert an `end` statement? Insert a `}` marker?
+
+    // * Insert an `end` or `}` ?
+    val insertMatching = isInsertMatchingEnabled(doc)
+
     val insertEndResult = Array(false)
     val insertRBraceResult = Array(false)
     val indentResult = Array(1)
@@ -180,11 +182,11 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
       return -1
     }
-
+    
     id match {
-      case ScalaTokenId.Error =>
-        // See if it's a block comment opener
-        val text = token.text.toString
+      case ScalaTokenId.Identifier =>
+        // * See if it's a block comment opener
+        val text = token.text.toString 
         if (text.startsWith("/*") && ts.offset == Utilities.getRowFirstNonWhite(doc, offset)) {
           val indent = GsfUtilities.getLineIndent(doc, offset)
           val sb = new StringBuilder
@@ -194,10 +196,6 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
           sb.append("\n") // NOI18N
           sb.append(IndentUtils.createIndentString(doc, indent))
           sb.append(" */") // NOI18N
-          // TODO - possibly populate associated types in JS-doc style!
-          //if (text.startsWith("/**")) {
-          //
-          //}
           doc.insertString(offset, sb.toString, null)
           caret.setDot(offset)
           return offset + offsetDelta
@@ -291,7 +289,7 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
     id match {
       case _ if (ScalaLexUtil.isBlockComment(id) || ScalaLexUtil.isDocComment(id)) && offset > ts.offset =>
-        // Continue *'s
+        // * continue stars
         val begin = Utilities.getRowFirstNonWhite(doc, offset)
         val end = Utilities.getRowEnd(doc, offset) + 1
         var line = doc.getText(begin, end - begin)
@@ -304,17 +302,17 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
           }
           sb.append(IndentUtils.createIndentString(doc, indent))
           sb.append("*") // NOI18N
-          // Copy existing indentation
+          // * copy existing indentation after `*`
           val afterStar = if (isBlockStart) begin + 2 else begin + 1
           line = doc.getText(afterStar, Utilities.getRowEnd(doc, afterStar) - afterStar)
+          var i = 0
           var break = false
-          for (i <- 0 until line.length if !break) {
-            val c = line.charAt(i)
-            if (c == ' ' || c == '\t') {
-              sb.append(c)
-            } else {
-              break = true
+          while (i < line.length && !break) {
+            line.charAt(i) match {
+              case c@(' ' | '\t') => sb.append(c)
+              case _ => break = true
             }
+            i += 1
           }
 
           var insertOffset = offset // offset < length ? offset+1 : offset;
@@ -410,18 +408,18 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
         val indent = GsfUtilities.getLineIndent(doc, offset)
         val sb = new StringBuilder
         sb.append(IndentUtils.createIndentString(doc, indent))
-        sb.append("//"); // NOI18N
+        sb.append("//") // NOI18N
         // Copy existing indentation
         val afterSlash = begin + 2
         val line = doc.getText(afterSlash, Utilities.getRowEnd(doc, afterSlash) - afterSlash)
+        var i = 0
         var break = false
-        for (i <- 0 until line.length if !break) {
-          val c = line.charAt(i);
-          if (c == ' ' || c == '\t') {
-            sb.append(c)
-          } else {
-            break = true
+        while (i < line.length && !break) {
+          line.charAt(i) match {
+            case c@(' ' | '\t') => sb.append(c)
+            case _ => break = true
           }
+          i += 1
         }
 
         var insertOffset = offset // offset < length ? offset+1 : offset;
@@ -1016,10 +1014,7 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
     var skipClosingBracket = false // by default do not remove
 
-    val ts = ScalaLexUtil.getTokenSequence(doc, caretOffset) match {
-      case Some(x) => x
-      case None => return false
-    }
+    val ts = ScalaLexUtil.getTokenSequence(doc, caretOffset).getOrElse(return false)
     // XXX BEGIN TOR MODIFICATIONS
     //ts.move(caretOffset+1);
     ts.move(caretOffset)
@@ -1233,11 +1228,7 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
       return false
     }
 
-    val ts = ScalaLexUtil.getTokenSequence(doc, dotPos) match {
-      case Some(x) => x
-      case None => return false
-    }
-    
+    val ts = ScalaLexUtil.getTokenSequence(doc, dotPos).getOrElse(return false)
     ts.move(dotPos)
     if (!ts.moveNext && !ts.movePrevious) {
       return false
@@ -1330,11 +1321,8 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
     if ((completablePosition && !insideString) || eol) {
       doc.insertString(dotPos, "" + bracket + (if (isAfter) "" else matching(bracket)), null); //NOI18N
-
-      return true
-    }
-
-    false
+      true
+    } else false
   }
 
   /**
@@ -1401,18 +1389,15 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
 
   override def findLogicalRanges(info: ParserResult, caretOffset: Int): _root_.java.util.List[OffsetRange] = {
     val pResult = info.asInstanceOf[ScalaParserResult]
-    val root = pResult.rootScope match {
-      case None => return _root_.java.util.Collections.emptyList[OffsetRange]
-      case Some(x) => x
-    }
+    val root = pResult.rootScope.getOrElse(return java.util.Collections.emptyList[OffsetRange])
 
     val astOffset = ScalaLexUtil.getAstOffset(info, caretOffset)
     if (astOffset == -1) {
-      return _root_.java.util.Collections.emptyList[OffsetRange]
+      return java.util.Collections.emptyList[OffsetRange]
     }
 
     //AstPath path = new AstPath(root, astOffset);
-    val ranges = new  _root_.java.util.ArrayList[OffsetRange]
+    val ranges = new  java.util.ArrayList[OffsetRange]
 
     /** Furthest we can go back in the buffer (in RHTML documents, this
      * may be limited to the surrounding &lt;% starting tag
@@ -1556,11 +1541,7 @@ class ScalaKeystrokeHandler extends KeystrokeHandler {
   // UGH - this method has gotten really ugly after successive refinements based on unit tests - consider cleaning up
   override def getNextWordOffset(document: Document, offset: Int, reverse: Boolean): Int = {
     val doc = document.asInstanceOf[BaseDocument]
-    val ts = ScalaLexUtil.getTokenSequence(doc, offset) match {
-      case Some(x) => x
-      case None => return -1
-    }
-
+    val ts = ScalaLexUtil.getTokenSequence(doc, offset).getOrElse(return -1)
     ts.move(offset)
     if (!ts.moveNext && !ts.movePrevious) {
       return -1
