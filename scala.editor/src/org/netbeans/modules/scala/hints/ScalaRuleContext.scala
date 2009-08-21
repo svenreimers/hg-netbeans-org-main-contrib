@@ -57,7 +57,7 @@ class ScalaRuleContext() extends RuleContext {
     def getTokenHierarchy = parserResult.getSnapshot.getTokenHierarchy
 
     def getClasspathInfo  : Option[ClasspathInfo]  = 
-        ScalaSourceUtil.getClasspathInfoForFileObject(getFileObject)
+        ScalaSourceUtil.getClasspathInfo(getFileObject)
 
     def calcOffsetRange(start : Int, end : Int) : Option[OffsetRange] = {
         try {
