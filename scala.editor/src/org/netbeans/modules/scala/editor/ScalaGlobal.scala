@@ -60,12 +60,12 @@ import org.netbeans.api.language.util.ast.{AstScope}
 import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRefs, ScalaRootScope, ScalaAstVisitor, ScalaUtils}
 import org.netbeans.modules.scala.editor.element.{ScalaElements, JavaElements}
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, LinkedHashMap}
 
 import scala.tools.nsc.{Phase, Settings}
-import scala.collection.mutable.LinkedHashMap
 
-import scala.tools.nsc.interactive.Global
+import org.netbeans.modules.scala.editor.interactive.Global
+//import scala.tools.nsc.interactive.Global
 import scala.tools.nsc.symtab.{SymbolTable, Flags}
 import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.io.PlainFile
@@ -131,32 +131,14 @@ object ScalaGlobal {
   case object userRequest extends NormalReason("User's action")
   case object compCpChanged extends NormalReason("Change of compile classpath")
 
-  def resetAll = synchronized {
-    val itr1 = projectToGlobal.values.iterator
-    while (itr1.hasNext) {
-      itr1.next.askShutdown
-    }
-    projectToGlobal.clear
-
-    val itr2 = projectToGlobalForTest.values.iterator
-    while (itr2.hasNext) {
-      itr2.next.askShutdown
-    }
-    projectToGlobalForTest.clear
-
-    globalForStdLib foreach {_.askShutdown}
-    globalForStdLib = None
-  }
-
   def resetLate(global: ScalaGlobal, reason: Throwable) = synchronized {
-    println("\n=== will reset global late due to:")
     reason match {
-      case NormalReason(msg) => println(msg)
-      case _ => reason.printStackTrace
+      case NormalReason(msg) => Log.info("Will reset global late due to: " + msg)
+      case _ => Log.log(Level.WARNING, "Will reset global late due to:", reason)
     }
-    println
 
     toResetGlobals += global
+    
     if (globalForStdLib.isDefined && global == globalForStdLib.get) {
       globalForStdLib = None
     } else {
@@ -174,15 +156,23 @@ object ScalaGlobal {
    */
   def resetBadGlobals = synchronized {
     for (global <- toResetGlobals) {
-      Log.log(Level.INFO, "Reset global: " + global)
+      Log.info("Reset global: " + global)
 
-      // * this will cause global create a new TypeRun so as to release all unitbuf and filebuf
+      // * this will cause global create a new TypeRun so as to release all unitbuf and filebuf.
+      // * But, it seems askReset will only reset current unit, when exception is throw inside
+      // * for example, typeCheck, the dependent units may have been damaged, and the symbols in
+      // * global may need to be reset too. So the best way is to drop this gloal, use a new
+      // * created one instead.
       //global.askReset
 
       // * try to stop compiler daemon thread, but, does this method work ?
       global.askShutdown
 
-      // * whatever, force global to clear whole unitOfFile
+      // * @Todo temporary solution:
+      // * It seems global is always holded by someone and cannot be GCed?
+      // * whatever, force global to clear whole unitOfFile and others
+      global.analyzer.resetTyper
+      global.firsts = Nil
       global.unitOfFile.clear
     }
 
@@ -279,11 +269,11 @@ object ScalaGlobal {
     settings.sourcepath.tryToSet(srcPaths.reverse)
     settings.outputDirs.setSingleOutput(outPath)
 
-    Log.log(Level.INFO, "project's source paths set for global: " + srcPaths)
+    Log.info("project's source paths set for global: " + srcPaths)
     if (srcCp != null){ 
-      Log.log(Level.INFO, srcCp.getRoots.mkString("project's srcCp: [", ", ", "]"))
+      Log.info(srcCp.getRoots.mkString("project's srcCp: [", ", ", "]"))
     } else {
-      Log.log(Level.INFO, "project's srcCp is empty !")
+      Log.info("project's srcCp is empty !")
     }
     
     // * @Note: settings.outputDirs.add(src, out) seems cannot resolve symbols in other source files, why?
@@ -322,14 +312,14 @@ object ScalaGlobal {
           private def isUnderCompileCp(fo: FileObject) = {
             // * when there are series of folder/file created, only top created folder can be listener
             val found = compCp.getRoots find {x => FileUtil.isParentOf(fo, x) || x == fo}
-            if (found.isDefined) Log.log(Level.FINEST, "under compCp: fo=" + fo + ", found=" + found)
+            if (found.isDefined) Log.finest("under compCp: fo=" + fo + ", found=" + found)
             found isDefined
           }
 
           override def fileFolderCreated(fe: FileEvent) {
             val fo = fe.getFile
             if (isUnderCompileCp(fo) && g != null) {
-              Log.log(Level.FINEST, "folder created: " + fo)
+              Log.finest("folder created: " + fo)
               resetLate(g, compCpChanged)
               g = null
             }
@@ -338,7 +328,7 @@ object ScalaGlobal {
           override def fileDataCreated(fe: FileEvent): Unit = {
             val fo = fe.getFile
             if (isUnderCompileCp(fo) && g != null) {
-              Log.log(Level.FINEST, "data created: " + fo)
+              Log.finest("data created: " + fo)
               resetLate(g, compCpChanged)
               g = null
             }
@@ -347,7 +337,7 @@ object ScalaGlobal {
           override def fileChanged(fe: FileEvent): Unit = {
             val fo = fe.getFile
             if (isUnderCompileCp(fo) && g != null) {
-              Log.log(Level.FINEST, "file changed: " + fo)
+              Log.finest("file changed: " + fo)
               resetLate(g, compCpChanged)
               g = null
             }
@@ -356,7 +346,7 @@ object ScalaGlobal {
           override def fileRenamed(fe: FileRenameEvent): Unit = {
             val fo = fe.getFile
             if (isUnderCompileCp(fo) && g != null) {
-              Log.log(Level.FINEST, "file renamed: " + fo)
+              Log.finest("file renamed: " + fo)
               resetLate(g, compCpChanged)
               g = null
             }
@@ -365,7 +355,7 @@ object ScalaGlobal {
           override def fileDeleted(fe: FileEvent): Unit = {
             val fo = fe.getFile
             if (isUnderCompileCp(fo) && g != null) {
-              Log.log(Level.FINEST, "file deleted: " + fo)
+              Log.finest("file deleted: " + fo)
               resetLate(g, compCpChanged)
               g = null
             }
@@ -453,8 +443,8 @@ object ScalaGlobal {
     val scalaSgs = sources.getSourceGroups(SOURCES_TYPE_SCALA)
     val javaSgs  = sources.getSourceGroups(SOURCES_TYPE_JAVA)
 
-    Log.log(Level.INFO, (scalaSgs map (_.getRootFolder)).mkString("project's src group[ScalaType] dir: [", ", ", "]"))
-    Log.log(Level.INFO, (javaSgs  map (_.getRootFolder)).mkString("project's src group[JavaType]  dir: [", ", ", "]"))
+    Log.info((scalaSgs map (_.getRootFolder)).mkString("project's src group[ScalaType] dir: [", ", ", "]"))
+    Log.info((javaSgs  map (_.getRootFolder)).mkString("project's src group[JavaType]  dir: [", ", ", "]"))
 
     List(scalaSgs, javaSgs) foreach {sgs =>
       if (sgs.size > 0) {
@@ -574,9 +564,14 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
                                                              with ScalaUtils {
 
   import ScalaGlobal._
-
-  ScalaGlobal.unreleasedGlobals.put(this, (new Date).toString)
-  Log.log(Level.INFO, "Unreleased globals\n" + unreleasedGlobals + "\n")
+  unreleasedGlobals.put(this, (new Date).toString)
+  Log.info("Unreleased globals(" + unreleasedGlobals.size + "):")
+  var i = 0
+  val itr = unreleasedGlobals.entrySet.iterator
+  while (itr.hasNext) {
+    i += 1
+    Log.info("\t" + i + ") " + itr.next.toString + "\n")
+  }
 
   // * Inner object inside a class is not singleton, so it's safe for each instance of ScalaGlobal,
   // * but, is it thread safe? http://lampsvn.epfl.ch/trac/scala/ticket/1591
@@ -684,7 +679,7 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
 
     //println("selectTypeErrors:" + selectTypeErrors)
 
-    run.units.find{_.source == srcFile} map {unit =>
+    run.units find {_.source == srcFile} map {unit =>
       if (ScalaGlobal.debug) {
         RequestProcessor.getDefault.post(new Runnable {
             def run {
@@ -724,7 +719,7 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
         case Select(qualifier, name) => qualifier
         case x =>
           alternatePos match {
-            case NoPosition => Log.log(Level.WARNING, "Got a suspicious completion tree: " + x.getClass.getSimpleName); x
+            case NoPosition => Log.warning("Got a suspicious completion tree: " + x.getClass.getSimpleName); x
             case _ => completionTypeAt(alternatePos, NoPosition)
           }
       }
@@ -742,10 +737,14 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
    * from interative.Global#typeMembers
    */
   def typeMembers(apos: Position, alternatePos: Position, resultTpe: Type): List[TypeMember] = {
-    val (pos, tree) = completionTypeAt(apos, alternatePos) match {
-      case EmptyTree => return Nil
-      case x => (x.pos, x)
-    }
+    // @Note typedTreeAt throws exceptions sometimes, which damages global, we actually has
+    // typed unit when askForPresentation, this step is useless, so, just locateTree(alternatePos)
+    /* val (pos, tree) = completionTypeAt(apos, alternatePos) match {
+     case EmptyTree => return Nil
+     case x => (x.pos, x)
+     } */
+
+    val (pos, tree) = (alternatePos, locateTree(alternatePos))
 
     val treeSym = tree.symbol
     val isPackage = treeSym != null && treeSym.isPackage
@@ -900,12 +899,12 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
    */
   override def askShutdown() = {
     scheduler.raise(new ShutdownReq)
-    scheduler postWorkItem {() => println("A action to awake scheduler to process raised except")}
+    scheduler postWorkItem {() => println("A action to awake scheduler to process shutdown except")}
   }
 
   override def askReset() = {
     scheduler.raise(new FreshRunReq)
-    scheduler postWorkItem {() => println("A action to awake scheduler to process raised except")}
+    scheduler postWorkItem {() => println("A action to awake scheduler to process reset except")}
   }
 
 }
