@@ -40,26 +40,35 @@
  */
 package org.netbeans.modules.scala.editor
 
-import _root_.java.io.File
+import java.io.File
 import org.netbeans.api.lexer.TokenHierarchy
 import org.netbeans.modules.csl.api.{Error, OffsetRange}
 import org.netbeans.modules.csl.spi.ParserResult
 import org.netbeans.modules.parsing.api.Snapshot
 import org.netbeans.modules.scala.editor.ast.ScalaRootScope
 import org.openide.filesystems.{FileObject, FileUtil}
-import _root_.scala.tools.nsc.Global
-import _root_.scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
-import _root_.scala.tools.nsc.util.BatchSourceFile
+import scala.collection.mutable.WeakHashMap
+import scala.tools.nsc.Global
+import scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
+import scala.tools.nsc.util.{BatchSourceFile, SourceFile}
 
 /**
  *
  * @author Caoyuan Deng
  */
-class ScalaParserResult(val parser: ScalaParser,
-                        snapshot: Snapshot,
-                        val rootScope: Option[ScalaRootScope] = None,
-                        var errors: List[Error]
+class ScalaParserResult(snapshot: Snapshot,
+                        val global: ScalaGlobal,
+                        val rootScope: Option[ScalaRootScope],
+                        var errors: java.util.List[Error],
+                        val srcFile: SourceFile
 ) extends ParserResult(snapshot) {
+  assume(global != null)
+
+  if (ScalaParserResult.debug) {
+    ScalaParserResult.unreleasedResults.put(this, srcFile.file.path)
+    println("==== unreleased parser results: ")
+    for ((k, v) <- ScalaParserResult.unreleasedResults) println(v)
+  }
 
   var source: String = _
   var sanitizedRange = OffsetRange.NONE
@@ -72,39 +81,40 @@ class ScalaParserResult(val parser: ScalaParser,
   var sanitizedContents: String = _
   var commentsAdded: Boolean = _
   private var sanitized: ScalaParser.Sanitize = _
-  private var rootScopeForDebugger: Option[ScalaRootScope] = _
+  private var rootScopeForDebug: Option[ScalaRootScope] = _
 
   override protected def invalidate: Unit = {
     // XXX: what exactly should we do here?
   }
 
-  override def getDiagnostics: _root_.java.util.List[_ <: Error] = {
+  override def getDiagnostics: java.util.List[_ <: Error] = {
     if (errors == null) {
-      _root_.java.util.Collections.emptyList[Error]
+      java.util.Collections.emptyList[Error]
     } else {
-      _root_.java.util.Arrays.asList(errors.toArray:_*)
+      errors
     }
   }
 
-  def getRootScopeForDebugger: Option[ScalaRootScope] = {
-    if (rootScopeForDebugger == null) {
+  def getRootScopeForDebug: Option[ScalaRootScope] = {
+    if (rootScopeForDebug == null) {
       val fo = getSnapshot.getSource.getFileObject
       val file: File = if (fo != null) FileUtil.toFile(fo) else null
       // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
       //val filePath = if (file != null) file.getAbsolutePath):  "<current>";
       val th = getSnapshot.getTokenHierarchy
 
-      val global = parser.global
+      val global = ScalaGlobal.getGlobal(fo, true)
 
       val af = if (file != null) new PlainFile(file) else new VirtualFile("<current>", "")
       val srcFile = new BatchSourceFile(af, getSnapshot.getText.toString.toCharArray)
       try {
-        rootScopeForDebugger = Some(global.compileSourceForDebugger(srcFile, th))
+        //rootScopeForDebug = Some(global.askForDebug(srcFile, th))
+        rootScopeForDebug = Some(global.compileSourceForDebug(srcFile, th))
       } catch {
         case ex: AssertionError =>
           // avoid scala nsc's assert error
-          ScalaGlobal.reset(global)
-        case ex: _root_.java.lang.Error =>
+          ScalaGlobal.resetLate(global, ex)
+        case ex: java.lang.Error =>
           // avoid scala nsc's exceptions
         case ex: IllegalArgumentException =>
           // An internal exception thrown by ParserScala, just catch it and notify
@@ -114,7 +124,7 @@ class ScalaParserResult(val parser: ScalaParser,
       }
     }
 
-    rootScopeForDebugger
+    rootScopeForDebug
   }
 
   /**
@@ -134,3 +144,10 @@ class ScalaParserResult(val parser: ScalaParser,
     "ParserResult(file=" + getSnapshot.getSource.getFileObject + ",rootScope=" + rootScope
   }
 }
+
+object ScalaParserResult {
+  // ----- for debug
+  private val debug = false
+  private val unreleasedResults = new WeakHashMap[ScalaParserResult, String]
+}
+

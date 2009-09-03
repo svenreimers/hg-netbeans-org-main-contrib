@@ -3,7 +3,8 @@
   <import file="../../nbbuild/templates/projectized.xml"/>
     
   <target name="scala-taskdef" depends="init">
-    <echo message="Compiling scala sources via ${scala.library}, ${scala.compiler}"/>
+    <echo message="scala.home is set to: ${scala.home}"/>
+    <echo message="Scala libs is set to: ${scala.library}, ${scala.compiler}"/>
     <taskdef resource="scala/tools/ant/antlib.xml">
       <classpath>
         <pathelement location="${scala.library}"/>
@@ -12,7 +13,54 @@
     </taskdef>
   </target>
 
+  <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
+  <path id="scalac.cp">
+    <pathelement path="${scala.libs}"/>
+    <pathelement path="${module.run.classpath}"/>
+    <pathelement path="${cp.extra}"/>
+  </path>
+
   <property name="jar-excludes" value="**/*.java,**/*.form,**/package.html,**/doc-files/,**/*.scala"/>
+
+  <!-- scala-clean -->
+
+  <target name="-do-scala-clean">
+    <condition property="condition-scala-fsc-clean">
+      <isset property="scala.fsc"/>
+    </condition>
+    <antcall target="-do-fast-scala-clean"/>  <!--then-->
+    <antcall target="-do-norm-scala-clean"/>  <!--else-->
+  </target>
+
+  <target name="-do-fast-scala-clean" depends="init,up-to-date,scala-taskdef" if="condition-scala-fsc-clean">
+    <fsc reset="yes" srcdir="${src.dir}">
+    </fsc>
+  </target>
+
+  <target name="-do-norm-scala-clean" depends="init,up-to-date" unless="condition-scala-fsc">
+  </target>
+
+  <target name="scala-clean" depends="files-init,testuserdir-delete,test-clean">
+    <delete failonerror="false" includeemptydirs="true">
+      <fileset dir="${build.classes.dir}" />
+      <fileset dir="build">
+        <exclude name="testuserdir/"/>
+      </fileset>
+    </delete>
+    <delete dir="${netbeans.javadoc.dir}/${code.name.base.dashes}"/>
+    <delete file="${netbeans.javadoc.dir}/${code.name.base.dashes}.zip"/>
+    <delete includeemptydirs="true" failonerror="false"> <!-- #59457: OK if cluster does not exist currently -->
+      <fileset dir="${cluster}">
+        <patternset refid="module.files"/>
+      </fileset>
+    </delete>
+    <delete file="${cluster}/update_tracking/${code.name.base.dashes}.xml"/>
+    <delete file="${netbeans.dest.dir}/${module.cluster.name}.built" failonerror="false"/>
+    
+    <antcall target="-do-scala-clean"/>
+  </target>
+
+  <!-- scalac -->
 
   <target name="-do-scalac" depends="init,up-to-date,scala-taskdef">
     <condition property="condition-scala-fsc">
@@ -24,24 +72,24 @@
 
   <target name="-do-fast-scalac" depends="init,up-to-date,scala-taskdef" if="condition-scala-fsc">
     <fsc classpathref="scalac.cp" srcdir="${src.dir}" destdir="${build.classes.dir}"
-            encoding="UTF-8" target="jvm-${javac.target}" addparams="-verbose">
+            encoding="UTF-8" target="jvm-${javac.target}" fork="false" addparams="-verbose">
     </fsc>
   </target>
 
   <target name="-do-norm-scalac" depends="init,up-to-date,scala-taskdef" unless="condition-scala-fsc">
     <scalac classpathref="scalac.cp" srcdir="${src.dir}" destdir="${build.classes.dir}"
-            encoding="UTF-8" target="jvm-${javac.target}">
+            encoding="UTF-8" target="jvm-${javac.target}" fork="false">
     </scalac>
   </target>
-  
+
   <target name="scala-compile" depends="init,up-to-date,scala-taskdef" unless="is.jar.uptodate">
-        <!-- javac's classpath should include scala.library and all these paths of "cp" -->
+    <!-- javac's classpath should include scala.library and all these paths of "cp" -->
     <path id="javac.cp">
       <pathelement path="${scala.libs}"/>
       <pathelement path="${module.classpath}"/>
       <pathelement path="${cp.extra}"/>
     </path>
-        <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
+    <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
     <path id="scalac.cp">
       <pathelement path="${scala.libs}"/>
       <pathelement path="${module.run.classpath}"/>

@@ -45,7 +45,6 @@ import org.netbeans.modules.csl.api.Error
 
 abstract class ScalaErrorRule extends Rule.ErrorRule {
     
-
     def createHints(context : ScalaRuleContext, error : Error) : List[Hint]
 
 }

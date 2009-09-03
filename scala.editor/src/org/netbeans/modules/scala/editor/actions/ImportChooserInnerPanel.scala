@@ -126,8 +126,8 @@ class ImportChooserInnerPanel extends javax.swing.JPanel {
         var defaultSelection: String = null;
         var maxImportantsLevel = 0;
                 
-        for (ImportCandidate(name, fqnName, icon, importantsLevel) <- importCandidates) {
-          choices(iNum) = fqnName
+        for (ImportCandidate(missing, fqn, range, icon, importantsLevel) <- importCandidates) {
+          choices(iNum) = fqn
           icons(iNum) = icon
                     
           val level = importantsLevel
@@ -267,12 +267,14 @@ class ImportChooserInnerPanel extends javax.swing.JPanel {
     def getListCellRendererComponent(list: JList, value: Object, index: int, isSelected: boolean, cellHasFocus: boolean): Component = {
       val res = orig.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       if (res.isInstanceOf[JLabel] && null != icons ) {
+        var i = 0
         var break = false
-        for(i <- 0 until values.length if !break) {
+        while (i < values.length && !break) {
           if(values(i).equals(value)) {
             res.asInstanceOf[JLabel].setIcon(icons(i))
             break = true
           }
+          i += 1
         }
       }
       res

@@ -76,9 +76,8 @@ class ScalaLanguage extends DefaultLanguageConfig {
   /**
    * @see org.netbeans.modules.scala.platform.ScalaPlatformClassPathProvider and ModuleInstall
    */
-  override def getLibraryPathIds = _root_.java.util.Collections.singleton(BOOT)
-
-  override def getSourcePathIds = _root_.java.util.Collections.singleton(SOURCE)
+  override def getLibraryPathIds = java.util.Collections.singleton(BOOT)
+  override def getSourcePathIds  = java.util.Collections.singleton(SOURCE)
     
   override def getParser = new ScalaParser
   
@@ -94,7 +93,7 @@ class ScalaLanguage extends DefaultLanguageConfig {
 
   override def getInstantRenamer = new ScalaInstantRenamer
   
-  override def getCompletionHandler = new ScalaCodeCompletion
+  override def getCompletionHandler = new ScalaCodeCompletionHandler
   
   override def getKeystrokeHandler = new ScalaKeystrokeHandler
   
@@ -103,9 +102,8 @@ class ScalaLanguage extends DefaultLanguageConfig {
   
   override def getHintsProvider = new ScalaHintsProvider
   override def hasHintsProvider = true
-  //
-  //   override def getIndexerFactory = new ScalaIndexer.Factory
-  //
+  
+  //override def getIndexerFactory = new ScalaIndexer.Factory
 }
 
 object ScalaLanguage {

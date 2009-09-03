@@ -55,19 +55,22 @@ import org.netbeans.api.language.util.lex.LexUtil
  * 
  * @author Caoyuan Deng
  */
-abstract class AstDfn(_idToken: Option[Token[TokenId]],
-                      _kind: ElementKind,
-                      private var _bindingScope: AstScope,
-                      var fo: Option[FileObject]
-) extends AstItem with AstElementHandle {
+trait AstDfn extends AstItem with AstElementHandle {
+  private var _bindingScope: AstScope = _
+  
+  def make(_idToken: Option[Token[TokenId]],
+           _kind: ElementKind,
+           abindingScope: AstScope,
+           _fo: Option[FileObject]) = {
 
-  // we allow _bindingScope to be set later
-  if (_bindingScope != null) {
-    _bindingScope.bindingDfn = Some(this)
+    super.make(_idToken, _kind, _fo)
+    // we allow _bindingScope to be set later
+    if (abindingScope != null) {
+      _bindingScope = abindingScope
+      _bindingScope.bindingDfn = Some(this)
+    }
   }
-
-  make(_idToken, _kind)
-
+  
   protected var modifiers: Option[_root_.java.util.Set[Modifier]] = None
 
   override def getFileObject: FileObject = fo.getOrElse(null)
@@ -75,10 +78,7 @@ abstract class AstDfn(_idToken: Option[Token[TokenId]],
   override def getKind: ElementKind = super[AstItem].getKind
 
   override def getModifiers: _root_.java.util.Set[Modifier] = {
-    modifiers match {
-      case None => _root_.java.util.Collections.emptySet[Modifier]
-      case Some(x) => x
-    }
+    modifiers.getOrElse(java.util.Collections.emptySet[Modifier])
   }
 
   override def getOffsetRange(pResult: ParserResult): OffsetRange = {
@@ -129,7 +129,7 @@ abstract class AstDfn(_idToken: Option[Token[TokenId]],
     //return getName().equals(def.getName())
   }
 
-  def doc: Option[BaseDocument] = {
+  def getDoc: Option[BaseDocument] = {
     fo match {
       case Some(x) => GsfUtilities.getDocument(x, true) match {
           case null => None
@@ -147,17 +147,10 @@ abstract class AstDfn(_idToken: Option[Token[TokenId]],
     null
   }
 
-  def isInherited: Boolean = {
-    false
-  }
-
-  def isDeprecated: Boolean = {
-    false
-  }
-
-  def isEmphasize: Boolean = {
-    false
-  }
+  var isInherited  = false
+  var isDeprecated = false
+  var isEmphasize  = false
+  var isImplicit   = false
 
   def isReferredBy(ref: AstRef): Boolean
 

@@ -40,14 +40,14 @@
  */
 package org.netbeans.modules.scala.editor
 
-import _root_.java.io.{File, IOException}
-import _root_.java.net.{MalformedURLException, URL}
-import _root_.java.util.{Enumeration, Properties}
+import java.io.{File, IOException}
+import java.net.{MalformedURLException, URL}
+import java.util.{Enumeration, Properties}
 
 import org.openide.filesystems.{FileObject, FileUtil}
 import org.openide.util.{Exceptions, Utilities}
-import _root_.scala.tools.nsc.{Global, Settings}
-import _root_.scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.{Global, Settings}
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * 
@@ -83,7 +83,7 @@ object ScalaHome {
     val sb = new StringBuilder
     sb.append(System.getProperty("sun.boot.class.path"))
     sb.append(File.pathSeparator)
-    sb.append(scalaLib.getAbsolutePath() + File.separator + "scala-library.jar")
+    sb.append(scalaLib.getAbsolutePath + File.separator + "scala-library.jar")
         
     //System.out.println("boot:" + sb);
     settings.bootclasspath.tryToSet(List(sb.toString))
@@ -96,7 +96,7 @@ object ScalaHome {
     //System.out.println("comp:" + sb);
     settings.classpath.tryToSet(List(sb.toString))
 
-    val global = new ScalaGlobal(settings) {
+    val global = new ScalaGlobal(settings, ScalaGlobal.dummyReporter) {
       override def onlyPresentation = true
     }
 

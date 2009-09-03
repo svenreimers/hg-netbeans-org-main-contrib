@@ -47,6 +47,8 @@ import org.netbeans.modules.parsing.spi.{Parser, Scheduler, SchedulerEvent}
 import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRefs, ScalaRootScope}
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 
+import scala.tools.nsc.symtab.Flags
+
 /**
  *
  * @author Caoyuan Deng
@@ -54,7 +56,7 @@ import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
 
   private var cancelled: Boolean = _
-  private var semanticHighlights: _root_.java.util.Map[OffsetRange, _root_.java.util.Set[ColoringAttributes]] = _
+  private var semanticHighlights: java.util.Map[OffsetRange, java.util.Set[ColoringAttributes]] = _
 
   protected final def isCancelled: Boolean = synchronized {
     cancelled
@@ -64,7 +66,7 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
     cancelled = false
   }
 
-  override def getHighlights: _root_.java.util.Map[OffsetRange, _root_.java.util.Set[ColoringAttributes]] = {
+  override def getHighlights: java.util.Map[OffsetRange, java.util.Set[ColoringAttributes]] = {
     semanticHighlights
   }
 
@@ -95,10 +97,7 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
       return
     }
 
-    val rootScope = pResult.rootScope match {
-      case None => return
-      case Some(x) => x
-    }
+    val rootScope = pResult.rootScope.getOrElse(return)
 
     val th = pResult.getSnapshot.getTokenHierarchy
     val doc = info.getSnapshot.getSource.getDocument(true)
@@ -106,7 +105,7 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
       return
     }
 
-    val highlights = new _root_.java.util.HashMap[OffsetRange, _root_.java.util.Set[ColoringAttributes]](100)
+    val highlights = new java.util.HashMap[OffsetRange, java.util.Set[ColoringAttributes]](100)
     //visitScopeRecursively(doc, th, rootScope, highlights);
     visitItems(th, rootScope, highlights)
 
@@ -127,69 +126,55 @@ class ScalaSemanticAnalyzer extends SemanticAnalyzer[ScalaParserResult] {
     } else null
   }
 
-  val DEPRECATED = new _root_.java.util.HashSet[ColoringAttributes]
-  DEPRECATED.add(ColoringAttributes.DEPRECATED)
-  val IMPLICIT = new _root_.java.util.HashSet[ColoringAttributes]
-  IMPLICIT.add(ColoringAttributes.INTERFACE)
-
   private def visitItems(th: TokenHierarchy[_], rootScope: ScalaRootScope,
-                         highlights: _root_.java.util.Map[OffsetRange, _root_.java.util.Set[ColoringAttributes]]): Unit =
-  {
+                         highlights: java.util.Map[OffsetRange, java.util.Set[ColoringAttributes]]): Unit = {
     for (items <- rootScope.idTokenToItems(th).valuesIterator;
          item <- items;
          idToken <- item.idToken;
          name = item.getName;
-         if name != "this" && name != "super")
-    {
-      // token may be xml tokens, @see AstVisit#getTokenId
+         if name != "this" && name != "super"
+    ) {
+      // * token may be xml tokens, @see AstVisit#getTokenId
       idToken.id match {
         case ScalaTokenId.Identifier | ScalaTokenId.This | ScalaTokenId.Super =>
           val hiRange = ScalaLexUtil.getRangeOfToken(th, idToken)
-          item match {
+          val coloringSet = item match {
+            
             case dfn: ScalaDfns#ScalaDfn =>
-              dfn.getKind match {
-                case ElementKind.MODULE =>
-                  highlights.put(hiRange, ColoringAttributes.CLASS_SET)
-                case ElementKind.CLASS =>
-                  highlights.put(hiRange, ColoringAttributes.CLASS_SET)
-                case ElementKind.METHOD =>
-                  highlights.put(hiRange, ColoringAttributes.METHOD_SET)
-                  //                case ElementKind.FIELD =>
-                  //                    highlights.put(idRange, ColoringAttributes.FIELD_SET);
-                case _ =>
+              dfn.symbol match {
+                case sym if sym.isModule =>
+                  ColoringAttributes.CLASS_SET
+                case sym if sym.isClass =>
+                  ColoringAttributes.CLASS_SET
+                case sym if sym.isGetter | sym.isSetter =>
+                  ColoringAttributes.FIELD_SET
+                case sym if sym.isMethod =>
+                  ColoringAttributes.METHOD_SET
+                case _ => java.util.Collections.emptySet[ColoringAttributes]
               }
-            case ref: ScalaRefs#ScalaRef => ref.getKind match {
-                case ElementKind.CLASS =>
-                  highlights.put(hiRange, ColoringAttributes.STATIC_SET)
-                case ElementKind.MODULE =>
-                  highlights.put(hiRange, ColoringAttributes.GLOBAL_SET)
-                case ElementKind.CALL =>
-                  try {
-                    val sym = ref.symbol
-                    sym.tpe match {
-                      // @todo doesn't work yet
-                      //case _:Types#ImplicitMethodType => highlights.put(hiRange, IMPLICIT_METHOD)
-                      case _ =>
-                        val symbolName = sym.nameString
-                        if (symbolName.equals("apply") || symbolName.startsWith("unapply")) {
-                          highlights.put(hiRange, ColoringAttributes.STATIC_SET)
-                        } else {
-                          highlights.put(hiRange, ColoringAttributes.FIELD_SET)
-                        }
-                    }
-                  } catch {
-                    case t:Throwable =>
-                  }
-                case ElementKind.RULE =>
+              
+            case ref: ScalaRefs#ScalaRef =>
+              ref.symbol match {
+                case sym if sym.isClass =>
+                  ColoringAttributes.STATIC_SET
+                case sym if sym.isModule && !sym.isPackage =>
+                  ColoringAttributes.GLOBAL_SET
+                case sym if sym.isConstructor =>
+                  ColoringAttributes.STATIC_SET
+                case sym if sym.isMethod && sym.isDeprecated =>
+                  java.util.EnumSet.of(ColoringAttributes.DEPRECATED)
+                case sym if sym.isMethod && ref.getKind == ElementKind.RULE =>
                   // * implicit call
-                  highlights.put(hiRange, IMPLICIT)
-                case _ =>
+                  java.util.EnumSet.of(ColoringAttributes.INTERFACE)
+                case sym if sym.isMethod =>
+                  ColoringAttributes.FIELD_SET
+                case sym if sym.hasFlag(Flags.IMPLICIT) =>
+                  java.util.EnumSet.of(ColoringAttributes.INTERFACE)
+                case _ => java.util.Collections.emptySet[ColoringAttributes]
               }
           }
-          
-          if (item.getModifiers.contains(Modifier.DEPRECATED)) {
-            highlights.put(hiRange, DEPRECATED)
-          }
+
+          if (!coloringSet.isEmpty) highlights.put(hiRange, coloringSet)
         case _ =>
       }
 

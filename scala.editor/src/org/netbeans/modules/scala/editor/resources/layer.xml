@@ -42,11 +42,17 @@
                     <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.editor.lexer.ScalaTokenId.language"/>
                     <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
                 </file>
-
+                
                 <folder name="BracesMatchers">
                     <file name="org-netbeans-modules-scala-editor-ScalaBracesMatcherFactory.instance">
                         <attr name="position" intvalue="0"/>
                    </file>
+                </folder>
+
+                <folder name="Preferences">
+                    <folder name="Defaults">
+                        <file name="org-netbeans-modules-editor-scala-preferences.xml" url="defaultPreferences.xml" />
+                    </folder>
                 </folder>
 
                 <!-- TODO - this should not be necessary; I'm doing this now to work around
@@ -96,17 +102,32 @@
                         </folder>
                     </folder>
                 </folder>
-                <!-- tell the parsing API that scala files should be handled by the java indexer
-                <file name="JavaIndexer.shadow">
+                
+                <!-- tell the parsing API that scala files should be handled by the java indexer -->
+                <!--file name="JavaIndexer.shadow">
                     <attr name="originalFile" stringvalue="Editors/text/x-java/JavaIndexer.instance"/>
-                </file>
-                -->
+                </file-->
 
                 <folder name="Popup">
+                    <file name="org-netbeans-modules-scala-editor-actions-ResetGlobalAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-actions-ResetGlobalAction.instance"/>
+                        <attr name="position" intvalue="800"/>
+                    </file>
                     <file name="org-netbeans-modules-scala-editor-actions-FixImportsAction.shadow">
                         <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-actions-FixImportsAction.instance"/>
                         <attr name="position" intvalue="801"/>
                     </file>
+                    
+                    <!-- refactoring -->
+                    <file name="org-netbeans-modules-refactoring-api-ui-RSMEditorAction.instance">
+                        <attr name="instanceCreate" methodvalue="org.netbeans.modules.refactoring.api.ui.RefactoringActionsFactory.editorSubmenuAction"/>
+                        <attr name="position" intvalue="700"/>
+                    </file>
+                    <file name="org-netbeans-modules-refactoring-api-ui-WhereUsedAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Refactoring/org-netbeans-modules-refactoring-api-ui-WhereUsedAction.instance"/>
+                        <attr name="position" intvalue="600"/>
+                    </file>
+                    
                     <!--
                     <file name="org-netbeans-modules-scala-editor-RunScriptAction.instance">
                         <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.RunScriptAction"/>
@@ -114,6 +135,21 @@
                     </file>
                     -->
                 </folder>
+                <folder name="Toolbars">
+                    <folder name="Default">
+                        <file name="Separator-before-comment.instance">
+                            <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                            <attr name="position" intvalue="19100"/>
+                        </file>
+                        <file name="comment">
+                            <attr name="position" intvalue="19200"/>
+                        </file>
+                        <file name="uncomment">
+                            <attr name="position" intvalue="19300"/>
+                        </file>
+                    </folder>
+                </folder>
+
             </folder>
         </folder>
     </folder>
@@ -123,6 +159,9 @@
             <file name="org-netbeans-modules-scala-editor-actions-FixImportsAction.instance">
                 <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.actions.FixImportsAction"/>
             </file>
+            <file name="org-netbeans-modules-scala-editor-actions-ResetGlobalAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.actions.ResetGlobalAction"/>
+            </file>
         </folder>
     </folder>
 
@@ -130,6 +169,20 @@
         <folder name="PreviewExamples">
             <folder name="text">
                 <file name="x-scala" url="ScalaPreviewExample.tmpl"/>
+            </folder>
+        </folder>
+        <folder name="Editor">
+            <folder name="Formatting">
+                <folder name="text">
+                    <folder name="x-scala">
+                      <file name="Indents.instance">
+                          <attr name="instanceOf" stringvalue="org.netbeans.modules.options.editor.spi.PreferencesCustomizer$Factory"/>
+                          <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.editor.options.FmtTabsIndents.getController"/>
+                          <attr name="position" intvalue="100"/>
+                      </file>
+
+                    </folder>
+                </folder>
             </folder>
         </folder>
     </folder>
@@ -243,6 +296,21 @@
                         <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-ToolsAction.instance"/>
                         <attr name="position" intvalue="1500"/>
                     </file>
+
+                    <file name="RefactoringAll.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Refactoring/RefactoringAll.instance"/>
+                        <attr name="position" intvalue="1220"/>
+                    </file>
+                    <file name="RefactoringSeparator-1.instance">
+                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                        <attr name="position" intvalue="1230"/>
+                    </file>
+                    <file name="RefactoringWhereUsed.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Refactoring/RefactoringWhereUsed.instance"/>
+                        <attr name="position" intvalue="1210"/>
+                    </file>
+
+
                 </folder>
             </folder>
         </folder>

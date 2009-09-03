@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.netbeans.spi.project.support.ant.EditableProperties;
+import org.openide.util.EditableProperties;
 import org.openide.util.Exceptions;
 import org.openide.util.Parameters;
 import org.openide.util.RequestProcessor;
@@ -147,7 +147,7 @@ public class Cache {
             }
             LOG.log(Level.FINE, "put({0}, {1})", new Object[] {key, value});
             if (value != null) {
-                String[] pieces = value.split("(?<=[" + File.pathSeparator + "])");
+                String[] pieces = value.split("(?<=[" + File.pathSeparator + ",])");
                 if (pieces.length > 1) {
                     data.setProperty(key, pieces);
                 } else {

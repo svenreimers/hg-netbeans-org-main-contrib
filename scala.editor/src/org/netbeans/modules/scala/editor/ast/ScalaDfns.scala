@@ -47,8 +47,8 @@ import org.openide.filesystems.FileObject
 import org.netbeans.api.language.util.ast.{AstDfn, AstRef, AstScope}
 import org.netbeans.modules.scala.editor.{ScalaGlobal, ScalaMimeResolver, ScalaSourceUtil}
 
-import _root_.scala.tools.nsc.Global
-import _root_.scala.tools.nsc.symtab.{Symbols, Types, Flags}
+import scala.tools.nsc.Global
+import scala.tools.nsc.symtab.{Symbols, Types, Flags}
 
 /**
  * Scala AstDfn special functions, which will be enabled in ScalaGlobal
@@ -70,16 +70,15 @@ trait ScalaDfns {self: ScalaGlobal =>
                  akind: ElementKind,
                  abindingScope: AstScope,
                  afo: Option[FileObject]
-  ) extends AstDfn(aidToken, akind, abindingScope, afo) {
-  
-    type S = Symbol
-    type T = Type
+  ) extends ScalaItem with AstDfn {
+
+    make(aidToken, akind, abindingScope, afo)
 
     symbol = asymbol
 
     override def getMimeType: String = ScalaMimeResolver.MIME_TYPE
 
-    override def getModifiers: _root_.java.util.Set[Modifier] = {
+    override def getModifiers: java.util.Set[Modifier] = {
       if (!modifiers.isDefined) {
         modifiers = Some(ScalaUtil.getModifiers(symbol))
       }
@@ -94,45 +93,30 @@ trait ScalaDfns {self: ScalaGlobal =>
         //            if ((symbol.value.isClass || getSymbol().isModule()) && ref.isSameNameAsEnclClass()) {
         //                return true;
         //            }
-
         ref.symbol == symbol
       } else false
     }
 
     def getDocComment: String = {
-      val srcDoc = doc match {
-        case Some(x) => x
-        case None => return ""
-      }
-
+      val srcDoc = getDoc.getOrElse(return "")
       TokenHierarchy.get(srcDoc) match {
         case null => return ""
         case th => ScalaSourceUtil.getDocComment(srcDoc, idOffset(th))
       }
     }
 
-    def htmlFormat(formatter: HtmlFormatter): Unit = {
-      symbol match {
-        case sym if sym.isPackage | sym.isClass | sym.isModule => formatter.appendText(getName)
-        case sym if sym.isMethod =>
-          formatter.appendText(getName)
-          formatter.appendText(" : ")
-          try {
-            formatter.appendText(sym.tpe.toString)
-          } catch {
-            case _ =>
-          }
-        case sym =>
-          formatter.appendText(getName)
-          formatter.appendText(" : ")
-          try {
-            formatter.appendText(sym.tpe.toString)
-          } catch {
-            case _ =>
-          }
-      }
+    def htmlFormat(fm: HtmlFormatter): Unit = {
+      ScalaUtil.htmlFormat(symbol, fm)
     }
-  
-  }
-}
 
+    def sigFormat(fm: HtmlFormatter) : Unit = {
+      try {
+        fm.appendHtml("<i>")
+        fm.appendText(symbol.enclClass.fullNameString)
+        fm.appendHtml("</i><p>")
+        ScalaUtil.htmlDef(symbol, fm)
+      } catch {case ex => ScalaGlobal.resetLate(self, ex)}
+    }
+  }
+
+}

@@ -59,11 +59,7 @@ class ScalaDeclarationFinder extends DeclarationFinder {
   override def getReferenceSpan(document: Document, lexOffset: Int): OffsetRange = {
     val th = TokenHierarchy.get(document)
 
-    val ts = ScalaLexUtil.getTokenSequence(th, lexOffset) match {
-      case None => return OffsetRange.NONE
-      case Some(x) => x
-    }
-
+    val ts = ScalaLexUtil.getTokenSequence(th, lexOffset).getOrElse(return OffsetRange.NONE)
     ts.move(lexOffset)
     if (!ts.moveNext && !ts.movePrevious) {
       return OffsetRange.NONE
@@ -84,7 +80,7 @@ class ScalaDeclarationFinder extends DeclarationFinder {
     val token = ts.token
     token.id match {
       case ScalaTokenId.Identifier if token.length == 1 && token.text.toString == "," => OffsetRange.NONE
-      case ScalaTokenId.Identifier | ScalaTokenId.This | ScalaTokenId.Super | ScalaTokenId.LArrow | ScalaTokenId.RArrow =>
+      case ScalaTokenId.Identifier | ScalaTokenId.This | ScalaTokenId.Super | ScalaTokenId.LArrow | ScalaTokenId.RArrow | ScalaTokenId.Wild =>
         new OffsetRange(ts.offset, ts.offset + token.length)
       case _ => OffsetRange.NONE
     }
@@ -92,12 +88,9 @@ class ScalaDeclarationFinder extends DeclarationFinder {
 
   override def findDeclaration(info: ParserResult, lexOffset: int): DeclarationLocation = {
     val pResult = info.asInstanceOf[ScalaParserResult]
-    val global = pResult.parser.global
+    val global = pResult.global
 
-    val root = pResult.rootScope match {
-      case Some(x) => x
-      case None => return DeclarationLocation.NONE
-    }
+    val root = pResult.rootScope.getOrElse(return DeclarationLocation.NONE)
 
     val astOffset = ScalaLexUtil.getAstOffset(info, lexOffset)
     if (astOffset == -1) {
@@ -108,10 +101,7 @@ class ScalaDeclarationFinder extends DeclarationFinder {
 
     var isLocal = false
 
-    val closest = root.findItemAt(th, astOffset) match {
-      case Some(x) => x
-      case None => return DeclarationLocation.NONE
-    }
+    val closest = root.findItemAt(th, astOffset).getOrElse(return DeclarationLocation.NONE)
         
     root.findDfnOf(closest) match {
       case Some(dfn) =>

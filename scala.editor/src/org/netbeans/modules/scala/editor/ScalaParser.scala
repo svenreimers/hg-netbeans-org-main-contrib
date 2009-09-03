@@ -40,9 +40,8 @@
  */
 package org.netbeans.modules.scala.editor
 
-import _root_.java.io.File
-import _root_.java.net.URL
-import _root_.java.util.{ArrayList, Collection, Collections, Set}
+import java.io.File
+import java.net.URL
 import javax.swing.event.ChangeListener
 import javax.swing.text.BadLocationException
 import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenSequence}
@@ -56,11 +55,12 @@ import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 import org.netbeans.modules.scala.editor.rats.LexerScala
 import org.openide.filesystems.{FileObject, FileStateInvalidException, FileUtil}
 import org.openide.util.Exceptions
-import _root_.scala.collection.mutable.ArrayBuffer
-import _root_.scala.tools.nsc.Global
-import _root_.scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
-import _root_.scala.tools.nsc.reporters.Reporter
-import _root_.scala.tools.nsc.util.{BatchSourceFile, Position,SourceFile}
+
+import scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.{Global, Settings}
+import scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
+import scala.tools.nsc.reporters.Reporter
+import scala.tools.nsc.util.{Position, SourceFile, BatchSourceFile}
 
 /**
  * 
@@ -71,10 +71,9 @@ class ScalaParser extends Parser {
   import ScalaParser._
   
   private var lastResult: ScalaParserResult = _
-  var global: ScalaGlobal = _
 
   private def asString(sequence: CharSequence): String = sequence match {
-    case x:String => x
+    case x: String => x
     case _ => sequence.toString
   }
 
@@ -82,7 +81,6 @@ class ScalaParser extends Parser {
   override def parse(snapshot: Snapshot, task: Task, event: SourceModificationEvent): Unit = {
     val context = new Context(snapshot, event)
     lastResult = parseBuffer(context, Sanitize.NONE)
-    lastResult.errors = context.errors
   }
 
   @throws(classOf[ParseException])
@@ -142,9 +140,7 @@ class ScalaParser extends Parser {
   //    }
   
   private final class Factory extends ParserFactory {
-    override def createParser(snapshots: Collection[Snapshot]): Parser = {
-      new ScalaParser
-    }
+    override def createParser(snapshots: java.util.Collection[Snapshot]): Parser = new ScalaParser
   }
 
   /**
@@ -394,31 +390,31 @@ class ScalaParser extends Parser {
     val ignoreErrors = sanitizedSource
 
     val file = if (context.fileObject != null) FileUtil.toFile(context.fileObject) else null
-    // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
-    //String filePath = file != null ? file.getAbsolutePath():  "<current>";
-
-    var rootScope: Option[ScalaRootScope] = None
-
-    // Scala global parser
-    val reporter = new ErrorReporter(context, doc, sanitizing)
-    global = ScalaGlobal.getGlobal(context.fileObject)
-    global.reporter = reporter
-
     val af = if (file != null)  new PlainFile(file) else new VirtualFile("<current>", "")
     val srcFile = new BatchSourceFile(af, source.toCharArray)
+    // We should use absolutionPath here for real file, otherwise, symbol.sourcefile.path won't be abs path
+    //String filePath = file != null ? file.getAbsolutePath():  "<current>";
+    context.srcFile = srcFile
+    
+    val global = ScalaGlobal.getGlobal(context.fileObject)
+    global.reporter = new ErrorReporter(context, doc, sanitizing)
+
+    context.global = global
+
+    var rootScope: Option[ScalaRootScope] = None
     try {
-      rootScope = Some(global.compileSourceForPresentation(srcFile, th))
+      rootScope = Some(global.askForPresentation(srcFile, th))
+      //rootScope = Some(global.compileSourceForPresentation(srcFile, th))
     } catch {
       case ex: AssertionError =>
         // avoid scala nsc's assert error
-        ScalaGlobal.reset(global)
-      case ex: _root_.java.lang.Error =>
+        ScalaGlobal.resetLate(global, ex)
+      case ex: java.lang.Error =>
         // avoid scala nsc's exceptions
         ex.printStackTrace
       case ex: IllegalArgumentException =>
         // An internal exception thrown by ParserScala, just catch it and notify
-        notifyError(context, "SYNTAX_ERROR", ex.getMessage,
-                    0, 0, true, sanitizing, Severity.ERROR, Array(ex))
+        notifyError(context, "SYNTAX_ERROR", ex.getMessage, 0, 0, true, sanitizing, Severity.ERROR, Array(ex))
       case ex: Exception =>
         // Scala's global throws too many exceptions
         ex.printStackTrace
@@ -444,7 +440,7 @@ class ScalaParser extends Parser {
       val fo = context.fileObject
       if (fo != null) {
         try {
-          val inError = Collections.singleton(fo.getURL)
+          val inError = java.util.Collections.singleton(fo.getURL)
           //                        ErrorAnnotator eAnnot = ErrorAnnotator.getAnnotator();
           //                        if (eAnnot != null) {
           //                            eAnnot.updateInError(inError);
@@ -456,38 +452,34 @@ class ScalaParser extends Parser {
       }
     }
 
-    new ScalaParserResult(this, context.snapshot, context.rootScope, context.errors)
+    new ScalaParserResult(context.snapshot, context.global, context.rootScope,
+                          java.util.Arrays.asList(context.errors.toArray: _*),
+                          context.srcFile)
   }
 
   private def processObjectSymbolError(context: Context, root: ScalaRootScope): Sanitize = {
-    val errors = context.errors
     val th = context.snapshot.getTokenHierarchy
-    if (errors.isEmpty || th == null) {
+    if (th == null) {
       return Sanitize.NONE
     }
 
-    for (error <- errors) {
+    for (error <- context.errors) {
       val msg = error.getDescription
       if (msg.startsWith("identifier expected but")) {
         val start = error.getStartPosition
 
-        val ts = ScalaLexUtil.getTokenSequence(th, start - 1) match {
-          case Some(x) => x
-          case None => return Sanitize.NONE
-        }
+        val ts = ScalaLexUtil.getTokenSequence(th, start - 1).getOrElse(return Sanitize.NONE)
         ts.move(start - 1)
         if (!ts.moveNext && !ts.movePrevious) {
         } else {
-          var token = ScalaLexUtil.findPreviousNonWsNonComment(ts)
-          if (token != null && token.id == ScalaTokenId.Dot) {
-            if (context.caretOffset == token.offset(th) + 1) {
-              if (ts.movePrevious) {
-                token = ScalaLexUtil.findPreviousNonWsNonComment(ts)
-                if (token != null && token.id == ScalaTokenId.Identifier) {
+          ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+            case Some(tokenx) if tokenx.id == ScalaTokenId.Dot && context.caretOffset == tokenx.offset(th) + 1 && ts.movePrevious =>
+              ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+                case Some(tokeny) if tokeny.id == ScalaTokenId.Identifier =>
                   return Sanitize.EDITED_DOT
-                }
+                case _ =>
               }
-            }
+            case _ =>
           }
         }
       }
@@ -496,47 +488,24 @@ class ScalaParser extends Parser {
     Sanitize.NONE
   }
 
-  private def computeLinesOffset(source: String): Seq[Int] = {
-    val length = source.length
-
-    val linesOffset = new ArrayBuffer[Int](length / 25)
-    linesOffset += 0
-
-    var line = 0
-    for (i <- 0 until length) {
-      if (source.charAt(i) == '\n') {
-        // \r comes first so are not a problem...
-        linesOffset += i
-        line += 1
-      }
-    }
-
-    linesOffset
-  }
-
   protected def notifyError(context: Context, key: String, msg: String,
                             start: Int, end: Int, isLineError: Boolean,
                             sanitizing: Sanitize, severity: Severity,
-                            params: Object
-  ): Unit = {
+                            params: Object): Unit = {
 
     val error = DefaultError.createDefaultError(key, msg, msg, context.fileObject,
                                                 start, end, isLineError, severity).asInstanceOf[DefaultError]
     params match {
       case null =>
-      case x:Array[Object] => error.setParameters(x)
+      case x: Array[Object] => error.setParameters(x)
       case _ => error.setParameters(Array(params))
     }
 
-    context.notifyError(error)
+    context.addError(error)
 
     if (sanitizing == Sanitize.NONE) {
       context.errorOffset = end
     }
-  }
-
-  def getGlobal: Global = {
-    global
   }
 
   /** Parsing context */
@@ -550,16 +519,16 @@ class ScalaParser extends Parser {
     var sanitizedRange: OffsetRange = OffsetRange.NONE
     var sanitizedContents: String = _
     var sanitized: Sanitize = Sanitize.NONE
-    var errors: List[Error] = Nil
+    val errors = new ArrayBuffer[Error]
     var rootScope: Option[ScalaRootScope] = None
+    var global: ScalaGlobal = _
+    var srcFile: SourceFile = _
 
-    def notifyError(error: Error): Unit = {
-      errors = error :: errors
+    def addError(error: Error): Unit = {
+      errors += error
     }
 
-    def cleanErrors: Unit =  {
-      errors = Nil
-    }
+    def cleanErrors = errors.clear
 
     override def toString = {
       "ScalaParser.Context(" + fileObject.toString + ")" // NOI18N
@@ -572,32 +541,32 @@ class ScalaParser extends Parser {
     override def info0(pos: Position, msg: String, severity: Severity, force: Boolean) {
       val ignoreError = context.sanitizedSource != null
       if (!ignoreError) {
-        // * It seems scalac's errors may contain those from other source files that are deep referred, try to filter them here
-        if (!context.fileObject.getPath.equals(pos.source.file.path)) {
-          //System.out.println("Error in source: " + sourceFile);
-          return
-        }
-        
-        val offset = pos.startOrPoint
-        val sev = severity.id match {
-          case 0 => return
-          case 1 => org.netbeans.modules.csl.api.Severity.WARNING
-          case 2 => org.netbeans.modules.csl.api.Severity.ERROR
-          case _ => return
-        }
+        if (pos.isDefined) {
+          // * It seems scalac's errors may contain those from other source files that are deep referred, try to filter them here
+          if (!context.fileObject.getPath.equals(pos.source.file.path)) {
+            return
+          }
+          
+          val offset = pos.startOrPoint
+          val sev = severity.id match {
+            case 0 => return
+            case 1 => org.netbeans.modules.csl.api.Severity.WARNING
+            case 2 => org.netbeans.modules.csl.api.Severity.ERROR
+            case _ => return
+          }
 
-        var end = try {
-          // * @Note row should plus 1 to equal NetBeans' doc offset
-          Utilities.getRowLastNonWhite(doc, offset) + 1
-        } catch {case ex: BadLocationException => -1}
+          var end = try {
+            // * @Note row should plus 1 to equal NetBeans' doc offset
+            Utilities.getRowLastNonWhite(doc, offset) + 1
+          } catch {case ex: BadLocationException => -1}
 
-        if (end != -1 && end <= offset) {
-          end += 1
+          if (end != -1 && end <= offset) {
+            end += 1
+          }
+
+          val isLineError = (end == -1)
+          notifyError(context, "SYNTAX_ERROR", msg, offset, end, isLineError, sanitizing, sev, Array(offset, msg))
         }
-
-        val isLineError = (end == -1)
-        notifyError(context, "SYNTAX_ERROR", msg,
-                    offset, end, isLineError, sanitizing, sev, Array(offset, msg))
       }
     }
   }

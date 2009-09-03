@@ -242,10 +242,7 @@ object JavaSourceUtil {
   def getOffset(info: CompilationInfo, e: Element): Int = {
     val offset = Array(-1)
 
-    val originFo = getOriginFileObject(info, e) match {
-      case None => return -1
-      case Some(x) => x
-    }
+    val originFo = getOriginFileObject(info, e).getOrElse(return -1)
 
     /** @Note
      * We should create a element handle and a new CompilationInfo, then resolve
@@ -307,7 +304,9 @@ object JavaSourceUtil {
           case ElementKind.METHOD => element match {
               case ee: ExecutableElement =>
                 val params1 = ee.getParameters
-                val params2 = sym.tpe.paramTypes
+                val params2 = try {
+                  sym.tpe.paramTypes
+                } catch {case _ => /**@todo reset global */ Nil}
                 if (params1.size == params2.size) {
                   var i = 0
                   for (param2 <- params2) {

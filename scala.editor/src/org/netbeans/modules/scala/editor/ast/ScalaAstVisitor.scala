@@ -149,15 +149,12 @@ abstract class ScalaAstVisitor {
       } else None
     } else None
     
-    if (unit.body ne null) {
-      reset
-      val rootTree = unit.body
-      this.rootScope = ScalaRootScope(getBoundsTokens(getOffset(rootTree), srcFile.length))
-      scopes push rootScope
+    reset
+    rootScope = ScalaRootScope(Some(unit), getBoundsTokens(0, srcFile.length))
+    scopes push rootScope
       
-      (new TreeVisitor) visit unit.body
-      rootScope
-    } else ScalaRootScope.EMPTY
+    (new TreeVisitor) visit unit.body
+    rootScope
   }
 
   object InfoLevel extends Enumeration {val Quiet, Normal, Verbose = Value}
@@ -167,7 +164,7 @@ abstract class ScalaAstVisitor {
 
     private val buf = new StringBuilder
 
-    private var maybeType: Option[Type] = None
+    private var qualiferMaybeType: Option[Type] = None
 
     def visit(tree: Tree): String = {
       def traverse(tree: Tree, level: Int, comma: Boolean) {
@@ -186,13 +183,13 @@ abstract class ScalaAstVisitor {
           val str = new StringBuilder
           str.append(annot.atp.toString())
           if (!annot.args.isEmpty)
-          str.append(annot.args.mkString("(", ",", ")"))
+            str.append(annot.args.mkString("(", ",", ")"))
           if (!annot.assocs.isEmpty)
-          for (((name, value), index) <- annot.assocs.zipWithIndex) {
-            if (index > 0)
-            str.append(", ")
-            str.append(name).append(" = ").append(value)
-          }
+            for (((name, value), index) <- annot.assocs.zipWithIndex) {
+              if (index > 0)
+                str.append(", ")
+              str.append(name).append(" = ").append(value)
+            }
           str.toString
         }
         def symflags(tree: Tree): String = {
@@ -267,16 +264,16 @@ abstract class ScalaAstVisitor {
         }
         
         def nodeinfo(tree: Tree): String =
-        if (infolevel == InfoLevel.Quiet) ""
+          if (infolevel == InfoLevel.Quiet) ""
         else {
           val buf = new StringBuilder(" // sym=" + tree.symbol)
           if (tree.hasSymbol) {
             if (tree.symbol.isPrimaryConstructor)
-            buf.append(", isPrimaryConstructor")
+              buf.append(", isPrimaryConstructor")
             else if (tree.symbol.isConstructor)
-            buf.append(", isConstructor")
+              buf.append(", isConstructor")
             if (tree.symbol != NoSymbol)
-            buf.append(", sym.owner=" + tree.symbol.owner)
+              buf.append(", sym.owner=" + tree.symbol.owner)
             buf.append(", sym.tpe=" + tree.symbol.tpe)
           }
           buf.append(", tpe=" + tree.tpe)
@@ -291,7 +288,7 @@ abstract class ScalaAstVisitor {
                   !sym.isModuleClass && !sym.isPackageClass &&
                   !sym.hasFlag(JAVA)) {
                 val members = for (m <- tree.tpe.decls.toList)
-                yield m.toString() + ": " + m.tpe + ", "
+                  yield m.toString() + ": " + m.tpe + ", "
                 buf.append(", tpe.decls=" + members)
               }
             }
@@ -327,9 +324,9 @@ abstract class ScalaAstVisitor {
             if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
 
             scopes push scope
-            println("PackageDef("+name+", ")
+            //println("PackageDef("+name+", ")
             for (stat <- stats) traverse(stat, level + 1, false)
-            printcln(")")
+            //printcln(")")
             scopes pop
 
           case ClassDef(mods, name, tparams, impl) =>
@@ -343,18 +340,18 @@ abstract class ScalaAstVisitor {
 
             scopes push scope
 
-            println("ClassDef(" + nodeinfo(tree))
-            println("  " + symflags(tree))
-            println("  \"" + name + "\",")
-            if (tparams.isEmpty) println("  List(), // no type parameter")
+            //println("ClassDef(" + nodeinfo(tree))
+            //println("  " + symflags(tree))
+            //println("  \"" + name + "\",")
+            if (tparams.isEmpty) {} //println("  List(), // no type parameter")
             else {
               val n = tparams.length
-              println("  List( // " + n + " type parameter(s)")
+              //println("  List( // " + n + " type parameter(s)")
               for (i <- 0 until n) traverse(tparams(i), level + 2, i < n-1)
-              println("  ),")
+              //println("  ),")
             }
             traverse(impl, level + 1, false)
-            printcln(")")
+            //printcln(")")
             scopes pop
 
           case ModuleDef(mods, name, impl) =>
@@ -379,32 +376,32 @@ abstract class ScalaAstVisitor {
 
             scopes push scope
 
-            println("DefDef(" + nodeinfo(tree))
-            println("  " + symflags(tree))
-            println("  \"" + name + "\",")
-            if (tparams.isEmpty) println("  List(), // no type parameter")
+            //println("DefDef(" + nodeinfo(tree))
+            //println("  " + symflags(tree))
+            //println("  \"" + name + "\",")
+            if (tparams.isEmpty) {}//println("  List(), // no type parameter")
             else {
               val n = tparams.length
-              println("  List( // " + n + " type parameter(s)")
+              //println("  List( // " + n + " type parameter(s)")
               for (i <- 0 until n) traverse(tparams(i), level + 2, i < n-1)
-              println("  ),")
+              //println("  ),")
             }
             val n = vparamss.length
-            if (n == 1 && vparamss(0).isEmpty) println("  List(List()), // no parameter")
+            if (n == 1 && vparamss(0).isEmpty) {}//println("  List(List()), // no parameter")
             else {
-              println("  List(")
+              //println("  List(")
               for (i <- 0 until n) {
                 val m = vparamss(i).length
-                println("    List( // " + m + " parameter(s)")
+                //println("    List( // " + m + " parameter(s)")
                 for (j <- 0 until m) traverse(vparamss(i)(j), level + 3, j < m-1)
-                println("    )")
+                //println("    )")
               }
-              println("  ),")
+              //println("  ),")
             }
             traverse(tpt, level, false)
-            println("  " + tpt + ",")
+            //println("  " + tpt + ",")
             traverse(rhs, level + 1, false)
-            printcln(")")
+            //printcln(")")
 
             scopes pop
 
@@ -421,17 +418,17 @@ abstract class ScalaAstVisitor {
 
             // special case for: val (a, b, c) = (1, 2, 3)
             if (!isTupleClass(tpt.symbol)) {
-              val dfn = ScalaDfn(tree.symbol, getIdToken(tree), kind, scope, fo)
+              val dfn = ScalaDfn(tree.symbol, getIdToken(tree, name.decode.trim), kind, scope, fo)
               if (scopes.top.addDfn(dfn)) info("\tAdded: ", dfn)
             }
 
             scopes push scope
-            println("ValDef(" + nodeinfo(tree))
-            println("  " + symflags(tree))
-            println("  \"" + name + "\",")
+            //println("ValDef(" + nodeinfo(tree))
+            //println("  " + symflags(tree))
+            //println("  \"" + name + "\",")
             traverse(tpt, level, false) // tpe is usually a TypeTree
             traverse(rhs, level + 1, false)
-            printcln(")")
+            //printcln(")")
             scopes pop
 
           case Bind(name, body) =>
@@ -446,7 +443,7 @@ abstract class ScalaAstVisitor {
 
             traverse(body, level, false)
 
-          case theTree@TypeTree() =>
+          case me@TypeTree() =>
             tree.symbol match {
               case null =>
                 // * in case of: <type ?>
@@ -454,7 +451,7 @@ abstract class ScalaAstVisitor {
               case NoSymbol =>
                 // * type tree in case def, for example: case Some(_),
                 // * since the symbol is NoSymbol, we should visit its original type
-                val original = theTree.original
+                val original = me.original
                 if (original != null && original != tree && !isTupleClass(original.symbol)) {
                   traverse(original, level, false)
                 }
@@ -463,17 +460,17 @@ abstract class ScalaAstVisitor {
                 // * for example: val (a, b), where (a, b) as a whole has a type tree, but we only
                 // * need binding trees of a and b
                 if (!isTupleClass(sym)) {
-                  val ref = ScalaRef(sym, getIdToken(tree), ElementKind.CLASS)
+                  val ref = ScalaRef(sym, getIdToken(tree), ElementKind.CLASS, fo)
                   if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
                 }
                 
-                val original = theTree.original
+                val original = me.original
                 if (original != null && original != tree) {
                   traverse(original, level, false)
                 }
             }
 
-            printcln("TypeTree()" + nodeinfo2(tree))
+            //printcln("TypeTree()" + nodeinfo2(tree))
 
           case Select(qualifier, selector) =>
             /**
@@ -491,55 +488,85 @@ abstract class ScalaAstVisitor {
               ElementKind.FIELD
             }
 
-            val name = selector.decode.trim
-            if (!name.startsWith("<error")) {
+            // special case for: val (a, b, c) = (e, e, e), where it may be a `tuple.apple` call
+            if (!isTupleClass(qualifier.symbol)) {
+              val name = selector.decode.trim
               val idToken = getIdToken(tree, name)
-              val ref = ScalaRef(sym, idToken, kind)
-              if (sym != null && sym == NoSymbol && maybeType.isDefined) {
-                ref.resultType = maybeType.get
+              val ref = ScalaRef(sym, idToken, kind, fo)
+              /**
+               * @Note: this symbol may has wrong tpe, for example, an error tree,
+               * to get the proper resultType, we'll check if the qualierMaybeType isDefined
+               */
+              if (qualiferMaybeType.isDefined) {
+                ref.resultType = qualiferMaybeType.get
               }
+
               if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
             }
 
-            /**
-             * For error Select tree, the qual type may stored, try to fetch it now
-             */
-            def guessMaybeType {
-              val qualSym = qualifier.symbol
-              if (qualSym != null && qualSym == NoSymbol) {
-                maybeType = global.selectTypeErrors.get(tree)
-              }
-            }
+            //* is this tree marked as select type error? if so, the qualifier may be below type
+            //* @Note: since `selectTypeErrors` are gathered upon `Select` tree, this detecting should happen here only
+            qualiferMaybeType = global.selectTypeErrors.get(tree)
 
-            qualifier match {
-              case Ident(name) => guessMaybeType
-              case Apply(fun, args) => guessMaybeType
-              case Select(qualifier, selector) => guessMaybeType
-              case _ =>
-            }
-
-            println("Select(" + nodeinfo(tree))
+            //println("Select(" + nodeinfo(tree))
             traverse(qualifier, level + 1, true)
-            printcln("  \"" + selector + "\")")
+            //printcln("  \"" + selector + "\")")
 
-            maybeType = None
+            // * reset qualiferMaybeType
+            qualiferMaybeType = None
+
+          case Apply(fun, args) =>
+            // * this tree's `fun` part is extractly an `Ident` tree, so add ref at Ident(name) instead here
+            //println("Apply(" + nodeinfo(tree))
+            traverse(fun, level + 1, true)
+            if (args.isEmpty) {} //println("  List() // no argument")
+            else {
+              val n = args.length
+              //println("  List( // " + n + " argument(s)")
+              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
+              //println("  )")
+            }
+            //printcln(")")
 
           case Ident(name) =>
             val sym = tree.symbol
             if (sym != null) {
-              val ref = ScalaRef(sym, getIdToken(tree, name.decode.trim), ElementKind.OTHER)
-              /**
-               * @Note: this symbol may be NoSymbol, for example, an error tree,
-               * to get error recover in code completion, we need to also add it as a ref
-               */
-              if (sym == NoSymbol && maybeType.isDefined) {
-                ref.resultType = maybeType.get
-              }
+              val idToken = getIdToken(tree, name.decode.trim)
+              val ref = ScalaRef(sym, idToken, ElementKind.OTHER, fo)
 
+              /**
+               * @Note: this symbol may has wrong tpe, for example, an error tree,
+               * to get the proper resultType, we'll check if the qualierMaybeType isDefined
+               */
+              val tpe = sym.tpe
+              if (qualiferMaybeType.isDefined) {
+                ref.resultType = qualiferMaybeType.get
+              }
+              
               if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
             }
 
-            printcln("Ident(\"" + name + "\")" + nodeinfo2(tree))
+            //printcln("Ident(\"" + name + "\")" + nodeinfo2(tree))
+
+          case This(qual) =>
+            val sym = tree.symbol
+            if (sym != null) {
+              val idToken = getIdToken(tree, "this")
+              val ref = ScalaRef(sym, idToken, ElementKind.OTHER, fo)
+
+              if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
+            }
+            //println("This(\"" + qual + "\")" + nodeinfo2(tree))
+
+          case Super(qual, mix) =>
+            val sym = tree.symbol
+            if (sym != null) {
+              val idToken = getIdToken(tree, "super")
+              val ref = ScalaRef(sym, idToken, ElementKind.OTHER, fo)
+
+              if (scopes.top.addRef(ref)) info("\tAdded: ", ref)
+            }
+            //printcln("Super(\"" + qual + "\", \"" + mix + "\")" + nodeinfo2(tree))
 
           case Import(expr, selectors) =>
             traverse(expr, level, false)
@@ -554,125 +581,106 @@ abstract class ScalaAstVisitor {
             traverse(body, level, false)
 
           case AppliedTypeTree(tpt, args) =>
-            println("AppliedTypeTree(" + nodeinfo(tree))
+            //println("AppliedTypeTree(" + nodeinfo(tree))
             traverse(tpt, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
+            if (args.isEmpty) {} //println("  List() // no argument")
             else {
               val n = args.length
-              println("  List( // " + n + " arguments(s)")
+              //println("  List( // " + n + " arguments(s)")
               for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
-              println("  )")
+              //println("  )")
             }
-            printcln(")")
-
-          case Apply(fun, args) =>
-            println("Apply(" + nodeinfo(tree))
-            traverse(fun, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
-            else {
-              val n = args.length
-              println("  List( // " + n + " argument(s)")
-              for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
-              println("  )")
-            }
-            printcln(")")
+            //printcln(")")
 
           case ApplyDynamic(fun, args) =>
-            println("ApplyDynamic(" + nodeinfo(tree))
+            //println("ApplyDynamic(" + nodeinfo(tree))
             traverse(fun, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
+            if (args.isEmpty) {} //println("  List() // no argument")
             else {
               val n = args.length
-              println("  List( // " + n + " argument(s)")
+              //println("  List( // " + n + " argument(s)")
               for (i <- 0 until n) traverse(args(i), level + 2, i < n-1)
-              println("  )")
+              //println("  )")
             }
-            printcln(")")
+            //printcln(")")
 
           case Block(stats, expr) =>
-            println("Block(" + nodeinfo(tree))
-            if (stats.isEmpty) println("  List(), // no statement")
+            //println("Block(" + nodeinfo(tree))
+            if (stats.isEmpty) {} //println("  List(), // no statement")
             else {
               val n = stats.length
-              println("  List( // " + n + " statement(s)")
+              //println("  List( // " + n + " statement(s)")
               for (i <- 0 until n) traverse(stats(i), level + 2, i < n-1)
-              println("  ),")
+              //println("  ),")
             }
             traverse(expr, level + 1, false)
-            printcln(")")
+            //printcln(")")
             
           case EmptyTree =>
-            printcln("EmptyTree")
+            //printcln("EmptyTree")
 
           case Literal(value) =>
-            printcln("Literal(" + value + ")")
+            //printcln("Literal(" + value + ")")
 
           case New(tpt) =>
-            println("New(" + nodeinfo(tree))
+            //println("New(" + nodeinfo(tree))
             traverse(tpt, level + 1, false)
-            printcln(")")
-
-          case Super(qual, mix) =>
-            printcln("Super(\"" + qual + "\", \"" + mix + "\")" + nodeinfo2(tree))
+            //printcln(")")
 
           case Template(parents, self, body) =>
             parents foreach {traverse(_, level, false)}
             
-            println("Template(" + nodeinfo(tree))
-            println("  " + parents.map(p =>
-                if (p.tpe ne null) p.tpe.typeSymbol else "null-" + p
-              ) + ", // parents")
+            //println("Template(" + nodeinfo(tree))
+            //println("  " + parents.map(p =>
+            //    if (p.tpe ne null) p.tpe.typeSymbol else "null-" + p
+            //  ) + ", // parents")
             traverse(self, level + 1, true)
-            if (body.isEmpty) println("  List() // no body")
+            if (body.isEmpty) {} //println("  List() // no body")
             else {
               val n = body.length
-              println("  List( // body")
+              //println("  List( // body")
               for (i <- 0 until n) traverse(body(i), level + 2, i < n-1)
-              println("  )")
+              //println("  )")
             }
-            printcln(")")
-
-          case This(qual) =>
-            println("This(\"" + qual + "\")" + nodeinfo2(tree))
+            //printcln(")")
 
           case TypeApply(fun, args) =>
-            println("TypeApply(" + nodeinfo(tree))
+            //println("TypeApply(" + nodeinfo(tree))
             traverse(fun, level + 1, true)
-            if (args.isEmpty) println("  List() // no argument")
+            if (args.isEmpty) {} //println("  List() // no argument")
             else {
               val n = args.length
-              println("  List(")
-              for (i <- 0 until n)
-              traverse(args(i), level + 1, i < n-1)
-              println("  )")
+              //println("  List(")
+              for (i <- 0 until n) traverse(args(i), level + 1, i < n-1)
+              //println("  )")
             }
-            printcln(")")
+            //printcln(")")
 
           case Typed(expr, tpt) =>
-            println("Typed(" + nodeinfo(tree))
+            //println("Typed(" + nodeinfo(tree))
             traverse(expr, level + 1, true)
             traverse(tpt, level + 1, false)
-            printcln(")")
+            //printcln(")")
 
           case _ => tree match {
               case p: Product =>
                 if (p.productArity != 0) {
-                  println(p.productPrefix+"(")
+                  //println(p.productPrefix+"(")
                   for (elem <- (0 until p.productArity) map p.productElement) {
                     def printElem(elem: Any, level: Int): Unit = elem match {
                       case t: Tree =>
                         traverse(t, level, false)
                       case xs: List[_] =>
-                        print("List(")
+                        //print("List(")
                         for (x <- xs) printElem(x, level+1)
-                        printcln(")")
+                        //printcln(")")
                       case _ =>
-                        println(elem.toString)
+                        //println(elem.toString)
                     }
                     printElem(elem, level+1)
                   }
-                  printcln(")")
-                } else printcln(p.productPrefix)
+                  //printcln(")")
+                } else {} //printcln(p.productPrefix)
             }
         }
 
@@ -762,101 +770,97 @@ abstract class ScalaAstVisitor {
       case _: Super => ScalaLexUtil.findNext(ts, ScalaTokenId.Super)
       case _ if name == "this"  => ScalaLexUtil.findNext(ts, ScalaTokenId.This)
       case _ if name == "super" => ScalaLexUtil.findNext(ts, ScalaTokenId.Super)
-      case _ if name == "expected" => ts.token
-      case _ if name == "_" => ScalaLexUtil.findNext(ts, ScalaTokenId.Wild)
-        //      case (_, _) if name.startsWith("<error") => ts.token.id match {
-        //          case ScalaTokenId.Dot =>
-        //            // a. where, offset is at .
-        //            ScalaLexUtil.findPrevious(ts, ScalaTokenId.Identifier)
-        //          case _ =>
-        //            // a.p where, offset is at p
-        //            ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
-        //        }
-      case Select(qual, selector) if sym hasFlag IMPLICIT =>
-        // * for Select tree that is implicit call, will look forward for the nearest item, it will be added
-        rootScope.findNeastItemAt(th, offset) match {
-          case Some(x) => x.kind = ElementKind.RULE
-          case _ =>
-        }
-        null
+      case _ if name == "expected" => Some(ts.token)
+      case ValDef(mods, namex, tpt, rhs) if sym hasFlag SYNTHETIC =>
+        // * is it a placeholder '_' token ?
+        ScalaLexUtil.findNext(ts, ScalaTokenId.Wild) find {_.offset(th) <= endOffset}
         
+      case Select(qual, selector) if sym hasFlag IMPLICIT =>
+        // * for Select tree that is implicit call, will look forward for the nearest item and change its kind to ElementKind.RULE
+        rootScope.findNeastItemAt(th, offset) foreach {_.kind = ElementKind.RULE}
+        None
+        
+      case Select(qual, selector) if name == "apply" =>
+        // * for Select tree that is `apple` call, will look forward for the nearest id token
+        //val content = getContent(offet, endOffset
+        ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
+
       case Select(qual, selector) if endOffset > 0 =>
         // * for Select tree, will look backward from endOffset
-        //val chars = srcFile.content.subSequence(offset, endOffset)
         ts.move(endOffset)
         findIdTokenBackward(ts, name, offset, endOffset) match {
-          case Some(x) => x
           case None =>
             // * bug in scalac, wrong RangePosition for "list filter {...}", the range only contains "list"
             ts.move(endOffset)
             if (ts.moveNext && ts.movePrevious) {
-              val end = Iterable.min(Array(endOffset + 100, docLength - 1))
-              findIdTokenForward(ts, name, endOffset, end) match {
-                case Some(x) => x
-                case None => null
-              }
-            } else null
+              val end = Math.min(endOffset + 100, docLength - 1)
+              findIdTokenForward(ts, name, endOffset, end)
+            } else None
+          case x => x
         }
         
-      case _ =>
-        //val chars = srcFile.content.subSequence(offset, endOffset)
-        findIdTokenForward(ts, name, offset, endOffset) match {
-          case Some(x) => x
-          case None => null
-        }
+      case _ => findIdTokenForward(ts, name, offset, endOffset)
     }
 
-    if (token != null && token.isFlyweight) {
-      token = ts.offsetToken
+    token match {
+      case Some(x) if x.isFlyweight => Some(ts.offsetToken)
+      case x => x
     }
-
-    if (token == null) None else Some(token)
   }
 
   private def findIdTokenForward(ts: TokenSequence[TokenId], name: String, offset: Int, endOffset: Int): Option[Token[TokenId]] = {
     var token = ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
-    var curr = offset + token.length
-    while (token != null && !tokenNameEquals(token, name) && curr <= endOffset) {
+    var curr = offset + token.get.length
+    while (token.isDefined && !tokenNameEquals(token.get, name) && curr <= endOffset) {
       token = if (ts.moveNext) {
         ScalaLexUtil.findNextIn(ts, ScalaLexUtil.PotentialIdTokens)
-      } else null
-      if (token != null) curr = ts.offset + token.length
+      } else None
+      if (token.isDefined) curr = ts.offset + token.get.length
     }
 
-    if (token != null && tokenNameEquals(token, name)) {
-      Some(token)
-    } else None
+    token match {
+      case Some(x) if tokenNameEquals(x, name) => token
+      case _ => None
+    }
   }
 
   private def findIdTokenBackward(ts: TokenSequence[TokenId], name: String, offset: Int, endOffset: Int): Option[Token[TokenId]] = {
     var token = if (ts.movePrevious) {
       ScalaLexUtil.findPreviousIn(ts, ScalaLexUtil.PotentialIdTokens)
-    } else null
+    } else None
     var curr = endOffset
-    while (token != null && !tokenNameEquals(token, name) && curr >= offset) {
+    while (token.isDefined && !tokenNameEquals(token.get, name) && curr >= offset) {
       token = if (ts.movePrevious) {
         ScalaLexUtil.findPreviousIn(ts, ScalaLexUtil.PotentialIdTokens)
-      } else null
-      if (token != null) curr = ts.offset
+      } else None
+      if (token.isDefined) curr = ts.offset
     }
 
-    if (token != null && tokenNameEquals(token, name)) {
-      Some(token)
-    } else None
+    token match {
+      case Some(x) if tokenNameEquals(x, name) => token
+      case _ => None
+    }
   }
   
-  private def tokenNameEquals(token: Token[_], name: String) = {
+  private def tokenNameEquals(token: Token[_], name: String): Boolean = {
     val text = token.text.toString.trim
     token.id match {
       case ScalaTokenId.SymbolLiteral => text.substring(1, text.length - 1) == name // strip '`'
-      case ScalaTokenId.LArrow => name == "foreach" || name == "map"
+      case ScalaTokenId.LArrow if name == "foreach" || name == "map" => true
+      case ScalaTokenId.Identifier if name == "apply" || name.startsWith("<error") => true // return the first matched identifier token
       case _ if name.endsWith("_=") => text + "_=" == name
       case _ => text == name
     }
   }
 
+  private def getContent(offset: Int, endOffset: Int): CharSequence = {
+    if (endOffset > offset && offset > -1) {
+      srcFile.content.subSequence(offset, endOffset)
+    } else ""
+  }
+
   protected def getBoundsTokens(offset: Int, endOffset: Int): Array[Token[TokenId]] = {
-    Array(getBoundsToken(offset), getBoundsEndToken(endOffset))
+    Array(getBoundsToken(offset).getOrElse(null), getBoundsEndToken(endOffset).getOrElse(null))
   }
 
   protected def getBoundsTokens(tree: Tree): Array[Token[TokenId]] = {
@@ -868,41 +872,37 @@ abstract class ScalaAstVisitor {
     getBoundsTokens(offset, endOffset)
   }
   
-  protected def getBoundsToken(offset: Int): Token[TokenId]  = {
-    if (offset == -1) {
-      return null
+  protected def getBoundsToken(offset: Int): Option[Token[TokenId]]  = {
+    if (offset < 0) {
+      return None
     }
 
-    val ts = ScalaLexUtil.getTokenSequence(th, offset) match {
-      case Some(x) => x
-      case None => return null
-    }
-
+    val ts = ScalaLexUtil.getTokenSequence(th, offset).getOrElse(return None)
     ts.move(offset)
     if (!ts.moveNext && !ts.movePrevious) {
       assert(false, "Should not happen!")
     }
 
-    val startToken = ScalaLexUtil.findPreviousNonWsNonComment(ts) match {
-      case x if x.isFlyweight => ts.offsetToken
+    val startToken = ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+      case Some(x) if x.isFlyweight => Some(ts.offsetToken)
       case x => x
     }
 
-    if (startToken == null) {
+    if (startToken == None) {
       println("null start token(" + offset + ")")
     }
 
     startToken
   }
 
-  protected def getBoundsEndToken(endOffset: Int): Token[TokenId] = {
+  protected def getBoundsEndToken(endOffset: Int): Option[Token[TokenId]] = {
     if (endOffset == -1) {
-      return null
+      return None
     }
 
     val ts = ScalaLexUtil.getTokenSequence(th, endOffset) match {
       case Some(x) => x
-      case None => return null
+      case None => return None
     }
 
     ts.move(endOffset)
@@ -910,8 +910,8 @@ abstract class ScalaAstVisitor {
       assert(false, "Should not happen!")
     }
     
-    val endToken = ScalaLexUtil.findPreviousNonWsNonComment(ts) match {
-      case x if x.isFlyweight => ts.offsetToken
+    val endToken = ScalaLexUtil.findPreviousNoWsNoComment(ts) match {
+      case Some(x) if x.isFlyweight => Some(ts.offsetToken)
       case x => x
     }
 
@@ -970,7 +970,7 @@ abstract class ScalaAstVisitor {
         val offset = next.boundsOffset(th)
         if (offset != -1) {
           val endToken = getBoundsEndToken(offset - 1)
-          curr.boundsEndToken = Some(endToken)
+          curr.boundsEndToken = endToken
         } else {
           println("Scope without start token: " + next)
         }

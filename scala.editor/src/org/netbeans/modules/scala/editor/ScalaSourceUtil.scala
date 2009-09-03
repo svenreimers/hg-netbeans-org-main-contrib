@@ -27,8 +27,7 @@
  */
 package org.netbeans.modules.scala.editor
 
-import _root_.java.io.{File, IOException, InputStream}
-import _root_.java.lang.ref.{Reference, WeakReference}
+import java.io.{File, IOException, InputStream}
 import javax.swing.text.BadLocationException
 import org.netbeans.api.java.classpath.ClassPath
 import org.netbeans.api.java.queries.SourceForBinaryQuery
@@ -46,12 +45,12 @@ import org.openide.util.{Exceptions, NbBundle}
 
 import org.netbeans.api.language.util.ast.{AstDfn, AstScope}
 import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRootScope}
-import org.netbeans.modules.scala.editor.element.{JavaElement}
+import org.netbeans.modules.scala.editor.element.{JavaElements}
 import org.netbeans.modules.scala.editor.lexer.ScalaLexUtil
 
-import _root_.scala.tools.nsc.util.Position
-import _root_.scala.tools.nsc.symtab.Symbols
-import _root_.scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.util.Position
+import scala.tools.nsc.symtab.{Flags, Symbols}
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
@@ -251,69 +250,40 @@ object ScalaSourceUtil {
     }
   }
 
-  val scalaFileToSource = new _root_.java.util.WeakHashMap[FileObject, Reference[Source]]
-  val scalaFileToCompilationInfo = new _root_.java.util.WeakHashMap[FileObject, Reference[Parser.Result]]
+  def computeLinesOffset(source: String): Seq[Int] = {
+    val length = source.length
 
-  def getCompilationInfoForScalaFile(fo: FileObject): Parser.Result = {
-    var info: Parser.Result = scalaFileToCompilationInfo.get(fo) match {
-      case null => null
-      case ref => ref.get
-    }
+    val linesOffset = new ArrayBuffer[Int](length / 25)
+    linesOffset += 0
 
-    if (info == null) {
-      val pResults = new Array[Parser.Result](1)
-      val source = getSourceForScalaFile(fo)
-      try {
-        ParserManager.parse(_root_.java.util.Collections.singleton(source), new UserTask {
-            @throws(classOf[Exception])
-            override def run(resultIterator: ResultIterator): Unit = {
-              pResults(0) = resultIterator.getParserResult
-            }
-          })
-      } catch {
-        case ex:ParseException => Exceptions.printStackTrace(ex)
+    var line = 0
+    for (i <- 0 until length) {
+      if (source.charAt(i) == '\n') {
+        // \r comes first so are not a problem...
+        linesOffset += i
+        line += 1
       }
-
-      info = pResults(0)
-      scalaFileToCompilationInfo.put(fo, new WeakReference[Parser.Result](info))
     }
 
-    info
+    linesOffset
   }
 
-  /**
-   * @Note: We cannot create javasource via JavaSource.forFileObject(fo) here, which
-   * does not support virtual source yet (only ".java" and ".class" files
-   * are supported), but we can create js via JavaSource.create(cpInfo);
-   */
-  private def getSourceForScalaFile(fo: FileObject): Source = {
-    var source: Source = scalaFileToSource.get(fo) match {
-      case null => null
-      case ref => ref.get
-    }
-
-    if (source == null) {
-      source = Source.create(fo)
-      scalaFileToSource.put(fo, new WeakReference[Source](source))
-    }
-
-    source
-  }
-
-  def getDocComment(info: Parser.Result, element: JavaElement): String = {
-    if (info == null) {
+  /** @todo */
+  def getDocComment(pResult: Parser.Result, element: JavaElements#JavaElement): String = {
+    if (pResult == null) {
       return null
     }
 
-    val doc = info.getSnapshot.getSource.getDocument(true) match {
+    val doc = pResult.getSnapshot.getSource.getDocument(true) match {
       case null => return null
       case x: BaseDocument => x
     }
 
-    val th = info.getSnapshot.getTokenHierarchy
+    val th = pResult.getSnapshot.getTokenHierarchy
 
     doc.readLock // Read-lock due to token hierarchy use
-    val range = ScalaLexUtil.getDocumentationRange(th, element.getBoundsOffset(th))
+    val offset = 0//element.getBoundsOffset(th)
+    val range = ScalaLexUtil.getDocumentationRange(th, offset)
     doc.readUnlock
 
     if (range.getEnd < doc.getLength) {
@@ -348,28 +318,30 @@ object ScalaSourceUtil {
     ""
   }
 
-  def getOffset(info: Parser.Result, element: JavaElement): Int = {
+  /** @todo */
+  def getOffset(info: Parser.Result, element: JavaElements#JavaElement): Int = {
     if (info == null) {
       return -1
     }
 
     val th = info.getSnapshot.getTokenHierarchy
-    element.getPickOffset(th)
+    //element.getPickOffset(th)
+    return -1
   }
 
-  def getFileObject(info: ParserResult, symbol: Symbols#Symbol): Option[FileObject] = {
+  def getFileObject(pResult: ParserResult, symbol: Symbols#Symbol): Option[FileObject] = {
     val pos = symbol.pos
     if (pos.isDefined) {
       val srcFile = pos.source
       if (srcFile != null) {
         var srcPath = srcFile.path
-        // Check the strange behavior of Scala's compiler, which may omit the beginning File.separator ("/")
+        // * Check the strange behavior of Scala's compiler, which may omit the beginning File.separator ("/")
         if (!srcPath.startsWith(File.separator)) {
           srcPath = File.separator + srcPath
         }
         val file = new File(srcPath)
         if (file != null && file.exists) {
-          // it's a real file and not archive file
+          // * it's a real file and not archive file
           return Some(FileUtil.toFileObject(file))
         }
       }
@@ -378,7 +350,7 @@ object ScalaSourceUtil {
     val qName: String = try {
       symbol.enclClass.fullNameString.replace('.', File.separatorChar)
     } catch {
-      case ex:_root_.java.lang.Error => null
+      case ex: java.lang.Error => null
         // java.lang.Error: no-symbol does not have owner
         //        at scala.tools.nsc.symtab.Symbols$NoSymbol$.owner(Symbols.scala:1565)
         //        at scala.tools.nsc.symtab.Symbols$Symbol.fullNameString(Symbols.scala:1156)
@@ -389,69 +361,65 @@ object ScalaSourceUtil {
       return None
     }
 
-    val lastSep = qName.lastIndexOf(File.separatorChar)
-    val pkgName: String = if (lastSep > 0) {
-      qName.substring(0, lastSep)
-    } else null
+    val pkgName = qName.lastIndexOf(File.separatorChar) match {
+      case -1 => null
+      case i => qName.substring(0, i)
+    }
 
     val clzName = qName + ".class"
 
     try {
-      val srcFo = info.getSnapshot.getSource.getFileObject
-      val cpInfo = ClasspathInfo.create(srcFo)
-      val cp = ClassPathSupport.createProxyClassPath(
-        Array(cpInfo.getClassPath(ClasspathInfo.PathKind.SOURCE),
-              cpInfo.getClassPath(ClasspathInfo.PathKind.BOOT),
-              cpInfo.getClassPath(ClasspathInfo.PathKind.COMPILE)): _*)
+      val cp = getClassPath(pResult.getSnapshot.getSource.getFileObject)
 
       val clzFo = cp.findResource(clzName)
-      var srcPath: String = null
-      if (clzFo != null) {
+      val root = cp.findOwnerRoot(clzFo)
+      val ext = if (symbol hasFlag Flags.JAVA) ".java" else ".scala"
+
+      // * see if we can find this class's source file straightforward
+      findSourceFileObject(cp, root, qName + ext) match {
+        case None =>
+        case x => return x
+      }
+
+      var srcPath = if (clzFo != null) {
         val in = clzFo.getInputStream
         try {
-          val clzFile = new ClassFile(in, false)
-          if (clzFile != null) {
-            srcPath = clzFile.getSourceFileName
+          new ClassFile(in, false) match {
+            case null => null
+            case clzFile => clzFile.getSourceFileName
           }
-        } finally {
-          if (in != null) {
-            in.close
-          }
-        }
-      }
+        } finally {if (in != null) in.close}
+      } else null
 
       if (srcPath != null) {
         if (pkgName != null) {
           srcPath = pkgName + File.separatorChar + srcPath
         }
 
-        val root = cp.findOwnerRoot(clzFo)
-        assert(root != null)
-
-        val result = SourceForBinaryQuery.findSourceRoots(root.getURL)
-        val srcRoots = result.getRoots
-        val srcCp = ClassPathSupport.createClassPath(srcRoots: _*)
-
-        srcCp.findResource(srcPath) match {
-          case null => None
-          case x => return Some(x)
-        }
+        return findSourceFileObject(cp, root, srcPath)
       }
-    } catch {
-      case ex: IOException => ex.printStackTrace
-    }
+    } catch {case ex: IOException => ex.printStackTrace}
 
     None
+  }
+
+  def findSourceFileObject(cp: ClassPath, root: FileObject, srcPath: String): Option[FileObject] = {
+    if (root == null) return None
+    
+    val srcRoots = SourceForBinaryQuery.findSourceRoots(root.getURL).getRoots
+    val srcCp = ClassPathSupport.createClassPath(srcRoots: _*)
+
+    srcCp.findResource(srcPath) match {
+      case null => None
+      case x => return Some(x)
+    }
   }
 
   private val TMPL_KINDS = Set(ElementKind.CLASS, ElementKind.MODULE)
 
   def getBinaryClassName(pResult: ScalaParserResult, offset: Int): String = {
+    val rootScope = pResult.getRootScopeForDebug.getOrElse(return null)
     val th = pResult.getSnapshot.getTokenHierarchy
-    val rootScope = pResult.getRootScopeForDebugger match {
-      case None => return null
-      case Some(x) => x
-    }
     
     var clzName = ""
 
@@ -521,7 +489,7 @@ object ScalaSourceUtil {
     }
     try {
       val result = new ArrayBuffer[ScalaDfns#ScalaDfn]
-      ParserManager.parse(_root_.java.util.Collections.singleton(source), new UserTask {
+      ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
           @throws(classOf[Exception])
           override def run(resultIterator: ResultIterator): Unit = {
             val pResult = resultIterator.getParserResult.asInstanceOf[ScalaParserResult]
@@ -565,8 +533,8 @@ object ScalaSourceUtil {
     }
   }
 
-  def getMainClassesAsJavaCollection(fo: FileObject): _root_.java.util.Collection[AstDfn] = {
-    val result = new _root_.java.util.ArrayList[AstDfn]
+  def getMainClassesAsJavaCollection(fo: FileObject): java.util.Collection[AstDfn] = {
+    val result = new java.util.ArrayList[AstDfn]
     getMainClasses(fo) foreach {result.add(_)}
     result
   }
@@ -577,8 +545,8 @@ object ScalaSourceUtil {
    * @return the classes containing the main methods
    * Currently this method is not optimized and may be slow
    */
-  def getMainClassesAsJavaCollection(sourceRoots: Array[FileObject]): _root_.java.util.Collection[AstDfn] = {
-    val result = new _root_.java.util.ArrayList[AstDfn]
+  def getMainClassesAsJavaCollection(sourceRoots: Array[FileObject]): java.util.Collection[AstDfn] = {
+    val result = new java.util.ArrayList[AstDfn]
     for (root <- sourceRoots) {
       result.addAll(getMainClassesAsJavaCollection(root))
       try {
@@ -613,7 +581,7 @@ object ScalaSourceUtil {
         result
       } catch {case ioe: Exception =>
           Exceptions.printStackTrace(ioe)
-          return _root_.java.util.Collections.emptySet[AstDfn]
+          return java.util.Collections.emptySet[AstDfn]
       }
     }
     result
@@ -621,9 +589,7 @@ object ScalaSourceUtil {
 
   
   def isMainMethodExists(obj: ScalaDfns#ScalaDfn): Boolean = {
-    obj.symbol.tpe.members exists {
-      member => member.isMethod && isMainMethod(member)
-    }
+    obj.symbol.tpe.members exists {member => member.isMethod && isMainMethod(member)}
   }
 
   /**
@@ -678,15 +644,13 @@ object ScalaSourceUtil {
         //                    }
         //                }, false);
         cpInfo
-      } catch {
-        case ioe: Exception => Exceptions.printStackTrace(ioe); Nil
-      }
+      } catch {case ioe: Exception => Exceptions.printStackTrace(ioe); Nil}
     }
 
     result
   }
 
-  def getClasspathInfoForFileObject(fo: FileObject): Option[ClasspathInfo] = {
+  def getClasspathInfo(fo: FileObject): Option[ClasspathInfo] = {
     val bootPath = ClassPath.getClassPath(fo, ClassPath.BOOT)
     val compilePath = ClassPath.getClassPath(fo, ClassPath.COMPILE)
     val srcPath = ClassPath.getClassPath(fo, ClassPath.SOURCE)
@@ -701,5 +665,21 @@ object ScalaSourceUtil {
         case x => Some(x)
       }
     }
+  }
+
+  def getClassPath(fo: FileObject) = {
+    val bootCp = ClassPath.getClassPath(fo, ClassPath.BOOT)
+    val compileCp = ClassPath.getClassPath(fo, ClassPath.COMPILE)
+    val srcCp = ClassPath.getClassPath(fo, ClassPath.SOURCE)
+    ClassPathSupport.createProxyClassPath(Array(bootCp, compileCp, srcCp): _*)
+  }
+
+  /** What's difference from getClassPath(fo: FileObject) ? */
+  def getClassPath2(fo: FileObject) = {
+    val cpInfo = ClasspathInfo.create(fo)
+    val bootCp = cpInfo.getClassPath(ClasspathInfo.PathKind.BOOT)
+    val compileCp = cpInfo.getClassPath(ClasspathInfo.PathKind.COMPILE)
+    val srcCp = cpInfo.getClassPath(ClasspathInfo.PathKind.SOURCE)
+    ClassPathSupport.createProxyClassPath(Array(bootCp, compileCp, srcCp): _*)
   }
 }

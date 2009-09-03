@@ -40,8 +40,7 @@
  */
 package org.netbeans.modules.scala.editor.lexer
 
-import _root_.java.io.IOException
-import _root_.java.util.{ArrayList, Arrays, Collections, HashSet, LinkedList, Stack}
+import java.io.IOException
 import javax.swing.text.{BadLocationException, Document}
 
 import org.netbeans.modules.csl.api.OffsetRange
@@ -53,10 +52,7 @@ import org.openide.filesystems.{FileObject, FileUtil}
 import org.openide.loaders.{DataObject, DataObjectNotFoundException}
 import org.openide.util.Exceptions
 
-//import org.netbeans.modules.scala.editor.nodes.AstNode;
-import org.netbeans.modules.scala.editor.lexer.ScalaTokenId._
-
-import _root_.scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuffer
 
 import org.netbeans.api.language.util.lex.LexUtil
 
@@ -73,21 +69,23 @@ object ScalaLexUtil extends LexUtil {
 
   override val LANGUAGE = ScalaTokenId.language
 
-  override val WS_COMMENTS: Set[TokenId] = Set(ScalaTokenId.Ws,
-                                               ScalaTokenId.Nl,
-                                               ScalaTokenId.LineComment,
-                                               ScalaTokenId.DocCommentStart,
-                                               ScalaTokenId.DocCommentData,
-                                               ScalaTokenId.DocCommentEnd,
-                                               ScalaTokenId.BlockCommentStart,
-                                               ScalaTokenId.BlockCommentEnd,
-                                               ScalaTokenId.BlockCommentData,
-                                               ScalaTokenId.CommentTag
-  )
+  override val WS_COMMENTS: Set[TokenId] =
+    Set(ScalaTokenId.Ws,
+        ScalaTokenId.Nl,
+        ScalaTokenId.LineComment,
+        ScalaTokenId.DocCommentStart,
+        ScalaTokenId.DocCommentData,
+        ScalaTokenId.DocCommentEnd,
+        ScalaTokenId.BlockCommentStart,
+        ScalaTokenId.BlockCommentEnd,
+        ScalaTokenId.BlockCommentData,
+        ScalaTokenId.CommentTag
+    )
 
-  override val WS: Set[TokenId] = Set(ScalaTokenId.Ws,
-                                      ScalaTokenId.Nl
-  )
+  override val WS: Set[TokenId] =
+    Set(ScalaTokenId.Ws,
+        ScalaTokenId.Nl
+    )
 
   /**
    * Tokens that should cause indentation of the next line. This is true for all {@link #END_PAIRS},
@@ -95,60 +93,86 @@ object ScalaLexUtil extends LexUtil {
    * structure for indentation.
    *
    */
-  override val INDENT_WORDS: Set[TokenId] = Set(ScalaTokenId.Class,
-                                                ScalaTokenId.Object,
-                                                ScalaTokenId.Trait,
-                                                ScalaTokenId.Do,
-                                                ScalaTokenId.For,
-                                                ScalaTokenId.While,
-                                                ScalaTokenId.Case,
-                                                ScalaTokenId.If,
-                                                ScalaTokenId.Else
-  )
+  override val INDENT_WORDS: Set[TokenId] =
+    Set(ScalaTokenId.Class,
+        ScalaTokenId.Object,
+        ScalaTokenId.Trait,
+        ScalaTokenId.Do,
+        ScalaTokenId.For,
+        ScalaTokenId.While,
+        ScalaTokenId.Case,
+        ScalaTokenId.If,
+        ScalaTokenId.Else
+    )
 
-  override val BLOCK_COMMENTS: Set[TokenId] = Set(ScalaTokenId.BlockCommentStart,
-                                                  ScalaTokenId.BlockCommentEnd,
-                                                  ScalaTokenId.BlockCommentData,
-                                                  ScalaTokenId.CommentTag
-  )
+  override val BLOCK_COMMENTS: Set[TokenId] =
+    Set(ScalaTokenId.BlockCommentStart,
+        ScalaTokenId.BlockCommentEnd,
+        ScalaTokenId.BlockCommentData,
+        ScalaTokenId.CommentTag
+    )
 
-  override val DOC_COMMENTS: Set[TokenId] = Set(ScalaTokenId.DocCommentStart,
-                                                ScalaTokenId.DocCommentEnd,
-                                                ScalaTokenId.DocCommentData,
-                                                ScalaTokenId.CommentTag
-  )
+  override val DOC_COMMENTS: Set[TokenId] =
+    Set(ScalaTokenId.DocCommentStart,
+        ScalaTokenId.DocCommentEnd,
+        ScalaTokenId.DocCommentData,
+        ScalaTokenId.CommentTag
+    )
 
-  override val LINE_COMMENTS: Set[TokenId] = Set(
-    ScalaTokenId.LineComment
-  )
+  override val LINE_COMMENTS: Set[TokenId] =
+    Set(
+      ScalaTokenId.LineComment
+    )
 
   override val WHITE_SPACE: TokenId = ScalaTokenId.Ws
   override val NEW_LINE: TokenId = ScalaTokenId.Nl
   override val LPAREN: TokenId = ScalaTokenId.LParen
   override val RPAREN: TokenId = ScalaTokenId.RParen
 
+  val PotentialIdTokens: Set[TokenId] =
+    Set(ScalaTokenId.Identifier,
+        ScalaTokenId.True,
+        ScalaTokenId.False,
+        ScalaTokenId.Null,
+        ScalaTokenId.SymbolLiteral,
+        ScalaTokenId.IntegerLiteral,
+        ScalaTokenId.FloatingPointLiteral,
+        ScalaTokenId.StringLiteral,
+        ScalaTokenId.CharacterLiteral,
+        ScalaTokenId.XmlAttName,
+        ScalaTokenId.XmlAttValue,
+        ScalaTokenId.XmlCDData,
+        ScalaTokenId.XmlCDEnd,
+        ScalaTokenId.XmlComment,
+        ScalaTokenId.XmlSTagName,
+        ScalaTokenId.XmlSTagName,
+        ScalaTokenId.XmlCharData,
+        ScalaTokenId.LArrow
+    )
+
   override def getDocCommentRangeBefore(th: TokenHierarchy[_], lexOffset: Int): OffsetRange = {
-    val ts = getTokenSequence(th, lexOffset) match {
-      case Some(x) => x
-      case None => return OffsetRange.NONE
-    }
+    val ts = getTokenSequence(th, lexOffset).getOrElse(return OffsetRange.NONE)
 
     ts.move(lexOffset)
     var offset = -1
     var endOffset = -1
     var done = false
     while (ts.movePrevious && !done) {
-      val id = ts.token.id
-
-      if (id == ScalaTokenId.DocCommentEnd) {
-        val token = ts.offsetToken
-        endOffset = token.offset(th) + token.length
-      } else if (id == ScalaTokenId.DocCommentStart) {
-        val token = ts.offsetToken
-        offset = token.offset(th)
-        done = true
-      } else if (!isWsComment(id) && !isKeyword(id)) {
-        done = true
+      ts.token.id match {
+        case ScalaTokenId.DocCommentEnd =>
+          val token = ts.offsetToken
+          endOffset = token.offset(th) + token.length
+        case ScalaTokenId.DocCommentStart =>
+          val token = ts.offsetToken
+          offset = token.offset(th)
+          done = true
+        case id if !isWsComment(id) && !isKeyword(id) =>
+          ts.moveNext // recheck from this id
+          findAnnotationBwd(ts) match {
+            case None => done = true
+            case Some(x) => // ts is moved to '@' now
+          }
+        case _ =>
       }
     }
 
@@ -163,10 +187,10 @@ object ScalaLexUtil extends LexUtil {
     val token = ts.token
     var id = token.id
     id match {
-      case Else =>
+      case ScalaTokenId.Else =>
         ts.moveNext
         id = ts.token.id
-      case If | For | While =>
+      case ScalaTokenId.If | ScalaTokenId.For | ScalaTokenId.While =>
         ts.moveNext
         if (!skipParenthesis(ts, false)) {
           return OffsetRange.NONE
@@ -205,26 +229,6 @@ object ScalaLexUtil extends LexUtil {
     offsetRange
   }
 
-  val PotentialIdTokens: Set[TokenId] = Set(ScalaTokenId.Identifier,
-                                            ScalaTokenId.True,
-                                            ScalaTokenId.False,
-                                            ScalaTokenId.Null,
-                                            ScalaTokenId.SymbolLiteral,
-                                            ScalaTokenId.IntegerLiteral,
-                                            ScalaTokenId.FloatingPointLiteral,
-                                            ScalaTokenId.StringLiteral,
-                                            ScalaTokenId.CharacterLiteral,
-                                            ScalaTokenId.XmlAttName,
-                                            ScalaTokenId.XmlAttValue,
-                                            ScalaTokenId.XmlCDData,
-                                            ScalaTokenId.XmlCDEnd,
-                                            ScalaTokenId.XmlComment,
-                                            ScalaTokenId.XmlSTagName,
-                                            ScalaTokenId.XmlSTagName,
-                                            ScalaTokenId.XmlCharData,
-                                            ScalaTokenId.LArrow
-  )
-
   /** Some AstItems have Xml Nl etc type of idToken, here we just pick following as proper one */
   def isProperIdToken(id: TokenId): Boolean = {
     id match {
@@ -233,24 +237,20 @@ object ScalaLexUtil extends LexUtil {
     }
   }
 
-  def findImportPrefix(th: TokenHierarchy[_], lexOffset: Int): List[Token[_ <: TokenId]] = {
-    val ts = getTokenSequence(th, lexOffset) match {
-      case Some(x) => x
-      case None => return Nil
-    }
-    
+  def findImportPrefix(th: TokenHierarchy[_], lexOffset: Int): List[Token[TokenId]] = {
+    val ts = getTokenSequence(th, lexOffset).getOrElse(return Nil)
     ts.move(lexOffset)
     var lbraceMet = false
     var lbraceExpected = false
     var extractBehindComma = false
-    val paths = new ArrayBuffer[Token[_ <: TokenId]]
+    var paths = new ArrayBuffer[Token[TokenId]]
     while (ts.isValid && ts.movePrevious) {
       val token = ts.token
       token.id match {
         case ScalaTokenId.Import =>
           if (!lbraceExpected || lbraceExpected && lbraceMet) {
-            paths.reverse
-            return paths.toList
+            // * since we are looking backward, should reverse the final result
+            return paths.reverse.toList
           }
         case ScalaTokenId.Dot =>
           paths += token
@@ -258,12 +258,12 @@ object ScalaLexUtil extends LexUtil {
           paths += token
         case ScalaTokenId.LBrace =>
           if (lbraceMet) {
-            // we can only meet LBrace once
+            // * we can only meet LBrace one time
             return Nil
           }
           lbraceMet = true
-          if (paths.size > 0) {
-            // keep first met id token only
+          if (!paths.isEmpty) {
+            // * keep first met idToken only
             val idToken = paths(0)
             paths.clear
             if (!extractBehindComma) {
@@ -281,6 +281,53 @@ object ScalaLexUtil extends LexUtil {
     }
 
     Nil
+  }
+
+  /** @Require: move ts to `else` token first */
+  def findMatchedIfOfElse(ts: TokenSequence[TokenId]) = {
+    assert(ts.token.id == ScalaTokenId.Else, "Should move TokenSequence to `else` token first!")
+
+    while (ts.movePrevious) {
+      ts.token.id match {
+        case ScalaTokenId.If =>
+        
+      }
+    }
+  }
+
+  /**
+   * @return annotation id token or None
+   *         if found, ts will be located to '@'
+   */
+  def findAnnotationBwd(ts: TokenSequence[TokenId]): Option[Token[TokenId]] = {
+    var collector: List[Token[TokenId]] = Nil
+    var atExpected = false
+    var break = false
+    while (ts.movePrevious && !break) {
+      val token = ts.token
+      token.id match {
+        case id if ScalaLexUtil.isWsComment(id) =>
+        case ScalaTokenId.At =>
+          collector = token :: collector
+        case ScalaTokenId.Identifier =>
+          collector = token :: collector
+        case ScalaTokenId.RParen =>
+          ScalaLexUtil.findPairBwd(ts, ScalaTokenId.LParen, ScalaTokenId.RParen)
+        case ScalaTokenId.RBrace =>
+          ScalaLexUtil.findPairBwd(ts, ScalaTokenId.LBrace, ScalaTokenId.RBrace)
+        case ScalaTokenId.RBracket =>
+          ScalaLexUtil.findPairBwd(ts, ScalaTokenId.LBracket, ScalaTokenId.RBracket)
+        case _ => break = true
+      }
+
+      collector map {_.id} match {
+        case List(ScalaTokenId.At, ScalaTokenId.Identifier) => return Some(collector.last)
+        case List(_, _, _) => break = true // collect no more than 3 tokens
+        case _ =>
+      }
+    }
+
+    None
   }
 }
 

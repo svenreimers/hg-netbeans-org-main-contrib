@@ -91,19 +91,16 @@ class ClassNotFoundRule extends ScalaErrorRule with NbBundler {
 
     override def createHints(context : ScalaRuleContext, error : Error) : List[Hint] =  {
         val desc = error.getDescription
-        println("desc=" + desc)
+        //println("desc=" + desc)
         val rangeOpt = context.calcOffsetRange(error.getStartPosition, error.getEndPosition)
         if (rangeOpt == None || desc == null) return List[Hint]()
         val hintfixes = mutable.ListBuffer[HintFix]()
-        hintfixes.addAll(
-            FixImportsHelper.checkMissingImport(desc) match {
-                case Some(missing) => createImportHints(missing, context, error, rangeOpt.get)
-                case None => mutable.ListBuffer[HintFix]()
-            })
+        FixImportsHelper.checkMissingImport(desc) match {
+            case Some(missing) => hintfixes.addAll(createImportHints(missing, context, error, rangeOpt.get))
+            case None =>
+        }
 
-        val fo = context.getFileObject
-
-        new Hint(this, error.getDescription, fo, rangeOpt.get,
+        new Hint(this, error.getDescription, context.getFileObject, rangeOpt.get,
                hintfixes, DEFAULT_PRIORITY) :: Nil
 
     }
@@ -119,17 +116,45 @@ class ClassNotFoundRule extends ScalaErrorRule with NbBundler {
     val toRet = mutable.ListBuffer[HintFix]()
     for (typeName <- typeNames;
          ek = typeName.getKind;
-         if ek == ElementKind.CLASS || ek == ElementKind.INTERFACE)
-    {
+         if ek == ElementKind.CLASS || ek == ElementKind.INTERFACE
+    ) {
       toRet += new AddImportFix(missing, typeName.getQualifiedName, context, range)
     }
     toRet
   }
 
+  private def createNewDefVal(missing : String, context : ScalaRuleContext, error : Error, range : OffsetRange) : mutable.ListBuffer[HintFix] = {
+    mutable.ListBuffer[HintFix]() += new AddDefValFix(missing, context, range)
+  }
+
+  private def calcErrorStartPosition(range : OffsetRange, name : String, ts : TokenSequence[TokenId]) : Int = {
+      ts.move(range.getStart)
+      val includes : Set[TokenId] = Set(ScalaTokenId.Type, ScalaTokenId.Identifier)
+      var token = ScalaLexUtil.findNextIncluding(ts, includes)
+      while (token != None && ts.offset <= range.getEnd) {
+          if (name == token.get.text.toString) return ts.offset
+          token = ScalaLexUtil.findNextIncluding(ts, includes)
+      }
+      -1
+  }
+
 
     class AddImportFix(name : String, fqn : String, context : ScalaRuleContext, offsetRange : OffsetRange) extends HintFix  {
 
-        override def getDescription = locMessage("ClassNotFoundRuleHintDescription", fqn)
+        override def getDescription = locMessage("AddImport", fqn)
+        override val isSafe = true
+        override val isInteractive = false
+
+        @throws(classOf[Exception])
+        override def implement : Unit = {
+            FixImportsHelper.doImport(context.doc, name, fqn, offsetRange)
+
+        }
+    }
+
+   class AddDefValFix(name : String, context : ScalaRuleContext, offsetRange : OffsetRange) extends HintFix  {
+
+        override def getDescription = locMessage("CreateDef", name)
         override val isSafe = true
         override val isInteractive = false
 
@@ -137,130 +162,27 @@ class ClassNotFoundRule extends ScalaErrorRule with NbBundler {
         override def implement : Unit = {
             val doc = context.doc
 
-            val packageName = fqn.substring(0, fqn.length - (name.length + 1));
             val th = TokenHierarchy.get(doc)
             val ts = ScalaLexUtil.getTokenSequence(th, 0).get
-            ts.move(0)
-            
-            val imports = allGlobalImports(doc)
-            // first find if the package itself is imported eg.
-            //   import org.apache.maven.model  or
-            //   import org.apache.maven.{model=>mavenmodel}
-            //If so, add prefix to declaration, rather than adding new import
-            val splitted = packageName.split('.')
-            val lastPack = splitted.last
-            val headPack = splitted.dropRight(1).mkString("""\.""")
-            val impPattern = Pattern.compile(headPack + """\.\{""" + lastPack + """=>([\w]*)\}""")
-            imports.foreach((p) => println("-" + p._3 + "-"))
-            val packMatch = imports.find((curr) => curr._3.equals(packageName) || impPattern.matcher(curr._3).matches)
-            if (packMatch != None) {
-                val matcher = impPattern.matcher(packMatch.get._3)
-                val toWrite = if (matcher.matches) {
-                        matcher.group(1)
-                    } else {
-                        packageName.split('.').last 
-                    }
-                val start = calcErrorStartPosition(offsetRange, name, ts)
-                if (start != -1) {
-                    simpleEdit(start, toWrite + ".", doc)
-                }
-            } else {
-                //then figure if a list of classes in a package is being imported eg.
-                // import org.netbeans.api.lexer.{Language, Token}
-                val listPattern = Pattern.compile(packageName + """\.\{([\w\,\s]*)\}""")
-                val listMatch = imports.find((curr) => listPattern.matcher(curr._3).matches)
-                if (listMatch != None) {
-                    val pos = listMatch.get._2 - 1 //-1 for the bracket?
-                    simpleEdit(pos, "," + name, doc)
-                } else {
-                  //if none of the above applies, add as single import
-                  val pos = imports.sort((one, two) => one._3 < two._3).
-                                    find((curr) => curr._3 > fqn) match {
-                      case None => if (imports.isEmpty) {
-                                      -1 //TODO
-                                   } else {
-                                     imports.last._2 + 1 // + 1 for newline
-                                   }
-                      case Some(t) => t._1
-                  }
-                  if (pos != -1) {
-                      simpleEdit(pos, "import " + fqn + "\n", doc)
-                  }
-                }
-            }
-        }
-
-    private def simpleEdit(position : Int, addition: String, doc : BaseDocument) : Unit = {
-        val edits = new EditList(doc)
-        edits.replace(position, 0, addition, false, 0)
-        edits.apply()
-    }
-
-      private def calcErrorStartPosition(range : OffsetRange, name : String, ts : TokenSequence[TokenId]) : Int = {
-          ts.move(range.getStart)
-          val includes : Set[TokenId] = Set(ScalaTokenId.Type, ScalaTokenId.Identifier)
-          var token = ScalaLexUtil.findNextIncluding(ts, includes)
-          while (token != null && ts.offset <= range.getEnd) {
-              if (name == token.text.toString) return ts.offset
-              token = ScalaLexUtil.findNextIncluding(ts, includes)
-          }
-          -1
-      }
-      /**
-       * returns a list of Tuples(start, end, import string)
-       */
-
-      private def allGlobalImports(doc : BaseDocument) : List[Tuple3[Int, Int, String]] = {
-            val ts = ScalaLexUtil.getTokenSequence(doc, 0).get
-            ts.move(0)
-            var importStatement = findNextImport(ts, ts.token)
-            // +1 means the dot
-            val toRet = new mutable.ArrayBuffer[Tuple3[Int, Int, String]]()
-            while (importStatement != null && importStatement._1 != -1 && importStatement._3.trim.length > 0) {
-                toRet + importStatement
-                importStatement = findNextImport(ts, ts.token)
-            }
-            toRet.toList
-      }
-
-      private def findNextImport(ts : TokenSequence[_], current : Token[_]) : (Int, Int, String) = {
-          val buffer = new StringBuffer()
-          var collecting = false
-          var starter = -1
-          var finisher = -1
-          while (ts.isValid && ts.moveNext) {
-              val token : Token[_] = ts.token
-              token.id match {
+            val start = calcErrorStartPosition(offsetRange, name, ts)
+            var collecting = false
+            if (start != -1) {
+/**              ts.move(start)
+              while (ts.isValid && ts.moveNext) {
+                val token : Token[_] = ts.token
+                token.id match {
                   case ScalaTokenId.Import =>
-                      if (collecting) {
-                          ts.movePrevious
-                          return (starter, finisher, buffer.toString)
-                      } else {
-                          collecting = true;
-                          starter = ts.offset
-                      }
-                  case ScalaTokenId.Package =>
-                  case c if c == ScalaTokenId.Class || c == ScalaTokenId.Trait || c == ScalaTokenId.Object =>
-                      if (collecting) {
-                        //too far
-                        ts.movePrevious
-                        return (starter, finisher, buffer.toString)
-                      } else {
-                          return null
-                      }
+                    collecting = true;
                   case wsComment if ScalaLexUtil.WS_COMMENTS.contains(wsComment) =>
 
                   case _ => if (collecting) {
-                          buffer.append(token.text.toString)
-                          finisher = ts.offset + token.length
-                  }
+                      buffer.append(token.text.toString)
+                      finisher = ts.offset + token.length
+                    }
+                }
               }
-          }
-          if (collecting) {
-              //reasonable case?
-              (starter, finisher, buffer.toString)
-          } else {
-              null
+            }
+**/
           }
       }
    }
