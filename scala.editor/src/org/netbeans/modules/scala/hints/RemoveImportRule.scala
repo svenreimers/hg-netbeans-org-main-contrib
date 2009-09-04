@@ -65,7 +65,7 @@ import org.netbeans.modules.csl.api.EditList
 import org.netbeans.modules.scala.editor.lexer.ScalaTokenId
 import org.netbeans.editor.BaseDocument
 
-import org.netbeans.modules.scala.editor.actions.FixImportsHelper
+import org.netbeans.modules.scala.editor.imports.FixImportsHelper
 import org.netbeans.modules.scala.editor.ScalaParserResult
 import org.netbeans.api.language.util.ast._
 import scala.tools.nsc.symtab._

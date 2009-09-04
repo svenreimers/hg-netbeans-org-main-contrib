@@ -40,6 +40,7 @@
  */
 package org.netbeans.modules.scala.editor.refactoring;
 
+import java.util.logging.Logger
 import javax.swing.Icon;
 import javax.swing.text.Document;
 import org.netbeans.modules.csl.api.ElementKind;
@@ -82,10 +83,12 @@ import scala.tools.nsc.symtab.Flags
  * @author Tor Norbye
  */
 class WhereUsedQueryPlugin(refactoring: WhereUsedQuery) extends ScalaRefactoringPlugin {
+  private val Log = Logger.getLogger(classOf[WhereUsedQueryPlugin].getName)
+
   private val searchHandle = refactoring.getRefactoringSource.lookup(classOf[ScalaItems#ScalaItem])
   private val targetName =  searchHandle.symbol.fullNameString
 
-  def preCheck: Problem = {
+  override def preCheck: Problem = {
     searchHandle.fo match {
       case Some(x) if x.isValid => null
       case _ => return new Problem(true, NbBundle.getMessage(classOf[WhereUsedQueryPlugin], "DSC_ElNotAvail")); // NOI18N
@@ -110,6 +113,8 @@ class WhereUsedQueryPlugin(refactoring: WhereUsedQuery) extends ScalaRefactoring
         }
       case _ =>
     }
+
+    Log.info("relative files:" + set)
 
     set.toSet
 
@@ -254,8 +259,7 @@ class WhereUsedQueryPlugin(refactoring: WhereUsedQuery) extends ScalaRefactoring
 //        return set;
 //    }
 
-  //@Override
-  def prepare(elements: RefactoringElementsBag): Problem = {
+  override def prepare(elements: RefactoringElementsBag): Problem = {
     val a = getRelevantFiles(searchHandle)
     fireProgressListenerStart(ProgressEvent.START, a.size);
     processFiles(a, new FindTask(elements))
@@ -263,7 +267,7 @@ class WhereUsedQueryPlugin(refactoring: WhereUsedQuery) extends ScalaRefactoring
     null
   }
 
-  def fastCheckParameters: Problem = {
+  override def fastCheckParameters: Problem = {
     if (targetName == null) {
       return new Problem(true, "Cannot determine target name. Please file a bug with detailed information on how to reproduce (preferably including the current source file and the cursor position)");
     }
@@ -273,7 +277,7 @@ class WhereUsedQueryPlugin(refactoring: WhereUsedQuery) extends ScalaRefactoring
     null
   }
 
-  def checkParameters: Problem = {
+  override def checkParameters: Problem = {
     null
   }
 
@@ -321,8 +325,8 @@ class WhereUsedQueryPlugin(refactoring: WhereUsedQuery) extends ScalaRefactoring
         //System.out.println("Skipping file " + workingCopy.getFileObject());
         // See if the document contains references to this symbol and if so, put a warning in
         if (sourceText != null && sourceText.indexOf(targetName) != -1) {
-          var start = 0;
-          var end = 0;
+          var start = 0
+          var end = 0
           var desc = "Parse error in file which contains " + targetName + " reference - skipping it";
           val errors = pr.getDiagnostics
           if (errors.size > 0) {
