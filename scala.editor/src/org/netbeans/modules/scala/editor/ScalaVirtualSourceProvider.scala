@@ -45,10 +45,12 @@ import java.io.PrintWriter
 import java.io.Reader
 import java.io.StringWriter
 import java.io.Writer
+import java.util.logging.Level
 import java.util.logging.Logger
 import javax.swing.event.ChangeListener
 import org.netbeans.modules.csl.api.ElementKind
-import org.netbeans.modules.java.preprocessorbridge.spi.{JavaSourceProvider, VirtualSourceProvider}
+//import org.netbeans.modules.java.preprocessorbridge.spi.JavaSourceProvider
+import org.netbeans.modules.java.preprocessorbridge.spi.VirtualSourceProvider
 import org.netbeans.modules.parsing.api.ParserManager
 import org.netbeans.modules.parsing.api.ResultIterator
 import org.netbeans.modules.parsing.api.Source
@@ -61,9 +63,13 @@ import org.netbeans.api.language.util.ast.{AstRootScope, AstScope}
 import org.netbeans.modules.scala.editor.ast.ScalaDfns
 import scala.collection.mutable.ArrayBuffer
 
+import scala.util.NameTransformer
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 import scala.tools.nsc.symtab.Flags
 import scala.tools.nsc.symtab.Symbols
 import scala.tools.nsc.symtab.Types
+
 
 /**
  * Virtual java source
@@ -78,7 +84,10 @@ import scala.tools.nsc.symtab.Types
 
 /**
  * This requires also a Java Indexer to be enabled for scala mimetype
- * @see layer.xml JavaIndexer.shadow
+ * @see layer.xml:
+ *      <file name="JavaIndexer.shadow">
+ *          <attr name="originalFile" stringvalue="Editors/text/x-java/JavaIndexer.instance"/>
+ *      </file>
  *
  * @Note: don't use full class name `classOf[org.netbeans.modules.java.preprocessorbridge.spi.VirtualSourceProvider]`, here
  * instead, should use `classOf[VirtualSourceProvider]`, otherwise, lookup cannot find it. Why? don't know ...
@@ -87,25 +96,27 @@ import scala.tools.nsc.symtab.Types
 class ScalaVirtualSourceProvider extends VirtualSourceProvider {
   import ScalaVirtualSourceProvider._
 
+  Log.info("Instance of " + this.getClass.getSimpleName + " is created")
+
   /** @Todo
    * The only reason to implement JavaSourceProvider is to get a none-null JavaSource#forFileObject,
    * the JavaSource instance is a must currently when eval expression under debugging. see issue #150903
    */
   /* def forFileObject(fo: FileObject): JavaSourceProvider.PositionTranslatingJavaFileFilterImplementation = {
-    if (!"text/x-scala".equals(FileUtil.getMIMEType(fo)) && !"scala".equals(fo.getExt)) {  //NOI18N
-      return null
-    } else {
-      new JavaSourceProvider.PositionTranslatingJavaFileFilterImplementation {
-        def getOriginalPosition(javaSourcePosition: Int): Int = -1
-        def getJavaSourcePosition(originalPosition: Int): Int = -1
-        def filterReader(r: Reader): Reader = r
-        def filterCharSequence(charSequence: CharSequence): CharSequence = ""
-        def filterWriter(w: Writer): Writer = w
-        def addChangeListener(listener: ChangeListener) {}
-        def removeChangeListener(listener: ChangeListener) {}
-      }
-    }
-  } */
+   if (!"text/x-scala".equals(FileUtil.getMIMEType(fo)) && !"scala".equals(fo.getExt)) {  //NOI18N
+   return null
+   } else {
+   new JavaSourceProvider.PositionTranslatingJavaFileFilterImplementation {
+   def getOriginalPosition(javaSourcePosition: Int): Int = -1
+   def getJavaSourcePosition(originalPosition: Int): Int = -1
+   def filterReader(r: Reader): Reader = r
+   def filterCharSequence(charSequence: CharSequence): CharSequence = ""
+   def filterWriter(w: Writer): Writer = w
+   def addChangeListener(listener: ChangeListener) {}
+   def removeChangeListener(listener: ChangeListener) {}
+   }
+   }
+   } */
 
   override def getSupportedExtensions: java.util.Set[String] = {
     java.util.Collections.singleton("scala") // NOI18N
@@ -113,224 +124,258 @@ class ScalaVirtualSourceProvider extends VirtualSourceProvider {
 
   override def index: Boolean = true
 
-  override def translate(files: java.lang.Iterable[File], sourceRoot: File, result: VirtualSourceProvider.Result): Unit = {
-    Log.info("translate " + files)
-    val rootFo = FileUtil.toFileObject(sourceRoot)
-    val it = files.iterator
-    while (it.hasNext) {
-      val file = it.next
-      getTemplates(file) match {
-        case Nil =>
-          // * source is probably broken and there is no AST
-          // * let's generate empty Java stub with simple name equal to file name
-          val fo = FileUtil.toFileObject(file)
-          var pkg = FileUtil.getRelativePath(rootFo, fo.getParent)
-          if (pkg != null) {
-            pkg = pkg.replace('/', '.')
-            val sb = new StringBuilder
-            if (!pkg.equals("")) { // NOI18N
-              sb.append("package " + pkg + ";") // NOI18N
-            }
-            val name = fo.getName
-            sb.append("public class ").append(name).append(" implements scala.ScalaObject {public int $tag() throws java.rmi.RemoteException {return 0;}}"); // NOI18N
-            //@Todo diable result add till we get everything ok
-            //result.add(file, pkg, file.getName(), sb.toString());
-          }
-        case tmpls =>
-          val fo = FileUtil.toFileObject(file)
-          val generator = new JavaStubGenerator
-          for (tmpl <- tmpls;
-               sym = tmpl.symbol if !tmpl.symbol.isErroneous // avoid strange file name, for example: <error: class ActorProxy>.java
-          ) {
-            try {
-              val javaStub = generator.generateClass(tmpl)
-              val packaging = sym.enclosingPackage
-              val pkgName = (if (packaging == null) "" else packaging.fullNameString) match {
-                case "<empty>" => ""
-                case x => x
-              }
-              result.add(file, pkgName, sym.nameString, javaStub)
-            } catch {case ex: FileNotFoundException => Exceptions.printStackTrace(ex)}
-          }
-      }
+  override def translate(files: java.lang.Iterable[File], sourceRoot: File, result: VirtualSourceProvider.Result) {
+    Log.info("Translating " + files)
+    
+    val itr = files.iterator
+    while (itr.hasNext) {
+      translate(itr.next, sourceRoot, result)
     }
   }
 
-  private def getTemplates(file: File): List[ScalaDfns#ScalaDfn] = {
-    val tmpls = new ArrayBuffer[ScalaDfns#ScalaDfn]
+  private def translate(file: File, sourceRoot: File, result: VirtualSourceProvider.Result) {
     val fo = FileUtil.toFileObject(file)
-    if (fo != null) {
-      try {
-        val source = Source.create(fo)
-        /** @Note: do not use UserTask to parse it? which may cause "refershing workspace" */
-        // FIXME can we move this out of task (?)
-        ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
-            @throws(classOf[Exception])
-            override def run(resultIterator: ResultIterator) {
-              val pResult = resultIterator.getParserResult.asInstanceOf[ScalaParserResult]
-              val rootScope = pResult.rootScope getOrElse {assert(false, "Parse result is null : " + fo.getName); return Nil}
-              scan(rootScope, tmpls)
+    
+    if (fo == null) return
+
+    val rootFo = FileUtil.toFileObject(sourceRoot)
+    try {
+      val source = Source.create(fo)
+      /** @Note: do not use UserTask to parse it? which may cause "refershing workspace" */
+      // FIXME can we move this out of task (?)
+      ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
+            
+          @throws(classOf[ParseException])
+          override def run(ri: ResultIterator) {
+            val pr = ri.getParserResult.asInstanceOf[ScalaParserResult]
+            val global = pr.global
+            val rootScope = pr.rootScope getOrElse {assert(false, "Parse result is null : " + fo.getName); return}
+            val tmpls = new ArrayBuffer[ScalaDfns#ScalaDfn]
+            visit(rootScope, tmpls)
+            process(global, tmpls.toList)
+          }
+
+          private def visit(scope: AstScope, tmpls: ArrayBuffer[ScalaDfns#ScalaDfn]): Unit = {
+            for (dfn <- scope.dfns if (dfn.getKind == ElementKind.CLASS || dfn.getKind == ElementKind.MODULE)) {
+              tmpls += dfn.asInstanceOf[ScalaDfns#ScalaDfn]
             }
-          })
-      } catch {case ex: ParseException => Exceptions.printStackTrace(ex)}
-    }
 
-    tmpls.toList
+            for (_scope <- scope.subScopes) {
+              visit(_scope, tmpls)
+            }
+          }
+
+          private def process(global: ScalaGlobal, tmpls: List[ScalaDfns#ScalaDfn]) = {
+            tmpls match {
+              case Nil =>
+                // * source is probably broken and there is no AST
+                // * let's generate empty Java stub with simple name equal to file name
+                var pkg = FileUtil.getRelativePath(rootFo, fo.getParent)
+                if (pkg != null) {
+                  pkg = pkg.replace('/', '.')
+                  val sb = new StringBuilder
+                  if (!pkg.equals("")) { // NOI18N
+                    sb.append("package " + pkg + ";") // NOI18N
+                  }
+                  val name = fo.getName
+                  sb.append("public class ").append(name).append(" implements scala.ScalaObject {public int $tag() throws java.rmi.RemoteException {return 0;}}"); // NOI18N
+                  //@Todo diable result add till we get everything ok
+                  //result.add(file, pkg, file.getName(), sb.toString());
+                }
+              case _ =>
+                val generator = new JavaStubGenerator(global)
+                import generator.global._
+
+                val emptySyms: Array[Symbol] = Array(NoSymbol, NoSymbol, NoSymbol)
+                val clzNameToSyms = new HashMap[String, Array[Symbol]] // clzName -> (class, object, trait)
+
+                for (tmpl <- tmpls;
+                     sym = tmpl.symbol.asInstanceOf[Symbol] if sym != NoSymbol; // avoid strange file name, for example: <error: class ActorProxy>.java
+                     symSName = sym.nameString if symSName.length > 0 && symSName.charAt(0) != '<' // @todo <any>
+                ) {
+                  val clzName = generator.classSName(sym)
+                  val syms = clzNameToSyms.getOrElse(clzName, emptySyms) match {
+                    case Array(c, o, t) =>
+                      if (sym.isTrait) { // isTrait also isClass, so determine trait before class
+                        Array(c, o, sym)
+                      } else if (sym.isModule) { // object
+                        Array(c, sym, t)
+                      } else { // class
+                        Array(sym, o, t)
+                      }
+                  }
+                  clzNameToSyms += (clzName -> syms)
+                }
+                
+                for ((clzName, syms) <- clzNameToSyms) {
+                  try {
+                    val pkgQName = syms find (_ != NoSymbol) match {
+                      case Some(sym) => sym.enclosingPackage match {
+                          case null => ""
+                          case packaging => packaging.fullNameString match {
+                              case "<empty>" => ""
+                              case x => x
+                            }
+                        }
+                      case _ => ""
+                    }
+                    val javaStub = generator.generateClass(pkgQName, clzName, syms)
+                   
+                    result.add(file, pkgQName, clzName, javaStub)
+                  } catch {case ex: FileNotFoundException => Exceptions.printStackTrace(ex)}
+                }
+            }
+          }
+        })
+    } catch {case ex: ParseException => Exceptions.printStackTrace(ex)}
   }
 
-  private def scan(scope: AstScope, tmpls: ArrayBuffer[ScalaDfns#ScalaDfn]): Unit = {
-    for (dfn <- scope.dfns if (dfn.getKind == ElementKind.CLASS || dfn.getKind == ElementKind.MODULE)) {
-      tmpls += dfn.asInstanceOf[ScalaDfns#ScalaDfn]
-    }
+  private class JavaStubGenerator(val global: ScalaGlobal) {
+    import global._
 
-    for (_scope <- scope.subScopes) {
-      scan(_scope, tmpls)
-    }
-  }
-
-  private class JavaStubGenerator(requireSuperResolved: Boolean, java5: Boolean) {
-
-    private val toCompile = new ArrayBuffer[String]
-
-    def this() = this(false, false)
+    private var isTrait = false
+    private var isObject = false
+    private var isCompanion = false
 
     @throws(classOf[FileNotFoundException])
-    def generateClass(tmpl: ScalaDfns#ScalaDfn): CharSequence = {
-      val sym = tmpl.symbol
-      val fileName = toJavaName(sym.fullNameString).replace('.', '/')
-      toCompile += fileName
-
+    def generateClass(pkgName: String, clzName: String, syms: Array[Symbol]): CharSequence = {
       val sw = new StringWriter
       val pw = new PrintWriter(sw)
 
       try {
-        val packaging = sym.enclosingPackage
-        if (packaging != null) {
-          val pkgName = packaging.fullNameString
-          if (!pkgName.equals("") && !pkgName.equals("<empty>")) {
-            pw.print("package ")
-            pw.print(packaging.fullNameString)
-            pw.println(";")
-          }
+        if (pkgName.length > 0) {
+          pw.print("package ")
+          pw.print(pkgName)
+          pw.println(";")
         }
 
-        //out.println("@NetBeansVirtualSource(11, 12)");
+        //pw.println("@NetBeansVirtualSource(11, 12)");
 
-        printModifiers(pw, sym.asInstanceOf[Symbols#Symbol])
-        if (sym.isClass) {
-          pw.print(" class ")
-        } else if (sym.isModule) {
-          // @Todo has two classes;
-          pw.print(" class ")
-        } else if (sym.isTrait) {
-          // @Todo has two classes;
-          pw.print(" interface ")
+        val sym = syms match {
+          case Array(NoSymbol, NoSymbol, t) => // trait
+            isTrait = true
+            pw.print(modifiers(t))
+            pw.print("interface ")
+
+            t
+          case Array(NoSymbol, o, NoSymbol) => // single object
+            isObject = true
+            pw.print(modifiers(o))
+            pw.print("final class ")
+
+            o
+          case Array(c, NoSymbol, NoSymbol) => // single class
+            pw.print(modifiers(c))
+            pw.print("class ")
+
+            c
+          case Array(c, o, NoSymbol) => // companion object + class
+            isCompanion = true
+            pw.print(modifiers(c))
+            pw.print("class ")
+
+            c
+          case Array(_, o, t) => // companion object + trait ?
+            isTrait = true
+            pw.print(modifiers(t))
+            pw.print("interface ")
+
+            t
         }
 
-        // class name
-        val clzName = toJavaName(sym.nameString)
         pw.print(clzName)
 
-//                Symbol superClass = symbol.superClass();
-//                if (superClass != null) {
-//                    String superQName = ScalaElement.symbolQualifiedName(superClass);
-//                    out.print(" extends ");
-//                    out.print(superQName);
-//                }
-//
-//                scala.List parents = symbol.tpe().parents();
-//                int n = 0;
-//                for (int i = 0; i < parents.size(); i++) {
-//                    Type parent = (Type) parents.apply(i);
-//                    if (ScalaElement.typeQualifiedName(parent, false).equals("java.lang.Object")) {
-//                        continue;
-//                    }
-//
-//                    if (n == 0) {
-//                        out.print(" implements ");
-//                    } else {
-//                        out.print(",");
-//                    }
-//                    printType(out, parent);
-//                    n++;
-//                }
+        val qName = sym.fullNameString
+        val superQName = sym.superClass match {
+          case null => ""
+          case x => x.fullNameString
+        }
 
-        pw.println(" {")
+        var extended = false
+        if (!isTrait && superQName.length > 0) {
+          pw.print(" extends ")
+          pw.print(encodeQName(superQName))
+          extended = true
+        }
 
-        /*
-         scala.List members = null;
-         try {
-         // scalac will throw exceptions here, we have to catch it
-         members = symbol.tpe().members();
-         } catch (Throwable e) {
-         ScalaGlobal.reset();
-         }
-         if (members != null) {
-         int size = members.size();
-         for (int i = 0; i < size; i++) {
-         Symbol member = (Symbol) members.apply(i);
+        val tpe = tryTpe(sym)
 
-         if (member.isPublic() || member.isProtectedLocal()) {
-         if (ScalaElement.isInherited(symbol, member)) {
-         continue;
-         }
+        if (tpe != null) {
+          val itr = tpe.baseClasses.tail.iterator // head is always `java.lang.Object`?
+          var implemented = false
+          while (itr.hasNext) {
+            val base = itr.next
+            base.fullNameString  match {
+              case `superQName` =>
+              case `qName` =>
+              case "java.lang.Object" =>
+              case x =>
+                if (base.isTrait) {
+                  if (isTrait) {
+                    if (!extended) {
+                      pw.print(" extends ")
+                      extended = true
+                    } else {
+                      pw.print(", ")
+                    }
+                  } else {
+                    if (!implemented) {
+                      pw.print(" implements ")
+                      implemented = true
+                    } else {
+                      pw.print(", ")
+                    }
+                  }
+                  
+                  pw.print(encodeQName(x))
+                } else { // base is class
+                  if (isTrait) {
+                    // * shound not happen or error of "interface extends a class", ignore it
+                  } else {
+                    if (!extended) {
+                      pw.print(" extends ")
+                      extended = true
+                    } else {
+                      pw.print(", ")
+                    }
 
-         if (member.isMethod()) {
-         if (member.nameString().equals("$init$") || member.nameString().equals("synchronized")) {
-         continue;
-         }
+                    pw.print(encodeQName(x))
+                  }
+                }
 
-         printModifiers(out, member);
-         out.print(" ");
-         if (member.isConstructor()) {
-         out.print(toJavaName(symbol.nameString()));
-         // parameters
-         printParams(out, member.tpe().paramTypes());
-         out.print(" ");
-         out.println("{}");
-         } else {
-         Type resType = null;
-         try {
-         resType = member.tpe().resultType();
-         } catch (Throwable ex) {
-         ScalaGlobal.reset();
-         }
-         if (resType != null) {
-         String resQName = toJavaType(ScalaElement.typeQualifiedName(resType, false));
-         out.print(resQName);
-         out.print(" ");
-         // method name
-         out.print(toJavaName(member.nameString()));
-         // method parameters
-         printParams(out, member.tpe().paramTypes());
-         out.print(" ");
+            }
+          }
 
-         // method body
-         out.print("{");
-         printReturn(out, resQName);
-         out.println("}");
-         }
-         }
-         } else if (member.isVariable()) {
-         // do nothing
-         } else if (member.isValue()) {
-         printModifiers(out, member);
-         out.print(" ");
-         Type resType = member.tpe().resultType();
-         String resQName = toJavaType(ScalaElement.typeQualifiedName(resType, false));
-         out.print(resQName);
-         out.print(" ");
-         out.print(member.nameString());
-         out.println(";");
-         }
-         }
+          pw.println(" {")
 
-         // implements scala.ScalaObject
-         out.println("public int $tag() throws java.rmi.RemoteException {return 0;}");
-         }
-         }
-         */
-        pw.println("}")
+          if (isCompanion) {
+            genMemebers(pw, sym, tpe, false, false)
+
+            val oSym = syms(1)
+            val oTpe = tryTpe(oSym)
+            
+            if (oTpe != null) {
+              genMemebers(pw, oSym, oTpe, true, false)
+            }
+
+          } else {
+            genMemebers(pw, sym, tpe, isObject, isTrait)
+          }
+
+          if (!isTrait) {
+            pw.println(dollarTagMethod) // should implement scala.ScalaObject
+          }
+
+          pw.println("}")
+        } else {
+          pw.println(" {")
+
+          if (!isTrait) {
+            pw.println(dollarTagMethod) // should implement scala.ScalaObject
+          }
+
+          pw.println("}")
+        }
       } finally {
         try {
           pw.close
@@ -340,52 +385,181 @@ class ScalaVirtualSourceProvider extends VirtualSourceProvider {
           sw.close
         } catch {case ex: IOException =>}
       }
+
+      Log.log(Level.INFO, "Java stub: {0}", sw)
+
       sw.toString
     }
 
-    private def printModifiers(pw: PrintWriter, symbol: Symbols#Symbol) {
-      if (symbol hasFlag Flags.PRIVATE) {
-        pw.print("private")
-      } else if (symbol hasFlag Flags.PROTECTED) {
-        pw.print("protected")
-      } else {
-        pw.print("public")
+    private def tryTpe(sym: Symbol): Type = {
+      try {
+        sym.tpe
+      } catch {case _ => null}
+    }
+
+    private def isAbstractClass(tpe: Type): Boolean = {
+      tpe != null && (tpe.members find (_ hasFlag Flags.DEFERRED) isDefined)
+    }
+
+    private def genMemebers(pw: PrintWriter, sym: Symbol, tpe: Type, isStatic: Boolean, isInterface: Boolean) {
+      for (member <- tpe.members if !member.hasFlag(Flags.PRIVATE)) {
+        val mTpe = try {
+          member.tpe
+        } catch {case ex => ScalaGlobal.resetLate(global, ex); null}
+
+        if (mTpe != null && !ScalaUtil.isInherited(sym, member)) {
+          val mSName = member.nameString
+          if (member.isTrait || member.isClass || member.isModule ) {
+            // @todo
+          } else if (member.isMethod && mSName != "$init$" && mSName != "synchronized") {
+            pw.print(modifiers(member))
+
+            if (isStatic && !isInterface) {
+              pw.print("static final ")
+            }
+
+            if (member.isConstructor) {
+              if (!isInterface) {
+                pw.print(encodeName(sym.nameString))
+                // * parameters
+                pw.print(params(mTpe.params))
+                pw.println(" {}")
+              }
+            } else {
+              val mResTpe = try {
+                mTpe.resultType
+              } catch {case ex => ScalaGlobal.resetLate(global, ex); null}
+
+              if (mResTpe != null) {
+                // method return type
+                val mResQName = encodeType(mResTpe.typeSymbol.fullNameString)
+                pw.print(mResQName)
+                pw.print(" ")
+
+                // method name
+                pw.print(encodeName(mSName))
+                
+                // method parameters
+                pw.print(params(mTpe.params))
+                pw.print(" ")
+
+                // method body or ";"
+                if (!isInterface && !member.hasFlag(Flags.DEFERRED)) {
+                  pw.print("{")
+                  pw.print(returnStrOfType(mResQName))
+                  pw.println("}")
+                } else {
+                  pw.println(";")
+                }
+              }
+            }
+          } else if (member.isVariable) {
+            // do nothing
+          } else if (member.isValue) {
+            if (!isInterface) {
+              pw.print(modifiers(member))
+              pw.print(" ")
+              val mResTpe = mTpe.resultType
+              val mResQName = encodeType(mResTpe.typeSymbol.fullNameString)
+              pw.print(mResQName)
+              pw.print(" ")
+              pw.print(mSName)
+              pw.println(";")
+            }
+          }
+        }
       }
+
     }
 
-    private def printType(pw: PrintWriter, tpe: Types#Type) {
-      //out.print(JavaScalaMapping.toJavaType(ScalaElement.typeQualifiedName(type, false)));
+    private val dollarTagMethod = "public int $tag() throws java.rmi.RemoteException {return 0;}"
+
+    private def modifiers(sym: Symbol): String = {
+      val sb = new StringBuilder
+      if (sym hasFlag Flags.PRIVATE) {
+        sb.append("private ")
+      } else if (sym hasFlag Flags.PROTECTED) {
+        sb.append("protected ")
+      } else {
+        sb.append("public ")
+      }
+
+      if (sym.isClass  && !sym.isTrait        && sym.hasFlag(Flags.ABSTRACT)) sb.append("abstract ")
+      if (sym.isMethod && !sym.isConstructor  && sym.hasFlag(Flags.DEFERRED)) sb.append("abstract ")
+
+      sb.toString
     }
 
-    private def printParams(pw: PrintWriter, params: List[Types#Type]) {
-      pw.print("(")
+    def classSName(sym: Symbol): String = {
+      if (sym.isNestedClass) {
+        classSName(sym.owner) + "$" + encodeName(sym.nameString)
+      } else encodeName(sym.nameString)
+    }
 
+    private def params(params: List[Symbol]): String = {
+      val sb = new StringBuffer
+      sb.append("(")
+
+      val paramNames = new HashSet[String]
       var i = 0
       val itr = params.iterator
       while (itr.hasNext) {
-        val tpe = itr.next
-        printType(pw, tpe)
-        pw.print(" a")
-        pw.print(i)
-        if (itr.hasNext) {
-          pw.print(",")
+        val param = itr.next
+
+        val tpe = try {
+          param.tpe
+        } catch {case ex => ScalaGlobal.resetLate(global, ex); null}
+        
+        if (tpe != null) {
+          sb.append(encodeQName(tpe.typeSymbol.fullNameString))
+        } else {
+          sb.append("Object")
         }
+        sb.append(" ")
+
+        val name = param.nameString
+        if (name.length > 0 && paramNames.add(name)) {
+          sb.append(name)
+        } else {
+          sb.append("a")
+          sb.append(i)
+        }
+        
+        if (itr.hasNext) sb.append(", ")
+        
         i += 1
       }
 
-      pw.print(")")
+      sb.append(")")
+      
+      sb.toString
     }
 
-    private def printReturn(pw: PrintWriter, typeName: String) {
-      pw.print(returnStrOfType(typeName))
+    /*
+     * to java name
+     */
+    private def encodeName(scalaTermName: String): String = {
+      NameTransformer.encode(scalaTermName)
     }
 
-    private def toJavaName(scalaName: String): String = {
-      scalaName//JavaScalaMapping.toJavaOpName(scalaName);
+    /*
+     * to java type name
+     */
+    private def encodeType(scalaTypeQName: String): String = {
+      scalaTypeQName match {
+        case "scala.Unit" => "void"
+        case _ => encodeQName(scalaTypeQName)
+      }
     }
 
-    private def toJavaType(scalaTypeName: String): String = {
-      scalaTypeName //JavaScalaMapping.toJavaType(scalaTypeName);
+    private def encodeQName(qName: String): String = {
+      qName.lastIndexOf('.') match {
+        case -1 => encodeName(qName)
+        case i =>
+          val pkgName = qName.substring(0, i + 1) // with last '.'
+          val sName = qName.substring(i + 1, qName.length)
+          pkgName + encodeName(sName)
+      }
     }
   }
 }
@@ -394,15 +568,16 @@ object ScalaVirtualSourceProvider {
   val Log = Logger.getLogger(classOf[ScalaVirtualSourceProvider].getName)
 
   private def returnStrOfType(tpe: String) = tpe match {
-    case "void"    => "return;"
-    case "double"  => "return 0.0;"
-    case "float"   => "return 0.0f;"
-    case "long"    => "return 0L;"
-    case "int"     => "return 0;"
-    case "short"   => "return 0;"
-    case "byte"    => "return 0;"
-    case "boolean" => "return false;"
-    case "char"    => "return 0;"
-    case _ => "return null"
+    case "double"     => "return 0.0;"
+    case "float"      => "return 0.0f;"
+    case "long"       => "return 0L;"
+    case "int"        => "return 0;"
+    case "short"      => "return 0;"
+    case "byte"       => "return 0;"
+    case "boolean"    => "return false;"
+    case "char"       => "return 0;"
+    case "void"       => "return;"
+    case "scala.Unit" => "return;"
+    case _ => "return null;"
   }
 }
