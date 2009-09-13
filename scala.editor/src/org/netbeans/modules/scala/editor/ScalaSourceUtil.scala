@@ -28,16 +28,22 @@
 package org.netbeans.modules.scala.editor
 
 import java.io.{File, IOException, InputStream}
+import java.net.URL
 import javax.swing.text.BadLocationException
 import org.netbeans.api.java.classpath.ClassPath
+import org.netbeans.api.java.classpath.GlobalPathRegistry
 import org.netbeans.api.java.queries.SourceForBinaryQuery
 import org.netbeans.api.java.source.ClasspathInfo
 import org.netbeans.api.lexer.TokenHierarchy
+import org.netbeans.api.project.Project
+import org.netbeans.api.project.ProjectUtils
+import org.netbeans.api.project.SourceGroup
 import org.netbeans.editor.BaseDocument
 import org.netbeans.modules.classfile.ClassFile
 import org.netbeans.modules.csl.api.{ElementKind, Modifier, OffsetRange}
 import org.netbeans.modules.csl.spi.ParserResult
 import org.netbeans.modules.parsing.api.{ParserManager, ResultIterator, Source, UserTask}
+import org.netbeans.modules.parsing.impl.indexing.friendapi.IndexingController
 import org.netbeans.modules.parsing.spi.{ParseException, Parser}
 import org.netbeans.spi.java.classpath.support.ClassPathSupport
 import org.openide.filesystems.{FileObject, FileUtil}
@@ -49,6 +55,9 @@ import org.netbeans.modules.scala.editor.element.{JavaElements}
 import org.netbeans.modules.scala.editor.lexer.ScalaLexUtil
 
 import scala.tools.nsc.util.Position
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.LinkedList
 import scala.tools.nsc.symtab.{Flags, Symbols}
 import scala.collection.mutable.ArrayBuffer
 
@@ -57,6 +66,11 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 object ScalaSourceUtil {
+  
+  /** @see org.netbeans.api.java.project.JavaProjectConstants */
+  val SOURCES_TYPE_JAVA = "java" // NOI18N
+  /** a source group type for separate scala source roots, as seen in maven projects for example */
+  val SOURCES_TYPE_SCALA = "scala" //NOI18N
 
   def isScalaFile(f: FileObject): Boolean = {
     ScalaMimeResolver.MIME_TYPE.equals(f.getMIMEType)
@@ -269,22 +283,22 @@ object ScalaSourceUtil {
   }
 
   /** @todo */
-  def getDocComment(pResult: Parser.Result, element: JavaElements#JavaElement): String = {
-    if (pResult == null) {
+  def getDocComment(pr: Parser.Result, element: JavaElements#JavaElement): String = {
+    if (pr == null) {
       return null
     }
 
-    val doc = pResult.getSnapshot.getSource.getDocument(true) match {
+    val doc = pr.getSnapshot.getSource.getDocument(true) match {
       case null => return null
       case x: BaseDocument => x
     }
 
-    val th = pResult.getSnapshot.getTokenHierarchy
+    val th = pr.getSnapshot.getTokenHierarchy
 
-    doc.readLock // Read-lock due to token hierarchy use
+    //doc.readLock // Read-lock due to token hierarchy use
     val offset = 0//element.getBoundsOffset(th)
     val range = ScalaLexUtil.getDocumentationRange(th, offset)
-    doc.readUnlock
+    //doc.readUnlock
 
     if (range.getEnd < doc.getLength) {
       try {
@@ -303,9 +317,9 @@ object ScalaSourceUtil {
       case x => x
     }
 
-    doc.readLock // Read-lock due to token hierarchy use
+    //doc.readLock // Read-lock due to token hierarchy use
     val range = ScalaLexUtil.getDocCommentRangeBefore(th, symbolOffset)
-    doc.readUnlock
+    //doc.readUnlock
 
     if (range != OffsetRange.NONE && range.getEnd < doc.getLength) {
       try {
@@ -319,18 +333,18 @@ object ScalaSourceUtil {
   }
 
   /** @todo */
-  def getOffset(info: Parser.Result, element: JavaElements#JavaElement): Int = {
-    if (info == null) {
+  def getOffset(pr: Parser.Result, element: JavaElements#JavaElement): Int = {
+    if (pr == null) {
       return -1
     }
 
-    val th = info.getSnapshot.getTokenHierarchy
+    val th = pr.getSnapshot.getTokenHierarchy
     //element.getPickOffset(th)
     return -1
   }
 
-  def getFileObject(pResult: ParserResult, symbol: Symbols#Symbol): Option[FileObject] = {
-    val pos = symbol.pos
+  def getFileObject(pr: ParserResult, sym: Symbols#Symbol): Option[FileObject] = {
+    val pos = sym.pos
     if (pos.isDefined) {
       val srcFile = pos.source
       if (srcFile != null) {
@@ -341,14 +355,14 @@ object ScalaSourceUtil {
         }
         val file = new File(srcPath)
         if (file != null && file.exists) {
-          // * it's a real file and not archive file
+          // * it's a real file instead of an archive file
           return Some(FileUtil.toFileObject(file))
         }
       }
     }
 
     val qName: String = try {
-      symbol.enclClass.fullNameString.replace('.', File.separatorChar)
+      sym.enclClass.fullNameString.replace('.', File.separatorChar)
     } catch {
       case ex: java.lang.Error => null
         // java.lang.Error: no-symbol does not have owner
@@ -369,11 +383,11 @@ object ScalaSourceUtil {
     val clzName = qName + ".class"
 
     try {
-      val cp = getClassPath(pResult.getSnapshot.getSource.getFileObject)
+      val cp = getClassPath(pr.getSnapshot.getSource.getFileObject)
 
       val clzFo = cp.findResource(clzName)
       val root = cp.findOwnerRoot(clzFo)
-      val ext = if (symbol hasFlag Flags.JAVA) ".java" else ".scala"
+      val ext = if (sym hasFlag Flags.JAVA) ".java" else ".scala"
 
       // * see if we can find this class's source file straightforward
       findSourceFileObject(cp, root, qName + ext) match {
@@ -415,15 +429,79 @@ object ScalaSourceUtil {
     }
   }
 
+  def getScalaJavaSourceGroups(p: Project): Array[SourceGroup] = {
+    val sources = ProjectUtils.getSources(p)
+    val scalaSgs = sources.getSourceGroups(ScalaSourceUtil.SOURCES_TYPE_SCALA)
+    val javaSgs  = sources.getSourceGroups(ScalaSourceUtil.SOURCES_TYPE_JAVA)
+    scalaSgs ++ javaSgs
+  }
+
+  /** @see org.netbeans.api.java.source.SourceUtils#getDependentRoots */
+  def getDependentRoots(root: URL): Set[URL] = {
+    val deps = IndexingController.getDefault.getRootDependencies
+    getDependentRootsImpl(root, deps)
+  }
+
+  private def getDependentRootsImpl(root: URL, deps: java.util.Map[URL, java.util.List[URL]]): Set[URL] = {
+    // * create inverse dependencies
+    val inverseDeps = new HashMap[URL, ArrayBuffer[URL]]
+    val entries = deps.entrySet.iterator
+    while (entries.hasNext) {
+      val entry = entries.next
+      val u1 = entry.getKey
+      val l1 = entry.getValue.iterator
+      while (l1.hasNext) {
+        val u2 = l1.next
+        val l2 = inverseDeps.get(u2) getOrElse {
+          val x = new ArrayBuffer[URL]
+          inverseDeps += (u2 -> x)
+          x
+        }
+        
+        l2 += u1
+      }
+    }
+
+    // * collect dependencies
+    val result = new HashSet[URL]
+    var todo = List(root)
+    while (!todo.isEmpty) {
+      todo match {
+        case Nil =>
+        case url :: xs =>
+          todo = xs
+          if (result.add(url)) {
+            inverseDeps.get(url) foreach {x => todo = x.toList ::: todo}
+          }
+      }
+    }
+
+    // * filter non opened projects
+    val cps = GlobalPathRegistry.getDefault.getPaths(ClassPath.SOURCE).iterator
+    val toRetain = new HashSet[URL]
+    while (cps.hasNext) {
+      val cp = cps.next
+      val entries = cp.entries.iterator
+      while (entries.hasNext) {
+        val e = entries.next
+        toRetain += e.getURL
+      }
+    }
+
+    result retain toRetain
+    result.toSet
+  }
+
+
   private val TMPL_KINDS = Set(ElementKind.CLASS, ElementKind.MODULE)
 
-  def getBinaryClassName(pResult: ScalaParserResult, offset: Int): String = {
-    val rootScope = pResult.getRootScopeForDebug.getOrElse(return null)
-    val th = pResult.getSnapshot.getTokenHierarchy
+  def getBinaryClassName(pr: ScalaParserResult, offset: Int): String = {
+    val root = pr.getRootScopeForDebug.getOrElse(return null)
+    val th = pr.getSnapshot.getTokenHierarchy
     
     var clzName = ""
 
-    rootScope.enclosingDfn(TMPL_KINDS, th, offset) foreach {enclDfn =>
+    root.enclosingDfn(TMPL_KINDS, th, offset) foreach {enclDfn =>
       val sym = enclDfn.asInstanceOf[ScalaDfns#ScalaDfn].symbol
       if (sym != null) {
         // "scalarun.Dog.$talk$1"
@@ -491,40 +569,40 @@ object ScalaSourceUtil {
       val result = new ArrayBuffer[ScalaDfns#ScalaDfn]
       ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
           @throws(classOf[Exception])
-          override def run(resultIterator: ResultIterator): Unit = {
-            val pResult = resultIterator.getParserResult.asInstanceOf[ScalaParserResult]
-            val rootScope = pResult.rootScope match {
+          override def run(ri: ResultIterator): Unit = {
+            val pr = ri.getParserResult.asInstanceOf[ScalaParserResult]
+            val root = pr.rootScope match {
               case None => return
               case Some(x) => x
             }
-            // Get all defs will return all visible packages from the root and down
-            getAllDfns(rootScope, ElementKind.PACKAGE) foreach {
-              // Only go through the defs for each package scope.
-              // Sub-packages are handled by the fact that
-              // getAllDefs will find them.
+            val global = pr.global
+            import global._
+            
+            def getAllDfns(scope: AstScope, kind: ElementKind, result: ArrayBuffer[ScalaDfn]): Seq[ScalaDfn] = {
+              scope.dfns foreach {dfn =>
+                if (dfn.getKind == kind)  result += dfn.asInstanceOf[ScalaDfn]
+              }
+              scope.subScopes foreach {
+                childScope => getAllDfns(childScope, kind, result)
+              }
+              result
+            }
+
+            // * get all dfns will return all visible packages from the root and down
+            getAllDfns(root, ElementKind.PACKAGE, new ArrayBuffer[ScalaDfn]) foreach {
+              // * only go through the defs for each package scope.
+              // * Sub-packages are handled by the fact that
+              // * getAllDefs will find them.
               packaging => packaging.bindingScope.dfns foreach {dfn =>
-                if (isMainMethodExists(dfn.asInstanceOf[ScalaDfns#ScalaDfn])) result += dfn.asInstanceOf[ScalaDfns#ScalaDfn]
+                if (isMainMethodExists(dfn.asInstanceOf[ScalaDfn])) result += dfn.asInstanceOf[ScalaDfn]
               }
             }
             
-            rootScope.visibleDfns(ElementKind.MODULE) foreach {dfn =>
-              if (isMainMethodExists(dfn.asInstanceOf[ScalaDfns#ScalaDfn])) result += dfn.asInstanceOf[ScalaDfns#ScalaDfn]
+            root.visibleDfns(ElementKind.MODULE) foreach {dfn =>
+              if (isMainMethodExists(dfn.asInstanceOf[ScalaDfn])) result += dfn.asInstanceOf[ScalaDfn]
             }
           }
 
-          def getAllDfns(rootScope: AstScope, kind: ElementKind): Seq[ScalaDfns#ScalaDfn] = {
-            getAllDfns(rootScope, kind, new ArrayBuffer[ScalaDfns#ScalaDfn])
-          }
-
-          def getAllDfns(astScope: AstScope, kind: ElementKind, result: ArrayBuffer[ScalaDfns#ScalaDfn]): Seq[ScalaDfns#ScalaDfn] = {
-            astScope.dfns foreach {dfn =>
-              if (dfn.getKind == kind)  result += dfn.asInstanceOf[ScalaDfns#ScalaDfn]
-            }
-            astScope.subScopes foreach {
-              childScope => getAllDfns(childScope, kind, result)
-            }
-            result
-          }
         })
 
       result
@@ -551,9 +629,9 @@ object ScalaSourceUtil {
       result.addAll(getMainClassesAsJavaCollection(root))
       try {
         val bootCp = ClassPath.getClassPath(root, ClassPath.BOOT)
-        val compileCp = ClassPath.getClassPath(root, ClassPath.COMPILE)
+        val compCp = ClassPath.getClassPath(root, ClassPath.COMPILE)
         val srcCp = ClassPathSupport.createClassPath(Array(root): _*)
-        val cpInfo = ClasspathInfo.create(bootCp, compileCp, srcCp)
+        val cpInfo = ClasspathInfo.create(bootCp, compCp, srcCp)
         //                final Set<AstElement> classes = cpInfo.getClassIndex().getDeclaredTypes("", ClassIndex.NameKind.PREFIX, EnumSet.of(ClassIndex.SearchScope.SOURCE));
         //                Source js = Source.create(cpInfo);
         //                js.runUserActionTask(new CancellableTask<CompilationController>() {
@@ -615,10 +693,10 @@ object ScalaSourceUtil {
     for (root <- sourceRoots) {
       result ++= getMainClasses(root)
       try {
-        val bootPath = ClassPath.getClassPath(root, ClassPath.BOOT)
-        val compilePath = ClassPath.getClassPath(root, ClassPath.COMPILE)
-        val srcPath = ClassPathSupport.createClassPath(Array(root): _*)
-        val cpInfo = ClasspathInfo.create(bootPath, compilePath, srcPath)
+        val bootCp = ClassPath.getClassPath(root, ClassPath.BOOT)
+        val compCp = ClassPath.getClassPath(root, ClassPath.COMPILE)
+        val srcCp = ClassPathSupport.createClassPath(Array(root): _*)
+        val cpInfo = ClasspathInfo.create(bootCp, compCp, srcCp)
         //                final Set<JavaElement> classes = cpInfo.getClassIndex().getDeclaredTypes("", ClassIndex.NameKind.PREFIX, EnumSet.of(ClassIndex.SearchScope.SOURCE));
         //                Source js = Source.create(cpInfo);
         //                js.runUserActionTask(new CancellableTask<CompilationController>() {
@@ -651,16 +729,16 @@ object ScalaSourceUtil {
   }
 
   def getClasspathInfo(fo: FileObject): Option[ClasspathInfo] = {
-    val bootPath = ClassPath.getClassPath(fo, ClassPath.BOOT)
-    val compilePath = ClassPath.getClassPath(fo, ClassPath.COMPILE)
-    val srcPath = ClassPath.getClassPath(fo, ClassPath.SOURCE)
+    val bootCp = ClassPath.getClassPath(fo, ClassPath.BOOT)
+    val compCp = ClassPath.getClassPath(fo, ClassPath.COMPILE)
+    val srcCp = ClassPath.getClassPath(fo, ClassPath.SOURCE)
 
-    if (bootPath == null || compilePath == null || srcPath == null) {
+    if (bootCp == null || compCp == null || srcCp == null) {
       /** @todo why? at least I saw this happens on "Scala project created from existing sources" */
       println("No classpath for " + fo)
       None
     } else {
-      ClasspathInfo.create(bootPath, compilePath, srcPath) match {
+      ClasspathInfo.create(bootCp, compCp, srcCp) match {
         case null => None
         case x => Some(x)
       }
@@ -669,17 +747,17 @@ object ScalaSourceUtil {
 
   def getClassPath(fo: FileObject) = {
     val bootCp = ClassPath.getClassPath(fo, ClassPath.BOOT)
-    val compileCp = ClassPath.getClassPath(fo, ClassPath.COMPILE)
+    val compCp = ClassPath.getClassPath(fo, ClassPath.COMPILE)
     val srcCp = ClassPath.getClassPath(fo, ClassPath.SOURCE)
-    ClassPathSupport.createProxyClassPath(Array(bootCp, compileCp, srcCp): _*)
+    ClassPathSupport.createProxyClassPath(Array(bootCp, compCp, srcCp): _*)
   }
 
   /** What's difference from getClassPath(fo: FileObject) ? */
   def getClassPath2(fo: FileObject) = {
     val cpInfo = ClasspathInfo.create(fo)
     val bootCp = cpInfo.getClassPath(ClasspathInfo.PathKind.BOOT)
-    val compileCp = cpInfo.getClassPath(ClasspathInfo.PathKind.COMPILE)
+    val compCp = cpInfo.getClassPath(ClasspathInfo.PathKind.COMPILE)
     val srcCp = cpInfo.getClassPath(ClasspathInfo.PathKind.SOURCE)
-    ClassPathSupport.createProxyClassPath(Array(bootCp, compileCp, srcCp): _*)
+    ClassPathSupport.createProxyClassPath(Array(bootCp, compCp, srcCp): _*)
   }
 }

@@ -88,14 +88,14 @@ object ScalaGlobal {
   private class Cache {
     val globals = new Array[ScalaGlobal](4)
 
-    var srcOutDirs: Map[FileObject, FileObject] = Map()
-    var testSrcOutDirs: Map[FileObject, FileObject] = Map()
+    var srcToOut:  Map[FileObject, FileObject] = Map()
+    var testToOut: Map[FileObject, FileObject] = Map()
 
-    def srcOutDirsPath = toDirPaths(srcOutDirs)
-    def testSrcOutDirsPath = toDirPaths(testSrcOutDirs)
+    def srcOutDirsPath = toDirPaths(srcToOut)
+    def testSrcOutDirsPath = toDirPaths(testToOut)
 
-    def scalaSrcOutDirs: Map[AbstractFile, AbstractFile] = toScalaDirs(srcOutDirs)
-    def scalaTestSrcOutDirs: Map[AbstractFile, AbstractFile] = toScalaDirs(testSrcOutDirs)
+    def scalaSrcToOut:  Map[AbstractFile, AbstractFile] = toScalaDirs(srcToOut)
+    def scalaTestToOut: Map[AbstractFile, AbstractFile] = toScalaDirs(testToOut)
 
     private def toDirPaths(dirs: Map[FileObject, FileObject]): Map[String, String] = {
       for ((src, out) <- dirs) yield (toDirPath(src), toDirPath(out))
@@ -110,11 +110,6 @@ object ScalaGlobal {
   }
   
   private val debug = false
-
-  // * @see org.netbeans.api.java.project.JavaProjectConstants
-  private val SOURCES_TYPE_JAVA = "java" // NOI18N
-  // * a source group type for separate scala source roots, as seen in maven projects for example.
-  private val SOURCES_TYPE_SCALA = "scala" //NOI18N
 
   private var globalForStdLib: Option[ScalaGlobal] = None
   
@@ -204,14 +199,14 @@ object ScalaGlobal {
       }
     }
 
-    val caches = projectToCaches.get(project) getOrElse {
-      val r = findDirResources(project)
-      projectToCaches.put(project, r)
-      r
+    val cache = projectToCaches.get(project) getOrElse {
+      val cachex = findDirResources(project)
+      projectToCaches.put(project, cachex)
+      cachex
     }
 
     // * is this `fo` under test source?
-    val forTest = caches.testSrcOutDirs find {case (src, _) =>
+    val forTest = cache.testToOut find {case (src, _) =>
         src.equals(fo) || FileUtil.isParentOf(src, fo)
     } isDefined
 
@@ -222,7 +217,7 @@ object ScalaGlobal {
       if (forTest) GlobalForTest else Global
     }
 
-    val g = caches.globals(idx)
+    val g = cache.globals(idx)
     if (g != null) {
       return g
     }
@@ -251,7 +246,7 @@ object ScalaGlobal {
     
     var outPath = ""
     var srcPaths: List[String] = Nil
-    for ((src, out) <- if (forTest) caches.testSrcOutDirsPath else caches.srcOutDirsPath) {
+    for ((src, out) <- if (forTest) cache.testSrcOutDirsPath else cache.srcOutDirsPath) {
       srcPaths = src :: srcPaths
 
       // * we only need one out path
@@ -299,7 +294,7 @@ object ScalaGlobal {
     // ----- now, the new global
 
     val global = new ScalaGlobal(settings, dummyReporter)
-    caches.globals(idx) = global
+    cache.globals(idx) = global
 
     // * listen to compCp's change
     if (compCp != null) {
@@ -344,26 +339,29 @@ object ScalaGlobal {
     val cache = new Cache
 
     val sources = ProjectUtils.getSources(project)
-    val scalaSgs = sources.getSourceGroups(SOURCES_TYPE_SCALA)
-    val javaSgs  = sources.getSourceGroups(SOURCES_TYPE_JAVA)
+    val scalaSgs = sources.getSourceGroups(ScalaSourceUtil.SOURCES_TYPE_SCALA)
+    val javaSgs  = sources.getSourceGroups(ScalaSourceUtil.SOURCES_TYPE_JAVA)
 
     Log.info((scalaSgs map (_.getRootFolder)).mkString("project's src group[ScalaType] dir: [", ", ", "]"))
     Log.info((javaSgs  map (_.getRootFolder)).mkString("project's src group[JavaType]  dir: [", ", ", "]"))
 
-    List(scalaSgs, javaSgs) foreach {sgs =>
-      if (sgs.size > 0) {
-        val src = sgs(0).getRootFolder
+    List(scalaSgs, javaSgs) foreach {
+      case Array(srcSg) =>
+        val src = srcSg.getRootFolder
         val out = findOutDir(project, src)
-        cache.srcOutDirs += (src -> out)
-      }
+        cache.srcToOut += (src -> out)
 
-      if (sgs.size > 1) { // the 2nd one is test src
-        val src = sgs(1).getRootFolder
+      case Array(srcSg, testSg, _*) =>
+        val src = srcSg.getRootFolder
         val out = findOutDir(project, src)
-        cache.testSrcOutDirs += (src -> out)
-      }
+        cache.srcToOut += (src -> out)
 
-      // @todo add other srcs
+        val test = testSg.getRootFolder
+        val testOut = findOutDir(project, test)
+        cache.testToOut += (test -> testOut)
+
+      case x =>
+        // @todo add other srcs
     }
     
     cache
@@ -386,26 +384,27 @@ object ScalaGlobal {
         while (itr.hasNext && !break) {
           val url = itr.next
           if (!FileUtil.isArchiveFile(url)) {
-            val uri: URI = try {
+            val uri = try {
               url.toURI
             } catch {case ex: URISyntaxException => Exceptions.printStackTrace(ex); null}
 
             if (uri != null) {
               val file = new File(uri)
-              break = if (file != null) {
-                if (file.isDirectory) {
-                  out = FileUtil.toFileObject(file)
-                  true
-                } else if (file.exists) {
-                  false
-                } else {
-                  // * global requires an exist out path, so we should create
-                  if (file.mkdirs) {
+              break =
+                if (file != null) {
+                  if (file.isDirectory) {
                     out = FileUtil.toFileObject(file)
                     true
-                  } else false
-                }
-              } else false
+                  } else if (file.exists) {
+                    false
+                  } else {
+                    // * global requires an exist out path, so we should create
+                    if (file.mkdirs) {
+                      out = FileUtil.toFileObject(file)
+                      true
+                    } else false
+                  }
+                } else false
             }
           }
         }
@@ -496,7 +495,7 @@ object ScalaGlobal {
   private class CompCpListener(global: ScalaGlobal, compCp: ClassPath) extends FileChangeAdapter {
     val compRoots = compCp.getRoots
 
-    private def isUnderCompileCp(fo: FileObject) = {
+    private def isUnderCompCp(fo: FileObject) = {
       // * when there are series of folder/file created, only top created folder can be listener
       val found = compRoots find {x => FileUtil.isParentOf(fo, x) || x == fo}
       if (found.isDefined) Log.finest("under compCp: fo=" + fo + ", found=" + found)
@@ -505,7 +504,7 @@ object ScalaGlobal {
 
     override def fileFolderCreated(fe: FileEvent) {
       val fo = fe.getFile
-      if (isUnderCompileCp(fo) && global != null) {
+      if (isUnderCompCp(fo) && global != null) {
         Log.finest("folder created: " + fo)
         resetLate(global, compCpChanged)
       }
@@ -513,7 +512,7 @@ object ScalaGlobal {
 
     override def fileDataCreated(fe: FileEvent): Unit = {
       val fo = fe.getFile
-      if (isUnderCompileCp(fo) && global != null) {
+      if (isUnderCompCp(fo) && global != null) {
         Log.finest("data created: " + fo)
         resetLate(global, compCpChanged)
       }
@@ -521,7 +520,7 @@ object ScalaGlobal {
 
     override def fileChanged(fe: FileEvent): Unit = {
       val fo = fe.getFile
-      if (isUnderCompileCp(fo) && global != null) {
+      if (isUnderCompCp(fo) && global != null) {
         Log.finest("file changed: " + fo)
         resetLate(global, compCpChanged)
       }
@@ -529,7 +528,7 @@ object ScalaGlobal {
 
     override def fileRenamed(fe: FileRenameEvent): Unit = {
       val fo = fe.getFile
-      if (isUnderCompileCp(fo) && global != null) {
+      if (isUnderCompCp(fo) && global != null) {
         Log.finest("file renamed: " + fo)
         resetLate(global, compCpChanged)
       }
@@ -537,7 +536,7 @@ object ScalaGlobal {
 
     override def fileDeleted(fe: FileEvent): Unit = {
       val fo = fe.getFile
-      if (isUnderCompileCp(fo) && global != null) {
+      if (isUnderCompCp(fo) && global != null) {
         Log.finest("file deleted: " + fo)
         resetLate(global, compCpChanged)
       }

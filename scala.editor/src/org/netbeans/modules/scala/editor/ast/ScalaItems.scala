@@ -43,8 +43,10 @@ import org.netbeans.api.language.util.ast.AstItem
 import org.netbeans.modules.scala.editor.ScalaGlobal
 
 trait ScalaItems {self: ScalaGlobal =>
-  trait ScalaItem extends AstItem {
+  abstract class ScalaItem extends AstItem {
     type S = Symbol
     type T = Type
+
+    var samePlaceSymbols = Set[Symbol]()
   }
 }

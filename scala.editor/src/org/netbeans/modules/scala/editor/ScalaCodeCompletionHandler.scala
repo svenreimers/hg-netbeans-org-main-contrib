@@ -138,7 +138,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
     val completionResult = new DefaultCompletionResult(proposals, false)
 
     // * Read-lock due to Token hierarchy use
-    doc.readLock
+    //doc.readLock
     try {
       val th = pResult.getSnapshot.getTokenHierarchy
 
@@ -262,7 +262,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
       completer.completeKeywords(proposals)
 
     } finally {
-      doc.readUnlock
+      //doc.readUnlock
     }
 
     completionResult
@@ -1051,10 +1051,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
       case "." => // NOI18N
         // See if we're in Js context
 
-        val ts = ScalaLexUtil.getTokenSequence(doc, offset) match {
-          case Some(x) => x
-          case None => return QueryType.NONE
-        }
+        val ts = ScalaLexUtil.getTokenSequence(doc, offset).getOrElse(return QueryType.NONE)
         ts.move(offset)
         if (!ts.moveNext && !ts.movePrevious) {
           return QueryType.NONE
