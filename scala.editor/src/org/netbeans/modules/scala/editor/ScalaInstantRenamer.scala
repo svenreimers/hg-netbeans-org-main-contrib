@@ -39,8 +39,6 @@
 
 package org.netbeans.modules.scala.editor
 
-import javax.swing.text.Document
-import org.netbeans.api.lexer.TokenHierarchy
 import org.netbeans.modules.csl.api.{InstantRenamer, ElementKind, OffsetRange}
 import org.netbeans.modules.csl.spi.ParserResult
 import org.openide.util.NbBundle
@@ -73,7 +71,10 @@ class ScalaInstantRenamer extends InstantRenamer {
       return false
     }
 
-    val closest = rootScope.findItemAt(th, caretOffset).getOrElse(return false)
+    val closest = rootScope.findItemsAt(th, caretOffset) match {
+      case Nil => return false
+      case xs => xs.reverse.head
+    }
 
     val dfn = rootScope.findDfnOf(closest).getOrElse(return false)
 
@@ -88,9 +89,9 @@ class ScalaInstantRenamer extends InstantRenamer {
     }
   }
 
-  override def getRenameRegions(info: ParserResult, caretOffset: int): _root_.java.util.Set[OffsetRange] = {
+  override def getRenameRegions(info: ParserResult, caretOffset: int): java.util.Set[OffsetRange] = {
     if (info == null) {
-      return _root_.java.util.Collections.emptySet[OffsetRange]
+      return java.util.Collections.emptySet[OffsetRange]
     }
     
     val pResult = info.asInstanceOf[ScalaParserResult]
@@ -104,22 +105,22 @@ class ScalaInstantRenamer extends InstantRenamer {
 
     val astOffset = ScalaLexUtil.getAstOffset(pResult, caretOffset)
     if (astOffset == -1) {
-      return _root_.java.util.Collections.emptySet[OffsetRange]
+      return java.util.Collections.emptySet[OffsetRange]
     }
 
     val rootScope = pResult.rootScope.getOrElse(return java.util.Collections.emptySet[OffsetRange])
 
-    val occurrences = rootScope.findItemAt(th, caretOffset) match {
-      case Some(closest) => rootScope.findOccurrences(closest)
-      case None => return java.util.Collections.emptySet[OffsetRange]
+    val occurrences = rootScope.findItemsAt(th, caretOffset) match {
+      case Nil => return java.util.Collections.emptySet[OffsetRange]
+      case xs => rootScope.findOccurrences(xs.reverse.head)
     }
 
     val regions = new java.util.HashSet[OffsetRange]
     for (item <- occurrences;
-         idToken <- item.idToken)
-           {
-        regions.add(ScalaLexUtil.getRangeOfToken(th, idToken))
-      }
+         idToken <- item.idToken
+    ) {
+      regions.add(ScalaLexUtil.getRangeOfToken(th, idToken))
+    }
 
     if (!regions.isEmpty) {
       val translated = new java.util.HashSet[OffsetRange](2 * regions.size)

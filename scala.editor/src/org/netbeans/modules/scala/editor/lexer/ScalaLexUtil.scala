@@ -44,13 +44,9 @@ import java.io.IOException
 import javax.swing.text.{BadLocationException, Document}
 
 import org.netbeans.modules.csl.api.OffsetRange
-import org.netbeans.api.lexer.{Language, Token, TokenHierarchy, TokenId, TokenSequence}
-import org.netbeans.editor.{BaseDocument, Utilities}
-import org.netbeans.modules.parsing.spi.Parser
-import org.openide.cookies.EditorCookie
-import org.openide.filesystems.{FileObject, FileUtil}
+import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenId, TokenSequence}
+import org.netbeans.editor.{BaseDocument}
 import org.openide.loaders.{DataObject, DataObjectNotFoundException}
-import org.openide.util.Exceptions
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -249,8 +245,8 @@ object ScalaLexUtil extends LexUtil {
       token.id match {
         case ScalaTokenId.Import =>
           if (!lbraceExpected || lbraceExpected && lbraceMet) {
-            // * since we are looking backward, should reverse the final result
-            return paths.reverse.toList
+            // * since we are looking backward, the result is reversed
+            return paths.toList
           }
         case ScalaTokenId.Dot =>
           paths += token

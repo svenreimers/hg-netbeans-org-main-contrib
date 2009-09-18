@@ -41,20 +41,22 @@ package org.netbeans.modules.scala.editor.element
 
 import java.io.{File, IOException}
 import javax.lang.model.element.Element
+import javax.swing.Icon
 import javax.swing.text.BadLocationException
 import org.netbeans.api.lexer.TokenHierarchy
 import org.netbeans.editor.BaseDocument
 import org.netbeans.modules.csl.api.{ElementHandle, ElementKind, Modifier, OffsetRange, HtmlFormatter}
+import org.netbeans.modules.csl.core.UiUtils
 import org.netbeans.modules.csl.spi.{GsfUtilities, ParserResult}
-import org.openide.filesystems.{FileObject, FileUtil}
+import org.openide.filesystems.{FileObject}
 import org.openide.util.Exceptions
 
-import scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
+import scala.tools.nsc.io.{PlainFile, VirtualFile}
 import scala.tools.nsc.util.BatchSourceFile
 import scala.tools.nsc.symtab.{Flags}
 
 import org.netbeans.api.language.util.ast.{AstElementHandle}
-import org.netbeans.modules.scala.editor.{JavaSourceUtil, ScalaGlobal, ScalaParserResult, ScalaSourceUtil, ScalaMimeResolver}
+import org.netbeans.modules.scala.editor.{JavaSourceUtil, ScalaGlobal, ScalaSourceUtil, ScalaMimeResolver}
 
 
 /**
@@ -73,20 +75,22 @@ trait ScalaElements {self: ScalaGlobal =>
     }
   }
 
-  class ScalaElement(val symbol: Symbol, val pResult: ParserResult) extends AstElementHandle {
+  class ScalaElement(val asymbol: Symbol, val parserResult: ParserResult
+  ) extends ScalaItem with AstElementHandle {
     import ScalaElement._
-  
-    private var kind: ElementKind = _
-    private var modifiers: Option[_root_.java.util.Set[Modifier]] = None
+
+    symbol = asymbol
+
+    private var modifiers: Option[java.util.Set[Modifier]] = None
     private var inherited: Boolean = _
-    var smart: Boolean = _
-    private var fo: Option[FileObject] = None
+    private var smart: Boolean = _
+    private var implicite: Boolean = _
+
     private var path: String = _
     private var doc: Option[BaseDocument] = None
     private var offset: Int = _
     private var javaElement: Option[Element] = None
     private var loaded: Boolean = _
-    var isImplicit: Boolean = _
 
 
     def this(kind: ElementKind) = {
@@ -100,7 +104,7 @@ trait ScalaElements {self: ScalaGlobal =>
 
     override def getFileObject: FileObject = {
       fo.getOrElse{
-        fo = ScalaSourceUtil.getFileObject(pResult, symbol) // try to get
+        fo = ScalaSourceUtil.getFileObject(parserResult, symbol) // try to get
         fo match {
           case Some(x) => path = x.getPath; x
           case None => null
@@ -122,7 +126,7 @@ trait ScalaElements {self: ScalaGlobal =>
       ScalaMimeResolver.MIME_TYPE
     }
 
-    override def getModifiers: _root_.java.util.Set[Modifier] = {
+    override def getModifiers: java.util.Set[Modifier] = {
       if (!modifiers.isDefined) {
         modifiers = Some(ScalaUtil.getModifiers(symbol))
       }
@@ -144,7 +148,7 @@ trait ScalaElements {self: ScalaGlobal =>
         if (isJava) {
           javaElement foreach {x =>
             try {
-              val docComment: String = JavaSourceUtil.getDocComment(JavaSourceUtil.getCompilationInfoForScalaFile(pResult.getSnapshot.getSource.getFileObject), x)
+              val docComment: String = JavaSourceUtil.getDocComment(JavaSourceUtil.getCompilationInfoForScalaFile(parserResult.getSnapshot.getSource.getFileObject), x)
               if (docComment.length > 0) {
                 return new StringBuilder(docComment.length + 5).append("/**").append(docComment).append("*/").toString
               }
@@ -164,7 +168,7 @@ trait ScalaElements {self: ScalaGlobal =>
       if (isJava) {
         javaElement foreach {x =>
           try {
-            return JavaSourceUtil.getOffset(JavaSourceUtil.getCompilationInfoForScalaFile(pResult.getSnapshot.getSource.getFileObject), x)
+            return JavaSourceUtil.getOffset(JavaSourceUtil.getCompilationInfoForScalaFile(parserResult.getSnapshot.getSource.getFileObject), x)
           } catch {case ex: IOException => Exceptions.printStackTrace(ex)}
         }
       } else {
@@ -209,7 +213,7 @@ trait ScalaElements {self: ScalaGlobal =>
       if (isLoaded) return
 
       if (isJava) {
-        javaElement = JavaSourceUtil.getJavaElement(JavaSourceUtil.getCompilationInfoForScalaFile(pResult.getSnapshot.getSource.getFileObject), symbol)
+        javaElement = JavaSourceUtil.getJavaElement(JavaSourceUtil.getCompilationInfoForScalaFile(parserResult.getSnapshot.getSource.getFileObject), symbol)
       } else {
         getDoc foreach {srcDoc =>
           assert(path != null)
@@ -267,6 +271,13 @@ trait ScalaElements {self: ScalaGlobal =>
     def isSmart_=(b: Boolean) {
       this.smart = b
     }
+
+    def isImplicit = implicite
+    def isImplicit_=(b: Boolean) {
+      this.implicite = b
+    }
+
+    override def getIcon: Icon = UiUtils.getElementIcon(getKind, getModifiers)
 
     override def toString = {
       symbol.toString

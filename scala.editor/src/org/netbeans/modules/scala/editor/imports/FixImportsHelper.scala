@@ -37,18 +37,14 @@
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.scala.editor.actions
+package org.netbeans.modules.scala.editor.imports
 
 import java.util.EnumSet;
-import java.util.MissingResourceException;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.regex.Pattern
-import org.netbeans.api.java.source.{ClasspathInfo, ClassIndex};
+import org.netbeans.api.java.source.{ClassIndex};
 import org.netbeans.api.java.source.ClassIndex.NameKind;
-import javax.lang.model.element.TypeElement;
-import javax.swing.Icon;
-import javax.swing.text.BadLocationException;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenId, TokenSequence}
 import org.netbeans.editor.Utilities;
@@ -110,7 +106,7 @@ object FixImportsHelper{
     ts.move(0)
     var importStatement = findNextImport(ts, ts.token)
     // +1 means the dot
-    val toRet = new ArrayBuffer[Tuple3[Int, Int, String]]()
+    val toRet = new ArrayBuffer[(Int, Int, String)]
     while (importStatement != null && importStatement._1 != -1 && importStatement._3.trim.length > 0) {
       toRet + importStatement
       importStatement = findNextImport(ts, ts.token)
@@ -135,7 +131,8 @@ object FixImportsHelper{
             starter = ts.offset
           }
         case ScalaTokenId.Package =>
-        case ScalaTokenId.Case | ScalaTokenId.Class | ScalaTokenId.Trait | ScalaTokenId.Object =>
+        case ScalaTokenId.Case | ScalaTokenId.Class | ScalaTokenId.Trait | ScalaTokenId.Object | ScalaTokenId.Sealed |
+          ScalaTokenId.At | ScalaTokenId.Abstract | ScalaTokenId.Final | ScalaTokenId.Private | ScalaTokenId.Protected =>
           if (collecting) {
             //too far
             ts.movePrevious
@@ -143,6 +140,7 @@ object FixImportsHelper{
           } else {
             return null
           }
+        case ScalaTokenId.Semicolon => //ignore semicolons
         case id if ScalaLexUtil.isWsComment(id) =>
         case _ =>
           if (collecting) {
@@ -280,7 +278,8 @@ object FixImportsHelper{
     var break = false
     while (ts.moveNext && !break) {
       ts.token.id match {
-        case ScalaTokenId.Import | ScalaTokenId.Case | ScalaTokenId.Class | ScalaTokenId.Object | ScalaTokenId.Trait =>
+        case ScalaTokenId.Case | ScalaTokenId.Class | ScalaTokenId.Object | ScalaTokenId.Trait | ScalaTokenId.Import | ScalaTokenId.Sealed |
+          ScalaTokenId.At | ScalaTokenId.Abstract | ScalaTokenId.Final | ScalaTokenId.Private | ScalaTokenId.Protected =>
           val lineBegin = Utilities.getRowStart(doc, ts.offset)
           candidateOffset = lineBegin
           break = true

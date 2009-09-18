@@ -37,24 +37,19 @@
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.scala.editor.actions
+package org.netbeans.modules.scala.editor.imports
 
-import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import javax.swing.text.JTextComponent;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import org.netbeans.modules.csl.api.OffsetRange
 import org.netbeans.modules.editor.NbEditorUtilities;
-import javax.swing.text.Document;
-import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataObject;
 import org.netbeans.editor.BaseAction;
 import org.openide.{DialogDescriptor, DialogDisplayer, NotifyDescriptor}
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.netbeans.editor.BaseDocument
-import org.netbeans.modules.csl.api.Error;
 import org.netbeans.modules.parsing.api.ParserManager;
 import org.netbeans.modules.parsing.api.ResultIterator;
 import org.netbeans.modules.parsing.api.Source;
@@ -105,7 +100,7 @@ class FixImportsAction extends BaseAction(NbBundle.getMessage(classOf[FixImports
     try {
       val source = Source.create(fo)
       // FIXME can we move this out of task (?)
-      ParserManager.parse(_root_.java.util.Collections.singleton(source), new UserTask {
+      ParserManager.parse(java.util.Collections.singleton(source), new UserTask {
           @throws(classOf[Exception])
           override def run(resultIterator: ResultIterator)  {
             val pResult = resultIterator.getParserResult.asInstanceOf[ScalaParserResult]

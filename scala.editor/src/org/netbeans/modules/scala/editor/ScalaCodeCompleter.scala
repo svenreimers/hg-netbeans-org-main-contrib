@@ -38,29 +38,26 @@
  */
 package org.netbeans.modules.scala.editor
 
-import javax.lang.model.element.{ElementKind, ExecutableElement}
-import javax.swing.text.{BadLocationException, Document, JTextComponent}
+import javax.lang.model.element.{ExecutableElement}
+import javax.swing.text.{BadLocationException}
 import org.netbeans.api.java.source.ClassIndex
 import org.netbeans.api.java.source.ClassIndex.NameKind
 import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenId, TokenSequence}
 import org.netbeans.editor.{BaseDocument, Utilities}
 import org.netbeans.modules.csl.api.CodeCompletionHandler.QueryType
-import org.netbeans.modules.csl.api.{CodeCompletionContext, CodeCompletionHandler, CodeCompletionResult, CompletionProposal,
-                                     ElementHandle, HtmlFormatter, OffsetRange, ParameterInfo}
+import org.netbeans.modules.csl.api.{CodeCompletionHandler, CompletionProposal, OffsetRange}
 import org.netbeans.modules.csl.spi.{DefaultCompletionResult, ParserResult}
 import org.netbeans.modules.parsing.spi.indexing.support.QuerySupport
 import org.openide.filesystems.FileObject
-import org.openide.util.{Exceptions, NbBundle}
+import org.openide.util.{Exceptions}
 
-import org.netbeans.api.language.util.ast.{AstItem, AstElementHandle}
-import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRootScope}
-import org.netbeans.modules.scala.editor.element.{ScalaElements}
+import org.netbeans.api.language.util.ast.{AstItem}
+import org.netbeans.modules.scala.editor.ast.{ScalaRootScope}
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 import org.netbeans.modules.scala.editor.ScalaParser.Sanitize
 import org.netbeans.modules.scala.editor.rats.ParserScala
 
 import scala.concurrent.SyncVar
-import scala.tools.nsc.Global
 import scala.tools.nsc.symtab.Flags
 import scala.tools.nsc.util.OffsetPosition
 
@@ -453,53 +450,38 @@ class ScalaCodeCompleter(val global: ScalaGlobal) {
     false
   }
 
-  def completeImport(proposals: java.util.List[CompletionProposal]): Boolean = {
-    val fqnPrefix = prefix match {
-      case null => return false
-      case x => x
-    }
-
-    val cpInfo = ScalaSourceUtil.getClasspathInfo(fileObject).getOrElse(return false)
-
-    val lastDot = fqnPrefix.lastIndexOf('.')
-    val (fulledPath, lastPart) =  if (lastDot == -1) {
-      (fqnPrefix, "")
-    } else if (lastDot == fqnPrefix.length - 1) {
-      (fqnPrefix.substring(0, lastDot), "")
-    } else {
-      (fqnPrefix.substring(0, lastDot), fqnPrefix.substring(lastDot + 1, fqnPrefix.length))
-    }
-
-    resolver.resolveQualifiedName("", fulledPath) match {
-      case None => false
-      case Some(x) =>
-        prefix = lastPart
-        completeSymbolMembers(x, proposals)
-    }
-
-
-    //      val typeElems = cpInfo.getClassIndex.getDeclaredTypes(fqnPrefix, NameKind.SIMPLE_NAME,
-    //                                                            java.util.EnumSet.allOf(classOf[ClassIndex.SearchScope]))
-    //      val itr = typeElems.iterator
-    //      while (itr.hasNext) {
-    //        val elem = itr.next
-    //        val jElement = JavaElement(elem)
-    //        val proposal = PlainProposal(jElement, this)
-    //        proposals.add(proposal)
-    //      }
-
-    /*_
-     for (GsfElement gsfElement : request.index.getPackagesAndContent(fqnPrefix, request.kind)) {
-     IndexedElement element = (IndexedElement) gsfElement.getElement();
-     if (element.getKind() == ElementKind.PACKAGE) {
-     proposals.add(new PackageItem(new GsfElement(element, request.fileObject, request.info), request));
-     } else if (element instanceof IndexedTypeElement) {
-     proposals.add(new TypeItem(request, element));
-     }
-     }
-     */
-    //true
+  def completeImport(qualItem: AstItem, selector: String, proposals: java.util.List[CompletionProposal]): Boolean = {
+    prefix = selector
+    completeSymbolMembers(qualItem, proposals)
   }
+
+  /*
+   @Deprecated
+   def completeImport(proposals: java.util.List[CompletionProposal]): Boolean = {
+   val fqnPrefix = prefix match {
+   case null => return false
+   case x => x
+   }
+
+   val cpInfo = ScalaSourceUtil.getClasspathInfo(fileObject).getOrElse(return false)
+
+   val lastDot = fqnPrefix.lastIndexOf('.')
+   val (fulledPath, lastPart) =  if (lastDot == -1) {
+   (fqnPrefix, "")
+   } else if (lastDot == fqnPrefix.length - 1) {
+   (fqnPrefix.substring(0, lastDot), "")
+   } else {
+   (fqnPrefix.substring(0, lastDot), fqnPrefix.substring(lastDot + 1, fqnPrefix.length))
+   }
+
+   resolver.resolveQualifiedName("", fulledPath) match {
+   case None => false
+   case Some(x) =>
+   prefix = lastPart
+   completeSymbolMembers(x, proposals)
+   }
+   }
+   */
 
   /** Compute the current method call at the given offset. Returns false if we're not in a method call.
    * The argument index is returned in parameterIndexHolder[0] and the method being
@@ -526,7 +508,7 @@ class ScalaCodeCompleter(val global: ScalaGlobal) {
       val doc = info.getSnapshot.getSource.getDocument(true).asInstanceOf[BaseDocument]
 
       val th = info.getSnapshot.getTokenHierarchy
-      val newLexOffset = ScalaLexUtil.findSpaceBegin(doc, lexOffset);
+      val newLexOffset = ScalaLexUtil.findSpaceBegin(doc, lexOffset)
       var astOffset1 = if (newLexOffset < lexOffset) {
         astOffset - (lexOffset - newLexOffset)
       } else astOffset
@@ -547,14 +529,19 @@ class ScalaCodeCompleter(val global: ScalaGlobal) {
         return false
       }
 
-      var closestOpt = root.findItemAt(th, astOffset1)
+      var closestOpt = root.findItemsAt(th, astOffset1) match {
+        case Nil => None
+        case xs => Some(xs.reverse.head)
+      }
       var closestOffset = astOffset1 - 1
       while (closestOpt == None && closestOffset > 0) {
         closestOffset -= 1
-        closestOpt = root.findItemAt(th, closestOffset)
+        closestOpt = root.findItemsAt(th, closestOffset) match {
+          case Nil => None
+          case xs => Some(xs.reverse.head)
+        }
       }
 
-      //Symbol call = findCallSymbol(visitor, ts, th, request, true);
       val call = closestOpt.getOrElse(null)
 
       val currentLineStart = Utilities.getRowStart(doc, lexOffset)
@@ -671,18 +658,19 @@ class ScalaCodeCompleter(val global: ScalaGlobal) {
     }
 
     resultTpe match {
-      case Some(x) =>
+      case Some(rtpe) =>
         try {
           val offset = item.idOffset(th)
           val alternatePos = rangePos(pResult.srcFile, offset, offset, offset)
           var pos = rangePos(pResult.srcFile, lexOffset, lexOffset, lexOffset)
           val resp = new Response[List[Member]]
-          askTypeCompletion(pos, alternatePos, resultTpe.get, resp)
+          askTypeCompletion(pos, alternatePos, rtpe, resp)
           resp.get match {
             case Left(members) =>
               for (TypeMember(sym, tpe, accessible, inherited, viaView) <- members
                    if accessible && startsWith(sym.nameString, prefix) && !sym.isConstructor
               ) {
+
                 createSymbolProposal(sym) foreach {proposal =>
                   proposal.getElement.asInstanceOf[ScalaElement].isInherited = inherited
                   proposal.getElement.asInstanceOf[ScalaElement].isImplicit = (viaView != NoSymbol)

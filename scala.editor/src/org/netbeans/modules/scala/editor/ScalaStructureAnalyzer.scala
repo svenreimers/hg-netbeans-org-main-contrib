@@ -39,19 +39,18 @@
 package org.netbeans.modules.scala.editor
 
 import javax.swing.ImageIcon
-import javax.swing.text.{BadLocationException, Document}
-import org.netbeans.api.lexer.{Token, TokenId, TokenHierarchy, TokenSequence}
+import javax.swing.text.{BadLocationException}
 import org.netbeans.api.language.util.ast.{AstDfn, AstScope}
 import org.netbeans.editor.{BaseDocument, Utilities}
 import org.netbeans.modules.csl.api.{ElementHandle, ElementKind, Modifier, OffsetRange,
                                      HtmlFormatter, StructureItem, StructureScanner}
 import org.netbeans.modules.csl.api.StructureScanner._
 import org.netbeans.modules.csl.spi.ParserResult
-import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRootScope}
+import org.netbeans.modules.scala.editor.ast.{ScalaDfns}
 import org.netbeans.modules.scala.editor.lexer.{ScalaTokenId, ScalaLexUtil}
 import org.openide.util.Exceptions
 
-import _root_.scala.collection.mutable.{ArrayBuffer, Stack}
+import scala.collection.mutable.{Stack}
 
 /**
  *
@@ -116,6 +115,7 @@ class ScalaStructureAnalyzer extends StructureScanner {
     var importStart = 0
     var importEnd = 0
     var startImportSet = false
+    var endImportSet = false
 
     val comments = new Stack[Array[Int]]
     val blocks = new Stack[Int]
@@ -129,7 +129,9 @@ class ScalaStructureAnalyzer extends StructureScanner {
             importStart = offset
             startImportSet = true
           }
-          importEnd = offset
+          if (!endImportSet) {
+            importEnd = offset
+          }
         case ScalaTokenId.BlockCommentStart | ScalaTokenId.DocCommentStart =>
           val commentStart = ts.offset
           val commentLines = 0
@@ -158,6 +160,7 @@ class ScalaStructureAnalyzer extends StructureScanner {
               codefolds.add(blockRange)
             }
           }
+        case ScalaTokenId.Object | ScalaTokenId.Class | ScalaTokenId.Trait => endImportSet = true
         case _ =>
       }
     }

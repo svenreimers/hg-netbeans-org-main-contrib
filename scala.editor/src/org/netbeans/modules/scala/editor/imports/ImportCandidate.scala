@@ -37,67 +37,9 @@
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.scala.editor.actions
+package org.netbeans.modules.scala.editor.imports
 
-import java.awt.Dialog;
-import java.awt.event.ActionEvent;
-import javax.swing.text.JTextComponent;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-import org.netbeans.modules.editor.NbEditorUtilities;
-import javax.swing.text.Document;
-import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataObject;
-import org.netbeans.editor.BaseAction;
-import org.openide.{DialogDescriptor, DialogDisplayer, NotifyDescriptor}
-import org.openide.util.NbBundle;
-import org.openide.util.RequestProcessor;
-import org.netbeans.modules.csl.api.Error;
-import org.netbeans.modules.parsing.api.ParserManager;
-import org.netbeans.modules.parsing.api.ResultIterator;
-import org.netbeans.modules.parsing.api.Source;
-import org.netbeans.modules.parsing.api.UserTask;
-import org.netbeans.modules.parsing.spi.ParseException;
-import org.netbeans.modules.scala.editor.{ScalaGlobal, ScalaParserResult}
-import org.openide.util.Exceptions;
+import javax.swing.Icon
+import org.netbeans.modules.csl.api.OffsetRange
 
-/**
- *
- * @author Caoyuan Deng
- */
-class ResetGlobalAction  extends BaseAction(NbBundle.getMessage(classOf[ResetGlobalAction],
-                                                                "reset-scala-global"), 0) with Runnable {
-
-  var doc: Option[Document] = None
-  private var helper = new FixImportsHelper
-
-  override def isEnabled: Boolean = {
-    true
-  }
-
-  def actionPerformed(evt: ActionEvent, comp: JTextComponent) {
-    assert(comp != null)
-    doc = comp.getDocument match {
-      case null => None
-      case x => Some(x)
-    }
-
-    if (doc.isDefined) {
-      RequestProcessor.getDefault.post(this)
-    }
-  }
-
-  def run {
-    val dob = NbEditorUtilities.getDataObject(doc.get)
-    if (dob == null) {
-      return
-    }
-
-    val fo = dob.getPrimaryFile
-    val global = ScalaGlobal.getGlobal(fo)
-    if (global != null) {
-      ScalaGlobal.resetLate(global, ScalaGlobal.userRequest)
-    }
-  }
-}
-
+case class ImportCandidate(missingName: String, fqn: String, range: OffsetRange, icon: Icon, importantsLevel: Int)

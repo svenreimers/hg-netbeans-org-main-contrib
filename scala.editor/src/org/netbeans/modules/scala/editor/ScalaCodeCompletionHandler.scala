@@ -39,18 +39,16 @@
 
 package org.netbeans.modules.scala.editor
 
-import javax.swing.text.{BadLocationException, Document, JTextComponent}
+import javax.swing.text.{BadLocationException, JTextComponent}
 import org.netbeans.editor.{BaseDocument, Utilities}
 import org.netbeans.modules.csl.api.CodeCompletionHandler.QueryType
 import org.netbeans.modules.csl.api.{CodeCompletionContext, CodeCompletionHandler, CodeCompletionResult, CompletionProposal,
-                                     ElementHandle, HtmlFormatter, OffsetRange, ParameterInfo}
+                                     ElementHandle, OffsetRange, ParameterInfo}
 import org.netbeans.modules.csl.spi.{DefaultCompletionResult, ParserResult}
 import org.netbeans.modules.parsing.spi.indexing.support.QuerySupport
 import org.openide.util.{Exceptions, NbBundle}
 
 import org.netbeans.api.language.util.ast.AstElementHandle
-import org.netbeans.modules.scala.editor.ast.{ScalaDfns, ScalaRootScope}
-import org.netbeans.modules.scala.editor.element.{ScalaElements}
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 
 /**
@@ -138,7 +136,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
     val completionResult = new DefaultCompletionResult(proposals, false)
 
     // * Read-lock due to Token hierarchy use
-    doc.readLock
+    //doc.readLock
     try {
       val th = pResult.getSnapshot.getTokenHierarchy
 
@@ -187,11 +185,11 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
       val lineEnd = Utilities.getRowEnd(doc, ts.offset)
       val isAtNewLine = lexOffset > lineEnd
 
-      if (closestToken.id == ScalaTokenId.Import) {
-        completer.prefix = ""
-        completer.completeImport(proposals)
-        return completionResult
-      }
+      /* if (closestToken.id == ScalaTokenId.Import) {
+       completer.prefix = ""
+       completer.completeImport(proposals)
+       return completionResult
+       } */
 
       val rootOpt = pResult.rootScope
       if (rootOpt.isDefined) {
@@ -233,19 +231,23 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
             }
           case _ =>
         }
-      }
 
-      ScalaLexUtil.findImportPrefix(th, lexOffset) match {
-        case Nil =>
-        case importPrefixs =>
-          val sb = new StringBuilder
-          for (prefix <- importPrefixs) {
-            sb.append(prefix.text.toString.trim)
-          }
+        // ----- try to complete import
 
-          completer.prefix = sb.toString
-          completer.completeImport(proposals)
-          return completionResult
+        (ScalaLexUtil.findImportPrefix(th, lexOffset) match {
+            case Nil => None
+            case List(selector, dot, qual, _*) if dot.id == ScalaTokenId.Dot => Some((qual, selector.text.toString))
+            case List(dot, qual, _*) if dot.id == ScalaTokenId.Dot => Some(qual, "")
+            case _ => None
+          }) match {
+          case None =>
+          case Some((qualToken, selector)) => root.findItemsAt(qualToken) match {
+              case Nil =>
+              case head :: xs =>
+                completer.completeImport(head, selector, proposals)
+                return completionResult
+            }
+        }
       }
 
       if (rootOpt == None) {
@@ -262,7 +264,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
       completer.completeKeywords(proposals)
 
     } finally {
-      doc.readUnlock
+      //doc.readUnlock
     }
 
     completionResult
@@ -1051,10 +1053,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
       case "." => // NOI18N
         // See if we're in Js context
 
-        val ts = ScalaLexUtil.getTokenSequence(doc, offset) match {
-          case Some(x) => x
-          case None => return QueryType.NONE
-        }
+        val ts = ScalaLexUtil.getTokenSequence(doc, offset).getOrElse(return QueryType.NONE)
         ts.move(offset)
         if (!ts.moveNext && !ts.movePrevious) {
           return QueryType.NONE
@@ -1093,9 +1092,7 @@ class ScalaCodeCompletionHandler extends CodeCompletionHandler with ScalaHtmlFor
     QueryType.NONE
   }
 
-  override def document(info: ParserResult, element: ElementHandle): String = {
-    val pResult = info.asInstanceOf[ScalaParserResult]
-    
+  override def document(pr: ParserResult, element: ElementHandle): String = {
     val sigFm = new SignatureHtmlFormatter
 
     val comment = element match {

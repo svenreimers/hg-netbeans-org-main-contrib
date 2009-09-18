@@ -38,9 +38,9 @@
  */
 package org.netbeans.modules.scala.editor.ast
 
-import org.netbeans.api.lexer.{Token, TokenId, TokenHierarchy}
+import org.netbeans.api.lexer.{Token, TokenId}
 
-import org.netbeans.api.language.util.ast.{AstDfn, AstRootScope}
+import org.netbeans.api.language.util.ast.{AstRootScope}
 import scala.tools.nsc.CompilationUnits
 
 object ScalaRootScope {
@@ -50,7 +50,7 @@ object ScalaRootScope {
   val EMPTY = new ScalaRootScope(None, Array())
 }
 
-class ScalaRootScope(unit: Option[CompilationUnits#CompilationUnit], boundsTokens: Array[Token[TokenId]]
+class ScalaRootScope(val unit: Option[CompilationUnits#CompilationUnit], boundsTokens: Array[Token[TokenId]]
 ) extends AstRootScope(boundsTokens) {  
   //  def findDfnOfSym(symbol:AstSymbol[_]): Option[AstDfn] = {
   //    _idTokenToItem.values.find{item =>

@@ -40,9 +40,7 @@
 package org.netbeans.modules.scala.editor
 
 import javax.swing.text.{AbstractDocument, BadLocationException}
-import org.netbeans.api.lexer.{Token, TokenId, TokenSequence}
 import org.netbeans.editor.BaseDocument
-import org.netbeans.modules.csl.api.OffsetRange
 import org.netbeans.modules.scala.editor.lexer.{ScalaTokenId, ScalaLexUtil}
 import org.netbeans.spi.editor.bracesmatching.{BracesMatcher, MatcherContext}
 
@@ -58,7 +56,7 @@ class ScalaBracesMatcher(context: MatcherContext) extends BracesMatcher {
     var offset = context.getSearchOffset
     val doc = context.getDocument.asInstanceOf[BaseDocument]
 
-    doc.readLock
+    //doc.readLock
     try {
       ScalaLexUtil.getTokenSequence(doc, offset) foreach {ts =>
         ts.move(offset)
@@ -123,7 +121,7 @@ class ScalaBracesMatcher(context: MatcherContext) extends BracesMatcher {
 
       null
     } finally {
-      doc.readUnlock
+      //doc.readUnlock
     }
   }
 
@@ -134,7 +132,7 @@ class ScalaBracesMatcher(context: MatcherContext) extends BracesMatcher {
     var offset = context.getSearchOffset
     val doc = context.getDocument.asInstanceOf[BaseDocument]
     
-    doc.readLock
+    //doc.readLock
     try {
       ScalaLexUtil.getTokenSequence(doc, offset) foreach {ts =>
         ts.move(offset)
@@ -209,7 +207,7 @@ class ScalaBracesMatcher(context: MatcherContext) extends BracesMatcher {
 
       null
     } finally {
-      doc.readUnlock
+      //doc.readUnlock
     }
   }
 

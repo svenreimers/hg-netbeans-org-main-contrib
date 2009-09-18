@@ -40,19 +40,15 @@
  */
 package org.netbeans.modules.scala.editor.lexer
 
-import _root_.java.util.{Collection,
-                         Collections,
-                         HashMap,
-                         HashSet,
-                         Map,
-                         Arrays}
+import java.util.{Collection,
+                  HashMap,
+                  HashSet,
+                  Map}
 import org.netbeans.api.lexer.{InputAttributes,
-                               Language,
                                LanguagePath,
                                Token,
                                TokenId}
-import org.netbeans.spi.lexer.{LanguageEmbedding,
-                               LanguageHierarchy,
+import org.netbeans.spi.lexer.{LanguageHierarchy,
                                Lexer,
                                LexerRestartInfo}
 import org.netbeans.modules.scala.editor.ScalaMimeResolver

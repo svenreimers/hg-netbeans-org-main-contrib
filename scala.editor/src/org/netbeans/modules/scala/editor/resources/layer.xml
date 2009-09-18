@@ -81,6 +81,13 @@
                     </folder>
                 </folder>
 
+                <file name="org-netbeans-modules-scala-editor-overridden-IsOverriddenAnnotationHandlerFactory.instance"/>
+                <folder name="GlyphGutterActions">
+                    <file name="org-netbeans-modules-scala-editor-overridden-IsOverriddenAnnotationAction.instance">
+                        <attr name="position" intvalue="100"/>
+                    </file>
+                </folder>
+
                 <!--file name="org-netbeans-modules-csl-editor-semantic-HighlightsLayerFactoryImpl.instance"/-->
 
                 <folder name="CodeTemplates">
@@ -104,25 +111,20 @@
                 </folder>
                 
                 <!-- tell the parsing API that scala files should be handled by the java indexer -->
-                <!--file name="JavaIndexer.shadow">
+                <file name="JavaIndexer.shadow">
                     <attr name="originalFile" stringvalue="Editors/text/x-java/JavaIndexer.instance"/>
-                </file-->
+                </file>
 
                 <folder name="Popup">
-                    <file name="org-netbeans-modules-scala-editor-actions-ResetGlobalAction.shadow">
-                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-actions-ResetGlobalAction.instance"/>
+                    <file name="org-netbeans-modules-scala-editor-ui-actions-ResetGlobalAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-ui-actions-ResetGlobalAction.instance"/>
                         <attr name="position" intvalue="800"/>
                     </file>
-                    <file name="org-netbeans-modules-scala-editor-actions-FixImportsAction.shadow">
-                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-actions-FixImportsAction.instance"/>
+                    <file name="org-netbeans-modules-scala-editor-imports-FixImportsAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-imports-FixImportsAction.instance"/>
                         <attr name="position" intvalue="801"/>
                     </file>
-                    <!--
-                    <file name="org-netbeans-modules-scala-editor-RunScriptAction.instance">
-                        <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.RunScriptAction"/>
-                        <attr name="position" intvalue="801"/>
-                    </file>
-                    -->
+                    
                 </folder>
                 <folder name="Toolbars">
                     <folder name="Default">
@@ -145,11 +147,11 @@
 
     <folder name="Actions">
         <folder name="Scala">
-            <file name="org-netbeans-modules-scala-editor-actions-FixImportsAction.instance">
-                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.actions.FixImportsAction"/>
+            <file name="org-netbeans-modules-scala-editor-imports-FixImportsAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.imports.FixImportsAction"/>
             </file>
-            <file name="org-netbeans-modules-scala-editor-actions-ResetGlobalAction.instance">
-                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.actions.ResetGlobalAction"/>
+            <file name="org-netbeans-modules-scala-editor-ui-actions-ResetGlobalAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.ui.actions.ResetGlobalAction"/>
             </file>
         </folder>
     </folder>
@@ -200,7 +202,7 @@
                     <file name="org-netbeans-modules-scala-hints-ClassNotFoundRule.instance"/>
                 </folder>
                 <folder name="hints">
-                    <file name="org-netbeans-modules-scala-hints-ClassNotFoundRule.instance"/>
+                    <file name="org-netbeans-modules-scala-hints-RemoveImportRule.instance"/>
                 </folder>
                 <!-- folder name="hints">
                     <folder name="general">
@@ -285,6 +287,7 @@
                         <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-ToolsAction.instance"/>
                         <attr name="position" intvalue="1500"/>
                     </file>
+
                 </folder>
             </folder>
         </folder>

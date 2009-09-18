@@ -41,7 +41,6 @@ package org.netbeans.modules.scala.editor
 
 import javax.swing.ImageIcon
 import javax.swing.text.BadLocationException
-import org.netbeans.editor.Utilities
 import org.netbeans.modules.csl.api.{CompletionProposal, ElementHandle, ElementKind, HtmlFormatter, Modifier,OffsetRange}
 import org.netbeans.modules.csl.spi.ParserResult
 import org.openide.filesystems.FileObject
@@ -116,6 +115,8 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
       element match {
         case x: ScalaElement =>
           val sym = x.symbol
+
+          ScalaUtil.completeIfWithLazyType(sym)
 
           fm.`type`(true)
           val retType = try {
@@ -198,11 +199,20 @@ trait ScalaCompletionProposals {self: ScalaGlobal =>
                 fm.parameters(true)
                 fm.appendText(param.nameString)
                 fm.parameters(false)
-                fm.appendText(": ")
-                fm.`type`(true)
-                fm.appendText(param.tpe.toString)
-                fm.`type`(false)
 
+                fm.appendText(": ")
+
+                val paramTpe = try {
+                  val t = param.tpe
+                  if (t != null) {
+                    t.toString
+                  } else "<unknown>"
+                } catch {case ex => ScalaGlobal.resetLate(completer.global, ex); "<unknown>"}
+
+                fm.`type`(true)
+                fm.appendText(paramTpe)
+                fm.`type`(false)
+                
                 if (itr.hasNext) fm.appendText(", ") // NOI18N
               }
               fm.appendHtml(")") // NOI18N

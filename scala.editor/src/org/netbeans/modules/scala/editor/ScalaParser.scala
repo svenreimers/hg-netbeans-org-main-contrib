@@ -40,25 +40,20 @@
  */
 package org.netbeans.modules.scala.editor
 
-import java.io.File
-import java.net.URL
 import javax.swing.event.ChangeListener
 import javax.swing.text.BadLocationException
-import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenSequence}
 import org.netbeans.editor.{BaseDocument, Utilities}
 import org.netbeans.modules.csl.api.{Error, OffsetRange, Severity}
 import org.netbeans.modules.csl.spi.{DefaultError, GsfUtilities}
 import org.netbeans.modules.parsing.api.{Snapshot, Task}
 import org.netbeans.modules.parsing.spi.{ParseException, Parser, ParserFactory, SourceModificationEvent}
-import org.netbeans.modules.scala.editor.ast.{ScalaRootScope, ScalaAstVisitor}
+import org.netbeans.modules.scala.editor.ast.{ScalaRootScope}
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
-import org.netbeans.modules.scala.editor.rats.LexerScala
 import org.openide.filesystems.{FileObject, FileStateInvalidException, FileUtil}
 import org.openide.util.Exceptions
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.nsc.{Global, Settings}
-import scala.tools.nsc.io.{AbstractFile, PlainFile, VirtualFile}
+import scala.tools.nsc.io.{PlainFile, VirtualFile}
 import scala.tools.nsc.reporters.Reporter
 import scala.tools.nsc.util.{Position, SourceFile, BatchSourceFile}
 
@@ -295,9 +290,7 @@ class ScalaParser extends Parser {
           }
         }
       }
-    } catch {
-      case ble: BadLocationException => Exceptions.printStackTrace(ble)
-    }
+    } catch {case ble: BadLocationException => Exceptions.printStackTrace(ble)}
 
     false
   }
@@ -366,17 +359,18 @@ class ScalaParser extends Parser {
     var sanitizedSource = false
     var source = context.source
 
-    if (!(sanitizing == Sanitize.NONE || sanitizing == Sanitize.NEVER)) {
-      val ok = sanitizeSource(context, sanitizing)
-
-      if (ok) {
-        assert(context.sanitizedSource != null)
-        sanitizedSource = true
-        source = context.sanitizedSource
-      } else {
-        // Try next trick
-        return sanitize(context, sanitizing)
-      }
+    sanitizing match {
+      case Sanitize.NONE | Sanitize.NEVER =>
+      case _ =>
+        val ok = sanitizeSource(context, sanitizing)
+        if (ok) {
+          assert(context.sanitizedSource != null)
+          sanitizedSource = true
+          source = context.sanitizedSource
+        } else {
+          // Try next trick
+          return sanitize(context, sanitizing)
+        }
     }
 
     if (sanitizing == Sanitize.NONE) {
@@ -401,9 +395,9 @@ class ScalaParser extends Parser {
 
     context.global = global
 
-    var rootScope: Option[ScalaRootScope] = None
+    var root: Option[ScalaRootScope] = None
     try {
-      rootScope = Some(global.askForPresentation(srcFile, th))
+      root = Some(global.askForPresentation(srcFile, th))
       //rootScope = Some(global.compileSourceForPresentation(srcFile, th))
     } catch {
       case ex: AssertionError =>
@@ -420,8 +414,8 @@ class ScalaParser extends Parser {
         ex.printStackTrace
     }
 
-    if (rootScope != None) {
-      context.rootScope = rootScope
+    if (root.isDefined) {
+      context.rootScope = root
       context.sanitized = sanitizing
       val pResult = createParserResult(context)
       pResult.setSanitized(context.sanitized, context.sanitizedRange, context.sanitizedContents)
@@ -446,9 +440,7 @@ class ScalaParser extends Parser {
           //                            eAnnot.updateInError(inError);
           //                        }
           inError
-        } catch {
-          case ex:FileStateInvalidException => Exceptions.printStackTrace(ex)
-        }
+        } catch {case ex:FileStateInvalidException => Exceptions.printStackTrace(ex)}
       }
     }
 

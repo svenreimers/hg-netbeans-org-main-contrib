@@ -38,6 +38,7 @@
  */
 package org.netbeans.api.language.util.ast
 
+import javax.swing.Icon
 import org.netbeans.modules.csl.api.ElementHandle
 import org.netbeans.modules.csl.api.HtmlFormatter
 
@@ -52,6 +53,8 @@ trait AstElementHandle extends ElementHandle {
   def tpe: String
     
   def getDocComment: String
+
+  def getIcon: Icon
 
   def qualifiedName: String
 

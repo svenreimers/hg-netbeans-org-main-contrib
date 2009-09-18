@@ -39,22 +39,19 @@
  * made subject to such option by the copyright holder.
  */
 
-package org.netbeans.modules.scala.editor.actions;
+package org.netbeans.modules.scala.editor.imports
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
-import javax.swing.InputMap;
 import javax.swing.JComboBox;
 import javax.swing.JComponent
 import javax.swing.JLabel;

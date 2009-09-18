@@ -39,20 +39,10 @@
 
 package org.netbeans.modules.scala.editor.ast
 
-import org.netbeans.modules.csl.api.{ElementKind, Modifier, OffsetRange}
-
-import org.netbeans.api.lexer.TokenSequence
-import org.netbeans.api.lexer.Token
-
-import org.netbeans.api.lexer.TokenHierarchy
-import org.netbeans.api.lexer.TokenId
+import org.netbeans.modules.csl.api.{ElementKind, Modifier}
 import org.netbeans.modules.csl.api.HtmlFormatter
 
-import org.netbeans.api.language.util.ast.AstItem
 import org.netbeans.modules.scala.editor.ScalaGlobal
-import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
-
-import scala.collection.mutable.ArrayBuffer
 
 import scala.tools.nsc.symtab.Flags
 
@@ -192,11 +182,14 @@ trait ScalaUtils {self: ScalaGlobal =>
       }
     }
 
-
-    def htmlTypeName(sym: Symbol, fm: HtmlFormatter): Unit = {
+    def tryTpe(sym: Symbol): Type = {
       try {
-        htmlTypeName(sym.tpe, fm)
-      } catch {case ex => ScalaGlobal.resetLate(self, ex)}
+        sym.tpe
+      } catch {case ex => ScalaGlobal.resetLate(self, ex); null}
+    }
+
+    def htmlTypeName(sym: Symbol, fm: HtmlFormatter): Unit = {      
+      htmlTypeName(tryTpe(sym), fm)
     }
 
     def htmlTypeName(tpe: Type, fm: HtmlFormatter): Unit = {
@@ -314,6 +307,8 @@ trait ScalaUtils {self: ScalaGlobal =>
         fm.appendText("<no-symbol>")
         return
       }
+
+      completeIfWithLazyType(sym)
       
       val flags = if (sym.owner.isRefinementClass) {
         sym.flags & Flags.ExplicitFlags & ~Flags.OVERRIDE
@@ -471,6 +466,34 @@ trait ScalaUtils {self: ScalaGlobal =>
       }
     }
 
+    def completeIfWithLazyType(sym: Symbol) {
+      val topClazz = sym.toplevelClass
+
+      if (topClazz.nameString.indexOf('$') != -1) return // avoid assertion error @see
+      
+      val (clazz, staticModule) = if (topClazz.isModule) {
+        (topClazz.linkedClassOfModule, topClazz)
+      } else {
+        (topClazz, topClazz.linkedModuleOfClass)
+      }
+
+      if (clazz != NoSymbol && staticModule != NoSymbol) { // avoid Error: NoSymbol does not have owner
+        topClazz.rawInfo match {
+          case x if !x.isComplete => x.complete(topClazz)
+          case _ =>
+        }
+      }
+    }
+
+    def isProperType(sym: Symbol): Boolean = {
+      if (sym.isType && sym.hasRawInfo) {
+        completeIfWithLazyType(sym)
+        sym.rawInfo match {
+          case NoType | ErrorType => false
+          case _ => true
+        }
+      } else false
+    }
 
   }
 
