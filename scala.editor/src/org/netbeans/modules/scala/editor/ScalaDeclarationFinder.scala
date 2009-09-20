@@ -40,14 +40,12 @@
 package org.netbeans.modules.scala.editor
 
 import javax.swing.text.Document
-import org.netbeans.api.lexer.{Token, TokenHierarchy, TokenId, TokenSequence}
-import org.netbeans.modules.csl.api.{DeclarationFinder, ElementHandle, ElementKind, OffsetRange}
+import org.netbeans.api.lexer.{TokenHierarchy, TokenSequence}
+import org.netbeans.modules.csl.api.{DeclarationFinder, OffsetRange}
 import org.netbeans.modules.csl.api.DeclarationFinder.DeclarationLocation
 import org.netbeans.modules.csl.spi.ParserResult
-import org.netbeans.modules.parsing.spi.indexing.support.QuerySupport
-import org.openide.filesystems.FileObject
+//import org.netbeans.modules.parsing.spi.indexing.support.QuerySupport
 
-import org.netbeans.modules.scala.editor.ast.{ScalaScope}
 import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
 
 /**
@@ -86,59 +84,52 @@ class ScalaDeclarationFinder extends DeclarationFinder {
     }
   }
 
-  override def findDeclaration(info: ParserResult, lexOffset: int): DeclarationLocation = {
-    val pResult = info.asInstanceOf[ScalaParserResult]
-    val global = pResult.global
+  override def findDeclaration(info: ParserResult, lexOffset: Int): DeclarationLocation = {
+    val pr = info.asInstanceOf[ScalaParserResult]
+    val global = pr.global
+    import global._
 
-    val root = pResult.rootScope.getOrElse(return DeclarationLocation.NONE)
+    val root = pr.rootScope.getOrElse(return DeclarationLocation.NONE)
 
-    val astOffset = ScalaLexUtil.getAstOffset(info, lexOffset)
-    if (astOffset == -1) {
-      return DeclarationLocation.NONE
-    }
+    val astOffset = ScalaLexUtil.getAstOffset(pr, lexOffset)
+    if (astOffset == -1) return DeclarationLocation.NONE
 
-    val th = info.getSnapshot.getTokenHierarchy
-
-    var isLocal = false
+    val th = pr.getSnapshot.getTokenHierarchy
 
     val closest = root.findItemsAt(th, astOffset) match {
       case Nil => return DeclarationLocation.NONE
-      case xs => xs.reverse.head
+      case xs => ScalaUtil.importantItem(xs)
     }
         
     root.findDfnOf(closest) match {
       case Some(dfn) =>
         // is local
         val offset = dfn.idOffset(th)
-        return new DeclarationLocation(info.getSnapshot.getSource.getFileObject, offset, dfn)
+        new DeclarationLocation(info.getSnapshot.getSource.getFileObject, offset, dfn)
       case None =>
-        val ts = ScalaLexUtil.getTokenSequence(th, lexOffset) match {
-          case Some(x) => x
-          case None => return DeclarationLocation.NONE
-        }
+        val ts = ScalaLexUtil.getTokenSequence(th, lexOffset).getOrElse(return DeclarationLocation.NONE)
         ts.move(lexOffset)
-        if (!ts.moveNext && !ts.movePrevious) {
-          return DeclarationLocation.NONE
-        }
+        if (!ts.moveNext && !ts.movePrevious) return DeclarationLocation.NONE
         
         val token = ts.token
         token.id match {
           case ScalaTokenId.Identifier | ScalaTokenId.SymbolLiteral =>
-            root.findItemsAt(th, token.offset(th)) find {_.isInstanceOf[global.ScalaRef]} match {
-              case Some(x: global.ScalaRef) =>
-                val remoteDfn = global.ScalaElement(x.symbol, info)
+            root.findItemsAt(th, token.offset(th)) match {
+              case Nil => DeclarationLocation.NONE
+              case xs =>
+                val item = ScalaUtil.importantItem(xs).asInstanceOf[ScalaItem]
+                val remoteDfn = ScalaElement(item.symbol, info)
                 val location = new DeclarationLocation(remoteDfn.getFileObject, remoteDfn.getOffset, remoteDfn)
                 if (remoteDfn.getFileObject == null) {
                   // even fo is null, we should return a location to enable popping up a declaration string
                   location.setInvalidMessage("No source file found!")
                 }
-                return location
-              case _ =>
+                location
             }
-          case _ =>
+          case _ => DeclarationLocation.NONE
         }
 
-        DeclarationLocation.NONE
+        
     }
   }
 }

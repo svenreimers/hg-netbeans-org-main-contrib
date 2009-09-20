@@ -36,26 +36,42 @@
  *
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editor.ast
 
-import org.netbeans.api.lexer.{Token, TokenId}
+package org.netbeans.modules.scala.editor
 
-import org.netbeans.api.language.util.ast.{AstRootScope}
-import scala.tools.nsc.CompilationUnits
+import org.netbeans.modules.csl.editor.semantic.GsfSemanticLayer
+import org.netbeans.modules.csl.editor.semantic.SemanticHighlighter
+import org.netbeans.spi.editor.highlighting.HighlightsLayer
+import org.netbeans.spi.editor.highlighting.HighlightsLayerFactory;
+import org.netbeans.spi.editor.highlighting.HighlightsLayerFactory.Context;
+import org.netbeans.spi.editor.highlighting.ZOrder;
 
-object ScalaRootScope {
-  def apply(unit: Option[CompilationUnits#CompilationUnit], boundsTokens: Array[Token[TokenId]]) =
-    new ScalaRootScope(unit, boundsTokens)
+/**
+ * This class is used to enable "Print to HTML..." @see org.netbeans.modules.editor.ExportHtmlAction#export
+ * including semantic highlightings. The tracking stack is:
+ *   ExportHtmlAction#export -> BaseDocument#print -> DrawEnfine#draw -> drawInternal -> initInfo -> ctx.editorUI.getDrawLayerList().currentLayers()
+ *   -> HighlightingDrawLayer#init -> fakePane.putClientProperty("HighlightsLayerIncludes", new String [] { "^.*NonLexerSyntaxHighlighting$", "^.*SyntaxHighlighting$"})
+ * Where, will filter layer according to fakePane's property "HighlightsLayerIncludes" in:
+ *   HighlightingManager#getHighlights -> getContainer -> rebuildContainer -> paneFilter.filterLayers.
+ * Where,
+ *   paneFilter = new RegExpFilter(pane.getClientProperty(PROP_HL_INCLUDES), pane.getClientProperty(PROP_HL_EXCLUDES));
+ *
+ * That is, we need the layer has `layerTypeId` matching "^.*SyntaxHighlighting$"
+ *
+ * @author Caoyuan Deng
+ */
+class ScalaHighlightsLayerFactory extends HighlightsLayerFactory {
 
-  val EMPTY = new ScalaRootScope(None, Array())
-}
+  def createLayers(context: Context): Array[HighlightsLayer] = {
+    val semantic = GsfSemanticLayer.getLayer(classOf[SemanticHighlighter], context.getDocument)
+    if (semantic != null) {
+      semantic.clearColoringCache
+      Array(
+        HighlightsLayer.create(classOf[SemanticHighlighter].getName + "-SyntaxHighlighting", ZOrder.SYNTAX_RACK.forPosition(1001), false, semantic)
+      )
+    } else Array[HighlightsLayer]()
+  }
 
-class ScalaRootScope(val unit: Option[CompilationUnits#CompilationUnit], boundsTokens: Array[Token[TokenId]]
-) extends AstRootScope(boundsTokens) {  
-  //  def findDfnOfSym(symbol:AstSymbol[_]): Option[AstDfn] = {
-  //    _idTokenToItem.values.find{item =>
-  //      // ElementKind.Rule is "-spec", we won't let it as
-  //      item.isInstanceOf[AstDfn] && ErlSymbol.symbolEquals(item.symbol, symbol) && item.getKind != ElementKind.RULE
-  //    }.asInstanceOf[Option[AstDfn]]
-  //  }
+
+
 }

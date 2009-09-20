@@ -39,8 +39,6 @@
 package org.netbeans.api.language.util.ast
 
 import org.netbeans.api.lexer.{Token, TokenId, TokenHierarchy}
-import org.netbeans.modules.csl.api.{ElementKind}
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
@@ -82,13 +80,18 @@ class AstRootScope(boundsTokens: Array[Token[TokenId]]) extends AstScope(boundsT
    */
   protected def put(idToken: Token[TokenId], item: AstItem): Boolean = {
     val items = _idTokenToItems.getOrElse(idToken, Nil)
-    if (items find {_.symbol == item.symbol} isDefined) {
-      // * don't add item with same symbol
-      false
-    } else {
-      _idTokenToItems += (idToken -> (item :: items))
-      tokensSorted = false
-      true
+    items find {_.symbol == item.symbol} match {
+      case Some(existOne) =>
+        if (item.resultType != null) {
+          // * it has exlicit assigned resultType, always add it
+          _idTokenToItems += (idToken -> (item :: items))
+          tokensSorted = false
+          true
+        } else false // * don't add item with same symbol and resultType == null
+      case _ =>
+        _idTokenToItems += (idToken -> (item :: items))
+        tokensSorted = false
+        true
     }
   }
 
