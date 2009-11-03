@@ -39,13 +39,11 @@
 
 package org.netbeans.modules.scala.editor
 
-import javax.swing.text.Document
-import org.netbeans.api.lexer.TokenHierarchy
 import org.netbeans.modules.csl.api.{InstantRenamer, ElementKind, OffsetRange}
 import org.netbeans.modules.csl.spi.ParserResult
-import org.openide.util.NbBundle
 
-import org.netbeans.modules.scala.editor.lexer.ScalaLexUtil
+import org.netbeans.modules.scala.core.ScalaParserResult
+import org.netbeans.modules.scala.core.lexer.ScalaLexUtil
 
 /**
  * Handle instant rename for Scala
@@ -54,14 +52,9 @@ import org.netbeans.modules.scala.editor.lexer.ScalaLexUtil
  */
 class ScalaInstantRenamer extends InstantRenamer {
 
-  override def isRenameAllowed(info: ParserResult, caretOffset: int, explanationRetValue: Array[String]): Boolean = {
+  override def isRenameAllowed(info: ParserResult, caretOffset: Int, explanationRetValue: Array[String]): Boolean = {
     val pResult = info.asInstanceOf[ScalaParserResult]
-    val rootScope = pResult.rootScope match {
-      case Some(x) => x
-      case None =>
-        explanationRetValue(0) = NbBundle.getMessage(classOf[ScalaInstantRenamer], "NoRenameWithErrors")
-        return false
-    }
+    val rootScope = pResult.rootScope
 
     val document = info.getSnapshot.getSource.getDocument(true)
     if (document == null) {
@@ -75,15 +68,12 @@ class ScalaInstantRenamer extends InstantRenamer {
       return false
     }
 
-    val closest = rootScope.findItemAt(th, caretOffset) match {
-      case Some(x) => x
-      case None => return false
+    val closest = rootScope.findItemsAt(th, caretOffset) match {
+      case Nil => return false
+      case xs => xs.reverse.head
     }
 
-    val dfn = rootScope.findDfnOf(closest) match {
-      case Some(x) => x
-      case None => return false
-    }
+    val dfn = rootScope.findDfnOf(closest).getOrElse(return false)
 
     dfn.getName match {
       case "this" | "super" => return false
@@ -96,44 +86,41 @@ class ScalaInstantRenamer extends InstantRenamer {
     }
   }
 
-  override def getRenameRegions(info: ParserResult, caretOffset: int): _root_.java.util.Set[OffsetRange] = {
+  override def getRenameRegions(info: ParserResult, caretOffset: Int): java.util.Set[OffsetRange] = {
     if (info == null) {
-      return _root_.java.util.Collections.emptySet[OffsetRange]
+      return java.util.Collections.emptySet[OffsetRange]
     }
     
     val pResult = info.asInstanceOf[ScalaParserResult]
 
     val document = pResult.getSnapshot.getSource.getDocument(true)
     if (document == null) {
-      return _root_.java.util.Collections.emptySet[OffsetRange]
+      return java.util.Collections.emptySet[OffsetRange]
     }
 
     val th = pResult.getSnapshot.getTokenHierarchy
 
     val astOffset = ScalaLexUtil.getAstOffset(pResult, caretOffset)
     if (astOffset == -1) {
-      return _root_.java.util.Collections.emptySet[OffsetRange]
+      return java.util.Collections.emptySet[OffsetRange]
     }
 
-    val rootScope = pResult.rootScope match {
-      case Some(x) => x
-      case None => return _root_.java.util.Collections.emptySet[OffsetRange]
+    val rootScope = pResult.rootScope
+
+    val occurrences = rootScope.findItemsAt(th, caretOffset) match {
+      case Nil => return java.util.Collections.emptySet[OffsetRange]
+      case xs => rootScope.findOccurrences(xs.reverse.head)
     }
 
-    val occurrences = rootScope.findItemAt(th, caretOffset) match {
-      case Some(closest) => rootScope.findOccurrences(closest)
-      case None => return _root_.java.util.Collections.emptySet[OffsetRange]
-    }
-
-    val regions = new _root_.java.util.HashSet[OffsetRange]
+    val regions = new java.util.HashSet[OffsetRange]
     for (item <- occurrences;
-         idToken <- item.idToken)
-    {
+         idToken = item.idToken
+    ) {
       regions.add(ScalaLexUtil.getRangeOfToken(th, idToken))
     }
 
     if (!regions.isEmpty) {
-      val translated = new _root_.java.util.HashSet[OffsetRange](2 * regions.size)
+      val translated = new java.util.HashSet[OffsetRange](2 * regions.size)
       val itr = regions.iterator
       while (itr.hasNext) {
         val astRange = itr.next

@@ -39,15 +39,13 @@
 
 package org.netbeans.modules.scala.editor
 
-import javax.swing.text.Document
-import org.netbeans.api.lexer.TokenHierarchy
 import org.netbeans.editor.BaseDocument
 import org.netbeans.modules.csl.api.{ColoringAttributes, OccurrencesFinder, OffsetRange}
 import org.netbeans.modules.parsing.spi.{Scheduler, SchedulerEvent}
 import org.openide.filesystems.FileObject
 
-import org.netbeans.modules.scala.editor.ast.{ScalaRootScope}
-import org.netbeans.modules.scala.editor.lexer.{ScalaLexUtil, ScalaTokenId}
+import org.netbeans.modules.scala.core.ScalaParserResult
+import org.netbeans.modules.scala.core.lexer.{ScalaLexUtil}
 
 /**
  *
@@ -57,14 +55,14 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
 
   private var cancelled: Boolean = _
   private var caretPosition: Int = _
-  private var occurrences: _root_.java.util.Map[OffsetRange, ColoringAttributes] = _
+  private var occurrences: java.util.Map[OffsetRange, ColoringAttributes] = _
   private var fo: FileObject = _
 
   override def getPriority: Int = 0
 
   override def getSchedulerClass: Class[_ <: Scheduler] = Scheduler.CURSOR_SENSITIVE_TASK_SCHEDULER
 
-  override def getOccurrences: _root_.java.util.Map[OffsetRange, ColoringAttributes] = occurrences
+  override def getOccurrences: java.util.Map[OffsetRange, ColoringAttributes] = occurrences
 
   override def setCaretPosition(position: Int): Unit = {
     this.caretPosition = position
@@ -100,12 +98,9 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
       return
     }
 
-    val rootScope = pResult.rootScope match {
-      case Some(x) => x
-      case None => return
-    }
+    val rootScope = pResult.rootScope
 
-    var highlights = new _root_.java.util.HashMap[OffsetRange, ColoringAttributes](100)
+    var highlights = new java.util.HashMap[OffsetRange, ColoringAttributes](100)
 
     val document = pResult.getSnapshot.getSource.getDocument(true)
     if (document == null) {
@@ -113,7 +108,6 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
     }
 
     val th = pResult.getSnapshot.getTokenHierarchy
-
     val astOffset = ScalaLexUtil.getAstOffset(pResult, caretPosition)
     if (astOffset == -1) {
       return
@@ -121,16 +115,10 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
 
 
     // we'll find item by offset of item's idToken, so, use caretPosition directly
-    val itemOpt = rootScope.findItemAt(th, caretPosition) match {
-      case None => None
-      case x =>
-        // When we sanitize the line around the caret, occurrences
-        // highlighting can get really ugly
-        val blankRange = pResult.sanitizedRange
-        if (blankRange.containsInclusive(astOffset)) {
-          None
-        } else x
-    }
+    val blankRange = pResult.sanitizedRange
+    val items = if (!blankRange.containsInclusive(astOffset)) {
+      rootScope.findItemsAt(th, caretPosition)
+    } else Nil
 
 
     // JRuby sometimes gives me some "weird" sections. For example,
@@ -141,16 +129,16 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
     // rather than give a parse error on obj, it marks the whole region from
     // . to the end of Scanf as a CallNode, which is a weird highlight.
     // We don't want occurrences highlights that span lines.
-    for (item <- itemOpt;
-         idToken <- item.idToken)
-    {
+    for (item <- items;
+         idToken = item.idToken
+    ) {
       val doc = pResult.getSnapshot.getSource.getDocument(true).asInstanceOf[BaseDocument]
       if (doc == null) {
         // Document was just closed
         return
       }
+      //doc.readLock
       try {
-        doc.readLock
         val length = doc.getLength
         val astRange = ScalaLexUtil.getRangeOfToken(th, idToken)
         val lexRange = ScalaLexUtil.getLexerOffsets(pResult, astRange)
@@ -212,15 +200,16 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
         //                    }
         token
       } finally {
-        doc.readUnlock
+        //doc.readUnlock
       }
     }
 
-    for (item <- itemOpt) {
+    for (item <- items) {
       val _occurrences = rootScope.findOccurrences(item)
-      for (x <- _occurrences; name = x.getName if !name.equals("this") || !name.equals("super");
-           idToken <- x.idToken)
-      {
+      for (x <- _occurrences;
+           name = x.getName if !name.equals("this") || !name.equals("super");
+           idToken = x.idToken
+      ) {
         highlights.put(ScalaLexUtil.getRangeOfToken(th, idToken), ColoringAttributes.MARK_OCCURRENCES)
       }
     }
@@ -230,7 +219,7 @@ class ScalaOccurrencesFinder extends OccurrencesFinder[ScalaParserResult] {
     }
 
     if (!highlights.isEmpty) {
-      val translated = new _root_.java.util.HashMap[OffsetRange, ColoringAttributes](2 * highlights.size)
+      val translated = new java.util.HashMap[OffsetRange, ColoringAttributes](2 * highlights.size)
       val itr = highlights.entrySet.iterator
       while (itr.hasNext) {
         val entry = itr.next

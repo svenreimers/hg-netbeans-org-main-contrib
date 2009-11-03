@@ -40,11 +40,11 @@
  */
 package org.netbeans.modules.scala.editor.util
 
-import _root_.scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuffer
 
 object Sorter {
   def sort[T](ab: ArrayBuffer[T])(compareFun: (T, T) => Boolean): Unit = {
-    val sorted = ab.toList.sort{compareFun}
+    val sorted = ab.toList.sortWith{compareFun}
     var i = 0
     for (e <- sorted) {
       ab(i) = e

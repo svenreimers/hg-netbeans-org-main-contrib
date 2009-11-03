@@ -94,8 +94,8 @@ import org.netbeans.modules.parsing.api.ParserManager;
 import org.netbeans.modules.parsing.api.Source;
 import org.netbeans.modules.parsing.api.UserTask;
 import org.netbeans.modules.parsing.spi.ParseException;
-import org.netbeans.modules.scala.editing.ScalaParserResult;
-import org.netbeans.modules.scala.editing.ScalaUtils;
+import org.netbeans.modules.scala.core.ScalaParserResult;
+import org.netbeans.modules.scala.core.ScalaSourceUtil;
 import org.netbeans.spi.debugger.jpda.EditorContext;
 import org.netbeans.spi.debugger.jpda.SourcePathProvider;
 
@@ -967,7 +967,7 @@ public class EditorContextImpl extends EditorContext {
      *
      * @return binary class name for given url and line number or null
      */
-    public String getClassName(String url, int lineNumber) {
+    public String getClassName(String url, final int lineNumber) {
         DataObject dataObject = getDataObject(url);
         if (dataObject == null) {
             return null;
@@ -1003,9 +1003,9 @@ public class EditorContextImpl extends EditorContext {
             ParserManager.parse(Collections.singleton(source), new UserTask() {
 
                 @Override
-                public void run(ResultIterator resultIterator) throws Exception {
-                    ScalaParserResult pResult = (ScalaParserResult) resultIterator.getParserResult(offset);
-                    String clzFqn = ScalaUtils.getBinaryClassName(pResult, offset);
+                public void run(ResultIterator ri) throws Exception {
+                    ScalaParserResult pResult = (ScalaParserResult) ri.getParserResult(offset);
+                    String clzFqn = ScalaSourceUtil.getBinaryClassName(pResult, lineNumber);
 
                     if (clzFqn == null) {
                         ErrorManager.getDefault().log(

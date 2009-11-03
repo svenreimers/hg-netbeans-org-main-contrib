@@ -40,21 +40,10 @@
  */
 package org.netbeans.modules.scala.editor
 
-import org.netbeans.api.lexer.Language
-import org.netbeans.modules.csl.api.{CodeCompletionHandler,
-                                     DeclarationFinder,
-                                     Formatter,
-                                     IndexSearcher,
-                                     InstantRenamer,
-                                     KeystrokeHandler,
-                                     OccurrencesFinder,
-                                     SemanticAnalyzer,
-                                     StructureScanner}
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig
-import org.netbeans.modules.parsing.spi.Parser
-import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexerFactory
-import org.openide.filesystems.{FileObject, FileUtil}
-import org.netbeans.modules.scala.editor.lexer.ScalaTokenId
+import org.netbeans.modules.scala.core.ScalaParser
+import org.netbeans.modules.scala.core.lexer.ScalaTokenId
+import org.netbeans.modules.scala.hints.ScalaHintsProvider
 
 /**
  * Language/lexing configuration for Scala
@@ -75,9 +64,8 @@ class ScalaLanguage extends DefaultLanguageConfig {
   /**
    * @see org.netbeans.modules.scala.platform.ScalaPlatformClassPathProvider and ModuleInstall
    */
-  override def getLibraryPathIds = _root_.java.util.Collections.singleton(BOOT)
-
-  override def getSourcePathIds = _root_.java.util.Collections.singleton(SOURCE)
+  override def getLibraryPathIds = java.util.Collections.singleton(BOOT)
+  override def getSourcePathIds  = java.util.Collections.singleton(SOURCE)
     
   override def getParser = new ScalaParser
   
@@ -93,16 +81,17 @@ class ScalaLanguage extends DefaultLanguageConfig {
 
   override def getInstantRenamer = new ScalaInstantRenamer
   
-  override def getCompletionHandler = new ScalaCodeCompletion
+  override def getCompletionHandler = new ScalaCodeCompletionHandler
   
   override def getKeystrokeHandler = new ScalaKeystrokeHandler
   
   override def hasFormatter =  true
   override def getFormatter = new ScalaFormatter
   
-  //
-  //   override def getIndexerFactory = new ScalaIndexer.Factory
-  //
+  override def getHintsProvider = new ScalaHintsProvider
+  override def hasHintsProvider = true
+  
+  //override def getIndexerFactory = new ScalaIndexer.Factory
 }
 
 object ScalaLanguage {

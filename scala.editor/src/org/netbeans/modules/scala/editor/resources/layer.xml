@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
 <filesystem>
-    <folder name="Services">
-        <folder name="MIMEResolver">
-            <file name="Scala.xml" url="scalaResolver.xml">
-                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.resources.Bundle"/>
-                <attr name="position" intvalue="1005"/>
-            </file>
-        </folder>
-    </folder>
-
     <folder name="Editors">
       <!-- Reference binding color themes are under module: main/defaults/src/org/netbeans/modules/defaults -->
       <!-- color theme for nbeditor-settings-ColoringType -->
@@ -37,11 +28,24 @@
         <folder name="text">
             <folder name="x-scala">
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.Bundle"/>
+
                 <file name="language.instance">
-                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.editor.lexer.ScalaTokenId.language"/>
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.core.lexer.ScalaTokenId.language"/>
                     <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
                 </file>
                 
+                <folder name="BracesMatchers">
+                    <file name="org-netbeans-modules-scala-editor-ScalaBracesMatcherFactory.instance">
+                        <attr name="position" intvalue="0"/>
+                   </file>
+                </folder>
+
+                <folder name="Preferences">
+                    <folder name="Defaults">
+                        <file name="org-netbeans-modules-editor-scala-preferences.xml" url="defaultPreferences.xml" />
+                    </folder>
+                </folder>
+
                 <!-- TODO - this should not be necessary; I'm doing this now to work around
                     bugs in color initialization -->
                 <folder name="FontsColors">
@@ -68,7 +72,14 @@
                     </folder>
                 </folder>
 
-                <!--file name="org-netbeans-modules-csl-editor-semantic-HighlightsLayerFactoryImpl.instance"/-->
+                <file name="org-netbeans-modules-scala-editor-overridden-IsOverriddenAnnotationHandlerFactory.instance"/>
+                <folder name="GlyphGutterActions">
+                    <file name="org-netbeans-modules-scala-editor-overridden-IsOverriddenAnnotationAction.instance">
+                        <attr name="position" intvalue="100"/>
+                    </file>
+                </folder>
+
+                <file name="org-netbeans-modules-scala.editor-ScalaHighlightsLayerFactory.instance"/>
 
                 <folder name="CodeTemplates">
                     <folder name="Defaults">
@@ -89,23 +100,76 @@
                         </folder>
                     </folder>
                 </folder>
-                <!-- tell the parsing API that scala files should be handled by the java indexer
+                
+                <!-- tell the parsing API that scala files should be handled by the java indexer -->
                 <file name="JavaIndexer.shadow">
                     <attr name="originalFile" stringvalue="Editors/text/x-java/JavaIndexer.instance"/>
                 </file>
-                -->
-                <!--
+                
                 <folder name="Popup">
-                    <file name="org-netbeans-modules-scala-editor-RunScriptAction.instance">
-                        <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.RunScriptAction"/>
+                    <file name="org-netbeans-modules-scala-editor-ui-actions-ResetGlobalAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-ui-actions-ResetGlobalAction.instance"/>
+                        <attr name="position" intvalue="800"/>
+                    </file>
+                    <file name="org-netbeans-modules-scala-editor-imports-FixImportsAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/Scala/org-netbeans-modules-scala-editor-imports-FixImportsAction.instance"/>
                         <attr name="position" intvalue="801"/>
                     </file>
+                    
                 </folder>
-                -->
+                <folder name="Toolbars">
+                    <folder name="Default">
+                        <file name="Separator-before-comment.instance">
+                            <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                            <attr name="position" intvalue="19100"/>
+                        </file>
+                        <file name="comment">
+                            <attr name="position" intvalue="19200"/>
+                        </file>
+                        <file name="uncomment">
+                            <attr name="position" intvalue="19300"/>
+                        </file>
+                    </folder>
+                </folder>
+
             </folder>
         </folder>
     </folder>
-    
+
+    <folder name="Actions">
+        <folder name="Scala">
+            <file name="org-netbeans-modules-scala-editor-imports-FixImportsAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.imports.FixImportsAction"/>
+            </file>
+            <file name="org-netbeans-modules-scala-editor-ui-actions-ResetGlobalAction.instance">
+                <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.ui.actions.ResetGlobalAction"/>
+            </file>
+        </folder>
+    </folder>
+
+    <folder name="OptionsDialog">
+        <folder name="PreviewExamples">
+            <folder name="text">
+                <file name="x-scala" url="ScalaPreviewExample.tmpl"/>
+            </folder>
+        </folder>
+        <folder name="Editor">
+            <folder name="Formatting">
+                <folder name="text">
+                    <folder name="x-scala">
+                      <file name="Indents.instance">
+                          <attr name="instanceOf" stringvalue="org.netbeans.modules.options.editor.spi.PreferencesCustomizer$Factory"/>
+                          <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.editor.options.FmtTabsIndents.getController"/>
+                          <attr name="position" intvalue="100"/>
+                      </file>
+
+                    </folder>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
+
+
     <folder name="CslPlugins">
         <folder name="text">
             <folder name="x-scala">
@@ -115,10 +179,35 @@
                 <file name="structure.instance">
                     <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.editor.ScalaStructureAnalyzer"/>
                 </file>
+                <!--file name="hints.instance">
+                   <attr name="instanceClass" stringvalue="org.netbeans.modules.scala.hints.ScalaHintsProvider"/>
+                </file-->
             </folder>
         </folder>
     </folder>
     
+    <folder name="csl-hints">
+        <folder name="text">
+            <folder name="x-scala">
+                <folder name="errors">
+                    <file name="org-netbeans-modules-scala-hints-ClassNotFoundRule.instance"/>
+                </folder>
+                <folder name="hints">
+                    <file name="org-netbeans-modules-scala-hints-RemoveImportRule.instance"/>
+                </folder>
+                <!-- folder name="hints">
+                    <folder name="general">
+                       <attr name="position" intvalue="100"/>
+                        <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.ruby.hints.Bundle"/>
+                        <file name="org-netbeans-modules-ruby-hints-BlockVarReuse.instance"/>
+                        <file name="org-netbeans-modules-ruby-hints-Deprecations.instance"/>
+                    </folder>
+                </folder -->
+            </folder>
+        </folder>
+    </folder>
+
+
     <folder name="Loaders">
         <folder name="text">
             <folder name="x-scala">
@@ -189,36 +278,32 @@
                         <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-ToolsAction.instance"/>
                         <attr name="position" intvalue="1500"/>
                     </file>
+
                 </folder>
             </folder>
         </folder>
     </folder>
-    <!--
-    <folder name="Actions">
-        <folder name="Edit">
-            <file name="org-netbeans-modules-javascript-editing-ReflowParagraphAction.instance">
-                <attr name="instanceClass" stringvalue="org.netbeans.modules.javascript.editing.ReflowParagraphAction"/>
-            </file>
-        </folder>
-    </folder>
-    -->
-    <!--
+
     <folder name="Templates">
         <folder name="Scala">
             <attr name="position" intvalue="911"/>
 
-            <file name="Main.scala" url="templates/Main.tmpl">
+            <file name="Main.scala" url="templates/MainScalaObject.tmpl">
                 <attr name="position" intvalue="100"/>
                 <attr name="template" boolvalue="true"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" methodvalue="org.netbeans.modules.scala.editor.wizards.ScalaFileUtil.create"/>
                 <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/class.png"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.resources.templates.Bundle"/>
-                <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/templates/scalaMain.html"/>
+                <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/templates/MainScalaObjectFileDescription.html"/>
                 <attr name="templateCategory" stringvalue="scala-classes,java-classes"/>
             </file>
 
             <file name="Class.scala" url="templates/EmptyScalaClass.tmpl">
                 <attr name="position" intvalue="200"/>
                 <attr name="template" boolvalue="true"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" methodvalue="org.netbeans.modules.scala.editor.wizards.ScalaFileUtil.create"/>
                 <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/class.png"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.resources.templates.Bundle"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/templates/EmptyScalaClassFileDescription.html"/>
@@ -228,6 +313,8 @@
             <file name="Object.scala" url="templates/EmptyScalaObject.tmpl">
                 <attr name="position" intvalue="300"/>
                 <attr name="template" boolvalue="true"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" methodvalue="org.netbeans.modules.scala.editor.wizards.ScalaFileUtil.create"/>
                 <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/class.png"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.resources.templates.Bundle"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/templates/EmptyScalaObjectFileDescription.html"/>
@@ -237,6 +324,8 @@
             <file name="Trait.scala" url="templates/EmptyScalaTrait.tmpl">
                 <attr name="position" intvalue="400"/>
                 <attr name="template" boolvalue="true"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" methodvalue="org.netbeans.modules.scala.editor.wizards.ScalaFileUtil.create"/>
                 <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/class.png"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.resources.templates.Bundle"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/templates/EmptyScalaTraitFileDescription.html"/>
@@ -246,6 +335,8 @@
             <file name="JUnitTest.scala" url="templates/EmptyScalaJUnitTest.tmpl">
                 <attr name="position" intvalue="500"/>
                 <attr name="template" boolvalue="true"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" methodvalue="org.netbeans.modules.scala.editor.wizards.ScalaFileUtil.create"/>
                 <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/class.png"/>
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.scala.editor.resources.templates.Bundle"/>
                 <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/scala/editor/resources/templates/EmptyScalaJUnitTestFileDescription.html"/>
@@ -253,5 +344,4 @@
             </file>
         </folder>
     </folder>
-    -->
 </filesystem>

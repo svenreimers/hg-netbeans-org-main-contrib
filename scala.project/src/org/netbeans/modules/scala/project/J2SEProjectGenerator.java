@@ -44,6 +44,7 @@ package org.netbeans.modules.scala.project;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import org.netbeans.api.java.platform.JavaPlatform;
 import org.netbeans.api.java.platform.JavaPlatformManager;
 import org.netbeans.api.project.ProjectManager;
@@ -261,10 +262,16 @@ public class J2SEProjectGenerator {
         ep.setComment("javac.compilerargs", new String[] {
             "# " + NbBundle.getMessage(J2SEProjectGenerator.class, "COMMENT_javac.compilerargs"), // NOI18N
         }, false);
+        ep.setProperty("scalac.compilerargs", ""); // NOI18N
+        ep.setComment("scalac.compilerargs", new String[] {
+            "# " + NbBundle.getMessage(J2SEProjectGenerator.class, "COMMENT_scalac.compilerargs"), // NOI18N
+        }, false);
         SpecificationVersion sourceLevel = getDefaultSourceLevel();
         ep.setProperty("javac.source", sourceLevel.toString()); // NOI18N
         ep.setProperty("javac.target", sourceLevel.toString()); // NOI18N
         ep.setProperty("javac.deprecation", "false"); // NOI18N
+        ep.setProperty("scalac.deprecation", "no"); // NOI18N
+        ep.setProperty("scalac.unchecked", "no"); // NOI18N
         ep.setProperty("javac.test.classpath", new String[] { // NOI18N
             "${javac.classpath}:", // NOI18N
             "${build.classes.dir}:", // NOI18N
@@ -288,7 +295,7 @@ public class J2SEProjectGenerator {
         ep.setProperty("build.test.classes.dir", "${build.dir}/test/classes"); // NOI18N
         ep.setProperty("build.test.results.dir", "${build.dir}/test/results"); // NOI18N
         ep.setProperty("build.classes.excludes", "**/*.java,**/*.form,**/*.scala"); // NOI18N
-        ep.setProperty("dist.javadoc.dir", "${dist.dir}/javadoc"); // NOI18N
+        ep.setProperty("dist.javadoc.dir", "${dist.dir}/scaladoc"); // NOI18N
         ep.setProperty("platform.active", "default_platform"); // NOI18N
         ep.setProperty("java.platform.active", "java_default_platform"); // NOI18N
 
@@ -364,8 +371,8 @@ public class J2SEProjectGenerator {
             String fName = pName.replace( '.', '/' ); // NOI18N
             pkgFolder = FileUtil.createFolder( srcFolder, fName );        
         }
-        DataFolder pDf = DataFolder.findFolder( pkgFolder );        
-        mt.createFromTemplate( pDf, mName );
+        DataFolder pDf = DataFolder.findFolder( pkgFolder );
+        mt.createFromTemplate(pDf, mName, Collections.singletonMap("package", pName));
         
     }
     

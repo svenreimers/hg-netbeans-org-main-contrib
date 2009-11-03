@@ -75,18 +75,23 @@ public class DefaultPlatformImpl extends J2SEPlatformImpl {
         // XXX java.home??
         File scalaHome = getScalaHome();       //NOI18N
         List<URL> installFolders = new ArrayList<URL>();
-        try {
-            installFolders.add(scalaHome.toURI().toURL());
-        } catch (MalformedURLException mue) {
-            Exceptions.printStackTrace(mue);
+        if (scalaHome != null) {
+            try {
+                installFolders.add(scalaHome.toURI().toURL());
+            } catch (MalformedURLException mue) {
+                Exceptions.printStackTrace(mue);
+            }
+            if (sources == null) {
+                sources = getSources(scalaHome);
+            }
+            if (javadoc == null) {
+                javadoc = getJavadoc(scalaHome);
+            }
+            properties.put(J2SEPlatformImpl.SYSPROP_SCALA_CLASS_PATH, getScalaClassPath());
+        } else {
+            sources = Collections.emptyList();
+            javadoc = Collections.emptyList();
         }
-        if (sources == null) {
-            sources = getSources(scalaHome);
-        }
-        if (javadoc == null) {
-            javadoc = getJavadoc(scalaHome);
-        }
-        properties.put(J2SEPlatformImpl.SYSPROP_SCALA_CLASS_PATH, getScalaClassPath());
         return new DefaultPlatformImpl(installFolders, properties, new HashMap(System.getProperties()), sources, javadoc);
     }
 
@@ -103,30 +108,30 @@ public class DefaultPlatformImpl extends J2SEPlatformImpl {
             File scalaHomeFile = FileUtil.normalizeFile(new File(scalaHome));       //NOI18N
             return scalaHomeFile;
         } else {
-            File clusterFile = InstalledFileLocator.getDefault().locate(
-                    "modules/org-netbeans-modules-scala-stdplatform.jar", null, false);
-
-            if (clusterFile != null) {
-                File bundlingScalaFile =
-                        new File(clusterFile.getParentFile().getParentFile().getAbsoluteFile(), "scala"); // NOI18N
-                assert bundlingScalaFile.exists() && bundlingScalaFile.isDirectory() : "No bundling Scala platform found";
-
-                for (File scalaFile : bundlingScalaFile.listFiles()) {
-                    String fileName = scalaFile.getName();
-                    if (scalaFile.isDirectory() && fileName.startsWith("scala")) {
-                        scalaHome = scalaFile.getAbsolutePath();
-                        if (isBroken(FileUtil.toFileObject(scalaFile))) {
-                            continue;
-                        }
-                        System.setProperty("scala.home", scalaHome);
-                        int dash = fileName.indexOf('-');
-                        String scalaVersion = fileName.substring(dash + 1, fileName.length());
-                        System.setProperty("scala.specification.version", scalaVersion);
-
-                        return scalaFile;
-                    }
-                }
-            }
+//            File clusterFile = InstalledFileLocator.getDefault().locate(
+//                    "modules/org-netbeans-modules-scala-stdplatform.jar", null, false);
+//
+//            if (clusterFile != null) {
+//                File bundlingScalaFile =
+//                        new File(clusterFile.getParentFile().getParentFile().getAbsoluteFile(), "scala"); // NOI18N
+//                assert bundlingScalaFile.exists() && bundlingScalaFile.isDirectory() : "No bundling Scala platform found";
+//
+//                for (File scalaFile : bundlingScalaFile.listFiles()) {
+//                    String fileName = scalaFile.getName();
+//                    if (scalaFile.isDirectory() && fileName.startsWith("scala")) {
+//                        scalaHome = scalaFile.getAbsolutePath();
+//                        if (isBroken(FileUtil.toFileObject(scalaFile))) {
+//                            continue;
+//                        }
+//                        System.setProperty("scala.home", scalaHome);
+//                        int dash = fileName.indexOf('-');
+//                        String scalaVersion = fileName.substring(dash + 1, fileName.length());
+//                        System.setProperty("scala.specification.version", scalaVersion);
+//
+//                        return scalaFile;
+//                    }
+//                }
+//            }
 
             return null;
         }
@@ -163,7 +168,7 @@ public class DefaultPlatformImpl extends J2SEPlatformImpl {
             }
             File scalaHome = getScalaHome();
             String pathSpec = "";  //NOI18N
-            if (scalaHome.exists() && scalaHome.canRead()) {
+            if (scalaHome != null && scalaHome.exists() && scalaHome.canRead()) {
                 File scalaLib = new File(scalaHome, "lib");  //NOI18N
                 if (scalaLib.exists() && scalaLib.canRead()) {
                     pathSpec = scalaLib.getAbsolutePath() + File.separator + "scala-library.jar";
@@ -212,7 +217,7 @@ public class DefaultPlatformImpl extends J2SEPlatformImpl {
     private static String getScalaClassPath() {
         File scalaHome = getScalaHome();
         String s = "";  //NOI18N
-        if (scalaHome.exists() && scalaHome.canRead()) {
+        if (scalaHome != null && scalaHome.exists() && scalaHome.canRead()) {
             File scalaLib = new File(scalaHome, "lib");  //NOI18N
             if (scalaLib.exists() && scalaLib.canRead()) {
                 s = computeScalaClassPath(null, scalaLib);

@@ -39,28 +39,70 @@
 
 package org.netbeans.modules.scanondemand;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
+import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 import org.netbeans.modules.parsing.impl.indexing.friendapi.IndexingActivityInterceptor;
 import org.openide.filesystems.FileEvent;
+import org.openide.util.Exceptions;
+import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Used to intercept indexing when event is not expected.
  *
  * @author Pavel Flaska
  */
-@org.openide.util.lookup.ServiceProvider(service=IndexingActivityInterceptor.class)
-public class NoIndexingActivity implements IndexingActivityInterceptor {
-    
-    public static final Logger LOG = Logger.getLogger(NoIndexingActivity.class.getName());
+@ServiceProvider(service=IndexingActivityInterceptor.class)
+public class NoIndexingActivity implements IndexingActivityInterceptor, PreferenceChangeListener {
+    static final Logger LOG = Logger.getLogger(NoIndexingActivity.class.getPackage().getName());
+
+    private final Preferences includeExclude = NbPreferences.forModule(NoIndexingActivity.class);
+    private Map<Pattern, Authorization> map;
+
+    public NoIndexingActivity() {
+        includeExclude.addPreferenceChangeListener(this);
+        preferenceChange(null);
+    }
 
     @Override
     public Authorization authorizeFileSystemEvent(FileEvent event) {
-        if (event.isExpected()) {
-            LOG.finest("Process file event " + event.getFile().getName());
-            return Authorization.PROCESS;
-        } else {
-            LOG.finest("Ignore file event " + event.getFile().getName());
-            return Authorization.IGNORE;
+        final String path = event.getFile().getPath();
+        LOG.log(Level.FINE, "Changed file {0}", path); // NOI18N
+        for (Map.Entry<Pattern, Authorization> entry : map.entrySet()) {
+            if (entry.getKey().matcher(path).matches()) {
+                final Authorization ret = entry.getValue();
+                LOG.log(Level.FINER, "Found pattern {0} -> {1}", new Object[] { entry.getKey(), ret }); // NOI18N
+                return ret;
+            }
+        }
+        LOG.log(Level.FINER, "Accepted for processing."); // NOI18N
+        return Authorization.PROCESS;
+    }
+
+    public void preferenceChange(PreferenceChangeEvent evt) {
+        try {
+            Map<Pattern, Authorization> tmp = new LinkedHashMap<Pattern, Authorization>();
+            for (String regExp : includeExclude.keys()) {
+                final String val = includeExclude.get(regExp, null);
+                try {
+                    Pattern p = Pattern.compile(regExp);
+                    Authorization a = Authorization.valueOf(val);
+                    tmp.put(p, a);
+                    LOG.log(Level.CONFIG, "New pattern added {0} = {1}", new Object[] { regExp, a }); // NOI18N
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Cannot understand regular expression {0} = {1}", new Object[] { regExp, val }); // NOI18N
+                }
+            }
+            this.map = tmp;
+        } catch (BackingStoreException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 }

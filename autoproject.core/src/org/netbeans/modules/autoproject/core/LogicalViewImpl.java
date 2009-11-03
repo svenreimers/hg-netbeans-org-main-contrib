@@ -44,8 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import javax.swing.Action;
-import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.modules.autoproject.spi.Cache;
 import org.netbeans.modules.autoproject.spi.PathFinder;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
@@ -53,6 +53,7 @@ import org.netbeans.spi.project.ui.support.CommonProjectActions;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
 import org.netbeans.spi.project.ui.support.ProjectSensitiveActions;
 import org.openide.actions.FindAction;
+import org.openide.filesystems.FileUtil;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
@@ -64,9 +65,9 @@ import org.openide.util.lookup.Lookups;
 
 class LogicalViewImpl implements LogicalViewProvider {
 
-    private final Project project;
+    private final AutomaticProject project;
 
-    public LogicalViewImpl(Project project) {
+    public LogicalViewImpl(AutomaticProject project) {
         this.project = project;
     }
 
@@ -89,9 +90,9 @@ class LogicalViewImpl implements LogicalViewProvider {
     // Largely copied from ant.freeform:
     private static final class RootNode extends AbstractNode {
 
-        private final Project p;
+        private final AutomaticProject p;
 
-        public RootNode(Project p) {
+        public RootNode(AutomaticProject p) {
             super(NodeFactorySupport.createCompositeChildren(p, "Projects/org-netbeans-modules-autoproject/Nodes"), Lookups.singleton(p));
             this.p = p;
         }
@@ -142,38 +143,16 @@ class LogicalViewImpl implements LogicalViewProvider {
             actions.add(CommonProjectActions.openSubprojectsAction());
             actions.add(CommonProjectActions.closeProjectAction());
             actions.add(null);
-            /* XXX
-            actions.add(CommonProjectActions.renameProjectAction());
-            actions.add(CommonProjectActions.moveProjectAction());
-            actions.add(CommonProjectActions.copyProjectAction());
-            actions.add(CommonProjectActions.deleteProjectAction());
-            actions.add(null);
-             */
+            // XXX delete etc.: #157043
             actions.add(SystemAction.get(FindAction.class));
             actions.addAll(Utilities.actionsForPath("Projects/Actions")); // NOI18N
             actions.add(null);
-            /* XXX
-            actions.add(CommonProjectActions.customizeProjectAction());
-             */
+            if ("true".equals(Cache.get(FileUtil.toFile(p.getProjectDirectory()) + Cache.PROJECT))) {
+                actions.add(new DeregisterAction(p));
+            }
+            // XXX customize: #153233 etc.
             return actions.toArray(new Action[actions.size()]);
         }
-
-        /* XXX no rename support currently:
-        public boolean canRename() {
-            return true;
-        }
-
-        public void setName(String name) {
-            DefaultProjectOperations.performDefaultRenameOperation(p, name);
-        }
-         */
-
-        /* XXX would be good to add help:
-        public HelpCtx getHelpCtx() {
-            return new HelpCtx(...);
-        }
-         */
-
     }
 
 }
