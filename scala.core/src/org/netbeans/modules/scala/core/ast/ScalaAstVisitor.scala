@@ -573,8 +573,8 @@ abstract class ScalaAstVisitor {
     }
 
     private def traverseAnnots(sym: Symbol) {
-      for (AnnotationInfo(atp, args, assocs) <- sym.annotations) {
-        args foreach traverse
+      for (AnnotationInfo(_, args, _) <- sym.annotations) {
+        traverseTrees(args)
       }
     }
 
