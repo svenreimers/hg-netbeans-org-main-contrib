@@ -41,6 +41,8 @@ package org.netbeans.modules.php.fuse.gsf;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.Document;
+import org.netbeans.api.lexer.InputAttributes;
 import org.netbeans.modules.csl.api.Error;
 import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Snapshot;
@@ -48,6 +50,8 @@ import org.netbeans.modules.parsing.api.Task;
 import org.netbeans.modules.parsing.spi.ParseException;
 import org.netbeans.modules.parsing.spi.Parser;
 import org.netbeans.modules.parsing.spi.SourceModificationEvent;
+import org.netbeans.modules.php.fuse.editor.TmplParseData;
+import org.netbeans.modules.php.fuse.lexer.FuseTokenId;
 
 
 /**
