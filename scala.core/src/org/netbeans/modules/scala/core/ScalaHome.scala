@@ -44,6 +44,7 @@ import java.io.{File, IOException}
 import java.net.{MalformedURLException, URL}
 import java.util.{Properties}
 
+import org.netbeans.spi.java.classpath.support.ClassPathSupport
 import org.openide.filesystems.{FileObject, FileUtil}
 import org.openide.util.{Exceptions, Utilities}
 import scala.tools.nsc.{Settings}
@@ -84,15 +85,15 @@ object ScalaHome {
     sb.append(scalaLib.getAbsolutePath + File.separator + "scala-library.jar")
         
     //System.out.println("boot:" + sb);
-    settings.bootclasspath.tryToSet(List(sb.toString))
+    settings.bootclasspath.value = sb.toString
 
     sb.delete(0, sb.length - 1)
     sb.append(getJavaClassPath)
     sb.append(File.pathSeparator)
-    sb.append(computeScalaClassPath(null, scalaLib))
+    sb.append(toScalaClassPathString(null, scalaLib))
 
     //System.out.println("comp:" + sb);
-    settings.classpath.tryToSet(List(sb.toString))
+    settings.classpath.value = sb.toString
 
     val global = new ScalaGlobal(settings, ScalaGlobal.dummyReporter) {
       override def onlyPresentation = true
@@ -210,7 +211,7 @@ object ScalaHome {
     Nil
   }
 
-  def computeScalaClassPath(aextraCp: String, scalaLib: File): String = {
+  def toScalaClassPathString(aextraCp: String, scalaLib: File): String = {
     var extraCp = aextraCp
     val cp = new StringBuilder
     val libs = scalaLib.listFiles
@@ -260,9 +261,41 @@ object ScalaHome {
       cp.append(extraCp)
     }
 
-    if (Utilities.isWindows) "\"" + cp.toString() + "\"" else cp.toString // NOI18N
+    cp.toString // NOI18N
   }
 
+  def getStandardLib(scalaHome: File): Option[File] = {
+    if (scalaHome != null) {
+      try {
+        val scalaLib = new File(scalaHome, "lib")    //NOI18N
+        if (scalaLib != null && scalaLib.exists && scalaLib.canRead) {
+          return scalaLib.listFiles find {jar => jar.getName == "library.jar"}
+        }
+      }
+    }
+    None
+  }
+
+  def versionString(scalaHome: File): String = {
+    val props = new java.util.Properties
+    getStandardLib(scalaHome) foreach {
+      case x =>
+        val cp = ClassPathSupport.createClassPath(Array(FileUtil.toFileObject(x)): _*)
+        cp.findResource("/library.properties") match {
+          case null =>
+          case propFile =>
+            val is = propFile.getInputStream
+            try {
+              props.load(is)
+            } catch {case _ =>} finally {
+              if (is != null) is.close
+            }
+        }
+    }
+
+    props.getProperty("version.number", "<unknown>")
+  }
+  
   private def printProperties(props: Properties): Unit = {
     println("===========================")
     val keys = props.keys

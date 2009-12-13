@@ -106,15 +106,15 @@ public final class NewJ2SEPlatform extends J2SEPlatformImpl implements Runnable 
      */
     public void run() {
         try {
-            FileObject java = findTool("scala");
-            if (java == null)
+            FileObject scala = findTool("scala");
+            if (scala == null)
                 return;
-            File javaFile = FileUtil.toFile (java);
-            if (javaFile == null)
+            File scalaFile = FileUtil.toFile (scala);
+            if (scalaFile == null)
                 return;
-            String javapath = javaFile.getAbsolutePath();
+            String scalapath = scalaFile.getAbsolutePath();
             String filePath = File.createTempFile("nb-platformdetect", "properties").getAbsolutePath();
-            final String probePath = getSDKProperties(javapath, filePath);
+            final String probePath = getSDKProperties(scalapath, filePath);
             File f = new File(filePath);
             Properties p = new Properties();
             InputStream is = new FileInputStream(f);
@@ -187,11 +187,12 @@ public final class NewJ2SEPlatform extends J2SEPlatformImpl implements Runnable 
     }
 
 
-    private String getSDKProperties(String javaPath, String path) throws IOException {
+    private String getSDKProperties(String scalaPath, String path) throws IOException {
+
         Runtime runtime = Runtime.getRuntime();
         try {
             String[] command = new String[5];
-            command[0] = javaPath;
+            command[0] = scalaPath;
             command[1] = "-classpath";    //NOI18N
             command[2] = InstalledFileLocator.getDefault().locate("modules/ext/org-netbeans-modules-scala-stdplatform-probe.jar", "org.netbeans.modules.scala.stdplatform", false).getAbsolutePath(); // NOI18N
             command[3] = "org.netbeans.modules.scala.stdplatform.wizard.SDKProbe";

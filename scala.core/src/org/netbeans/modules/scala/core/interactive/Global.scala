@@ -17,8 +17,8 @@ import scala.tools.nsc.ast._
 
 /** The main class of the presentation compiler in an interactive environment such as an IDE
  */
-class Global(settings: Settings, reporter: Reporter) 
-extends scala.tools.nsc.Global(settings, reporter) 
+class Global(_settings: Settings, _reporter: Reporter)
+extends scala.tools.nsc.Global(_settings, _reporter)
    with CompilerControl
    with RangePositions
    with ContextTrees
@@ -348,6 +348,16 @@ extends scala.tools.nsc.Global(settings, reporter)
   def stabilizedType(tree: Tree): Type = tree match {
     case Ident(_) if tree.symbol.isStable => singleType(NoPrefix, tree.symbol)
     case Select(qual, _) if tree.symbol.isStable => singleType(qual.tpe, tree.symbol)
+    case Import(expr, selectors) =>
+      tree.symbol.info match {
+        case analyzer.ImportType(expr) => expr match {
+            case s@Select(qual, name) => singleType(qual.tpe, s.symbol)
+            case i : Ident => i.tpe
+            case _ => tree.tpe
+          }
+        case _ => tree.tpe
+      }
+
     case _ => tree.tpe
   }
 
@@ -518,16 +528,16 @@ extends scala.tools.nsc.Global(settings, reporter)
 
   final def recoveredType(tree: Tree): Option[Type] = {
     def findViaGet(atree: Tree) = qualToRecoveredType.get(atree) match {
-      case Some(tpe) => Some(tpe)
       case None => qualToRecoveredType find {
           case (Select(qual, _), _) => qual == atree
           case (SelectFromTypeTree(qual, _), _) => qual == atree
           case (Apply(fun, _), _) => fun == atree
           case (x, _) => x == atree // usaully Ident tree
         } match {
-          case Some((_, tpe)) => Some(tpe)
           case None => None
+          case Some((_, tpe)) => Some(tpe)
         }
+      case some => some
     }
     
     def findViaPos(atree: Tree) = qualToRecoveredType find {
@@ -540,8 +550,8 @@ extends scala.tools.nsc.Global(settings, reporter)
       case (x, _) =>
         (x.pos sameRange atree.pos) // usaully Ident tree
     } match {
-      case Some((_, tpe)) => Some(tpe)
       case None => None
+      case Some((_, tpe)) => Some(tpe)
     }
 
     def find(op: Tree => Option[Type]) = {
@@ -553,13 +563,13 @@ extends scala.tools.nsc.Global(settings, reporter)
             case Apply(fun, _) => op(fun)
             case _ => None
           }
-        case x => x
+        case some => some
       }
     }
 
     find(findViaGet) match {
       case None => find(findViaPos)
-      case x => x
+      case some => some
     }
   }
 
@@ -660,9 +670,9 @@ extends scala.tools.nsc.Global(settings, reporter)
      *  @return true iff typechecked correctly
      */
     private def applyPhase(phase: Phase, unit: CompilationUnit) {
-      val oldSource = reporter.getSource          
+      val oldSource = reporter.getSource
       try {
-        reporter.setSource(unit.source)    
+        reporter.setSource(unit.source)
         atPhase(phase) { phase.asInstanceOf[GlobalPhase] applyPhase unit }
       } finally {
         reporter setSource oldSource

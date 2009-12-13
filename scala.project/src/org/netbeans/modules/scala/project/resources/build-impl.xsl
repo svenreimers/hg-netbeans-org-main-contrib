@@ -154,8 +154,8 @@ is divided into following sections:
                 <property file="${{user.properties.file}}"/>
                 <xsl:comment> The two properties below are usually overridden </xsl:comment>
                 <xsl:comment> by the active platform. Just a fallback. </xsl:comment>
-                <property name="default.javac.source" value="1.4"/>
-                <property name="default.javac.target" value="1.4"/>
+                <property name="default.javac.source" value="1.5"/>
+                <property name="default.javac.target" value="1.5"/>
             </target>
 
             <target name="-init-project">
@@ -264,6 +264,7 @@ is divided into following sections:
                 <property name="javadoc.encoding.used" value="${{source.encoding}}"/>
                 <property name="includes" value="**"/>
                 <property name="excludes" value=""/>
+                <property name="extdirs" value=" "/> <!-- should be " " instead of ""-->
                 <property name="do.depend" value="false"/>
                 <condition property="do.depend.true">
                     <istrue value="${{do.depend}}"/>
@@ -479,6 +480,10 @@ is divided into following sections:
                         <xsl:attribute name="default">${javac.classpath}</xsl:attribute>
                     </attribute>
                     <attribute>
+                        <xsl:attribute name="name">extdirs</xsl:attribute>
+                        <xsl:attribute name="default">${extdirs}</xsl:attribute>
+                    </attribute>
+                    <attribute>
                         <xsl:attribute name="name">includes</xsl:attribute>
                         <xsl:attribute name="default">${includes}</xsl:attribute>
                     </attribute>
@@ -503,6 +508,7 @@ is divided into following sections:
                             <xsl:attribute name="srcdir">@{srcdir}</xsl:attribute>
                             <xsl:attribute name="sourcepath">@{sourcepath}</xsl:attribute>
                             <xsl:attribute name="destdir">@{destdir}</xsl:attribute>
+                            <xsl:attribute name="extdirs">@{extdirs}</xsl:attribute> <!-- Should not be empty, can use " "-->
                             <xsl:attribute name="deprecation">${scalac.deprecation}</xsl:attribute>
                             <xsl:attribute name="unchecked">${scalac.unchecked}</xsl:attribute>
                             <xsl:attribute name="encoding">${source.encoding}</xsl:attribute>
@@ -513,7 +519,8 @@ is divided into following sections:
                             <xsl:attribute name="includes">@{includes}</xsl:attribute>
                             <xsl:attribute name="excludes">@{excludes}</xsl:attribute>
                             <xsl:attribute name="force">yes</xsl:attribute>
-                            <xsl:attribute name="addparams">-make:transitive -dependencyfile ${build.dir}/.scala_dependencies @{addparams}</xsl:attribute>
+                            <xsl:attribute name="fork">true</xsl:attribute>
+                            <xsl:attribute name="addparams">-make:transitive -dependencyfile &quot;${basedir}/${build.dir}/.scala_dependencies&quot; @{addparams}</xsl:attribute>
                             <!--<xsl:attribute name="includeantruntime">false</xsl:attribute>-->
                             <classpath>
                                 <path>
@@ -1146,7 +1153,6 @@ is divided into following sections:
                     <xsl:attribute name="srcdir">${src.dir}</xsl:attribute>
                     <xsl:attribute name="deprecation">yes</xsl:attribute>
                     <xsl:attribute name="unchecked">yes</xsl:attribute>
-                    <xsl:attribute name="windowtitle">${javadoc.windowtitle}</xsl:attribute>
                     <xsl:attribute name="doctitle">${javadoc.windowtitle}</xsl:attribute>
                     <xsl:attribute name="addparams">${javadoc.additionalparam}</xsl:attribute>
                     <xsl:attribute name="encoding">${javadoc.encoding.used}</xsl:attribute>

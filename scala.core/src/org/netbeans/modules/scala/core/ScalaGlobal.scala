@@ -42,13 +42,12 @@ import java.io.{File, IOException}
 import java.net.{MalformedURLException, URISyntaxException, URL}
 import java.util.logging.{Logger, Level}
 import org.netbeans.api.java.classpath.ClassPath
-import org.netbeans.api.java.queries.BinaryForSourceQuery
 import org.netbeans.api.lexer.{TokenHierarchy}
 import org.netbeans.api.project.{FileOwnerQuery, Project, ProjectUtils}
 import org.netbeans.spi.java.queries.BinaryForSourceQueryImplementation
 import org.openide.filesystems.{FileChangeAdapter, FileEvent, FileObject, FileRenameEvent,
                                 FileStateInvalidException, FileUtil, JarFileSystem, FileChangeListener}
-import org.openide.util.{Exceptions, RequestProcessor}
+import org.openide.util.{Exceptions, RequestProcessor, Utilities}
 
 import org.netbeans.modules.scala.core.ast.{ScalaItems, ScalaDfns, ScalaRefs, ScalaRootScope, ScalaAstVisitor, ScalaUtils}
 import org.netbeans.modules.scala.core.element.{ScalaElements, JavaElements}
@@ -58,11 +57,10 @@ import scala.collection.mutable.{ArrayBuffer, LinkedHashMap, WeakHashMap}
 import scala.tools.nsc.{Settings}
 
 import org.netbeans.modules.scala.core.interactive.Global
-import scala.tools.nsc.symtab.{Flags}
 import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.io.PlainFile
 import scala.tools.nsc.reporters.{Reporter}
-import scala.tools.nsc.util.{Position, SourceFile, NoPosition}
+import scala.tools.nsc.util.{Position, SourceFile}
 
 /**
  *
@@ -176,29 +174,32 @@ object ScalaGlobal {
     toResetGlobals = Map[ScalaGlobal, Project]()
   }
 
-  def getOutFileObject(fo: FileObject, refresh: Boolean): Option[FileObject] = {
+  private def getResourceOf(fo: FileObject, refresh: Boolean): Map[FileObject, FileObject] = {
     val project = FileOwnerQuery.getOwner(fo)
     if (project == null) {
       // * it may be a standalone file, or file in standard lib
-      return None
+      return Map()
     }
 
     val resource = if (refresh ) {
-      findDirResources(project)
+      findDirResource(project)
     } else {
-      projectToResources.get(project) getOrElse findDirResources(project)
+      projectToResources.get(project) getOrElse findDirResource(project)
     }
 
-    // * is this `fo` under test source?
-    val forTest = resource.testToOut exists {case (src, _) =>
-        src.equals(fo) || FileUtil.isParentOf(src, fo)
-    }
+    if (isForTest(resource, fo)) resource.testToOut else resource.srcToOut
+  }
 
-    var outPath: FileObject = null
-    var srcPaths: List[FileObject] = Nil
-    for ((src, out) <- if (forTest) resource.testToOut else resource.srcToOut) {
-      srcPaths ::= src
+  def getSrcFileObjects(fo: FileObject, refresh: Boolean): Array[FileObject] = {
+    val resource = getResourceOf(fo, refresh)
+    val srcPaths = for ((src, out) <- resource) yield src
 
+    srcPaths.toArray
+  }
+
+  def getOutFileObject(fo: FileObject, refresh: Boolean): Option[FileObject] = {
+    val resource = getResourceOf(fo, refresh)
+    for ((src, out) <- resource) {
       try {
         val file = FileUtil.toFile(out)
         if (!file.exists) file.mkdirs
@@ -208,6 +209,11 @@ object ScalaGlobal {
     }
 
     None
+  }
+
+  private def isForTest(resource: DirResource, fo: FileObject) = {
+    // * is this `fo` under test source?
+    resource.testToOut exists {case (src, _) => src.equals(fo) || FileUtil.isParentOf(src, fo)}
   }
 
   /**
@@ -227,15 +233,12 @@ object ScalaGlobal {
     }
 
     val resource = projectToResources.get(project) getOrElse {
-      val x = findDirResources(project)
+      val x = findDirResource(project)
       projectToResources += (project -> x)
       x
     }
 
-    // * is this `fo` under test source?
-    val forTest = resource.testToOut exists {case (src, _) =>
-        src.equals(fo) || FileUtil.isParentOf(src, fo)
-    }
+    val forTest = isForTest(resource, fo)
 
     // * Do not use `srcCp` as the key, different `fo` under same src dir seems returning diff instance of srcCp
     val idx = if (forDebug) {
@@ -277,6 +280,23 @@ object ScalaGlobal {
         true // * in case of `fo` in standard libaray
       } else false
 
+    logger.info("scala.home: " + System.getProperty("scala.home"))
+
+    // ----- set bootclasspath, classpath
+    
+    val bootCpStr = toClassPathString(project, bootCp)
+    settings.bootclasspath.value = bootCpStr
+    logger.info("project's bootclasspath: " + settings.bootclasspath.value)
+
+    val compCpStr = toClassPathString(project, compCp)
+    settings.classpath.value = compCpStr
+    logger.info("project's classpath: " + settings.classpath.value)
+
+    // * should set extdirs to empty, otherwise all jars under scala.home/lib will be added
+    // * which brings unwanted scala runtime (scala runtime should be set in compCpStr).
+    // * @see scala.tools.nsc.Settings#extdirsDefault
+    settings.extdirs.value = ""
+
     // ----- set sourcepath, outpath
     
     var outPath = ""
@@ -300,14 +320,14 @@ object ScalaGlobal {
     // * @Note: do not add src path to global for test, since the corresponding build/classes has been added to compCp
 
     settings.sourcepath.tryToSet(srcPaths.reverse)
-    settings.outputDirs.setSingleOutput(outPath)
+    settings.outdir.value = outPath
 
     logger.info("project's source paths set for global: " + srcPaths)
     logger.info("project's output paths set for global: " + outPath)
     if (srcCp != null){
       logger.info(srcCp.getRoots.mkString("project's srcCp: [", ", ", "]"))
     } else {
-      logger.info("project's srcCp is empty !")
+      logger.info("project's srcCp is null !")
     }
     
     // * @Note: settings.outputDirs.add(src, out) seems cannot resolve symbols in other source files, why?
@@ -316,16 +336,6 @@ object ScalaGlobal {
      settings.outputDirs.add(src, out)
      }
      */
-
-    // ----- set bootclasspath, classpath
-
-    val sb = new StringBuilder
-    concatClassPath(project, sb, bootCp)
-    settings.bootclasspath.tryToSet(List(sb.toString))
-
-    sb.delete(0, sb.length)
-    concatClassPath(project, sb, compCp)
-    settings.classpath.tryToSet(List(sb.toString))
 
     // ----- now, the new global
 
@@ -371,7 +381,7 @@ object ScalaGlobal {
     }
   }
 
-  private def findDirResources(project: Project): DirResource = {
+  private def findDirResource(project: Project): DirResource = {
     val resource = new DirResource
 
     val sources = ProjectUtils.getSources(project)
@@ -475,31 +485,30 @@ object ScalaGlobal {
     out
   }
 
-  private def concatClassPath(project: Project, sb: StringBuilder, cp: ClassPath): Unit = {
-    if (cp == null) {
-      return
-    }
+  private def toClassPathString(project: Project, cp: ClassPath): String = {
+    if (cp == null) return ""
 
+    val sb = new StringBuilder
     val itr = cp.entries.iterator
     while (itr.hasNext) {
-      val rootFile = try {
-        val entryRoot = itr.next.getRoot
-        if (entryRoot != null) {
-          entryRoot.getFileSystem match {
-            case jfs: JarFileSystem => jfs.getJarFile
-            case _ => FileUtil.toFile(entryRoot)
+      val rootFile =
+        try {
+          itr.next.getRoot match {
+            case null => null
+            case entryRoot => entryRoot.getFileSystem match {
+                case jfs: JarFileSystem => jfs.getJarFile
+                case _ => FileUtil.toFile(entryRoot)
+              }
           }
-        } else null
-      } catch {case ex:FileStateInvalidException => Exceptions.printStackTrace(ex); null}
+        } catch {case ex:FileStateInvalidException => Exceptions.printStackTrace(ex); null}
 
       if (rootFile != null) {
-        val path = rootFile.getAbsolutePath
-        sb.append(path)
-        if (itr.hasNext) {
-          sb.append(File.pathSeparator)
-        }
+        sb.append(rootFile.getAbsolutePath)
+        if (itr.hasNext) sb.append(File.pathSeparator)
       }
     }
+
+    sb.toString
   }
 
   private class SrcCpListener(global: ScalaGlobal, srcCp: ClassPath) extends FileChangeAdapter {
@@ -591,13 +600,13 @@ object ScalaGlobal {
   }
 }
 
-class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(settings, reporter)
-                                                             with ScalaItems
-                                                             with ScalaDfns
-                                                             with ScalaRefs
-                                                             with ScalaElements
-                                                             with JavaElements
-                                                             with ScalaUtils {
+class ScalaGlobal(_settings: Settings, _reporter: Reporter) extends Global(_settings, _reporter)
+                                                               with ScalaItems
+                                                               with ScalaDfns
+                                                               with ScalaRefs
+                                                               with ScalaElements
+                                                               with JavaElements
+                                                               with ScalaUtils {
   import ScalaGlobal._
 
   // * Inner object inside a class is not singleton, so it's safe for each instance of ScalaGlobal,
@@ -695,6 +704,32 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
     }
   }
 
+  // ----- @lambdaLift Some test code to detect if lambdaLift can apply just after typer, but no success:
+
+  def askLambdaLift(source: SourceFile, forceReload: Boolean, result: Response[Tree]) =
+    scheduler postWorkItem new WorkItem(List(source)) {
+      def apply() = getLambdaLiftedTree(source, forceReload, result)
+      override def toString = "lambdaLift"
+    }
+
+  /** Set sync var `result` to a fully attributed tree corresponding to the entire compilation unit  */
+  def getLambdaLiftedTree(source : SourceFile, forceReload: Boolean, result: Response[Tree]) {
+    respond(result)(lambdaLiftedTree(source, forceReload))
+  }
+
+  /** A fully lambdaLifted tree corresponding to the entire compilation unit  */
+  def lambdaLiftedTree(source: SourceFile, forceReload: Boolean): Tree = {
+    val unit = unitOf(source)
+    val sources = List(source)
+    if (unit.status == NotLoaded || forceReload) reloadSources(sources)
+    moveToFront(sources)
+    currentTyperRun.typedTree(unitOf(source))
+    currentTyperRun.lambdaLiftedTree(unitOf(source))
+  }
+
+
+  // ----- Code that has been deprecated, for reference only
+  
   /** batch complie */
   def compileSourcesForPresentation(srcFiles: List[FileObject]): Unit = {
     settings.stop.value = Nil
@@ -748,7 +783,7 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
 
     //println("selectTypeErrors:" + selectTypeErrors)
 
-    run.units find {_.source == srcFile} map {unit =>
+    run.units find {_.source eq srcFile} map {unit =>
       if (ScalaGlobal.debug) {
         RequestProcessor.getDefault.post(new Runnable {
             def run {
@@ -761,183 +796,5 @@ class ScalaGlobal(settings: Settings, reporter: Reporter) extends Global(setting
     } getOrElse ScalaRootScope.EMPTY
   }
 
-  // <editor-fold defaultstate="collapsed" desc="lambdaLift">
-  // ----- @lambdaLift Some test code to detect if lambdaLift can apply just after typer, but no success:
-
-  def askLambdaLift(source: SourceFile, forceReload: Boolean, result: Response[Tree]) =
-    scheduler postWorkItem new WorkItem(List(source)) {
-      def apply() = getLambdaLiftedTree(source, forceReload, result)
-      override def toString = "lambdaLift"
-    }
-
-  /** Set sync var `result` to a fully attributed tree corresponding to the entire compilation unit  */
-  def getLambdaLiftedTree(source : SourceFile, forceReload: Boolean, result: Response[Tree]) {
-    respond(result)(lambdaLiftedTree(source, forceReload))
-  }
-
-  /** A fully lambdaLifted tree corresponding to the entire compilation unit  */
-  def lambdaLiftedTree(source: SourceFile, forceReload: Boolean): Tree = {
-    val unit = unitOf(source)
-    val sources = List(source)
-    if (unit.status == NotLoaded || forceReload) reloadSources(sources)
-    moveToFront(sources)
-    currentTyperRun.typedTree(unitOf(source))
-    currentTyperRun.lambdaLiftedTree(unitOf(source))
-  }
-
-  // ----- end @lambdaLift Some test code to detect if lambdaLift can apply just after typer, but no success:
-  // </editor-fold>
-
-  // ----- helper methods, patched version from interactive.Global and CompilerControl
-
-  import analyzer.{SearchResult, ImplicitSearch}
-
-  def askTypeCompletion(pos: Position, alternatePos: Position, resultTpe: Type, result: Response[List[Member]]) =
-    scheduler postWorkItem new WorkItem(List(pos.source)) {
-      def apply() = getTypeCompletion(pos, alternatePos, resultTpe, result)
-      override def toString = "type completion "+pos.source+" "+pos.show
-    }
-
-  def getTypeCompletion(pos: Position, alternatePos: Position, resultTpe: Type, result: Response[List[Member]]) {
-    respond(result) { typeMembers(pos, alternatePos, resultTpe) }
-    if (debugIDE) scopeMembers(pos, true)
-  }
-
-  /**
-   * When we are doing completion, what we need is an `Ident` or `qualifier` of `Select` tree
-   * we'll collect the members of result type of this `Ident` or `qualifier`
-   */
-  def completionTypeAt(pos: Position, alternatePos: Position): Tree = {
-    try {
-      typedTreeAt(pos, true) match {
-        case me@Ident(name) => me
-        case Select(qualifier, name) => qualifier
-        case x =>
-          alternatePos match {
-            case NoPosition => logger.warning("Got a suspicious completion tree: " + x.getClass.getSimpleName); x
-            case _ => completionTypeAt(alternatePos, NoPosition)
-          }
-      }
-    } catch {
-      case ex =>
-        alternatePos match {
-          case NoPosition => EmptyTree
-          case _ => completionTypeAt(alternatePos, NoPosition)
-        }
-    }
-  }
-
-  /**
-   * @todo: doLocateContext may return none, should fix it
-   * from interative.Global#typeMembers
-   */
-  def typeMembers(apos: Position, alternatePos: Position, resultTpe: Type): List[TypeMember] = {
-    // @Note typedTreeAt throws exceptions sometimes, which damages global, we actually has
-    // typed unit when askForPresentation, this step is useless, so, just locateTree(alternatePos)
-    /* val (pos, tree) = completionTypeAt(apos, alternatePos) match {
-     case EmptyTree => return Nil
-     case x => (x.pos, x)
-     } */
-
-    val (pos, tree) = (alternatePos, locateTree(alternatePos))
-
-    val restpe = resultTpe
-    tree.tpe match {
-      case null | ErrorType | NoType =>
-        GlobalLog.warning("==== Tree type is null or error, will replace resultTpe with " + resultTpe)
-      case x =>
-    }
-
-    val isPackage = restpe.typeSymbol hasFlag Flags.PACKAGE
-
-    GlobalLog.info("typeMembers at " + tree + ", tree class=" + tree.getClass.getSimpleName + ", tpe=" + tree.tpe +
-                   ", restpe=" + restpe + ", isPackage=" + isPackage + ", typeSymbol=" + restpe.typeSymbol)
-
-    val context = try {
-      doLocateContext(pos)
-    } catch {case ex => println(ex.getMessage); NoContext}
-    
-    val superAccess = tree.isInstanceOf[Super]
-    val scope = new Scope
-    val members = new LinkedHashMap[Symbol, TypeMember]
-
-    def addTypeMember1(sym: Symbol, pre: Type, inherited: Boolean, viaView: Symbol) {
-      val symtpe = pre.memberType(sym)
-      if (scope.lookupAll(sym.name) forall (sym => !(members(sym).tpe matches symtpe))) {
-        scope enter sym
-        members(sym) = new TypeMember(
-          sym,
-          symtpe,
-          context.isAccessible(sym, pre, superAccess && (viaView == NoSymbol)),
-          inherited,
-          viaView)
-      }
-    }
-
-    def addPackageMember1(sym: Symbol, pre: Type, inherited: Boolean, viaView: Symbol) {
-      // * don't ask symtpe here via pre.memberType(sym) or sym.tpe, which may throw "no-symbol does not have owner" in doComplete
-      members(sym) = new TypeMember(
-        sym,
-        NoPrefix,
-        context.isAccessible(sym, pre, false),
-        inherited,
-        viaView)
-    }
-
-    def viewApply1(view: SearchResult): Tree = {
-      if (context == null) EmptyTree
-      assert(view.tree != EmptyTree)
-      try {
-        analyzer.newTyper(context.makeImplicit(false)).typed(Apply(view.tree, List(tree)) setPos tree.pos)
-      } catch {
-        case ex: TypeError => EmptyTree
-      }
-    }
-
-    // ----- begin adding members
-
-    if (isPackage) {
-      val pre = restpe
-      for (sym <- restpe.members if !sym.isError && sym.nameString.indexOf('$') == -1) {
-        addPackageMember1(sym, pre, false, NoSymbol)
-      }
-    } else {
-
-      val pre = try {
-        stabilizedType(tree) match {
-          case null => restpe
-          case x => x
-        }
-      } catch {case ex => println(ex.getMessage); restpe}
-
-      try {
-        for (sym <- restpe.decls) {
-          addTypeMember1(sym, pre, false, NoSymbol)
-        }
-      } catch {case ex => ex.printStackTrace}
-
-      try {
-        for (sym <- restpe.members) {
-          addTypeMember1(sym, pre, true, NoSymbol)
-        }
-      } catch {case ex => ex.printStackTrace}
-
-      try {
-        val applicableViews: List[SearchResult] =
-          new ImplicitSearch(tree, definitions.functionType(List(restpe), definitions.AnyClass.tpe), true, context.makeImplicit(false)).allImplicits
-
-        for (view <- applicableViews) {
-          val vtree = viewApply1(view)
-          val vpre = stabilizedType(vtree)
-          for (sym <- vtree.tpe.members) {
-            addTypeMember1(sym, vpre, false, view.tree.symbol)
-          }
-        }
-      } catch {case ex => ex.printStackTrace}
-
-    }
-    
-    members.valuesIterator.toList
-  }
 
 }
