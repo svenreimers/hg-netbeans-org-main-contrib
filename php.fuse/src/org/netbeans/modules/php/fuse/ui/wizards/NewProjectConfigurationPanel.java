@@ -39,13 +39,12 @@
 
 package org.netbeans.modules.php.fuse.ui.wizards;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -63,6 +62,7 @@ import org.jdesktop.layout.GroupLayout;
 import org.jdesktop.layout.LayoutStyle;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.netbeans.modules.php.fuse.FuseFramework;
+import org.netbeans.modules.php.fuse.ui.options.FuseOptions;
 import org.netbeans.modules.php.fuse.utils.InitialFuseSetup;
 import org.openide.awt.Mnemonics;
 import org.openide.util.ChangeSupport;
@@ -76,6 +76,9 @@ public class NewProjectConfigurationPanel extends JPanel {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
 
+    /**
+     * Panel which is shown in the last panel of wizard for creating new PHP projects.
+     */
     public NewProjectConfigurationPanel() {
         initComponents();
 
@@ -100,6 +103,10 @@ public class NewProjectConfigurationPanel extends JPanel {
         changeSupport.addChangeListener(listener);
     }
 
+    /**
+     * Get warning message what is wrong in forms for new project creation.
+     * @return which values are bad
+     */
     public String getWarningMessage() {
         String warnings = null;
         if (setupDBCheckBox.isSelected()) {
@@ -115,7 +122,14 @@ public class NewProjectConfigurationPanel extends JPanel {
         changeSupport.removeChangeListener(listener);
     }
 
-    // saving parameters from wizard into help class
+    private FuseOptions getOptions() {
+        return FuseOptions.getInstance();
+    }
+
+    /**
+     * Save parameters from wizard into help class from which will be data read for inicialization script.
+     * @return class with loaded all data
+     */
     public InitialFuseSetup getSettings() {
         InitialFuseSetup fuseSetup = new InitialFuseSetup();
         if (copyFuseCheckBox.isSelected()) {
@@ -164,6 +178,7 @@ public class NewProjectConfigurationPanel extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        optionsLabel = new JLabel();
         fuseProjectTabbedPane = new JTabbedPane();
         generalTab = new JPanel();
         copyFuseCheckBox = new JCheckBox();
@@ -177,6 +192,17 @@ public class NewProjectConfigurationPanel extends JPanel {
         dbHostnameTextField = new JTextField();
         dbPasswordTextField = new JTextField();
         dbNameTextField = new JTextField();
+
+        optionsLabel.setForeground(Color.blue);
+        Mnemonics.setLocalizedText(optionsLabel, NbBundle.getMessage(NewProjectConfigurationPanel.class, "NewProjectConfigurationPanel.optionsLabel.text"));
+        optionsLabel.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
+                optionsLabelMouseEntered(evt);
+            }
+            public void mousePressed(MouseEvent evt) {
+                optionsLabelMousePressed(evt);
+            }
+        });
 
         fuseProjectTabbedPane.setDoubleBuffered(true);
 
@@ -216,7 +242,7 @@ public class NewProjectConfigurationPanel extends JPanel {
                 .add(generalTabLayout.createParallelGroup(GroupLayout.LEADING)
                     .add(copyFuseCheckBox)
                     .add(setupDBCheckBox))
-                .add(364, 364, 364))
+                .addContainerGap(81, Short.MAX_VALUE))
         );
         generalTabLayout.setVerticalGroup(
             generalTabLayout.createParallelGroup(GroupLayout.LEADING)
@@ -225,7 +251,7 @@ public class NewProjectConfigurationPanel extends JPanel {
                 .add(copyFuseCheckBox)
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(setupDBCheckBox)
-                .addContainerGap(109, Short.MAX_VALUE))
+                .addContainerGap(91, Short.MAX_VALUE))
         );
 
         fuseProjectTabbedPane.addTab(NbBundle.getMessage(NewProjectConfigurationPanel.class, "NewProjectConfigurationPanel.generalTab.TabConstraints.tabTitle"), generalTab); // NOI18N
@@ -251,10 +277,10 @@ public class NewProjectConfigurationPanel extends JPanel {
                     .add(dbPasswordLabel))
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(databaseTabLayout.createParallelGroup(GroupLayout.LEADING)
-                    .add(GroupLayout.TRAILING, dbPasswordTextField, GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
-                    .add(GroupLayout.TRAILING, dbUsernameTextField, GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
-                    .add(dbHostnameTextField, GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
-                    .add(GroupLayout.TRAILING, dbNameTextField, GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE))
+                    .add(GroupLayout.TRAILING, dbPasswordTextField, GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
+                    .add(GroupLayout.TRAILING, dbUsernameTextField, GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
+                    .add(dbHostnameTextField, GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
+                    .add(GroupLayout.TRAILING, dbNameTextField, GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE))
                 .addContainerGap())
         );
         databaseTabLayout.setVerticalGroup(
@@ -276,7 +302,7 @@ public class NewProjectConfigurationPanel extends JPanel {
                 .add(databaseTabLayout.createParallelGroup(GroupLayout.BASELINE)
                     .add(dbPasswordTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .add(dbPasswordLabel))
-                .addContainerGap(32, Short.MAX_VALUE))
+                .addContainerGap(14, Short.MAX_VALUE))
         );
 
         fuseProjectTabbedPane.addTab(NbBundle.getMessage(NewProjectConfigurationPanel.class, "NewProjectConfigurationPanel.databaseTab.TabConstraints.tabTitle"), databaseTab); // NOI18N
@@ -284,11 +310,17 @@ public class NewProjectConfigurationPanel extends JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.LEADING)
-            .add(fuseProjectTabbedPane, GroupLayout.DEFAULT_SIZE, 617, Short.MAX_VALUE)
+            .add(GroupLayout.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(273, Short.MAX_VALUE)
+                .add(optionsLabel))
+            .add(fuseProjectTabbedPane, GroupLayout.DEFAULT_SIZE, 334, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.LEADING)
-            .add(fuseProjectTabbedPane, GroupLayout.PREFERRED_SIZE, 202, GroupLayout.PREFERRED_SIZE)
+            .add(layout.createSequentialGroup()
+                .add(optionsLabel)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(fuseProjectTabbedPane, GroupLayout.PREFERRED_SIZE, 184, GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -310,6 +342,14 @@ public class NewProjectConfigurationPanel extends JPanel {
         changeSupport.fireChange();
     }//GEN-LAST:event_fuseProjectTabbedPaneComponentShown
 
+    private void optionsLabelMouseEntered(MouseEvent evt) {//GEN-FIRST:event_optionsLabelMouseEntered
+        evt.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }//GEN-LAST:event_optionsLabelMouseEntered
+
+    private void optionsLabelMousePressed(MouseEvent evt) {//GEN-FIRST:event_optionsLabelMousePressed
+        OptionsDisplayer.getDefault().open(FuseFramework.getOptionsPath());
+    }//GEN-LAST:event_optionsLabelMousePressed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JCheckBox copyFuseCheckBox;
@@ -324,6 +364,7 @@ public class NewProjectConfigurationPanel extends JPanel {
     private JTextField dbUsernameTextField;
     private JTabbedPane fuseProjectTabbedPane;
     private JPanel generalTab;
+    private JLabel optionsLabel;
     private JCheckBox setupDBCheckBox;
     // End of variables declaration//GEN-END:variables
 

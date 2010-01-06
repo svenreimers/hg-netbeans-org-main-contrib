@@ -36,35 +36,49 @@
  *
  * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.php.fuse;
 
-import java.io.IOException;
-import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataNode;
-import org.openide.loaders.DataObjectExistsException;
-import org.openide.loaders.MultiDataObject;
-import org.openide.loaders.MultiFileLoader;
-import org.openide.nodes.CookieSet;
-import org.openide.nodes.Node;
-import org.openide.nodes.Children;
-import org.openide.util.Lookup;
-import org.openide.text.DataEditorSupport;
+@Multiple({
+    @Schema2Beans(
+        schema="../../resources/data-sources-10_1.xsd",
+        schemaType=SchemaType.XML_SCHEMA,
+        outputType=OutputType.TRADITIONAL_BASEBEAN,
+        validate=false,
+        attrProp=true,
+        removeUnreferencedNodes=true,
+        docRoot="data-sources"
+    ),
+    @Schema2Beans(
+        schema="../../resources/orion-application-10_0.xsd",
+        schemaType=SchemaType.XML_SCHEMA,
+        outputType=OutputType.TRADITIONAL_BASEBEAN,
+        validate=false,
+        attrProp=true,
+        removeUnreferencedNodes=true,
+        docRoot="orion-application"
+    ),
+    @Schema2Beans(
+        schema="../../resources/orion-ejb-jar-10_0.xsd",
+        schemaType=SchemaType.XML_SCHEMA,
+        mddFile="../../resources/orion-ejb-jar-10_0.mdd",
+        outputType=OutputType.TRADITIONAL_BASEBEAN,
+        validate=false,
+        attrProp=true,
+        removeUnreferencedNodes=true,
+        docRoot="orion-ejb-jar"
+    ),
+    @Schema2Beans(
+        schema="../../resources/orion-web-10_0.xsd",
+        schemaType=SchemaType.XML_SCHEMA,
+        outputType=OutputType.TRADITIONAL_BASEBEAN,
+        validate=false,
+        attrProp=true,
+        removeUnreferencedNodes=true,
+        docRoot="orion-web-app"
+    )
+})
+package org.netbeans.modules.j2ee.oc4j.config.gen;
 
-public class TmplDataObject extends MultiDataObject {
-
-    public TmplDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException {
-        super(pf, loader);
-        CookieSet cookies = getCookieSet();
-        cookies.add((Node.Cookie) DataEditorSupport.create(this, getPrimaryEntry(), cookies));
-    }
-
-    @Override
-    protected Node createNodeDelegate() {
-        return new DataNode(this, Children.LEAF, getLookup());
-    }
-
-    @Override
-    public Lookup getLookup() {
-        return getCookieSet().getLookup();
-    }
-}
+import org.netbeans.modules.schema2beans.Schema2Beans;
+import org.netbeans.modules.schema2beans.Schema2Beans.Multiple;
+import org.netbeans.modules.schema2beans.Schema2Beans.OutputType;
+import org.netbeans.modules.schema2beans.Schema2Beans.SchemaType;

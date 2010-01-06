@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.StyledDocument;
@@ -54,13 +53,11 @@ import org.netbeans.api.lexer.InputAttributes;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenSequence;
-import org.netbeans.modules.editor.NbEditorDocument;
 import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.parsing.api.Source;
 import org.netbeans.modules.php.fuse.editor.TmplParseData;
 import org.netbeans.modules.php.fuse.lexer.FuseTokenId;
 import org.netbeans.modules.php.fuse.lexer.FuseTopTokenId;
-import org.netbeans.spi.lexer.MutableTextInput;
 import org.openide.filesystems.FileObject;
 
 /**
@@ -69,6 +66,11 @@ import org.openide.filesystems.FileObject;
  */
 public class EditorUtils {
 
+    /**
+     * Get index of white character in the line.
+     * @param line which line should be scanned
+     * @return index of first white characted
+     */
     public static int indexOfWhite(char[] line) {
         int i = line.length;
         while (--i > -1) {
@@ -80,6 +82,13 @@ public class EditorUtils {
         return -1;
     }
 
+    /**
+     * Get first non whitespace in file from some offset.
+     * @param doc which document should be scanned
+     * @param offset where the scanning starts
+     * @return index of first non-white character
+     * @throws BadLocationException entered offset is outside of the document
+     */
     public static int getRowFirstNonWhite(StyledDocument doc, int offset) throws BadLocationException {
         TokenHierarchy<?> th = TokenHierarchy.get(doc);
         TokenSequence<FuseTopTokenId> ts = th.tokenSequence(FuseTopTokenId.language());
@@ -106,6 +115,11 @@ public class EditorUtils {
         return start;
     }
 
+    /**
+     * Get context depending variables for Fuse template.
+     * @param doc for whcih template
+     * @return list with variables which were sent from controller
+     */
     public static ArrayList<String> getKeywordsForView(Document doc) {
         ArrayList<String> results = new ArrayList<String>();
         Source file = Source.create(doc);
@@ -153,6 +167,11 @@ public class EditorUtils {
         return results;
     }
 
+    /**
+     * Get information if the line contains parameter sent into template.
+     * @param line scanned line
+     * @return whole line if there is sent variable or nothing
+     */
     public static String parseLineForVars(String line) {
         if (line.contains("template")) {
             String[] templateProcessing = {"add_param", "add_iterator", "add_by_reference",
@@ -166,6 +185,12 @@ public class EditorUtils {
         return null;
     }
 
+    /**
+     * Get variable from the line.
+     * @param line line which will be used
+     * @param param which keyword for sending variables is there
+     * @return name of the variable
+     */
     public static String parseVariable(String line, String param) {
         line = line.replaceAll(" ", "");
         int indexOfAdd = line.indexOf(param + "(");
