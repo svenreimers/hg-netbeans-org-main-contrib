@@ -41,16 +41,17 @@ package org.netbeans.modules.javahints;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import javax.lang.model.type.TypeMirror;
 import org.netbeans.api.java.source.CompilationInfo;
+import org.netbeans.modules.java.hints.jackpot.impl.pm.Pattern;
+import org.netbeans.modules.java.hints.jackpot.spi.JavaFix;
 import org.netbeans.modules.java.hints.spi.AbstractHint;
-import org.netbeans.modules.javahints.epi.JavaFix;
-import org.netbeans.modules.javahints.epi.Pattern;
 import org.netbeans.spi.editor.hints.ErrorDescription;
 import org.netbeans.spi.editor.hints.Fix;
 
@@ -74,21 +75,26 @@ public class NoDOGetCookie extends AbstractHint {
     }
 
     public List<ErrorDescription> run(CompilationInfo info, TreePath treePath) {
-        Map<String, TreePath> vars = Pattern.matchesPattern(info,
-                                                            "$1:org.openide.loaders.DataObject:.getCookie($2:org.openide.nodes.Node.Cookie:)",
-                                                            treePath,
-                                                            new AtomicBoolean());
+        Map<String, TreePath> vars = Pattern.compile(info, "$1:org.openide.loaders.DataObject:.getCookie($2:org.openide.nodes.Node.Cookie:)").match(treePath);
 
         if (vars == null) {
             return null;
         }
 
-        List<Fix> fix = Collections.singletonList(JavaFix.rewriteFix(info, "Use getLookup", treePath, "$1.getLookup().lookup($2)", vars));
+        Fix fix = JavaFix.rewriteFix(info,
+                                     "Use getLookup",
+                                     treePath,
+                                     "$1.getLookup().lookup($2)",
+                                     vars,
+                                     Collections.<String, Collection<? extends TreePath>>emptyMap(),
+                                     Collections.<String, String>emptyMap(),
+                                     Collections.<String, TypeMirror>emptyMap());
+        List<Fix> fixes = Collections.singletonList(fix);
         
         int start = (int) info.getTrees().getSourcePositions().getStartPosition(info.getCompilationUnit(), treePath.getLeaf());
         int end   = (int) info.getTrees().getSourcePositions().getEndPosition(info.getCompilationUnit(), treePath.getLeaf());
         
-        ErrorDescription ed = org.netbeans.spi.editor.hints.ErrorDescriptionFactory.createErrorDescription(getSeverity().toEditorSeverity(), "Use of DO.getCookie", fix, info.getFileObject(), start, end);
+        ErrorDescription ed = org.netbeans.spi.editor.hints.ErrorDescriptionFactory.createErrorDescription(getSeverity().toEditorSeverity(), "Use of DO.getCookie", fixes, info.getFileObject(), start, end);
 
         return Collections.singletonList(ed);
     }
