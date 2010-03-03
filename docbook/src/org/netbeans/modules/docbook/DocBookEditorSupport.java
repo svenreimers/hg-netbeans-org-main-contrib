@@ -44,6 +44,8 @@ package org.netbeans.modules.docbook;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -54,10 +56,12 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JEditorPane;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import org.netbeans.api.docbook.ContentHandlerCallback;
 import org.netbeans.api.docbook.ParseJob;
@@ -73,6 +77,8 @@ import org.openide.text.Annotation;
 import org.openide.text.CloneableEditor;
 import org.openide.text.DataEditorSupport;
 import org.openide.text.Line;
+import org.openide.text.Line.ShowOpenType;
+import org.openide.text.Line.ShowVisibilityType;
 import org.openide.windows.CloneableOpenSupport;
 import org.xml.sax.Attributes;
 import org.xml.sax.ErrorHandler;
@@ -81,7 +87,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class DocBookEditorSupport extends DataEditorSupport implements EditorCookie, OpenCookie, CloseCookie, PrintCookie {
+public class DocBookEditorSupport extends DataEditorSupport implements EditorCookie, OpenCookie, CloseCookie, PrintCookie, EditorCookie.Observable {
+    Save save = new Save();
     private static final String IMG_TEMPLATE =
             "\n <figure id=\"$ID\">\n" + //NOI18N
             "     <title>$TITLE</title>\n" + //NOI18N
@@ -98,25 +105,28 @@ public class DocBookEditorSupport extends DataEditorSupport implements EditorCoo
         setMIMEType("text/xml");
     }
 
+    @Override
     protected boolean notifyModified() {
         if (!super.notifyModified()) {
             return false;
         }
-        DocBookDataObject obj = (DocBookDataObject)getDataObject();
-        if (obj.getCookie(SaveCookie.class) == null) {
-            obj.setModified(true);
-            obj.addSaveCookie(new Save());
+        DataObject dob = getDataObject();
+        Savable s = dob.getLookup().lookup(Savable.class);
+        if (s != null) {
+            s.addSaveCookie(save);
         }
+        getDataObject().setModified(true);
         return true;
     }
 
+    @Override
     protected void notifyUnmodified() {
-        DocBookDataObject obj = (DocBookDataObject)getDataObject();
-        SaveCookie save = obj.getCookie(SaveCookie.class);
-        if (save != null) {
-            obj.removeSaveCookie(save);
-            obj.setModified(false);
+        DataObject dob = getDataObject();
+        Savable s = dob.getLookup().lookup(Savable.class);
+        if (s != null) {
+            s.removeSaveCookie(save);
         }
+        dob.setModified(false);
         super.notifyUnmodified();
     }
 
@@ -131,8 +141,7 @@ public class DocBookEditorSupport extends DataEditorSupport implements EditorCoo
     private void refreshAnnotations() {
         ParsingService serv = getDataObject().getNodeDelegate().getLookup().lookup(ParsingService.class);
         if (serv != null) {
-            serv.enqueue(new AnnotationCallback(this,
-                    (DocBookDataObject) getDataObject()));
+            serv.enqueue(new AnnotationCallback(this, getDataObject()));
         }
     }
 
@@ -157,13 +166,39 @@ public class DocBookEditorSupport extends DataEditorSupport implements EditorCoo
         }
     }
 
+    private void addTransferHandlerOnceEditorAvailable(final CloneableEditor editor) {
+        FallbackDataLoader.mark(getDataObject().getPrimaryFile());
+        JEditorPane p = editor.getEditorPane();
+        if (p != null) {
+            TransferHandler handler = ImagePasteSupport.createTransferHandler(
+                    p, IMG_TEMPLATE);
+            p.setTransferHandler(handler);
+        } else {
+            class AL implements ActionListener {
+                private Timer t;
+                public void actionPerformed(ActionEvent e) {
+                    JEditorPane pane = editor.getEditorPane();
+                    if (pane != null) {
+                        t.stop();
+                        TransferHandler handler = ImagePasteSupport.createTransferHandler(
+                            pane, IMG_TEMPLATE);
+                        pane.setTransferHandler(handler);
+                    }
+                }
+            }
+            AL al = new AL();
+            al.t = new Timer(500, al);
+            al.t.setRepeats(true);
+            al.t.start();
+        }
+    }
+
+    @Override
     protected void initializeCloneableEditor(CloneableEditor editor) {
         try {
             super.initializeCloneableEditor(editor);
             editor.open();
-            TransferHandler handler = ImagePasteSupport.createTransferHandler(
-                    editor.getEditorPane(), IMG_TEMPLATE);
-            editor.getEditorPane().setTransferHandler(handler);
+            addTransferHandlerOnceEditorAvailable(editor);
             refreshAnnotations();
         } catch (IllegalStateException ise) {
             //Normal during restart if module has created a dataobject, then
@@ -215,7 +250,7 @@ public class DocBookEditorSupport extends DataEditorSupport implements EditorCoo
                     int ix = list.locationToIndex(me.getPoint());
                     if (ix >= 0) {
                         Ann ann = (Ann) list.getModel().getElementAt(ix);
-                        ann.line.show(Line.SHOW_GOTO);
+                        ann.line.show(ShowOpenType.OPEN, ShowVisibilityType.FOCUS);
                         getOpenedPanes()[0].requestFocus();
                     }
                 }
@@ -233,6 +268,7 @@ public class DocBookEditorSupport extends DataEditorSupport implements EditorCoo
     }
 
     private static final class Ren extends DefaultListCellRenderer {
+        @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             Color fg;
             if (isSelected) {
@@ -277,6 +313,9 @@ public class DocBookEditorSupport extends DataEditorSupport implements EditorCoo
         }
 
         public void run() {
+            if (editor == null || editor.annotations == null || editor.list == null || editor.list.getModel() == null) {
+                return;
+            }
             Ann[] anns = editor.annotations.toArray(new Ann[0]);
             DefaultListModel mdl = (DefaultListModel) editor.list.getModel();
             mdl.clear();

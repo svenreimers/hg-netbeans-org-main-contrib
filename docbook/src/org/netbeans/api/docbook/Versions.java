@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2010 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -34,47 +34,25 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2009 Sun Microsystems, Inc.
+ * Portions Copyrighted 2010 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.scala.editor;
 
-import org.netbeans.modules.csl.api.OccurrencesFinder;
-import org.netbeans.modules.csl.api.SemanticAnalyzer;
-import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
-import org.netbeans.modules.scala.core.ScalaParserResult;
+package org.netbeans.api.docbook;
+
+import org.netbeans.modules.docbook.Config;
 
 /**
+ * Installed versions of things
  *
- * A bridge to bypass scalas' bug which complains:
- *
- *
-[scalac] /Users/dcaoyuan/myprjs/nbsrc/main/contrib/scala.editor/src/org/netbeans/modules/scala/editor/ScalaLanguage.scala:72: error: type mismatch;
-[scalac]  found   : org.netbeans.modules.scala.editor.ScalaSemanticAnalyzer
-[scalac]  required: org.netbeans.modules.csl.api.SemanticAnalyzer
-[scalac]   override def getSemanticAnalyzer = new ScalaSemanticAnalyzer
-[scalac]                                      ^
-[scalac] /Users/dcaoyuan/myprjs/nbsrc/main/contrib/scala.editor/src/org/netbeans/modules/scala/editor/ScalaLanguage.scala:78: error: type mismatch;
-[scalac]  found   : org.netbeans.modules.scala.editor.ScalaOccurrencesFinder
-[scalac]  required: org.netbeans.modules.csl.api.OccurrencesFinder
-[scalac]   override def getOccurrencesFinder = new ScalaOccurrencesFinder
-[scalac]                                       ^
-[scalac] two errors found
-
- * @author dcaoyuan
+ * @author Tim Boudreau
  */
-public abstract class ScalaLanguageBridge extends DefaultLanguageConfig {
-
-  @Override
-  public SemanticAnalyzer getSemanticAnalyzer() {
-    return getSemanticAnalyzerImpl();
-  }
-
-  abstract protected SemanticAnalyzer<ScalaParserResult> getSemanticAnalyzerImpl();
-
-  @Override
-  public OccurrencesFinder getOccurrencesFinder() {
-    return getOccurrencesFinderImpl();
-  }
-
-  abstract protected OccurrencesFinder<ScalaParserResult> getOccurrencesFinderImpl();
+public final class Versions {
+    private Versions(){}
+    public static final String DOCBOOK_XSL_VERSION = Config.DOCBOOK_XSL_VERSION;
+    public static final String SLIDES_VERSION = Config.SLIDES_VERSION;
+    public static final String DOCBOOK_XML_VERSION = Config.DOCBOOK_XML_VERSION;
+    public static final String[] BROWSER_FILES = Config.BROWSER_FILES;
+    public static final String[] GRAPHICS_FILES = Config.GRAPHICS_FILES;
+    public static final String SOLBOOK_XML_VERSION = Config.SOLBOOK_XML_VERSION;
+    public static final String SOLBOOK_XSL_VERSION = Config.SOLBOOK_XSL_VERSION;
 }

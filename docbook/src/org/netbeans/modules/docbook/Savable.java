@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2010 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -21,12 +21,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * Contributor(s):
- *
- * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -37,47 +31,21 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
+ *
+ * Contributor(s):
+ *
+ * Portions Copyrighted 2010 Sun Microsystems, Inc.
  */
 
 package org.netbeans.modules.docbook;
 
-import java.io.IOException;
+import org.openide.cookies.SaveCookie;
 
-import org.netbeans.modules.docbook.DocBookDataObject;
-import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataObjectExistsException;
-import org.openide.loaders.ExtensionList;
-import org.openide.loaders.MultiDataObject;
-import org.openide.loaders.UniFileLoader;
-import org.openide.util.NbBundle;
-
-public class SolBookDataLoader extends UniFileLoader {
-    public static final String MIME_SOLBOOK = "text/x-solbook+xml";
-    private static final long serialVersionUID = 1L;
-
-    public SolBookDataLoader() {
-        super("org.netbeans.modules.docbook.DocBookDataObject"); //NOI18N
-    }
-    
-    @Override
-    protected String defaultDisplayName() {
-        return NbBundle.getMessage(SolBookDataLoader.class, "LBL_loaderName"); //NOI18N
-    }
-    
-    @Override
-    protected void initialize() {
-        super.initialize();
-        ExtensionList extensions = new ExtensionList();
-        extensions.addMimeType(MIME_SOLBOOK);
-        setExtensions(extensions);
-    }
-
-    @Override
-    protected String actionsContext () {
-        return "Loaders/text/x-solbook+xml/Actions"; // NOI18N
-    }
-    
-    protected MultiDataObject createMultiObject(FileObject primaryFile) throws DataObjectExistsException, IOException {
-        return new DocBookDataObject(primaryFile, this);
-    }
+/**
+ *
+ * @author Tim Boudreau
+ */
+interface Savable {
+    void addSaveCookie(SaveCookie save);
+    void removeSaveCookie(SaveCookie save);
 }
