@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,7 +20,7 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- * 
+ *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -31,30 +31,57 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
- * 
+ *
  * Contributor(s):
- * 
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
+ *
+ * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.php.smarty.editor.utlis;
 
-package org.netbeans.modules.autoproject.java;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.logging.Logger;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.StyledDocument;
+import org.netbeans.api.lexer.InputAttributes;
+import org.netbeans.api.lexer.Token;
+import org.netbeans.api.lexer.TokenHierarchy;
+import org.netbeans.api.lexer.TokenSequence;
+import org.netbeans.modules.parsing.api.Snapshot;
+import org.netbeans.modules.parsing.api.Source;
+import org.netbeans.modules.php.smarty.editor.lexer.TplTokenId;
+import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
+import org.openide.filesystems.FileObject;
 
-public class JavaCacheConstants {
+/**
+ *
+ * @author Martin Fousek
+ */
+public class EmbeddingUtils {
 
-    private JavaCacheConstants() {}
+    public static TokenHierarchy<CharSequence> createTplTokenHierarchy(CharSequence inputText, Snapshot tmplSnapshot) {
+        InputAttributes inputAttributes = new InputAttributes();
 
-    public static final String SOURCE = "#source";
-    public static final String CLASSPATH = "#classpath";
-    public static final String PROCESSORPATH = "#processorpath";
-    public static final String BOOTCLASSPATH = "#bootclasspath";
-    public static final String BINARY = "#binary";
-    public static final String SOURCE_LEVEL = "#sourcelevel";
-    public static final String INCLUDES = "#includes";
-    public static final String EXCLUDES = "#excludes";
-    public static final String PROCESSOR_OPTIONS = "#processoropts";
-    /**
-     * Original location of classes packed into a JAR. Key is JAR, value is dir or path of dirs.
-     */
-    public static final String JAR = "#jar";
+        FileObject fo = tmplSnapshot.getSource().getFileObject();
+        if (fo != null) {
+            //try to obtain tmpl coloring info for file based snapshots
+            final Document doc = tmplSnapshot.getSource().getDocument(true);
 
+        }
+
+        TokenHierarchy<CharSequence> th = TokenHierarchy.create(
+                inputText,
+                true,
+                TplTokenId.language(),
+                Collections.EMPTY_SET,
+                inputAttributes);
+
+        return th;
+    }
 }

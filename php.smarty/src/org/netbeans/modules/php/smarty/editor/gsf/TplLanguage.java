@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -24,7 +24,7 @@
  * Contributor(s):
  *
  * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 2009 Sun
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
  * Microsystems, Inc. All Rights Reserved.
  *
  * If you wish your version of this file to be governed by only the CDDL
@@ -38,29 +38,73 @@
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
  */
-package org.netbeans.modules.java.editor.ext.ap;
+package org.netbeans.modules.php.smarty.editor.gsf;
 
-/**
- *
- * @author lahvac
- */
-public @interface TestAnnotation {
+import org.netbeans.api.lexer.Language;
+import org.netbeans.modules.csl.api.StructureScanner;
+import org.netbeans.modules.csl.spi.CommentHandler;
+import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
+import org.netbeans.modules.csl.spi.LanguageRegistration;
+import org.netbeans.modules.parsing.spi.Parser;
+import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
 
-    public String string();
-    public String[] value();
-    public String multiString();
-    public Class<?> multiType();
-    public Class<?> clazz1();
-    public Class<?> clazz2();
-    public int number();
-    public En  en();
-    public String error1();
-    public String errorNoElement();
-    public String errorNoteNoElement();
+@LanguageRegistration(mimeType="text/x-tpl", useCustomEditorKit=false) //NOI18N
+public class TplLanguage extends DefaultLanguageConfig {
+    
+    public TplLanguage() {
+    }
 
-    public static enum En {
-        A,
-        B;
+    @Override
+    public CommentHandler getCommentHandler() {
+        //return new HtmlCommentHandler();
+        return null;
+    }
+
+    @Override
+    public Language getLexerLanguage() {
+        return TplTopTokenId.language();
+    }
+
+    @Override
+    public boolean isIdentifierChar(char c) {
+        return Character.isLetter(c);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "TPL";
     }
     
+    @Override
+    public String getPreferredExtension() {
+        return "tpl"; // NOI18N
+    }
+
+    // Service registrations
+    
+    @Override
+    public boolean isUsingCustomEditorKit() {
+        return false;
+    }
+
+    @Override
+    public Parser getParser() {
+        return new TplGSFParser();
+    }
+
+    @Override
+    public boolean hasStructureScanner() {
+        return true;
+    }
+
+    @Override
+    public StructureScanner getStructureScanner() {
+        return new TplStructureScanner();
+    }
+
+    @Override
+    public boolean hasHintsProvider() {
+        return false;
+    }
+
 }

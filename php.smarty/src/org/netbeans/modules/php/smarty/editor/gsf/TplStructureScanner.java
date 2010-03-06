@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2010 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -21,12 +21,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * Contributor(s):
- *
- * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 2009 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -37,63 +31,41 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
+ *
+ * Contributor(s):
+ *
+ * Portions Copyrighted 2010 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.java.editor.ext.ap;
+package org.netbeans.modules.php.smarty.editor.gsf;
 
 import java.util.Collections;
-import java.util.Locale;
+import java.util.List;
 import java.util.Map;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-import org.netbeans.api.java.source.CompilationInfo;
+import org.netbeans.modules.csl.api.OffsetRange;
+import org.netbeans.modules.csl.api.StructureItem;
+import org.netbeans.modules.csl.api.StructureScanner;
+import org.netbeans.modules.csl.spi.ParserResult;
 
-final class ProcessingEnvironmentImpl implements ProcessingEnvironment {
+/**
+ * just fake class, we need the parser and the StructureScanner to enable
+ *  navigator of embedded languages
+ *
+ * @author Martin Fousek
+ */
+public class TplStructureScanner implements StructureScanner {
 
-    private final CompilationInfo info;
-    private final Messager messager;
-    private final Filer filer;
-
-    public ProcessingEnvironmentImpl(CompilationInfo info, Messager messager) {
-        super();
-        this.info = info;
-        this.messager = messager;
-        this.filer = new FilerImpl();
+    @Override
+    public List<? extends StructureItem> scan(ParserResult info) {
+        return Collections.emptyList();
     }
 
-    public Map<String, String> getOptions() {
+    @Override
+    public Map<String, List<OffsetRange>> folds(ParserResult info) {
         return Collections.emptyMap();
     }
 
-    public Messager getMessager() {
-        return messager;
+    @Override
+    public Configuration getConfiguration() {
+        return null;
     }
-
-    public Filer getFiler() {
-        return filer;
-    }
-
-    public Elements getElementUtils() {
-        return info.getElements();
-    }
-
-    public Types getTypeUtils() {
-        return info.getTypes();
-    }
-
-    public SourceVersion getSourceVersion() {
-        return info.getSourceVersion();
-    }
-
-    public Locale getLocale() {
-        return Locale.getDefault();
-    }
-
-    public CompilationInfo getInfo() {
-        return info;
-    }
-
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
  * 
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -36,25 +36,70 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.php.smarty.editor.gsf;
 
-package org.netbeans.modules.autoproject.java;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.event.ChangeListener;
+import org.netbeans.modules.csl.api.Error;
+import org.netbeans.modules.csl.spi.ParserResult;
+import org.netbeans.modules.parsing.api.Snapshot;
+import org.netbeans.modules.parsing.api.Task;
+import org.netbeans.modules.parsing.spi.ParseException;
+import org.netbeans.modules.parsing.spi.Parser;
+import org.netbeans.modules.parsing.spi.SourceModificationEvent;
 
-public class JavaCacheConstants {
 
-    private JavaCacheConstants() {}
+/**
+ * Fake class which is needed for enable navigator of embedded languages in tpl files.
+ *
+ * @author Martin Fousek
+ */
+public class TplGSFParser extends Parser {
 
-    public static final String SOURCE = "#source";
-    public static final String CLASSPATH = "#classpath";
-    public static final String PROCESSORPATH = "#processorpath";
-    public static final String BOOTCLASSPATH = "#bootclasspath";
-    public static final String BINARY = "#binary";
-    public static final String SOURCE_LEVEL = "#sourcelevel";
-    public static final String INCLUDES = "#includes";
-    public static final String EXCLUDES = "#excludes";
-    public static final String PROCESSOR_OPTIONS = "#processoropts";
-    /**
-     * Original location of classes packed into a JAR. Key is JAR, value is dir or path of dirs.
-     */
-    public static final String JAR = "#jar";
+    private Result fakeResult;
+
+    @Override
+    public void parse(Snapshot snapshot, Task task, SourceModificationEvent event) throws ParseException {
+        fakeResult = new TplFakeParserResult(snapshot);
+    }
+
+    @Override
+    public Result getResult(Task task) throws ParseException {
+        return fakeResult;
+    }
+
+    @Override
+    public void cancel() {
+        //do nothing
+    }
+
+    @Override
+    public void addChangeListener(ChangeListener changeListener) {
+        //do nothing
+    }
+
+    @Override
+    public void removeChangeListener(ChangeListener changeListener) {
+        //do nothing
+    }
+
+    private static class TplFakeParserResult extends ParserResult {
+
+        public TplFakeParserResult(Snapshot s) {
+            super(s);
+        }
+
+        @Override
+        public List<? extends Error> getDiagnostics() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        protected void invalidate() {
+            //do nothing
+        }
+
+    }
 
 }

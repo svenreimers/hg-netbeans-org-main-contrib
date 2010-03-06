@@ -21,12 +21,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * Contributor(s):
- *
- * The Original Software is NetBeans. The Initial Developer of the Original
- * Software is Sun Microsystems, Inc. Portions Copyright 2009 Sun
- * Microsystems, Inc. All Rights Reserved.
- *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -37,31 +31,29 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
+ *
+ * Contributor(s):
+ *
+ * Portions Copyrighted 2009 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.java.editor.ext.ap;
 
-import javax.annotation.processing.Completion;
+package org.netbeans.modules.php.smarty;
 
-final class CompletionImpl implements Completion {
 
-    private final String value;
-    private final String message;
+/**
+ * @author Martin Fousek
+ */
+public class SmartyFramework {
+    /**
+     * Open delimiter in SMARTY templates
+     */
+    public static final char TPL_OPEN_DELIMITER = '{';
+    /**
+     * Close delimiter in SMARTY templates
+     */
+    public static final char TPL_CLOSE_DELIMITER = '}';
 
-    public CompletionImpl(String value) {
-        this(value, null);
+    public SmartyFramework() {
     }
 
-    public CompletionImpl(String value, String message) {
-        super();
-        this.value = value;
-        this.message = message;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public String getMessage() {
-        return message;
-    }
 }
