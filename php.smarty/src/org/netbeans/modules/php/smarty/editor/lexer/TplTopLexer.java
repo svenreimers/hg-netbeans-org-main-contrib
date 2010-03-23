@@ -136,22 +136,18 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
     private enum State {
         INIT,
         OUTER,
-        AFTER_PHP_DELIMITER,
         AFTER_DELIMITER,
         OPEN_DELIMITER,
         CLOSE_DELIMITER,
         IN_COMMENT,
         IN_SMARTY,
         IN_PHP,
-        IN_PHP_TAG,
-        IN_SUBSTATE,
         AFTER_SUBSTATE,
         IN_LITERAL
     }
 
     private enum SubState {
         NO_SUB_STATE,
-        COMMENT,
         PHP_CODE,
         LITERAL
     }
@@ -191,6 +187,9 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                             return TplTopTokenId.T_HTML;
                         }
                     }
+                    if (cc == '\n') {
+                        return TplTopTokenId.T_HTML;
+                    }
                     break;
 
                 case OPEN_DELIMITER:
@@ -229,6 +228,7 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                                     input.backup(input.readLength());
                                     break;
                                 } else {
+                                    input.backup(input.readLength()-1);
                                     state = State.IN_LITERAL;
                                 }
                                 return TplTopTokenId.T_HTML;
@@ -284,7 +284,7 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                         input.backup(closeDelimiterLength);
                         break;
                     } else {
-                        return TplTopTokenId.T_ERROR;
+                        break;
                     }
 
                 case CLOSE_DELIMITER:
@@ -307,9 +307,11 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                 case IN_PHP:
                     if (isSmartyOpenDelimiter(text)) {
                         state = State.OPEN_DELIMITER;
-                        input.backup(1);
+                        input.backup(openDelimiterLength);
+                        if (input.readLength() > 0)
+                            return TplTopTokenId.T_PHP;
                     }
-                    if (input.readLength() > 0) {
+                    if (input.readLength() > 1) {
                         return TplTopTokenId.T_PHP;
                     }
                     break;
@@ -317,7 +319,7 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                 case IN_LITERAL:
                     if (isSmartyOpenDelimiter(text)) {
                         state = State.OPEN_DELIMITER;
-                        input.backup(1);
+                        input.backup(openDelimiterLength);
                     }
                     if (input.readLength() > 0) {
                         return TplTopTokenId.T_HTML;
@@ -332,13 +334,23 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                         }
                         else {
                             state = State.CLOSE_DELIMITER;
-                            input.backup(1);
+                            input.backup(closeDelimiterLength);
                             if (input.readLength() != 0) {
                                 return TplTopTokenId.T_SMARTY;
                             }
                         }
-                    } else if (cc == LexerInput.EOF) {
-                        return TplTopTokenId.T_SMARTY;
+                    }
+                    switch(c) {
+                        case '\n':
+                           return TplTopTokenId.T_SMARTY;
+                        case LexerInput.EOF:
+                           return TplTopTokenId.T_SMARTY;
+                        case '<':
+                           state = State.OUTER;
+                           input.backup(1);
+                           if (input.readLength() > 1) {
+                                return TplTopTokenId.T_SMARTY;
+                           }
                     }
                     break;
                 }
@@ -366,13 +378,23 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
         }
 
         private boolean isSmartyOpenDelimiter(CharSequence text) {
-            return (text.toString().endsWith(new String("{")));
+            if (SmartyFramework.useCustomDelimiters) {
+                return (text.toString().endsWith(SmartyFramework.DELIMITER_CUSTOM_OPEN));
+            }
+            else {
+                return (text.toString().endsWith(SmartyFramework.DELIMITER_DEFAULT_OPEN));
+            }
         }
 
         private boolean isSmartyCloseDelimiter(CharSequence text) {
-            return (text.toString().endsWith(new String("}")));
+            if (SmartyFramework.useCustomDelimiters) {
+                return (text.toString().endsWith(SmartyFramework.DELIMITER_CUSTOM_CLOSE));
+            }
+            else {
+                return (text.toString().endsWith(SmartyFramework.DELIMITER_DEFAULT_CLOSE));
+                }
         }
-
+        
         private int getOpenDelimiterLength() {
             return (SmartyFramework.useCustomDelimiters?
                 SmartyFramework.DELIMITER_CUSTOM_OPEN.length() : SmartyFramework.DELIMITER_DEFAULT_OPEN.length());

@@ -52,7 +52,6 @@ import org.netbeans.modules.parsing.spi.EmbeddingProvider;
 import org.netbeans.modules.parsing.spi.SchedulerTask;
 import org.netbeans.modules.parsing.spi.TaskFactory;
 import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
-//import org.netbeans.modules.php.smarty.editor.utils.EditorUtils;
 
 /**
  * Provides model for TPL files.
@@ -60,6 +59,7 @@ import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
  */
 public class TplEmbeddingProvider extends EmbeddingProvider {
 
+    private boolean isPhpEnabled = false;
     public static final String GENERATED_CODE = "@@@"; //NOI18N
 
     @Override
@@ -68,12 +68,12 @@ public class TplEmbeddingProvider extends EmbeddingProvider {
         TokenSequence<TplTopTokenId> sequence = th.tokenSequence(TplTopTokenId.language());
 
         //issue #159775 logging >>>
-        if(sequence == null) {
+        if (sequence == null) {
             Logger.getLogger("TplEmbeddingProvider").warning(
-                    "TokenHierarchy.tokenSequence(TplTopTokenId.language()) == null " +
-                    "for static immutable TPL TokenHierarchy!\nFile = '"+
-                    snapshot.getSource().getFileObject().getPath() +
-                    "' ;snapshot mimepath='" + snapshot.getMimePath() + "'");
+                    "TokenHierarchy.tokenSequence(TplTopTokenId.language()) == null "
+                    + "for static immutable TPL TokenHierarchy!\nFile = '"
+                    + snapshot.getSource().getFileObject().getPath()
+                    + "' ;snapshot mimepath='" + snapshot.getMimePath() + "'");
 
             return Collections.emptyList();
         }
@@ -86,30 +86,47 @@ public class TplEmbeddingProvider extends EmbeddingProvider {
         int len = 0;
         while (sequence.moveNext()) {
             Token t = sequence.token();
-            if (t.id() == TplTopTokenId.T_SMARTY) {
-                if(from < 0) {
+            if (t.id().getClass() == TplTopTokenId.class && isSmartyToken((TplTopTokenId) t.id())) {
+//                if (isPhpEnabled) {
+//                    isPhpEnabled = false;
+//                    embeddings.add(snapshot.create(";?>", "text/x-php5"));
+//                }
+                if (from < 0) {
                     from = sequence.offset();
                 }
                 len += t.length();
             } else {
                 if (from < 0) {
-                        from = sequence.offset();
-                    }
+                    from = sequence.offset();
+                }
+                if (len > 0 && from >= 0) {
+                    from += len;
+                    len = 0;
+                }
                 len += t.length();
-                if(from >= 0) {
-                    embeddings.add(snapshot.create(from, len, "text/html")); //NOI18N
-                    embeddings.add(snapshot.create(GENERATED_CODE, "text/html"));
-                } 
+                if (from >= 0) {
+//                    if (t.id() == TplTopTokenId.T_PHP) {
+//                        if (!isPhpEnabled) {
+//                            isPhpEnabled = true;
+//                            embeddings.add(snapshot.create("<?", "text/x-php5"));
+//                        }
+//                        embeddings.add(snapshot.create(from, len, "text/x-php5")); //NOI18N
+//                    } else {
+//                        if (isPhpEnabled) {
+//                            isPhpEnabled = false;
+//                            embeddings.add(snapshot.create(";?>", "text/x-php5"));
+//                        }
+                        embeddings.add(snapshot.create(from, len, "text/x-php5")); //NOI18N
+//                    }
+                }
 
                 from = -1;
                 len = 0;
             }
         }
-
-        if(from >= 0) {
-            embeddings.add(snapshot.create(from, len, "text/html")); //NOI18N
+        if (from >= 0) {
+            embeddings.add(snapshot.create(from, len, "text/x-php5")); //NOI18N
         }
-
         if (embeddings.isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -120,6 +137,8 @@ public class TplEmbeddingProvider extends EmbeddingProvider {
     @Override
     public int getPriority() {
         return 130;
+
+
     }
 
     @Override
@@ -133,5 +152,12 @@ public class TplEmbeddingProvider extends EmbeddingProvider {
         public Collection<SchedulerTask> create(final Snapshot snapshot) {
             return Collections.<SchedulerTask>singletonList(new TplEmbeddingProvider());
         }
+    }
+
+    public boolean isSmartyToken(TplTopTokenId tokenId) {
+        return ((tokenId == TplTopTokenId.T_COMMENT) || (tokenId == TplTopTokenId.T_LITERAL_DEL)
+                || (tokenId == TplTopTokenId.T_PHP_DEL) || (tokenId == TplTopTokenId.T_SMARTY)
+                || (tokenId == TplTopTokenId.T_SMARTY_CLOSE_DELIMITER) || (tokenId == TplTopTokenId.T_SMARTY_OPEN_DELIMITER));
+
     }
 }
