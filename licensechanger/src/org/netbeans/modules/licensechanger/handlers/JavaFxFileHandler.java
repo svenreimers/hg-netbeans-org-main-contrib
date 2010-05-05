@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2010 Sun Microsystems, Inc. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -34,58 +34,24 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2009 Sun Microsystems, Inc.
+ * Portions Copyrighted 2010 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.php.smarty;
+package org.netbeans.modules.licensechanger.handlers;
 
-import org.netbeans.modules.php.api.phpmodule.PhpProgram;
-import org.netbeans.modules.php.api.util.UiUtils;
-import org.netbeans.modules.php.smarty.ui.options.SmartyOptions;
+import org.openide.filesystems.FileObject;
+import org.openide.util.NbBundle;
 
-
-/**
- * @author Martin Fousek
- */
-public class SmartyFramework extends PhpProgram {
-
-    public static final String OPTIONS_SUB_PATH = "Smarty"; // NOI18N
-    public static final String BASE_CLASS_NAME = "Smarty"; // NOI18N
-
-    /**
-     * Open delimiter in SMARTY templates
-     */
-    public static String DELIMITER_DEFAULT_OPEN = SmartyOptions.getInstance().getDefaultOpenDelimiter();
-    /**
-     * Close delimiter in SMARTY templates
-     */
-    public static String DELIMITER_DEFAULT_CLOSE = SmartyOptions.getInstance().getDefaultCloseDelimiter();
-
-    public static int DEPTH_OF_SCANNING_FOR_TPL = SmartyOptions.getInstance().getScanningDepth();
-
-    public SmartyFramework() {
-        super(null);
+@org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.licensechanger.api.FileHandler.class)
+public class JavaFxFileHandler extends JavaFileHandler {
+    @Override
+    public String getDisplayName() {
+        return NbBundle.getMessage(JavaFxFileHandler.class, "NAME_JAVAFX_FILES"); //NOI18N
     }
 
     @Override
-    public String validate() {
-        return null;
+    public boolean match(FileObject file) {
+        return "text/x-fx".equals(file.getMIMEType()); //NOI18N
     }
-
-    /**
-     * @return full IDE options Smarty path
-     */
-    public static String getOptionsPath() {
-        return UiUtils.OPTIONS_PATH + "/" + getOptionsSubPath(); // NOI18N
-    }
-
-    /**
-     * @return IDE options Smarty subpath
-     */
-    public static String getOptionsSubPath() {
-        return OPTIONS_SUB_PATH;
-    }
-
-
-
 }
+
