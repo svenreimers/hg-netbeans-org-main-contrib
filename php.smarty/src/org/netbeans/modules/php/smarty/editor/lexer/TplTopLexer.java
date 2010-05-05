@@ -38,9 +38,12 @@
  */
 package org.netbeans.modules.php.smarty.editor.lexer;
 
+import org.netbeans.api.lexer.InputAttributes;
+import org.netbeans.api.lexer.LanguagePath;
 import org.netbeans.api.lexer.Token;
-import org.netbeans.modules.php.smarty.SmartyFramework;
+import org.netbeans.modules.php.smarty.editor.TplMetaData;
 import org.netbeans.modules.php.smarty.editor.utlis.LexerUtils;
+import org.netbeans.modules.php.smarty.editor.utlis.TplUtils;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
@@ -54,14 +57,66 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
 
     private final TplTopColoringLexer scanner;
     private TokenFactory<TplTopTokenId> tokenFactory;
+    private final InputAttributes inputAttributes;
+    private final TplMetaData tplMetaData;
 
-    private boolean inPhpSources;
+    private class CompoundState {
+        private State lexerState;
+        private SubState lexerSubState;
+
+        public CompoundState(State lexerState, SubState lexerSubState) {
+            this.lexerState = lexerState;
+            this.lexerSubState = lexerSubState;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final CompoundState other = (CompoundState) obj;
+            if (this.lexerState != other.lexerState) {
+                return false;
+            }
+            if (this.lexerSubState != other.lexerSubState) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 17 * hash + this.lexerState.ordinal();
+            hash = 17 * hash + this.lexerSubState.ordinal();
+            return hash;
+        }
+
+        @Override
+        public String toString() {
+            return "State(hash=" + hashCode() + ",s=" + lexerState + ",ss=" + lexerSubState + ")"; //NOI18N
+        }
+
+    }
 
     private TplTopLexer(LexerRestartInfo<TplTopTokenId> info) {
-        State state = info.state() == null? State.INIT : (State)info.state();
+        CompoundState state = null;
+        if (info.state() == null) {
+            state = new CompoundState(State.INIT, SubState.NO_SUB_STATE);
+        } else {
+            state = (CompoundState)info.state();
+        }
         this.tokenFactory = info.tokenFactory();
-        this.inPhpSources = false;
-        scanner = new TplTopColoringLexer(info, state);
+        this.inputAttributes = info.inputAttributes();
+        if (inputAttributes != null) {
+            this.tplMetaData = (TplMetaData) inputAttributes.getValue(LanguagePath.get(TplTopTokenId.language()), TplMetaData.class);
+        } else {
+            this.tplMetaData = TplUtils.getProjectPropertiesForFileObject(null);
+        }
+        scanner = new TplTopColoringLexer(info, state, tplMetaData);
     }
 
     /**
@@ -92,30 +147,45 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
     private enum State {
         INIT,
         OUTER,
-        AFTER_PHP_DELIMITER,
         AFTER_DELIMITER,
         OPEN_DELIMITER,
         CLOSE_DELIMITER,
         IN_COMMENT,
         IN_SMARTY,
         IN_PHP,
-        IN_PHP_TAG
+        AFTER_SUBSTATE,
+        IN_LITERAL
+    }
+
+    private enum SubState {
+        NO_SUB_STATE,
+        PHP_CODE,
+        LITERAL
     }
 
     private class TplTopColoringLexer {
 
         private State state;
         private final LexerInput input;
+        private SubState subState;
+        private final TplMetaData metadata;
 
-        public TplTopColoringLexer(LexerRestartInfo<TplTopTokenId> info, State state) {
+        public TplTopColoringLexer(LexerRestartInfo<TplTopTokenId> info, CompoundState state, TplMetaData metadata) {
             this.input = info.input();
-            this.state = state;
+            this.state = state.lexerState;
+            this.subState = state.lexerSubState;
+            if (metadata != null)
+                this.metadata = metadata;
+            else
+                this.metadata = TplUtils.getProjectPropertiesForFileObject(null);
         }
 
         public TplTopTokenId nextToken() {
             int c = input.read();
             CharSequence text;
             int textLength;
+            int openDelimiterLength = getOpenDelimiterLength();
+            int closeDelimiterLength = getCloseDelimiterLength();
             if (c == LexerInput.EOF) {
                 return null;
             }
@@ -124,111 +194,181 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
                 text = input.readText();
                 textLength = text.length();
                 switch (state) {
-                    case INIT:
-                    case OUTER:
-                        if (cc == SmartyFramework.TPL_OPEN_DELIMITER) {
-                            state = State.OPEN_DELIMITER;
-                            if (textLength > 1) {
-                                input.backup(1);
-                                return TplTopTokenId.T_HTML;
-                            }
-                            else {
-                                input.backup(1);
-                            }
+                case INIT:
+                case OUTER:
+                    if (isSmartyOpenDelimiter(text)) {
+                        state = State.OPEN_DELIMITER;
+                        input.backup(openDelimiterLength);
+                        if (textLength > openDelimiterLength) {
+                            return TplTopTokenId.T_HTML;
                         }
+                    }
+                    if (cc == '\n') {
+                        return TplTopTokenId.T_HTML;
+                    }
+                    break;
+
+                case OPEN_DELIMITER:
+                    if (textLength < openDelimiterLength) {
                         break;
-                    case OPEN_DELIMITER:
-                        state = State.AFTER_DELIMITER;
+                    }
+                    state = State.AFTER_DELIMITER;
+                    if (subState == subState.NO_SUB_STATE) {
                         return TplTopTokenId.T_SMARTY_OPEN_DELIMITER;
-                    case CLOSE_DELIMITER:
-                        state = State.OUTER;
-                        return TplTopTokenId.T_SMARTY_CLOSE_DELIMITER;
-                    case AFTER_DELIMITER:
-                        // whitespaces after SMARTY delimiter
-                        if (LexerUtils.isWS(c)) {
-                            return TplTopTokenId.T_SMARTY;
-                        }
-                        // begin of SMARTY commands
-                        else {
-                            switch(c) {
-                                case '*':
-                                    state = State.IN_COMMENT;
-                                    break;
-                                case 'p':
-                                    if (input.read() == 'h') {
-                                        if (input.read() == 'p') {
-                                            state = State.IN_PHP_TAG;
-                                            return TplTopTokenId.T_PHP_DEL;
-                                        }
-                                        input.backup(1);
-                                    }
-                                    input.backup(1);
-                                default:
-                                    state = State.IN_SMARTY;
-                                    input.backup(1);
-                            }
+                    } else {
+                        if (input.readLength() > openDelimiterLength) {
+                            input.backup(input.readLength() - openDelimiterLength);
+                            if (subState == subState.LITERAL)
+                                return TplTopTokenId.T_HTML;
+                            else
+                                return TplTopTokenId.T_PHP;
                         }
                         break;
-                    case IN_COMMENT:
-                        if (cc == '*') {
-                            state = State.IN_SMARTY;
-                            return TplTopTokenId.T_COMMENT;
-                        }
-                        return TplTopTokenId.T_COMMENT;
-                    case IN_PHP_TAG:
-                        if( LexerUtils.isWS(c) ) {
+                    }
+
+                case AFTER_DELIMITER:
+                    if (LexerUtils.isWS(c)) {
+                        if (subState == subState.NO_SUB_STATE) {
                             return TplTopTokenId.T_SMARTY;
-                        } else if (c == SmartyFramework.TPL_CLOSE_DELIMITER) {
-                            if (!inPhpSources) {
-                                state = State.IN_PHP;
-                                inPhpSources = true;
-                            }
-                            else {
-                                state = State.OUTER;
-                                inPhpSources = false;
-                            }
-                            return TplTopTokenId.T_SMARTY_CLOSE_DELIMITER;
                         } else {
-                            return TplTopTokenId.T_ERROR;
+                            break;
                         }
-                    case IN_PHP:
-                        if (cc == SmartyFramework.TPL_OPEN_DELIMITER) {
-                            if (input.read() == '/') {
-                                if (input.read() == 'p') {
-                                    if (input.read() == 'h') {
-                                        if (input.read() == 'p') {
-                                            state = State.AFTER_PHP_DELIMITER;
-                                            input.backup(4);
-                                            return TplTopTokenId.T_SMARTY_OPEN_DELIMITER;
-                                        }
-                                        input.backup(1);
-                                    }
-                                    input.backup(1);
+                    }
+                    else {
+                        String lastWord = readNextWord(c);
+                        switch(subState){
+                            case LITERAL:
+                                if (lastWord.startsWith("/literal")) {
+                                    subState = SubState.NO_SUB_STATE;
+                                    state = State.OPEN_DELIMITER;
+                                    input.backup(input.readLength());
+                                    break;
+                                } else {
+                                    input.backup(input.readLength()-1);
+                                    state = State.IN_LITERAL;
                                 }
-                                input.backup(1);
-                            }
-                            input.backup(1);
-                        }
-                        return TplTopTokenId.T_PHP;
-                    case AFTER_PHP_DELIMITER:
-                        state = State.IN_SMARTY;
-                        input.read(); input.read(); input.read();
-                        return TplTopTokenId.T_PHP_DEL;
-                    case IN_SMARTY:
-                        if (cc == SmartyFramework.TPL_CLOSE_DELIMITER) {
-                            if (textLength == 1) {
-                                state = State.OUTER;
-                                return TplTopTokenId.T_SMARTY_CLOSE_DELIMITER;
-                            }
-                            else {
-                                state = State.CLOSE_DELIMITER;
-                                input.backup(1);
-                                if (input.readLength() != 0) {
+                                return TplTopTokenId.T_HTML;
+                            case PHP_CODE:
+                                if (lastWord.startsWith("/php")) {
+                                    subState = SubState.NO_SUB_STATE;
+                                    state = State.OPEN_DELIMITER;
+                                    input.backup(input.readLength());
+                                    break;
+                                } else {
+                                    state = State.IN_PHP;
+                                }
+                                return TplTopTokenId.T_PHP;
+                            default:
+                               if (lastWord.charAt(0) == '*') {
+                                    state = State.IN_COMMENT;
+                                    input.backup(lastWord.length()-1);
+                                    return TplTopTokenId.T_COMMENT;
+                                }
+                                else if (lastWord.startsWith("literal")) {
+                                    subState = SubState.LITERAL;
+                                    state = State.AFTER_SUBSTATE;
+                                    input.backup(lastWord.length()-7);
                                     return TplTopTokenId.T_SMARTY;
                                 }
+                                else if (lastWord.startsWith("php")) {
+                                    subState = SubState.PHP_CODE;
+                                    state = State.AFTER_SUBSTATE;
+                                    input.backup(lastWord.length()-3);
+                                    return TplTopTokenId.T_SMARTY;
+                                }
+                                else {
+                                    state = State.IN_SMARTY;
+                                    input.backup(lastWord.length());
+                                }
+                        }
+                    }
+                    break;
+
+                case IN_COMMENT:
+                    if (cc == '*') {
+                        state = State.AFTER_SUBSTATE;
+                        return TplTopTokenId.T_COMMENT;
+                    }
+                    return TplTopTokenId.T_COMMENT;
+
+                case AFTER_SUBSTATE:
+                    if (LexerUtils.isWS(c)) {
+                        return TplTopTokenId.T_SMARTY;
+                    }
+                    else if (isSmartyCloseDelimiter(text)) {
+                        state = State.CLOSE_DELIMITER;
+                        input.backup(closeDelimiterLength);
+                        break;
+                    } else {
+                        break;
+                    }
+
+                case CLOSE_DELIMITER:
+                    if (textLength < closeDelimiterLength) {
+                        break;
+                    }
+                    switch(subState){
+                        case LITERAL:
+                            state = State.IN_LITERAL;
+                            break;
+                        case PHP_CODE:
+                            state = State.IN_PHP;
+                            break;
+                        default:
+                            state = State.OUTER;
+                            break;
+                    }
+                    return TplTopTokenId.T_SMARTY_CLOSE_DELIMITER;
+
+                case IN_PHP:
+                    if (isSmartyOpenDelimiter(text)) {
+                        state = State.OPEN_DELIMITER;
+                        input.backup(openDelimiterLength);
+                        if (input.readLength() > 0)
+                            return TplTopTokenId.T_PHP;
+                    }
+                    if (input.readLength() > 1) {
+                        return TplTopTokenId.T_PHP;
+                    }
+                    break;
+
+                case IN_LITERAL:
+                    if (isSmartyOpenDelimiter(text)) {
+                        state = State.OPEN_DELIMITER;
+                        input.backup(openDelimiterLength);
+                    }
+                    if (LexerUtils.isWS(c)) {
+                        return TplTopTokenId.T_HTML;
+                    }
+                    break;
+
+                case IN_SMARTY:
+                    if (isSmartyCloseDelimiter(text)) {
+                        if (textLength == closeDelimiterLength) {
+                            state = State.OUTER;
+                            return TplTopTokenId.T_SMARTY_CLOSE_DELIMITER;
+                        }
+                        else {
+                            state = State.CLOSE_DELIMITER;
+                            input.backup(closeDelimiterLength);
+                            if (input.readLength() != 0) {
+                                return TplTopTokenId.T_SMARTY;
                             }
                         }
-                        break;
+                    }
+                    switch(c) {
+                        case '\n':
+                           return TplTopTokenId.T_SMARTY;
+                        case LexerInput.EOF:
+                           return TplTopTokenId.T_SMARTY;
+                        case '<':
+                           state = State.OUTER;
+                           input.backup(1);
+                           if (input.readLength() > 1) {
+                                return TplTopTokenId.T_SMARTY;
+                           }
+                    }
+                    break;
                 }
                 c = input.read();
             }
@@ -250,7 +390,33 @@ public class TplTopLexer implements Lexer<TplTopTokenId> {
         }
 
         Object getState() {
-            return state;
+            return new CompoundState(state, subState);
+        }
+
+        private boolean isSmartyOpenDelimiter(CharSequence text) {
+            return (text.toString().endsWith(metadata.getOpenDelimiter()));
+        }
+
+        private boolean isSmartyCloseDelimiter(CharSequence text) {
+            return (text.toString().endsWith(metadata.getCloseDelimiter()));
+        }
+        
+        private int getOpenDelimiterLength() {
+            return metadata.getOpenDelimiter().length();
+        }
+
+        private int getCloseDelimiterLength() {
+            return metadata.getCloseDelimiter().length();
+        }
+
+        private String readNextWord(int lastChar) {
+            String word = Character.toString((char)lastChar);
+            int c;
+            while (!LexerUtils.isWS(c = input.read()) && c != LexerInput.EOF) {
+                word += Character.toString((char)c);
+            }
+            input.backup(1);
+            return word;
         }
     }
 }

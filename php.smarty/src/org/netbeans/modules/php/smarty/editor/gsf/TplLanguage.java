@@ -48,7 +48,7 @@ import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
 import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
 
-@LanguageRegistration(mimeType="text/x-tpl", useCustomEditorKit=false) //NOI18N
+@LanguageRegistration(mimeType="text/x-tpl", useCustomEditorKit=true) //NOI18N
 public class TplLanguage extends DefaultLanguageConfig {
     
     public TplLanguage() {
@@ -56,7 +56,6 @@ public class TplLanguage extends DefaultLanguageConfig {
 
     @Override
     public CommentHandler getCommentHandler() {
-        //return new HtmlCommentHandler();
         return null;
     }
 
@@ -81,10 +80,9 @@ public class TplLanguage extends DefaultLanguageConfig {
     }
 
     // Service registrations
-    
     @Override
     public boolean isUsingCustomEditorKit() {
-        return false;
+        return true;
     }
 
     @Override

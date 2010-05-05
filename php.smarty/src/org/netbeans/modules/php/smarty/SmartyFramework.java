@@ -39,21 +39,53 @@
 
 package org.netbeans.modules.php.smarty;
 
+import org.netbeans.modules.php.api.phpmodule.PhpProgram;
+import org.netbeans.modules.php.api.util.UiUtils;
+import org.netbeans.modules.php.smarty.ui.options.SmartyOptions;
+
 
 /**
  * @author Martin Fousek
  */
-public class SmartyFramework {
+public class SmartyFramework extends PhpProgram {
+
+    public static final String OPTIONS_SUB_PATH = "Smarty"; // NOI18N
+    public static final String BASE_CLASS_NAME = "Smarty"; // NOI18N
+
     /**
      * Open delimiter in SMARTY templates
      */
-    public static final char TPL_OPEN_DELIMITER = '{';
+    public static String DELIMITER_DEFAULT_OPEN = SmartyOptions.getInstance().getDefaultOpenDelimiter();
     /**
      * Close delimiter in SMARTY templates
      */
-    public static final char TPL_CLOSE_DELIMITER = '}';
+    public static String DELIMITER_DEFAULT_CLOSE = SmartyOptions.getInstance().getDefaultCloseDelimiter();
+
+    public static int DEPTH_OF_SCANNING_FOR_TPL = SmartyOptions.getInstance().getScanningDepth();
 
     public SmartyFramework() {
+        super(null);
     }
+
+    @Override
+    public String validate() {
+        return null;
+    }
+
+    /**
+     * @return full IDE options Smarty path
+     */
+    public static String getOptionsPath() {
+        return UiUtils.OPTIONS_PATH + "/" + getOptionsSubPath(); // NOI18N
+    }
+
+    /**
+     * @return IDE options Smarty subpath
+     */
+    public static String getOptionsSubPath() {
+        return OPTIONS_SUB_PATH;
+    }
+
+
 
 }
