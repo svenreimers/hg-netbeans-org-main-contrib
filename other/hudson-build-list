@@ -1,4 +1,6 @@
+ant.freeform.samples
 api.workqueues
+apisupport.projectinspector
 autoproject.core
 autoproject.java
 autoproject.profiler
@@ -6,4 +8,6 @@ autoproject.web
 docbook
 docbook.project
 imagepaste
+insertunicode
+logmanagement
 quickfilechooser
