@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -111,7 +114,7 @@ public final class ClassMemberFilters {
 
         List<StructureItem> result = new ArrayList<StructureItem>(original.size());
       
-        if (disableFiltering) {
+        if (!disableFiltering) {
             for (StructureItem description : original) {
 
                 // I default no access modifier to mean public, unlike the Java version where it means package protected
@@ -170,22 +173,19 @@ public final class ClassMemberFilters {
         desc.addFilter(SHOW_FIELDS,
                 NbBundle.getMessage(ClassMemberFilters.class, "LBL_ShowFields"),     //NOI18N
                 NbBundle.getMessage(ClassMemberFilters.class, "LBL_ShowFieldsTip"),     //NOI18N
-                true,
-                new ImageIcon (ImageUtilities.loadImage("org/netbeans/modules/gsfret/navigation/resources/filterHideFields.gif")), //NOI18N
+                true, ImageUtilities.loadImageIcon("org/netbeans/modules/gsfret/navigation/resources/filterHideFields.gif", false), //NOI18N
                 null
         );
         desc.addFilter(SHOW_STATIC,
                 NbBundle.getMessage(ClassMemberFilters.class, "LBL_ShowStatic"),     //NOI18N
                 NbBundle.getMessage(ClassMemberFilters.class, "LBL_ShowStaticTip"),     //NOI18N
-                true,
-                new ImageIcon (ImageUtilities.loadImage("org/netbeans/modules/gsfret/navigation/resources/filterHideStatic.png")), //NOI18N
+                true, ImageUtilities.loadImageIcon("org/netbeans/modules/gsfret/navigation/resources/filterHideStatic.png", false), //NOI18N
                 null
         );
         desc.addFilter(SHOW_NON_PUBLIC,
                 NbBundle.getMessage(ClassMemberFilters.class, "LBL_ShowNonPublic"),     //NOI18N
                 NbBundle.getMessage(ClassMemberFilters.class, "LBL_ShowNonPublicTip"),     //NOI18N
-                true,
-                new ImageIcon (ImageUtilities.loadImage("org/netbeans/modules/gsfret/navigation/resources/filterHideNonPublic.png")), //NOI18N
+                true, ImageUtilities.loadImageIcon("org/netbeans/modules/gsfret/navigation/resources/filterHideNonPublic.png", false), //NOI18N
                 null
         );
         

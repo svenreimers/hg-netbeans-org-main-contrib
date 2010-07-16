@@ -1,8 +1,11 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
+ * Copyright 2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -55,7 +58,9 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.gsf.Language;
 import org.netbeans.modules.gsf.LanguageRegistry;
@@ -80,9 +85,9 @@ import org.netbeans.spi.editor.hints.HintsController;
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.cookies.InstanceCookie;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileSystem;
-import org.openide.filesystems.Repository;
+import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
+import org.openide.util.NbBundle;
 
 /**
  *
@@ -130,10 +135,12 @@ public class GsfHintsManager extends HintsProvider.HintsManager {
     private List<SelectionRule> selectionHints = new ArrayList<SelectionRule>();
 
     // Tree models for the settings GUI
-    private TreeModel errorsTreeModel;
-    private TreeModel hintsTreeModel;
-    private TreeModel suggestionsTreeModel;
-    
+    private TreeModel prefTreeModel;
+    private DefaultMutableTreeNode hintsRoot;
+    private DefaultMutableTreeNode suggestionsRoot;
+    private DefaultMutableTreeNode errorsRoot;
+    private DefaultMutableTreeNode selectionsRoot;
+
     private String mimeType;
     private HintsProvider provider;
     private String id;
@@ -199,59 +206,122 @@ public class GsfHintsManager extends HintsProvider.HintsManager {
         return suggestions;
     }
 
-    TreeModel getErrorsTreeModel() {
-        return errorsTreeModel;
-    }
-
     public TreeModel getHintsTreeModel() {
-        return hintsTreeModel;
+        //return hintsTreeModel;
+        if (prefTreeModel == null) {
+            if (suggestionsRoot != null && !suggestionsRoot.isLeaf()) {
+                //DefaultMutableTreeNode suggestions = new DefaultMutableTreeNode()
+                int childCount = suggestionsRoot.getChildCount();
+                if (childCount > 0) {
+                    List<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
+                    for (int i = 0; i < childCount; i++) {
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) errorsRoot.getChildAt(i);
+                        if (node.getUserObject() instanceof UserConfigurableRule) {
+                            nodes.add(node);
+                        }
+                    }
+                    if (nodes.size() > 0) {
+                        DefaultMutableTreeNode category = new DefaultMutableTreeNode(
+                                NbBundle.getMessage(GsfHintsManager.class, "CaretHints"), true);
+                        hintsRoot.add(category);
+                        for (MutableTreeNode node : nodes) {
+                            hintsRoot.add(node);
+                        }
+                    }
+                }
+            }
+            if (errorsRoot != null && !errorsRoot.isLeaf()) {
+                //DefaultMutableTreeNode suggestions = new DefaultMutableTreeNode()
+                int childCount = errorsRoot.getChildCount();
+                if (childCount > 0) {
+                    List<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
+                    for (int i = 0; i < childCount; i++) {
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) errorsRoot.getChildAt(i);
+                        if (node.getUserObject() instanceof UserConfigurableRule) {
+                            nodes.add(node);
+                        }
+                    }
+                    if (nodes.size() > 0) {
+                        DefaultMutableTreeNode category = new DefaultMutableTreeNode(
+                                NbBundle.getMessage(GsfHintsManager.class, "ErrorHints"), true);
+                        hintsRoot.add(category);
+                        for (MutableTreeNode node : nodes) {
+                            category.add(node);
+                        }
+                    }
+                }
+            }
+            if (selectionsRoot != null && !selectionsRoot.isLeaf()) {
+                //DefaultMutableTreeNode suggestions = new DefaultMutableTreeNode()
+                int childCount = selectionsRoot.getChildCount();
+                if (childCount > 0) {
+                    List<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
+                    for (int i = 0; i < childCount; i++) {
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) selectionsRoot.getChildAt(i);
+                        if (node.getUserObject() instanceof UserConfigurableRule) {
+                            nodes.add(node);
+                        }
+                    }
+                    if (nodes.size() > 0) {
+                        DefaultMutableTreeNode category = new DefaultMutableTreeNode(
+                                NbBundle.getMessage(GsfHintsManager.class, "SelectionHints"), true);
+                        hintsRoot.add(category);
+                        for (MutableTreeNode node : nodes) {
+                            category.add(node);
+                        }
+                    }
+                }
+            }
+
+            prefTreeModel = new DefaultTreeModel(hintsRoot);
+        }
+        return prefTreeModel;
     }
 
     public String getId() {
         return id;
     }
 
-    TreeModel getSuggestionsTreeModel() {
-        return suggestionsTreeModel;
-    }
-
     // Private methods ---------------------------------------------------------
 
     private void initErrors() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-        errorsTreeModel = new DefaultTreeModel( rootNode );
-        FileSystem fs = Repository.getDefault().getDefaultFileSystem();
-        FileObject folder = fs.getRoot().getFileObject( RULES_FOLDER + mimeType + ERRORS ); // NOI18N
+        //errorsTreeModel = new DefaultTreeModel( rootNode );
+        FileObject folder = FileUtil.getConfigFile( RULES_FOLDER + mimeType + ERRORS ); // NOI18N
         List<Pair<Rule,FileObject>> rules = readRules( folder );
         categorizeErrorRules(rules, errors, folder, rootNode);
+
+        errorsRoot = rootNode;
     }
     
     private void initHints() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-        hintsTreeModel = new DefaultTreeModel( rootNode );
-        FileSystem fs = Repository.getDefault().getDefaultFileSystem();
-        FileObject folder = fs.getRoot().getFileObject( RULES_FOLDER + mimeType + HINTS ); // NOI18N
+        //hintsTreeModel = new DefaultTreeModel( rootNode );
+        FileObject folder = FileUtil.getConfigFile( RULES_FOLDER + mimeType + HINTS ); // NOI18N
         List<Pair<Rule,FileObject>> rules = readRules(folder);
         categorizeAstRules( rules, hints, folder, rootNode );
+
+        hintsRoot = rootNode;
     }
 
 
     private void initSuggestions() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-        suggestionsTreeModel = new DefaultTreeModel( rootNode );
-        FileSystem fs = Repository.getDefault().getDefaultFileSystem();
-        FileObject folder = fs.getRoot().getFileObject( RULES_FOLDER + mimeType + SUGGESTIONS ); // NOI18N
+        //suggestionsTreeModel = new DefaultTreeModel( rootNode );
+        FileObject folder = FileUtil.getConfigFile( RULES_FOLDER + mimeType + SUGGESTIONS ); // NOI18N
         List<Pair<Rule,FileObject>> rules = readRules(folder);
         categorizeAstRules(rules, suggestions, folder, rootNode);
+
+        suggestionsRoot = rootNode;
     }
 
     private void initSelectionHints() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-        suggestionsTreeModel = new DefaultTreeModel( rootNode );
-        FileSystem fs = Repository.getDefault().getDefaultFileSystem();
-        FileObject folder = fs.getRoot().getFileObject( RULES_FOLDER + mimeType + SELECTION ); // NOI18N
+        //suggestionsTreeModel = new DefaultTreeModel( rootNode );
+        FileObject folder = FileUtil.getConfigFile( RULES_FOLDER + mimeType + SELECTION ); // NOI18N
         List<Pair<Rule,FileObject>> rules = readRules(folder);
         categorizeSelectionRules(rules, selectionHints, folder, rootNode);
+        selectionsRoot = rootNode;
     }
 
     private void initBuiltins() {
@@ -285,6 +355,24 @@ public class GsfHintsManager extends HintsProvider.HintsManager {
                     }
                 } else {
                     assert false : "Unexpected rule type " + rule;
+                }
+            }
+        }
+
+        // TODO initialize extra rules as well
+        if (extraRules != null) {
+            //DefaultMutableTreeNode root = (DefaultMutableTreeNode) hintsTreeModel.getRoot();
+            DefaultMutableTreeNode root = hintsRoot;
+            if (root != null) {
+                // Put it into the first category
+                if (root.getAllowsChildren() && root.getChildCount() > 0) {
+                    TreeNode firstChild = root.getChildAt(0);
+                    if (firstChild instanceof DefaultMutableTreeNode && !firstChild.isLeaf()) {
+                        root = (DefaultMutableTreeNode)firstChild;
+                    }
+                }
+                for (Rule rule : extraRules) {
+                        root.add( new DefaultMutableTreeNode( rule, false ) );
                 }
             }
         }
@@ -630,6 +718,7 @@ public class GsfHintsManager extends HintsProvider.HintsManager {
         return HintsSettings.getPreferences(this, rule, null);
     }
     
+    @org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.gsf.api.HintsProvider.Factory.class)
     public static class HintsManagerFactory extends HintsProvider.Factory {
         public HintsManagerFactory() {
         }

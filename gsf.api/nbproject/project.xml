@@ -6,6 +6,15 @@
             <code-name-base>org.netbeans.modules.gsf.api</code-name-base>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>org.netbeans.modules.editor</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>3</release-version>
+                        <specification-version>1.42</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.modules.editor.indent</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -19,8 +28,8 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <release-version>1</release-version>
-                        <specification-version>1.30</specification-version>
+                        <release-version>2</release-version>
+                        <specification-version>2.1</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -64,8 +73,16 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <release-version>0</release-version>
-                        <implementation-version/>
+                        <release-version>0-1</release-version>
+                        <specification-version>1.7</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.awt</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>7.10</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -105,7 +122,15 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>7.3.0.1</specification-version>
+                        <specification-version>8.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.util.lookup</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>8.0</specification-version>
                     </run-dependency>
                 </dependency>
             </module-dependencies>
@@ -125,6 +150,7 @@
             </test-dependencies>
             <friend-packages>
                 <friend>org.netbeans.modules.python.editor</friend>
+                <friend>org.netbeans.modules.python.testrunner</friend>
                 <friend>org.netbeans.modules.css.devtools</friend>
                 <friend>org.netbeans.modules.css.editor</friend>
                 <friend>org.netbeans.modules.erlang.editing</friend>
@@ -132,15 +158,14 @@
                 <friend>org.netbeans.modules.erlang.project</friend>
                 <friend>org.netbeans.modules.fortress.editing</friend>
                 <friend>org.netbeans.modules.groovy.editor</friend>
+                <friend>org.netbeans.modules.groovy.grailsproject</friend>
                 <friend>org.netbeans.modules.groovy.gsp</friend>
                 <friend>org.netbeans.modules.groovy.refactoring</friend>
                 <friend>org.netbeans.modules.gsf</friend>
+                <friend>org.netbeans.modules.gsf.testrunner</friend>
                 <friend>org.netbeans.modules.gsf.tools</friend>
                 <friend>org.netbeans.modules.html.editor</friend>
                 <friend>org.netbeans.modules.javafx.dataloader</friend>
-                <friend>org.netbeans.modules.javascript.editing</friend>
-                <friend>org.netbeans.modules.javascript.hints</friend>
-                <friend>org.netbeans.modules.javascript.refactoring</friend>
                 <friend>org.netbeans.modules.languages.ejs</friend>
                 <friend>org.netbeans.modules.languages.yaml</friend>
                 <friend>org.netbeans.modules.php.devtools</friend>
@@ -149,6 +174,7 @@
                 <friend>org.netbeans.modules.ruby</friend>
                 <friend>org.netbeans.modules.ruby.extrahints</friend>
                 <friend>org.netbeans.modules.ruby.hints</friend>
+                <friend>org.netbeans.modules.ruby.merbproject</friend>
                 <friend>org.netbeans.modules.ruby.platform</friend>
                 <friend>org.netbeans.modules.ruby.project</friend>
                 <friend>org.netbeans.modules.ruby.railsprojects</friend>

@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -266,7 +269,7 @@ public final class Source {
      * @param cpInfo the classpaths to be used.
      * @param files for which the {@link Source} should be created
      * @return a new {@link Source}
-     * @throws {@link IllegalArgumentException} if fileObject or cpInfo is null
+     * @throws IllegalArgumentException if fileObject or cpInfo is null
      */
     public static Source create(final ClasspathInfo cpInfo, final Collection<? extends FileObject> files) throws IllegalArgumentException {
         if (files == null || cpInfo == null) {
@@ -290,7 +293,7 @@ public final class Source {
      * @param cpInfo the classpaths to be used.
      * @param files for which the {@link Source} should be created
      * @return a new {@link Source}
-     * @throws {@link IllegalArgumentException} if fileObject or cpInfo is null
+     * @throws IllegalArgumentException if fileObject or cpInfo is null
      */
     public static Source create(final ClasspathInfo cpInfo, final FileObject... files) throws IllegalArgumentException {
         if (files == null || cpInfo == null) {
@@ -312,7 +315,7 @@ public final class Source {
      *
      * @param fileObject for which the {@link Source} should be found/created.
      * @return {@link Source} or null
-     * @throws {@link IllegalArgumentException} if fileObject is null
+     * @throws IllegalArgumentException if fileObject is null
      */
     public static Source forFileObject(FileObject fileObject) throws IllegalArgumentException {
         if (fileObject == null) {
@@ -343,7 +346,7 @@ public final class Source {
      *
      * @param doc {@link Document} for which the {@link Source} should be found/created.
      * @return {@link Source} or null
-     * @throws {@link IllegalArgumentException} if doc is null
+     * @throws IllegalArgumentException if doc is null
      */
     public static Source forDocument(Document doc) throws IllegalArgumentException {
         if (doc == null) {
@@ -438,8 +441,16 @@ public final class Source {
         if (task == null) {
             throw new IllegalArgumentException ("Task cannot be null");     //NOI18N
         }
-        
-        assert javacLock.isHeldByCurrentThread() || !holdsDocumentWriteLock(files) : "Source.runCompileControlTask called under Document write lock.";    //NOI18N
+
+        boolean assertionsEnabled = false;
+        assert assertionsEnabled = true;
+        if (assertionsEnabled) {
+            if (!(javacLock.isHeldByCurrentThread() || !holdsDocumentWriteLock(files))) {
+                String msg = "Source.runCompileControlTask called under Document write lock."; // NOI18N
+                Logger.getLogger(Source.class.getName()).log(Level.INFO, msg,
+                        new IllegalStateException(msg));
+            }
+        }
         
         if (this.files.size()<=1) {                        
             final Source.Request request = currentRequest.getTaskToCancel();

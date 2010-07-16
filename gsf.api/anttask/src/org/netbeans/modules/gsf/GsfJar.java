@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -101,6 +104,7 @@ public class GsfJar extends JarWithModuleAttributes {
     // Keep in sync with LanguageRegistry
     private static final String STRUCTURE = "structure.instance"; // NOI18N
     private static final String LANGUAGE = "language.instance"; // NOI18N
+    private static final String CODE_COVERAGE = "codecoverage"; // NOI18N
 
     private Manifest mf;
     private String layer;
@@ -224,14 +228,16 @@ public class GsfJar extends JarWithModuleAttributes {
                 boolean customEditorKit = false;
                 String gsfLanguageClass = null;
                 boolean hasStructureScanner = false;
-
-                for (Element regFile : getElementChildren(innerMime)) {
+                boolean seenEditorStuff = false;
+                List<Element> elementChildren = getElementChildren(innerMime);
+                for (Element regFile : elementChildren) {
                     String tag = regFile.getTagName();
                     if (ATTR.equals(tag)) { // NOI18N
                         String name = regFile.getAttribute(FILENAME);
                         if (USECUSTOMEDITORKIT.equals(name) && TRUE.equals(regFile.getAttribute(BOOLVALUE))) {
                             // It's a custom editor
                             customEditorKit = true;
+                            seenEditorStuff = true;
                         }
                     } else {
                         if (!tag.equals(FILE)) {
@@ -244,12 +250,22 @@ public class GsfJar extends JarWithModuleAttributes {
                         // This language has a navigator; insert one
                         registerStructureScanner(doc, mimeType);
                         hasStructureScanner = true;
+                        seenEditorStuff = true;
                     } else if (LANGUAGE.equals(name)) {
                         List<Element> attributes = getAttributeElements(regFile);
                         for (Element attribute : attributes) {
                             if ("instanceClass".equals(attribute.getAttribute(FILENAME))) { // NOI18N
                                 gsfLanguageClass = attribute.getAttribute(STRINGVALUE);
                             }
+                        }
+                        seenEditorStuff = true;
+                    } else if (CODE_COVERAGE.equals(name)) {
+                        registerCodeCoverage(doc, mimeType);
+
+                        // Hack - avoid problems for people registering nothing having to do with
+                        // editing
+                        if (!seenEditorStuff) {
+                            return;
                         }
                     }
                 }
@@ -479,6 +495,16 @@ public class GsfJar extends JarWithModuleAttributes {
             String loaderDesc = displayName + " Files";
             setFileAttribute(doc, file, "displayName", "stringvalue", loaderDesc); // NOI18N
         }
+    }
+
+    private void registerCodeCoverage(Document doc, String mimeType) {
+        Element factoryFolder = mkdirs(doc, "Editors/" + mimeType + ""); // NOI18N
+        Element file = createFile(doc, factoryFolder, "org-netbeans-modules-gsf-codecoverage-CoverageHighlightsLayerFactory.instance"); // NOI18N
+        Element sideBarFolder = mkdirs(doc, "Editors/" + mimeType + "/SideBar"); // NOI18N
+        Element sideBar = createFile(doc, sideBarFolder, "org-netbeans-modules-gsf-codecoverage-CoverageSideBar$Factory.instance"); // NOI18N
+        setFileAttribute(doc, sideBar, "position", "intvalue", "1308"); // NOI18N
+        setFileAttribute(doc, sideBar, "location", "stringvalue", "South"); // NOI18N
+        setFileAttribute(doc, sideBar, "scrollable", "boolvalue", "false"); // NOI18N
     }
 
     private List<Element> getAttributeElements(Document doc, String path) {

@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -45,6 +48,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
@@ -59,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TooManyListenersException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.modules.gsfpath.api.classpath.ClassPath;
@@ -199,7 +204,14 @@ public class GlobalSourcePath {
         for (ClassPath cp : r.sourceCps) {
             boolean isNew = !r.oldCps.remove(cp);
             for (ClassPath.Entry entry : cp.entries()) {
-                result.add(ClassPathSupport.createResource(entry.getURL()));
+                try {
+                    URL url = entry.getURL ();
+                    if (!url.toExternalForm ().endsWith ("/"))
+                        url = new URL (url.toExternalForm () + "/");
+                    result.add (ClassPathSupport.createResource (url));
+                } catch (IOException ioe) {
+                    ErrorManager.getDefault ().notify (ioe);
+                }
             }
             boolean notContained = newCps.add (cp);
             if (isNew && notContained) {
@@ -212,7 +224,14 @@ public class GlobalSourcePath {
         for (ClassPath cp : r.bootCps) {
             boolean isNew = !r.oldCps.remove(cp);
             for (ClassPath.Entry entry : cp.entries()) {
-                result.add(ClassPathSupport.createResource(entry.getURL()));
+                try {
+                    URL url = entry.getURL ();
+                    if (!url.toExternalForm ().endsWith ("/"))
+                        url = new URL (url.toExternalForm () + "/");
+                    result.add (ClassPathSupport.createResource (url));
+                } catch (IOException ioe) {
+                    ErrorManager.getDefault ().notify (ioe);
+                }
             }
             boolean notContained = newCps.add (cp);
             if (isNew && notContained) {
@@ -278,7 +297,13 @@ public class GlobalSourcePath {
                     List<URL> cacheURLs = new ArrayList<URL> ();
                     Collection<? extends PathResourceImplementation> srcRoots = getSources(sr.getRoots(),cacheURLs, r.unknownRoots);
                     if (srcRoots.isEmpty()) {
-                        binaryResult.add(ClassPathSupport.createResource(url));
+                        try {
+                            if (!url.toExternalForm ().endsWith ("/"))
+                                url = new URL (url.toExternalForm () + "/");
+                            binaryResult.add (ClassPathSupport.createResource (url));
+                        } catch (IOException ioe) {
+                            ErrorManager.getDefault ().notify (ioe);
+                        }
                     }
                     else {
                         result.addAll(srcRoots);
@@ -303,7 +328,13 @@ public class GlobalSourcePath {
             entry.getValue().removeChangeListener(r.changeListener);
         }                        
         for (URL unknownRoot : r.unknownRoots.keySet()) {
-            unknownResult.add (ClassPathSupport.createResource(unknownRoot));
+            try {
+                if (!unknownRoot.toExternalForm ().endsWith ("/"))
+                    unknownRoot = new URL (unknownRoot.toExternalForm () + "/");
+                unknownResult.add (ClassPathSupport.createResource (unknownRoot));
+            } catch (IOException ioe) {
+                ErrorManager.getDefault ().notify (ioe);
+            }
         }        
         return new Result (r.timeStamp, new ArrayList<PathResourceImplementation> (result), new ArrayList(binaryResult), new ArrayList<PathResourceImplementation>(unknownResult),
                 newCps,newSR,translatedRoots, r.unknownRoots);
@@ -346,7 +377,14 @@ public class GlobalSourcePath {
                 if (unknownRoots != null) {
                     unknownRoots.remove (urls[i]);
                 }
-                result.add(ClassPathSupport.createResource(urls[i]));
+                try {
+                    URL url = urls[i];
+                    if (!url.toExternalForm ().endsWith ("/"))
+                        url = new URL (url.toExternalForm () + "/");
+                    result.add (ClassPathSupport.createResource (url));
+                } catch (IOException ioe) {
+                    ErrorManager.getDefault ().notify (ioe);
+                }
             }
             return result;
         }

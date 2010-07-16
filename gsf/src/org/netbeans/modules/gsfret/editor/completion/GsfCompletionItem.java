@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -68,7 +71,6 @@ import org.netbeans.spi.editor.completion.CompletionTask;
 import org.netbeans.spi.editor.completion.support.CompletionUtilities;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
-import org.openide.util.Utilities;
 
 
 /**
@@ -138,6 +140,10 @@ public abstract class GsfCompletionItem implements CompletionItem {
             ElementKind kind = item.getKind();
             if (kind == ElementKind.PARAMETER || kind == ElementKind.CLASS || kind == ElementKind.MODULE) {
                 // These types of elements aren't ever instant substituted in Java - use same behavior here
+                return false;
+            }
+
+            if (getInsertPrefix().length() == 0) {
                 return false;
             }
 
@@ -350,7 +356,20 @@ public abstract class GsfCompletionItem implements CompletionItem {
             }
             
             super.substituteText(c, offset, len, toAdd);
-        }        
+        }
+
+        @Override
+        public void defaultAction(JTextComponent component) {
+            if (getInsertPrefix().length() == 0) {
+                completionResult.beforeInsert(item);
+                completionResult.insert(item);
+                completionResult.afterInsert(item);
+
+                return;
+            }
+
+            super.defaultAction(component);
+        }
     }
 
     public static final GsfCompletionItem createItem(CompletionProposal proposal, CodeCompletionResult result, CompilationInfo info) {
@@ -372,7 +391,7 @@ public abstract class GsfCompletionItem implements CompletionItem {
         }
         @Override
         protected ImageIcon getIcon() {
-            return new ImageIcon(ImageUtilities.loadImage("org/netbeans/modules/gsfret/editor/completion/warning.png")); // NOI18N
+            return ImageUtilities.loadImageIcon("org/netbeans/modules/gsfret/editor/completion/warning.png", false); // NOI18N
         }
 
         public int getSortPriority() {

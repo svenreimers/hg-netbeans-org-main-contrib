@@ -1,8 +1,11 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -184,6 +187,9 @@ public class EditList {
     }
     
     public OffsetRange getRange() {
+        if (edits.size() == 0) {
+            return OffsetRange.NONE;
+        }
         int minOffset = edits.get(0).offset;
         int maxOffset = minOffset;
         for (Edit edit : edits) {
@@ -200,8 +206,12 @@ public class EditList {
     
     public int firstLine(BaseDocument doc) {
         OffsetRange range = getRange();
-        
-        return NbDocument.findLineNumber((StyledDocument)doc, range.getStart());
+
+        if (range == OffsetRange.NONE) {
+            return -1;
+        } else {
+            return NbDocument.findLineNumber((StyledDocument)doc, range.getStart());
+        }
     }
     
     /**

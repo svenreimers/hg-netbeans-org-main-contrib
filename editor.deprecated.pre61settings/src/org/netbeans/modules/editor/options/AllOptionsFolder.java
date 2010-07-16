@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -57,7 +60,7 @@ import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.Repository;
+import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
@@ -104,13 +107,11 @@ public class AllOptionsFolder{
         synchronized (Settings.class){
             if (mimeFolder!=null) return mimeFolder;
 
-            FileObject f = Repository.getDefault().getDefaultFileSystem().
-            findResource(FOLDER+"/text/"+BaseOptions.BASE); //NOI18N
+            FileObject f = FileUtil.getConfigFile(FOLDER+"/text/"+BaseOptions.BASE); //NOI18N
 
             // MIME folder doesn't exist, let's create it
             if (f==null){
-                FileObject fo = Repository.getDefault().getDefaultFileSystem().
-                findResource(AllOptionsFolder.FOLDER);
+                FileObject fo = FileUtil.getConfigFile(AllOptionsFolder.FOLDER);
                 String fName = "text/"+BaseOptions.BASE; //NOI18N
 
                 if (fo != null){
@@ -127,8 +128,7 @@ public class AllOptionsFolder{
                         ioe.printStackTrace();
                     }
 
-                    f = Repository.getDefault().getDefaultFileSystem().
-                    findResource(AllOptionsFolder.FOLDER+"/text/"+BaseOptions.BASE); //NOI18N
+                    f = FileUtil.getConfigFile(AllOptionsFolder.FOLDER+"/text/"+BaseOptions.BASE); //NOI18N
                 }
             }
 
@@ -157,8 +157,7 @@ public class AllOptionsFolder{
         List retList = new ArrayList();
         String[] MIMES = new String[] {"text", "application"};  //#25246 application/xml-dtd // NOI18N
         for (int in = 0; in<MIMES.length; in++) {
-            FileObject mainFolderFO = Repository.getDefault().getDefaultFileSystem().
-            findResource(AllOptionsFolder.FOLDER+"/" + MIMES[in]); //NOI18N
+            FileObject mainFolderFO = FileUtil.getConfigFile(AllOptionsFolder.FOLDER+"/" + MIMES[in]); //NOI18N
             if (mainFolderFO != null){
                 DataFolder mainFolder = DataFolder.findFolder(mainFolderFO);
                 if (mainFolder != null){
@@ -166,8 +165,7 @@ public class AllOptionsFolder{
                     for (int i=0; i<subFolders.length; i++){
                         if (!(subFolders[i] instanceof DataFolder)) continue;
                         DataFolder subFolder = (DataFolder) subFolders[i];
-                        FileObject optionInstance = Repository.getDefault().getDefaultFileSystem().
-                            findResource(subFolder.getPrimaryFile().getPath()+"/"+AllOptionsFolder.OPTION_FILE_NAME); // NOI18N
+                        FileObject optionInstance = FileUtil.getConfigFile(subFolder.getPrimaryFile().getPath()+"/"+AllOptionsFolder.OPTION_FILE_NAME); // NOI18N
                         if (optionInstance == null) continue;
                         try{
                             DataObject optionDO = DataObject.find(optionInstance);
@@ -225,7 +223,7 @@ public class AllOptionsFolder{
     }
     
     public static void unregisterModuleRegListener(){
-        FileObject moduleRegistry = Repository.getDefault().getDefaultFileSystem().findResource("Modules"); //NOI18N
+        FileObject moduleRegistry = FileUtil.getConfigFile("Modules"); //NOI18N
 
         if (moduleRegistry !=null){ //NOI18N
             if (moduleRegListener!=null)
@@ -247,7 +245,7 @@ public class AllOptionsFolder{
                         }
                     };
 
-                    FileObject moduleRegistry = Repository.getDefault().getDefaultFileSystem().findResource("Modules"); //NOI18N
+                    FileObject moduleRegistry = FileUtil.getConfigFile("Modules"); //NOI18N
 
                     if (moduleRegistry !=null){ //NOI18N
                         moduleRegistry.addFileChangeListener(moduleRegListener);
@@ -407,8 +405,7 @@ public class AllOptionsFolder{
     public void loadMIMEOption(Class kitClass, boolean processOldTypeOption){
         String contentType = BaseKit.getKit(kitClass).getContentType();
         if (contentType == null) return;
-        FileObject optionFO = Repository.getDefault().getDefaultFileSystem().
-        findResource(FOLDER+"/"+contentType+"/"+OPTION_FILE_NAME); //NOI18N
+        FileObject optionFO = FileUtil.getConfigFile(FOLDER+"/"+contentType+"/"+OPTION_FILE_NAME); //NOI18N
         if (optionFO == null) {
             // old type of BaseOptions.
             // Options weren't transfered to XML form for this kitClass yet.

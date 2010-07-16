@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -199,6 +202,8 @@ public class ElementScanningTask implements CancellableTask<CompilationInfo>{
         private static final String JAVASCRIPT_MIMETYPE = "text/javascript";//NOI18N
         private static final String RUBY_MIMETYPE = "text/x-ruby";//NOI18N
         private static final String YAML_MIMETYPE = "text/x-yaml";//NOI18N
+        private static final String PHP_MIME_TYPE = "text/x-php5"; // NOI18N
+        private static final String PHP_SORT_TEXT = "0";//NOI18N
         private static final String JAVASCRIPT_SORT_TEXT = "1";//NOI18N
         private static final String HTML_MIMETYPE = "text/html";//NOI18N
         private static final String HTML_SORT_TEXT = "3";//NOI18N
@@ -239,20 +244,23 @@ public class ElementScanningTask implements CancellableTask<CompilationInfo>{
         }
 
         public String getSortText() {
+            String mimeType = language.getMimeType();
             //hack -> I need to ensure that the navigator selects the top most
             //node when user moves caret in the source.
             //Since the navigator tree is a generic graph if there are more
             //embedded languages we need to use some tricks...
-            if(language.getMimeType().equals(CSS_MIMETYPE)) {
+            if(mimeType.equals(CSS_MIMETYPE)) {
                 return CSS_SORT_TEXT;
-            } else if(language.getMimeType().equals(JAVASCRIPT_MIMETYPE)) {
+            } else if(mimeType.equals(JAVASCRIPT_MIMETYPE)) {
                 return JAVASCRIPT_SORT_TEXT;
-            } else if (language.getMimeType().equals(HTML_MIMETYPE)) {
+            } else if (mimeType.equals(HTML_MIMETYPE)) {
                 return HTML_SORT_TEXT;
-            } else if (language.getMimeType().equals(YAML_MIMETYPE)) {
+            } else if (mimeType.equals(YAML_MIMETYPE)) {
                 return YAML_SORT_TEXT;
-            } else if (language.getMimeType().equals(RUBY_MIMETYPE)) {
+            } else if (mimeType.equals(RUBY_MIMETYPE)) {
                 return RUBY_SORT_TEXT;
+            } else if (mimeType.equals(PHP_MIME_TYPE)) {
+                return PHP_SORT_TEXT;
             } else {
                 return OTHER_SORT_TEXT + getName();
             }
@@ -293,7 +301,7 @@ public class ElementScanningTask implements CancellableTask<CompilationInfo>{
 
         public ImageIcon getCustomIcon() {
             String iconBase = language.getIconBase();
-            return  iconBase == null ? null : new ImageIcon(ImageUtilities.loadImage(iconBase));
+            return  iconBase == null ? null : ImageUtilities.loadImageIcon(iconBase, false);
         }
 
         

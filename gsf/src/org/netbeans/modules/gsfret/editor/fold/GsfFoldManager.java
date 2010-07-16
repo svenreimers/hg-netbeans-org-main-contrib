@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -94,6 +97,7 @@ import org.netbeans.modules.gsf.api.DataLoadersBridge;
  */
 public class GsfFoldManager implements FoldManager {
     public static final FoldType CODE_BLOCK_FOLD_TYPE = new FoldType("code-block"); // NOI18N
+    public static final FoldType TAG_FOLD_TYPE = new FoldType("tag"); // NOI18N
     public static final FoldType INITIAL_COMMENT_FOLD_TYPE = new FoldType("initial-comment"); // NOI18N
     public static final FoldType IMPORTS_FOLD_TYPE = new FoldType("imports"); // NOI18N
     public static final FoldType JAVADOC_FOLD_TYPE = new FoldType("javadoc"); // NOI18N
@@ -106,8 +110,13 @@ public class GsfFoldManager implements FoldManager {
     
     private static final String CODE_BLOCK_FOLD_DESCRIPTION = "{...}"; // NOI18N
 
+    private static final String TAG_FOLD_DESCRIPTION = "<.../>"; // NOI18N
+
     public static final FoldTemplate CODE_BLOCK_FOLD_TEMPLATE
         = new FoldTemplate(CODE_BLOCK_FOLD_TYPE, CODE_BLOCK_FOLD_DESCRIPTION, 1, 1);
+
+    public static final FoldTemplate TAG_FOLD_TEMPLATE
+        = new FoldTemplate(TAG_FOLD_TYPE, TAG_FOLD_DESCRIPTION, 0, 0);
     
     public static final FoldTemplate INITIAL_COMMENT_FOLD_TEMPLATE
         = new FoldTemplate(INITIAL_COMMENT_FOLD_TYPE, COMMENT_FOLD_DESCRIPTION, 2, 2);
@@ -135,6 +144,12 @@ public class GsfFoldManager implements FoldManager {
      * NOTE: This must be kept in sync with string literal in editor/options
      */
     public static final String CODE_FOLDING_COLLAPSE_IMPORT = "code-folding-collapse-import"; //NOI18N
+
+    /**
+     * Collapse tags by default
+     * NOTE: This must be kept in sync with string literal in editor/options
+     */
+    public static final String CODE_FOLDING_COLLAPSE_TAGS = "code-folding-collapse-tags"; //NOI18N
     
     /**
      * Collapse javadoc comment by default
@@ -394,14 +409,18 @@ public class GsfFoldManager implements FoldManager {
                             }
                         }
 
+                        BaseDocument baseDoc = (BaseDocument) doc;
                         try {
+                            baseDoc.readLock();
                             // Start the fold at the END of the line
-                            startOffset = org.netbeans.editor.Utilities.getRowEnd((BaseDocument)doc, startOffset);
+                            startOffset = org.netbeans.editor.Utilities.getRowEnd( baseDoc, startOffset);
                             if (startOffset >= endOffset) {
                                 return true;
                             }
                         } catch (BadLocationException ex) {
                             ErrorManager.getDefault().notify(ex);
+                        } finally {
+                            baseDoc.readUnlock();
                         }
                         
                         folds.add(new FoldInfo(doc, startOffset, endOffset, INITIAL_COMMENT_FOLD_TEMPLATE, collapsed));
@@ -462,6 +481,13 @@ public class GsfFoldManager implements FoldManager {
                     for (OffsetRange range : ranges) {
                         boolean collapseByDefault = manager.getSetting(CODE_FOLDING_COLLAPSE_IMPORT);
                         addFold(range, result, doc, collapseByDefault,IMPORTS_FOLD_TEMPLATE);
+                    }
+                }
+                ranges = folds.get("tags"); //NOI18N
+                if (ranges != null) {
+                    for (OffsetRange range : ranges) {
+                        boolean collapseByDefault = manager.getSetting(CODE_FOLDING_COLLAPSE_TAGS);
+                        addFold(range, result, doc, collapseByDefault,TAG_FOLD_TEMPLATE);
                     }
                 }
             }
