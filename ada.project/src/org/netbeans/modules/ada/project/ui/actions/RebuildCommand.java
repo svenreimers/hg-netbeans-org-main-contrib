@@ -36,19 +36,14 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.project.ui.actions;
 
 import java.io.File;
-import java.util.ArrayList;
 import org.netbeans.api.ada.platform.AdaPlatform;
-import org.netbeans.modules.ada.platform.compiler.gnat.GnatCompiler;
 import org.netbeans.modules.ada.project.AdaActionProvider;
 import org.netbeans.modules.ada.project.AdaProject;
 import org.netbeans.modules.ada.project.AdaProjectUtil;
-import org.netbeans.modules.ada.project.options.AdaOptions;
 import org.netbeans.modules.ada.project.ui.properties.AdaProjectProperties;
-import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 
@@ -71,41 +66,15 @@ public class RebuildCommand extends Command {
 
     @Override
     public void invokeAction(Lookup context) throws IllegalArgumentException {
-        // Retrieve project and platform
+        // Retrieve project
         final AdaProject project = getProject();
-        AdaPlatform platform = AdaProjectUtil.getActivePlatform(project);
-        assert platform != null;
-        ArrayList<String> sources = new ArrayList<String>();
-        FileObject[] files;
-
-        // Retrieve main file
-        String mainFile = project.getEvaluator().getProperty(AdaProjectProperties.MAIN_FILE);
-        assert mainFile != null;
-
-        files = project.getSourcesDirectory();
-        for (int index = 0; index < files.length; index++) {
-            sources.add(FileUtil.toFile(files[index]).getAbsolutePath());
-        }
 
         // Init compiler factory
-        GnatCompiler comp = new GnatCompiler(
-                platform,
-                project.getName(),                        // project name
-                FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath(),  // project location
-                sources,  // sources location
-                mainFile,                                 // main file
-                project.getName(),                        // executable file
-                COMMAND_ID,                              // display name
-                project.getEvaluator().getProperty(AdaOptions.PKG_SPEC_POSTFIX),
-                project.getEvaluator().getProperty(AdaOptions.PKG_BODY_POSTFIX),
-                project.getEvaluator().getProperty(AdaOptions.SEPARATE_POSTFIX),
-                project.getEvaluator().getProperty(AdaOptions.PKG_SPEC_EXT),
-                project.getEvaluator().getProperty(AdaOptions.PKG_BODY_EXT),
-                project.getEvaluator().getProperty(AdaOptions.SEPARATE_EXT));
+        org.netbeans.spi.ada.platform.Compiler compiler = ActionsUtil.getCompilerFactory(project, COMMAND_ID);
 
         // Start rebuild
-        comp.Clean();
-        comp.Build();
+        compiler.Clean();
+        compiler.Build();
     }
 
     @Override
@@ -115,12 +84,15 @@ public class RebuildCommand extends Command {
         if (platform == null) {
             return false;
         } else {
+            String mainFile = project.getEvaluator().getProperty(AdaProjectProperties.MAIN_FILE);
+            if (mainFile == null) {
+                return false;
+            }
             if (!new File(FileUtil.toFile(project.getProjectDirectory()), "build").isDirectory() ||
-                !new File(FileUtil.toFile(project.getProjectDirectory()), "dist").isDirectory()) {
+                    !new File(FileUtil.toFile(project.getProjectDirectory()), "dist").isDirectory()) {
                 return false;
             }
         }
         return true;
     }
-    
 }

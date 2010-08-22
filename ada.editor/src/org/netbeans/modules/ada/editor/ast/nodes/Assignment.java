@@ -48,10 +48,10 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class Assignment extends Statement {
     
-    private VariableBase leftHandSide;
+    private NameBase leftHandSide;
     private Expression rightHandSide;
 
-    public Assignment(int start, int end, VariableBase leftHandSide, Expression rightHandSide) {
+    public Assignment(int start, int end, NameBase leftHandSide, Expression rightHandSide) {
         super(start, end);
         if (leftHandSide == null ) {//|| rightHandSide == null) { TODO: must be correct
             throw new IllegalArgumentException
@@ -67,7 +67,7 @@ public class Assignment extends Statement {
      * 
      * @return the left hand side node
      */
-    public VariableBase getLeftHandSide() {
+    public NameBase getLeftHandSide() {
         return this.leftHandSide;
     }
 

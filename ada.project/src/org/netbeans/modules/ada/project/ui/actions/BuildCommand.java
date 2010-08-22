@@ -74,15 +74,6 @@ public class BuildCommand extends Command {
     public void invokeAction(Lookup context) throws IllegalArgumentException {
         // Retrieve project and platform
         final AdaProject project = getProject();
-        AdaPlatform platform = AdaProjectUtil.getActivePlatform(project);
-        assert platform != null;
-
-        ArrayList<String> sources = new ArrayList<String>();
-        FileObject[] files;
-
-        // Retrieve main file
-        String mainFile = project.getEvaluator().getProperty(AdaProjectProperties.MAIN_FILE);
-        assert mainFile != null;
 
         // Create Build/Dist folders
         try {
@@ -92,29 +83,8 @@ public class BuildCommand extends Command {
             Exceptions.printStackTrace(ex);
         }
 
-        files = project.getSourcesDirectory();
-        for (int index = 0; index < files.length; index++) {
-            sources.add(FileUtil.toFile(files[index]).getAbsolutePath());
-        }
-
-        // Init compiler factory
-        GnatCompiler comp = new GnatCompiler(
-                platform,
-                project.getName(),                        // project name
-                FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath(),  // project location
-                sources,                                  // sources location
-                mainFile,                                 // main file
-                project.getName(),                        // executable file
-                COMMAND_ID,                              // display name
-                project.getEvaluator().getProperty(AdaOptions.PKG_SPEC_POSTFIX),
-                project.getEvaluator().getProperty(AdaOptions.PKG_BODY_POSTFIX),
-                project.getEvaluator().getProperty(AdaOptions.SEPARATE_POSTFIX),
-                project.getEvaluator().getProperty(AdaOptions.PKG_SPEC_EXT),
-                project.getEvaluator().getProperty(AdaOptions.PKG_BODY_EXT),
-                project.getEvaluator().getProperty(AdaOptions.SEPARATE_EXT));
-
         // Start build
-        comp.Build();
+        ActionsUtil.getCompilerFactory(project, COMMAND_ID).Build();
     }
 
     @Override
@@ -122,6 +92,10 @@ public class BuildCommand extends Command {
         final AdaProject project = getProject();
         AdaPlatform platform = AdaProjectUtil.getActivePlatform(project);
         if (platform == null) {
+            return false;
+        }
+        String mainFile = project.getEvaluator().getProperty(AdaProjectProperties.MAIN_FILE);
+        if (mainFile == null) {
             return false;
         }
         return true;
@@ -145,14 +119,16 @@ public class BuildCommand extends Command {
 
     private void createBuildRoot(final AdaProject project) throws IOException {
         // Retrieve build path
-        String buildPath = project.getEvaluator().getProperty(AdaProjectProperties.BUILD_DIR);
+        final File projectDirectory = FileUtil.toFile(project.getProjectDirectory());
+        String buildPath = projectDirectory + File.separator + project.getEvaluator().getProperty(AdaProjectProperties.BUILD_DIR);
         assert buildPath != null;
         FileUtil.createFolder(new File(buildPath));
     }
 
     private void createDistRoot(final AdaProject project) throws IOException {
         // Retrieve dist path
-        String distPath = project.getEvaluator().getProperty(AdaProjectProperties.DIST_DIR);
+        final File projectDirectory = FileUtil.toFile(project.getProjectDirectory());
+        String distPath = projectDirectory + File.separator + project.getEvaluator().getProperty(AdaProjectProperties.DIST_DIR);
         assert distPath != null;
 		FileUtil.createFolder(new File(distPath));
     }

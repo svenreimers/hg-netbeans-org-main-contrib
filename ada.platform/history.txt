@@ -1,3 +1,15 @@
+0.1.8: 12-08-2010
+- Add JVM compiler support.
+
+0.1.7: 13-10-2009
+- Add the signing of the nbm files.
+- Fix the issue http://sourceforge.net/tracker/?func=detail&aid=2872967&group_id=248853&atid=1126624.
+
+0.1.6: 01-10-2009
+- Fix https://sourceforge.net/tracker/?func=detail&aid=2868718&group_id=248853&atid=1126624.
+- Improvements on the GPR file management.
+- Sends of the arguments when the action RUN is invoked
+
 0.1.5: 13-09-2009
 - Add improvements for gpr handling.
 

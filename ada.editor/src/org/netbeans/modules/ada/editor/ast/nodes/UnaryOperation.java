@@ -52,7 +52,9 @@ public class UnaryOperation extends Expression {
     public enum Operator {
         PLUS, // '+'
         MINUS, // '-'
-        AMP // '&'
+        AMP, // '&'
+        NOT, // 'not'
+        ABS // 'abs'
     }
     
     private Expression expression;

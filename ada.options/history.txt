@@ -1,5 +1,11 @@
-0.1.5: dd-mm-2009
-- TBD
+0.1.7: 12-08-2010
+- Update modules dependencies version.
+
+0.1.6: 13-10-2009
+- Add the signing of the nbm files.
+
+0.1.5: 01-10-2009
+- Move Ada Options Panel on Ada Project module.
 
 0.1.4: 13-09-2009
 - Update spec version.

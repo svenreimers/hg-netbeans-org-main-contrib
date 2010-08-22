@@ -47,9 +47,9 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class GotoStatement extends Statement {
 
-    private String labelName;
+    private Expression labelName;
 
-    public GotoStatement(int start, int end, String labelName) {
+    public GotoStatement(int start, int end, Expression labelName) {
         super(start, end);
         this.labelName = labelName;
     }
@@ -59,7 +59,7 @@ public class GotoStatement extends Statement {
      * 
      * @return the loopName node
      */
-    public String getLabelName() {
+    public Expression getLabelName() {
         return labelName;
     }
 

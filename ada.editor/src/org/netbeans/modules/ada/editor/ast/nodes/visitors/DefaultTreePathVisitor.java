@@ -59,6 +59,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
 import org.netbeans.modules.ada.editor.ast.nodes.GotoStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.Identifier;
 import org.netbeans.modules.ada.editor.ast.nodes.IfStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.InfixExpression;
 import org.netbeans.modules.ada.editor.ast.nodes.LoopStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.NullStatement;
@@ -70,6 +71,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.PackageRenames;
 import org.netbeans.modules.ada.editor.ast.nodes.Program;
 import org.netbeans.modules.ada.editor.ast.nodes.QualifiedExpression;
 import org.netbeans.modules.ada.editor.ast.nodes.RaiseStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.Range;
 import org.netbeans.modules.ada.editor.ast.nodes.Reference;
 import org.netbeans.modules.ada.editor.ast.nodes.ReturnStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.Scalar;
@@ -115,6 +117,13 @@ public class DefaultTreePathVisitor extends DefaultVisitor {
     }
 
     @Override
+    public void visit(ASTNode node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
     public void visit(AbortStatement node) {
         path.addFirst(node);
         super.visit(node);
@@ -137,6 +146,27 @@ public class DefaultTreePathVisitor extends DefaultVisitor {
 
     @Override
     public void visit(Block node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
+    public void visit(BlockStatement node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
+    public void visit(CaseStatement node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
+    public void visit(CaseWhen node) {
         path.addFirst(node);
         super.visit(node);
         path.removeFirst();
@@ -199,6 +229,20 @@ public class DefaultTreePathVisitor extends DefaultVisitor {
     }
 
     @Override
+    public void visit(IfStatement node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
+    public void visit(InfixExpression node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
     public void visit(LoopStatement node) {
         path.addFirst(node);
         super.visit(node);
@@ -241,6 +285,13 @@ public class DefaultTreePathVisitor extends DefaultVisitor {
     }
 
     @Override
+    public void visit(PackageRenames node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
     public void visit(PackageSpecification node) {
         path.addFirst(node);
         super.visit(node);
@@ -256,6 +307,13 @@ public class DefaultTreePathVisitor extends DefaultVisitor {
 
     @Override
     public void visit(QualifiedExpression node) {
+        path.addFirst(node);
+        super.visit(node);
+        path.removeFirst();
+    }
+
+    @Override
+    public void visit(Range node) {
         path.addFirst(node);
         super.visit(node);
         path.removeFirst();
@@ -354,48 +412,6 @@ public class DefaultTreePathVisitor extends DefaultVisitor {
 
     @Override
     public void visit(With node) {
-        path.addFirst(node);
-        super.visit(node);
-        path.removeFirst();
-    }
-
-    @Override
-    public void visit(BlockStatement node) {
-        path.addFirst(node);
-        super.visit(node);
-        path.removeFirst();
-    }
-
-    @Override
-    public void visit(CaseStatement node) {
-        path.addFirst(node);
-        super.visit(node);
-        path.removeFirst();
-    }
-
-    @Override
-    public void visit(CaseWhen node) {
-        path.addFirst(node);
-        super.visit(node);
-        path.removeFirst();
-    }
-
-    @Override
-    public void visit(IfStatement node) {
-        path.addFirst(node);
-        super.visit(node);
-        path.removeFirst();
-    }
-
-    @Override
-    public void visit(PackageRenames node) {
-        path.addFirst(node);
-        super.visit(node);
-        path.removeFirst();
-    }
-
-    @Override
-    public void visit(ASTNode node) {
         path.addFirst(node);
         super.visit(node);
         path.removeFirst();

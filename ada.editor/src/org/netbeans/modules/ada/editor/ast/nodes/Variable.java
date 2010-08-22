@@ -36,7 +36,6 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.editor.ast.nodes;
 
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
@@ -55,7 +54,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  *
  * @author Andrea Lucarelli
  */
-public class Variable extends VariableBase {
+public class Variable extends NameBase {
 
     public enum Kind {
         DEFAULT,
@@ -63,10 +62,9 @@ public class Variable extends VariableBase {
         ALIASED,
         ALIASED_CONSTANT,
     }
-
     private Identifier name;
     private Kind variableKind;
-	private TypeName variableType;
+    private TypeName variableType;
 
     public Variable(int start, int end, Identifier variableName, Variable.Kind kind, TypeName type) {
         super(start, end);
@@ -75,13 +73,13 @@ public class Variable extends VariableBase {
         this.variableType = type;
     }
 
-	public Variable(int start, int end, Identifier variableName, Variable.Kind kind) {
-		this(start, end, variableName, kind, null);
-	}
+    public Variable(int start, int end, Identifier variableName, Variable.Kind kind) {
+        this(start, end, variableName, kind, null);
+    }
 
-	public Variable(int start, int end, Identifier variableName) {
-		this(start, end, variableName, Kind.DEFAULT, null);
-	}
+    public Variable(int start, int end, Identifier variableName) {
+        this(start, end, variableName, Kind.DEFAULT, null);
+    }
 
     /**
      * Returns the name (Identifier) of this variable
@@ -92,7 +90,7 @@ public class Variable extends VariableBase {
         return this.name;
     }
 
-	/**
+    /**
      * Returns the type of this variable
      * 
      * @return the type node
@@ -100,6 +98,16 @@ public class Variable extends VariableBase {
     public TypeName getVariableType() {
         return this.variableType;
     }
+
+    /**
+     * Returns the kind of this variable
+     *
+     * @return the kind node
+     */
+    public Kind getVariableKind() {
+        return variableKind;
+    }
+    
 
     @Override
     public void accept(Visitor visitor) {

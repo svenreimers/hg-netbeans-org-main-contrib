@@ -42,6 +42,8 @@ package org.netbeans.modules.ada.editor.ast.nodes;
  * Based on org.netbeans.modules.php.editor.parser.astnodes.BodyDeclaration
  *
  * Base class for package member declarations
+ *
+ * @author Andrea Lucarelli
  */
 public abstract class BodyDeclaration extends Statement {
 

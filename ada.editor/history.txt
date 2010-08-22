@@ -1,5 +1,12 @@
-0.1.9: dd-mm-2009
+0.2.1: 12-08-2010
+- Update modules dependencies version.
+
+0.2.0: 13-10-2009
+- Add the signing of the nbm file.
+
+0.1.9: 01-10-2009
 - Migrates from GSF to CSL for new Parsing & Indexing API
+- Add improvements on ast parser.
 
 0.1.8: 13-09-2009
 - Add improvements on ast parser, navigator, instant renamer.

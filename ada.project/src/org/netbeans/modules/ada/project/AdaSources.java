@@ -136,8 +136,12 @@ public class AdaSources implements Sources, ChangeListener, PropertyChangeListen
             String prop = propNames[i];
             String displayName = roots.getRootDisplayName(rootNames[i], prop);
             String loc = "${" + prop + "}"; // NOI18N
-            sourcesHelper.addPrincipalSourceRoot(loc, displayName, null, null); // NOI18N
-            sourcesHelper.addTypedSourceRoot(loc, SOURCES_TYPE_ADA, displayName, null, null);
+//            sourcesHelper.addPrincipalSourceRoot(loc, displayName, null, null); // NOI18N
+//            sourcesHelper.addTypedSourceRoot(loc, SOURCES_TYPE_ADA, displayName, null, null);
+            sourcesHelper.sourceRoot(loc).displayName(displayName)
+                    .add() // principal root
+                    .type(SOURCES_TYPE_ADA).add();    // typed root
+
         }
     }
 

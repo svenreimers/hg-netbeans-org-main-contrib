@@ -143,7 +143,7 @@ class EmptyAdaProjectPanelVisual extends SettingsPanel implements DocumentListen
         String command = evt.getActionCommand();
         if ("BROWSE".equals(command)) {
             JFileChooser chooser = new JFileChooser();
-            FileUtil.preventFileChooserSymlinkTraversal(chooser, null);
+//            FileUtil.preventFileChooserSymlinkTraversal(chooser, null);
             chooser.setDialogTitle("Select Project Location");
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             String path = this.projectLocationTextField.getText();
@@ -238,7 +238,7 @@ class EmptyAdaProjectPanelVisual extends SettingsPanel implements DocumentListen
 
         String projectName = (String) settings.getProperty(NewAdaProjectWizardIterator.PROP_PROJECT_NAME);
         if (projectName == null) {
-            projectName = NewAdaProjectWizardIterator.getFreeFolderName(projectLocation,"NewAdaApplication"); //NOI18N
+            projectName = NewAdaProjectWizardIterator.getFreeFolderName(projectLocation,"AdaApplication"); //NOI18N
         }
         this.projectNameTextField.setText(projectName);
         this.projectNameTextField.selectAll();

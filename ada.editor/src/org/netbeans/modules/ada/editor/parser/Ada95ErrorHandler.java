@@ -96,23 +96,23 @@ public class Ada95ErrorHandler implements ParserErrorHandler {
         this.outer = outer;
         this.context = context;
         syntaxErrors = new ArrayList<SyntaxError>();
-        //LOGGER.setLevel(Level.FINEST);
+        //LOGGER.setLevel(Level.FINE);
     }
 
     public void handleError(Type type, short[] expectedtokens, Symbol current, Symbol previous) {
         Error error;
         if (type == ParserErrorHandler.Type.SYNTAX_ERROR) {
             // logging syntax error
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.finest("Syntax error:"); //NOI18N
-                LOGGER.finest("Current [" + current.left + ", " + current.right + "](" + Utils.getASTScannerTokenName(current.sym) + "): " + current.value); //NOI18N
-                LOGGER.finest("Previous [" + previous.left + ", " + previous.right + "] (" + Utils.getASTScannerTokenName(previous.sym) + "):" + previous.value); //NOI18N
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine("Syntax error:"); //NOI18N
+                LOGGER.fine("Current [" + current.left + ", " + current.right + "](" + Utils.getASTScannerTokenName(current.sym) + "): " + current.value); //NOI18N
+                LOGGER.fine("Previous [" + previous.left + ", " + previous.right + "] (" + Utils.getASTScannerTokenName(previous.sym) + "):" + previous.value); //NOI18N
                 StringBuffer message = new StringBuffer();
                 message.append("Expected tokens:"); //NOI18N
                 for (int i = 0; i < expectedtokens.length; i += 2) {
                     message.append(" ").append( Utils.getASTScannerTokenName(expectedtokens[i])); //NOI18N
                 }
-                LOGGER.finest(message.toString());
+                LOGGER.fine(message.toString());
             }
             syntaxErrors.add(new SyntaxError(expectedtokens, current, previous));
         } else {
@@ -163,9 +163,9 @@ public class Ada95ErrorHandler implements ParserErrorHandler {
                     }
                 }
                 if (astError != null) {
-                    LOGGER.finest("ASTError [" + astError.getStartOffset() + ", " + astError.getEndOffset() + "]"); //NOI18N
+                    LOGGER.fine("ASTError [" + astError.getStartOffset() + ", " + astError.getEndOffset() + "]"); //NOI18N
                 } else {
-                    LOGGER.finest("ASTError was not found");  //NOI18N
+                    LOGGER.fine("ASTError was not found");  //NOI18N
                 }
             }
             Error error = defaultSyntaxErrorHandling(syntaxError, astError);

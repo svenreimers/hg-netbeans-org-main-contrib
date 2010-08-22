@@ -50,8 +50,7 @@ import org.netbeans.modules.ada.editor.navigator.AdaOccurrencesFinder;
 import org.netbeans.modules.ada.editor.parser.AdaStructureScanner;
 import org.netbeans.modules.ada.editor.parser.AdaParser;
 import org.netbeans.modules.ada.editor.parser.AdaSemanticAnalyzer;
-import org.netbeans.modules.csl.api.CodeCompletionHandler;
-import org.netbeans.modules.csl.api.CodeCompletionHandler;
+import org.netbeans.modules.ada.project.api.AdaSourcePath;
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
 import org.netbeans.modules.csl.api.DeclarationFinder;
 import org.netbeans.modules.csl.api.Formatter;
@@ -62,14 +61,18 @@ import org.netbeans.modules.csl.api.OccurrencesFinder;
 import org.netbeans.modules.csl.api.SemanticAnalyzer;
 import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
+import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
 import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexerFactory;
+import org.netbeans.modules.parsing.spi.indexing.PathRecognizerRegistration;
 
 
 /**
  *
  * @author Andrea Lucarelli
  */
+@LanguageRegistration(mimeType="text/x-ada") //NOI18N
+@PathRecognizerRegistration(mimeTypes="text/x-ada", sourcePathIds=AdaSourcePath.SOURCE_CP, libraryPathIds=AdaSourcePath.BOOT_CP, binaryLibraryPathIds={}) //NOI18N
 public class AdaLanguage extends DefaultLanguageConfig {
 
     public AdaLanguage() {

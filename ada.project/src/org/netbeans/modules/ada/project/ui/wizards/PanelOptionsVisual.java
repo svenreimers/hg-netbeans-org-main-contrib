@@ -54,6 +54,7 @@ import org.netbeans.modules.ada.project.options.AdaOptions;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.InstanceDataObject;
@@ -118,12 +119,21 @@ public class PanelOptionsVisual extends SettingsPanel implements ActionListener,
         }
     }
 
+    private String removeSpaces(String s) {
+        StringTokenizer st = new StringTokenizer(s, " ", false);
+        String t = "";
+        while (st.hasMoreElements()) {
+            t += st.nextElement();
+        }
+        return t;
+    }
+
     public void propertyChange(PropertyChangeEvent event) {
         if (NewAdaProjectWizardIterator.PROP_PROJECT_NAME.equals(event.getPropertyName())) {
             String newProjectName = (String) event.getNewValue();
             this.mainFileTextField.setText(MessageFormat.format(
                     NbBundle.getMessage(PanelOptionsVisual.class, "TXT_MainFileName"), 
-                    new Object[]{newProjectName + "." + AdaOptions.getInstance().getSeparateExt()}));
+                    new Object[]{removeSpaces(newProjectName) + "." + AdaOptions.getInstance().getSeparateExt()}));
         }
         if (NewAdaProjectWizardIterator.PROP_PROJECT_LOCATION.equals(event.getPropertyName())) {
             projectLocation = (String) event.getNewValue();
@@ -216,7 +226,7 @@ public class PanelOptionsVisual extends SettingsPanel implements ActionListener,
 
 private void manageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageActionPerformed
     // Workaround, Needs an API to display platform customizer
-    final FileObject fo = Repository.getDefault().getDefaultFileSystem().findResource("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
+    final FileObject fo = FileUtil.getConfigFile("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
     if (fo != null) {
         try {
             InstanceDataObject ido = (InstanceDataObject) DataObject.find(fo);

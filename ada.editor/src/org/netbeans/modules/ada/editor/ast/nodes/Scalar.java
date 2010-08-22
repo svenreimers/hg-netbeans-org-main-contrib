@@ -54,20 +54,9 @@ public class Scalar extends Expression {
         REAL, // 'real'
         STRING, // 'string'
         UNKNOWN, // unknown scalar in quote expression
-        SYSTEM // system scalars (__CLASS__ / ...)
-                
+        SYSTEM // (NULL, etc.)
     }
-    // 'int'
-    //public static final int TYPE_INT = 0;
-    // 'real'
-    //public static final int TYPE_REAL = 1;
-    // 'string'
-    //public static final int TYPE_STRING = 2;
-    // unknown scalar in quote expression
-    //public static final int TYPE_UNKNOWN = 3;
-    // system scalars (__CLASS__ / ...)
-    //public static final int TYPE_SYSTEM = 4;
-    
+
     private String stringValue;
     private Type scalarType;
 

@@ -144,8 +144,8 @@ parser code {:
  *    ISO/IEC 8652:1995(E)                               *
  *    with Technical Corrigendum 1                       *
  *    Language and Standard Libraries                    *
- *    Copyright � 1992,1993,1994,1995 Intermetrics, Inc. *
- *    Copyright � 2000 The MITRE Corporation, Inc.       *
+ *    Copyright © 1992,1993,1994,1995 Intermetrics, Inc. *
+ *    Copyright © 2000 The MITRE Corporation, Inc.       *
  * 2. http://www.adaic.com/standards/95lrm/grammar9x.y   *
  *                                                       *
  * Author: Andrea Lucarelli                              *

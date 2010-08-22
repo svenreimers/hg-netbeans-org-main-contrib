@@ -131,11 +131,11 @@ public enum AdaTokenId implements TokenId {
     WITH("with", "keyword"), //NOI18N
     XOR("xor", "keyword"), //NOI18N
 
-    BOOLEAN("true", "literal"), //NOI18N
-    CHARACTER("true", "literal"), //NOI18N
-    FLOAT("true", "literal"), //NOI18N
-    INTEGER("true", "literal"), //NOI18N
-    WIDE_CHARECTER("true", "literal"), //NOI18N
+    BOOLEAN("boolean", "literal"), //NOI18N
+    CHARACTER("character", "literal"), //NOI18N
+    FLOAT("float", "literal"), //NOI18N
+    INTEGER("integer", "literal"), //NOI18N
+    WIDE_CHARACTER("wide_character", "literal"), //NOI18N
     TRUE("true", "literal"), //NOI18N
     FALSE("false", "literal"), //NOI18N
 

@@ -53,7 +53,7 @@ public class MethodInvocation extends Dispatch {
     private MethodName name;
     private final ArrayList<Expression> parameters = new ArrayList<Expression>();
 
-    private MethodInvocation(int start, int end, VariableBase dispatcher, MethodName methodName, Expression[] parameters) {
+    private MethodInvocation(int start, int end, NameBase dispatcher, MethodName methodName, Expression[] parameters) {
         super(start, end, dispatcher);
         this.name = methodName;
         for (Expression expression : parameters) {
@@ -61,7 +61,7 @@ public class MethodInvocation extends Dispatch {
         }
     }
 
-    public MethodInvocation(int start, int end, VariableBase dispatcher, MethodName methodName, List<Expression> parameters) {
+    public MethodInvocation(int start, int end, NameBase dispatcher, MethodName methodName, List<Expression> parameters) {
         this(start, end, dispatcher, methodName, parameters == null ? null : (Expression[]) parameters.toArray(new Expression[parameters.size()]));
     }
 

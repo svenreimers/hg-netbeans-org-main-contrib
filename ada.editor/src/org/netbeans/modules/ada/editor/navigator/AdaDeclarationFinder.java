@@ -38,7 +38,6 @@
  */
 package org.netbeans.modules.ada.editor.navigator;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -180,7 +179,8 @@ public class AdaDeclarationFinder implements DeclarationFinder {
 
         public String getDisplayHtml(HtmlFormatter formatter) {
             formatter.reset();
-            ElementKind ek = null;
+            ElementKind ek = el.getKind();
+
             switch (k) {
                 case SUBPROG_SPEC:
                 case SUBPROG_BODY:

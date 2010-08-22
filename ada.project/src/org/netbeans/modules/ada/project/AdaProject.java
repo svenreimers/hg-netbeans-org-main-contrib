@@ -343,9 +343,9 @@ public class AdaProject implements Project {
 
         // List of primarily supported templates
         private static final String[] PRIVILEGED_NAMES = new String[]{
-            "Templates/Ada/NewAdaMain", //NOI18N
-            "Templates/Ada/NewAdaPackageSpec", // NOI18N
-            "Templates/Ada/NewAdaPackageBody", // NOI18N
+            "Templates/Ada/NewMain", //NOI18N
+            "Templates/Ada/NewPackageSpec", // NOI18N
+            "Templates/Ada/NewPackageBody", // NOI18N
             "Templates/Other/Folder"
         };
 

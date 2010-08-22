@@ -34,12 +34,12 @@
             </fileset>
         </move>
         <zip destfile="ada-nbms.zip">
-			<zipfileset dir=".">
-				<include name="*.nbm"/>
-				<include name="history.txt"/>
-				<include name="planned-features.txt"/>
-			</zipfileset>
-		</zip>
+            <zipfileset dir=".">
+                <include name="*.nbm"/>
+                <include name="history.txt"/>
+                <include name="planned-features.txt"/>
+            </zipfileset>
+        </zip>
         <delete>
             <fileset dir=".">
                 <include name="*.nbm"/>

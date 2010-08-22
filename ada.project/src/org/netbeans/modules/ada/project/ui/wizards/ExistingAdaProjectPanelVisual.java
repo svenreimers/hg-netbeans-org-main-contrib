@@ -136,7 +136,7 @@ class ExistingAdaProjectPanelVisual extends SettingsPanel implements DocumentLis
 
     private void browseAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseAction
         JFileChooser chooser = new JFileChooser();
-        FileUtil.preventFileChooserSymlinkTraversal(chooser, null);
+//        FileUtil.preventFileChooserSymlinkTraversal(chooser, null);
         chooser.setDialogTitle(NbBundle.getMessage(ExistingAdaProjectPanelVisual.class, "LBL_SelectProjectFolder"));
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         String path = this.projectFolderTextField.getText();
@@ -176,7 +176,7 @@ class ExistingAdaProjectPanelVisual extends SettingsPanel implements DocumentLis
         File projectLocation = (File) settings.getProperty(NewAdaProjectWizardIterator.PROP_PROJECT_LOCATION);
         String defaultName = null;
         if (projectLocation == null || projectLocation.getParentFile() == null || !projectLocation.getParentFile().isDirectory()) {
-            defaultName = NewAdaProjectWizardIterator.getFreeFolderName(ProjectChooser.getProjectsFolder(), "NewAdaApplication");     //NOI18N
+            defaultName = NewAdaProjectWizardIterator.getFreeFolderName(ProjectChooser.getProjectsFolder(), "AdaApplication");     //NOI18N
             projectLocation = new File (ProjectChooser.getProjectsFolder(),defaultName);
         }
         this.projectFolderTextField.setText(projectLocation.getAbsolutePath());

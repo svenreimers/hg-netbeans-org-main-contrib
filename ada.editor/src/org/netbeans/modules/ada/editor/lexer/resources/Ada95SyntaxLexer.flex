@@ -440,7 +440,7 @@ ANY_CHAR=(.|[\n])
     "character"         { return AdaTokenId.CHARACTER; }
     "float"             { return AdaTokenId.FLOAT; }
     "integer"           { return AdaTokenId.INTEGER; }
-    "wide_character"    { return AdaTokenId.WIDE_CHARECTER; }
+    "wide_character"    { return AdaTokenId.WIDE_CHARACTER; }
     "true"              { return AdaTokenId.TRUE; }
     "false"             { return AdaTokenId.FALSE; }
 

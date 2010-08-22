@@ -156,15 +156,12 @@ public class AdaOccurrencesFinder extends OccurrencesFinder {
 
             @Override
             public void visit(TypeDeclaration node) {
-                LOGGER.fine("called visist(TypeDeclaration): " + node.getTypeName().getName());
                 boolean found = false;
                 if (element instanceof SemiAttribute.PackageMemberElement) {
-                    LOGGER.fine("package element: " + node.getTypeName().getName());
                     SemiAttribute.PackageMemberElement pkgEl = (SemiAttribute.PackageMemberElement) element;
                     Identifier type = node.getTypeName();
                     String typeName = type.getName();
                     if (pkgName != null && pkgEl.getPackageName().equals(pkgName) && pkgEl.getName().equals(typeName)) {
-                        LOGGER.fine("if: " + node.getTypeName().getName());
                         memberDeclaration.add(type);
                         usages.add(type);
                         found = true;
@@ -177,15 +174,12 @@ public class AdaOccurrencesFinder extends OccurrencesFinder {
 
             @Override
             public void visit(SingleFieldDeclaration node) {
-                LOGGER.fine("called visist(SingleFieldDeclaration): " + CodeUtils.extractVariableName(node.getName()));
                 boolean found = false;
                 if (element instanceof SemiAttribute.PackageMemberElement) {
-                    LOGGER.fine("package element: " + CodeUtils.extractVariableName(node.getName()));
                     SemiAttribute.PackageMemberElement pkgEl = (SemiAttribute.PackageMemberElement) element;
                     Variable variable = node.getName();
                     String varName = CodeUtils.extractVariableName(variable);
                     if (pkgName != null && pkgEl.getPackageName().equals(pkgName) && pkgEl.getName().equals(varName)) {
-                        LOGGER.fine("if: " + CodeUtils.extractVariableName(node.getName()));
                         memberDeclaration.add(variable);
                         usages.add(variable);
                         found = true;
@@ -266,7 +260,7 @@ public class AdaOccurrencesFinder extends OccurrencesFinder {
                         usages.add(parameterName);
                     }
                 }
-                TypeName parameterType = node.getParameterType();
+                TypeName parameterType = CodeUtils.extractType(node.getParameterType());
                 if (parameterType != null) {
                     String name = parameterType.getTypeName().getName();
                     if (name != null && element == attribute.getElement(parameterType)) {
@@ -301,10 +295,15 @@ public class AdaOccurrencesFinder extends OccurrencesFinder {
             }
         }.scan(ASTUtils.getRoot(parameter));
 
+        int occur = 0;
         for (ASTNode n : usages) {
             OffsetRange forNode = forNode(n, element.getKind());
+            if (n instanceof Identifier) {
+                LOGGER.fine("result " + occur + ": " + ((Identifier)n).getName());
+                LOGGER.fine("result " + occur + ": " + forNode);
+                occur++;
+            }
             if (forNode != null) {
-                LOGGER.fine("usage item: " + forNode);
                 result.add(forNode);
             }
         }

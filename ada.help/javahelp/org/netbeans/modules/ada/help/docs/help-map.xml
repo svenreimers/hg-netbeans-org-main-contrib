@@ -40,11 +40,13 @@ Portions Copyrighted 2008 Sun Microsystems, Inc.
 <!DOCTYPE map PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN"
                      "http://java.sun.com/products/javahelp/map_2_0.dtd">
 <map version="1.0">
-	<mapID target="org.netbeans.modules.ada.help.about" url="help-about.html"/>
-	<mapID target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.NEW" url="new-ada-application.html"/>
-	<mapID target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.EXISTING" url="new-from-existing-ada-sources.html"/>
-	<mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerSources" url="customize-project-sources.html"/>
-	<mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerLibrariesPath" url="customize-project-libraries.html"/>
-	<mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerBuild" url="customize-project-build.html"/>
-	<mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerRun" url="customize-project-run.html"/>
+    <mapID target="org.netbeans.modules.ada.help.about" url="help-about.html"/>
+    <mapID target="org.netbeans.modules.ada.platform.ui.PlatformsCustomizer" url="ada-platform-manager.html"/>
+    <mapID target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.NEW" url="new-ada-application.html"/>
+    <mapID target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.EXISTING" url="new-from-existing-ada-sources.html"/>
+    <mapID target="org.netbeans.modules.ada.project.options.ui.AdaGeneralOptionsPanel" url="customize-project-sources-naming.html"/>
+    <mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerSources" url="customize-project-sources-folders.html"/>
+    <mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerLibrariesPath" url="customize-project-libraries.html"/>
+    <mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerBuild" url="customize-project-build.html"/>
+    <mapID target="org.netbeans.modules.ada.project.ui.properties.CustomizerRun" url="customize-project-run.html"/>
 </map>

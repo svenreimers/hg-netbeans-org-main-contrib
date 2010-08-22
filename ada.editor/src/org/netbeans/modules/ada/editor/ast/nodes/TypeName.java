@@ -40,7 +40,6 @@
 package org.netbeans.modules.ada.editor.ast.nodes;
 
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
-import org.netbeans.modules.ada.editor.ast.ASTNode;
 
 /**
  * Holds a type name. 
@@ -49,14 +48,24 @@ import org.netbeans.modules.ada.editor.ast.ASTNode;
  *
  * @author Andrea Lucarelli
  */
-public class TypeName extends ASTNode {
+public class TypeName extends NameBase {
 
     private Identifier typeName;
+    private String attributeId;
+    private boolean isBaseType = false;
 
     public TypeName(int start, int end, Identifier typeName) {
         super(start, end);
         assert (typeName != null);
         this.typeName = typeName;
+
+        if (typeName.getName().equalsIgnoreCase("boolean") ||
+            typeName.getName().equalsIgnoreCase("character") ||
+            typeName.getName().equalsIgnoreCase("float") ||
+            typeName.getName().equalsIgnoreCase("integer") ||
+            typeName.getName().equalsIgnoreCase("wide_character")) {
+            this.isBaseType = true;
+        }
     }
 
     /**
@@ -66,6 +75,18 @@ public class TypeName extends ASTNode {
      */
     public Identifier getTypeName() {
         return this.typeName;
+    }
+
+    public boolean isIsBaseType() {
+        return isBaseType;
+    }
+
+    public String getAttributeId() {
+        return attributeId;
+    }
+
+    public void setAttributeId(String attributeId) {
+        this.attributeId = attributeId;
     }
     
     @Override

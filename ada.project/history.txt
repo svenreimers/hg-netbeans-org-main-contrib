@@ -1,5 +1,13 @@
-0.1.7: dd-mm-2009
-- TBD
+0.1.9: 12-08-2010
+- Add JVM compiler support.
+
+0.1.8: 13-10-2009
+- Add the signing of the nbm files.
+- Fix the issue http://sourceforge.net/tracker/?func=detail&aid=2872967&group_id=248853&atid=1126624.
+
+0.1.7: 01-10-2009
+- Fix https://sourceforge.net/tracker/?func=detail&aid=2863317&group_id=248853&atid=1126624.
+- Ada files naming management (options and project properties).
 
 0.1.6: 13-11-2009
 - Minor changes.

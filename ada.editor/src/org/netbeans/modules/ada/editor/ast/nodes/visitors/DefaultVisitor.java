@@ -56,6 +56,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
 import org.netbeans.modules.ada.editor.ast.nodes.GotoStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.Identifier;
 import org.netbeans.modules.ada.editor.ast.nodes.IfStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.InfixExpression;
 import org.netbeans.modules.ada.editor.ast.nodes.LoopStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.NullStatement;
@@ -67,6 +68,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.PackageName;
 import org.netbeans.modules.ada.editor.ast.nodes.Program;
 import org.netbeans.modules.ada.editor.ast.nodes.QualifiedExpression;
 import org.netbeans.modules.ada.editor.ast.nodes.RaiseStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.Range;
 import org.netbeans.modules.ada.editor.ast.nodes.Reference;
 import org.netbeans.modules.ada.editor.ast.nodes.ReturnStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.Scalar;
@@ -127,6 +129,22 @@ public class DefaultVisitor implements Visitor {
         scan(node.getStatements());
     }
 
+    public void visit(BlockStatement node) {
+        scan(node.getLabel());
+        scan(node.getDeclarations());
+        scan(node.getBody());
+    }
+
+    public void visit(CaseStatement node) {
+        scan(node.getExpression());
+        scan(node.getBody());
+    }
+
+    public void visit(CaseWhen node) {
+        scan(node.getValue());
+        scan(node.getActions());
+    }
+
     public void visit(CodeStatement node) {
         scan(node.getExpression());
     }
@@ -156,6 +174,17 @@ public class DefaultVisitor implements Visitor {
     }
 
     public void visit(Identifier node) {
+    }
+
+    public void visit(IfStatement node) {
+        scan(node.getCondition());
+        scan(node.getTrueStatement());
+        scan(node.getFalseStatement());
+    }
+
+    public void visit(InfixExpression node) {
+        scan(node.getLeft());
+        scan(node.getRight());
     }
 
     public void visit(LoopStatement node) {
@@ -193,6 +222,11 @@ public class DefaultVisitor implements Visitor {
         scan(node.getBody());
     }
 
+    public void visit(PackageRenames node) {
+        scan(node.getName());
+        scan(node.getPackageRenames());
+    }
+
     public void visit(Program node) {
         scan(node.getStatements());
     }
@@ -200,6 +234,11 @@ public class DefaultVisitor implements Visitor {
     public void visit(QualifiedExpression node) {
         scan(node.getSubtypeMark());
         scan(node.getExpression());
+    }
+
+    public void visit(Range node) {
+        scan(node.getLeft());
+        scan(node.getRight());
     }
 
     public void visit(Reference node) {
@@ -223,7 +262,7 @@ public class DefaultVisitor implements Visitor {
         scan(node.getParentType());
     }
 
-	public void visit(TaskName node) {
+    public void visit(TaskName node) {
         scan(node.getTaskName());
     }
 
@@ -261,33 +300,6 @@ public class DefaultVisitor implements Visitor {
 
     public void visit(With node) {
         scan(node.getPackages());
-    }
-
-    public void visit(BlockStatement node) {
-        scan(node.getLabel());
-        scan(node.getDeclarations());
-        scan(node.getBody());
-    }
-
-    public void visit(CaseStatement node) {
-        scan(node.getExpression());
-        scan(node.getBody());
-    }
-
-    public void visit(CaseWhen node) {
-        scan(node.getValue());
-        scan(node.getActions());
-    }
-
-    public void visit(IfStatement node) {
-        scan(node.getCondition());
-        scan(node.getTrueStatement());
-        scan(node.getFalseStatement());
-    }
-
-    public void visit(PackageRenames node) {
-        scan(node.getName());
-        scan(node.getPackageRenames());
     }
 
     public void visit(UnaryOperation node) {

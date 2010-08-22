@@ -40,7 +40,6 @@ package org.netbeans.api.ada.platform;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.util.Utilities;
 
@@ -82,7 +81,11 @@ public class AdaAutoDetector {
                     (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat")) ||
                     (dir.getName().toLowerCase().contains("gnat")) ||
                     (dir.getName().toLowerCase().contains("2008") && dir.getPath().toLowerCase().contains("gnat")) ||
-                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))) {
+                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat")) ||
+                    (dir.getName().toLowerCase().contains("gnat")) ||
+                    (dir.getName().toLowerCase().contains("2009") && dir.getPath().toLowerCase().contains("gnat")) ||
+                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))
+                    ) {
                     String[] children = dir.list();
                     if (children != null) {
                         for (int i = 0; i < children.length; i++) {

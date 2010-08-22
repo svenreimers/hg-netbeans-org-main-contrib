@@ -51,7 +51,7 @@ import org.netbeans.modules.csl.spi.ParserResult;
 public class AdaInstantRenamer implements InstantRenamer {
 
     public boolean isRenameAllowed(ParserResult info, int caretOffset, String[] explanationRetValue) {
-		// TODO: to implement.
+        // TODO: to implement.
         return true;
     }
 

@@ -48,9 +48,9 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class RaiseStatement extends Statement {
 
-    private String exceptionName;
+    private Expression exceptionName;
 
-    public RaiseStatement(int start, int end, String exceptionName) {
+    public RaiseStatement(int start, int end, Expression exceptionName) {
         super(start, end);
         this.exceptionName = exceptionName;
     }
@@ -60,7 +60,7 @@ public class RaiseStatement extends Statement {
      * 
      * @return the exceptionName node
      */
-    public String getExceptionName() {
+    public Expression getExceptionName() {
         return exceptionName;
     }
 
