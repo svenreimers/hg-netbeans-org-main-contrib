@@ -86,6 +86,7 @@ public class AdaLexUtilities {
     static {
         END_PAIRS.add(AdaTokenId.PROCEDURE);
         END_PAIRS.add(AdaTokenId.FUNCTION);
+        END_PAIRS.add(AdaTokenId.DECLARE);
         END_PAIRS.add(AdaTokenId.FOR);
         END_PAIRS.add(AdaTokenId.WHILE);
         END_PAIRS.add(AdaTokenId.IF);

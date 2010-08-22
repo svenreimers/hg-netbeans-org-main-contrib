@@ -43,7 +43,6 @@ package org.netbeans.modules.ada.editor.indexer;
 
 import java.util.Set;
 import org.netbeans.modules.csl.api.ElementHandle;
-import org.netbeans.modules.csl.api.ElementKind;
 import org.netbeans.modules.csl.api.Modifier;
 
 /**
@@ -53,6 +52,5 @@ import org.netbeans.modules.csl.api.Modifier;
 public interface Element extends ElementHandle {
     String getName();
     String getIn();
-    ElementKind getKind();
     Set<Modifier> getModifiers();
 }

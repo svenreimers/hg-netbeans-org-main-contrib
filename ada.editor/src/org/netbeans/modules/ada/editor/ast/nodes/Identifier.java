@@ -36,7 +36,6 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.editor.ast.nodes;
 
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
@@ -47,9 +46,8 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  * Holds an identifier.
  * Uses for variable name, function name, procedure name and package name.
  * <pre>e.g.<pre>  
- * Foo : Integer; -- Foo is the identifier,
- * Foo (Foo => Bar) -- Foo is the identifier,
- * Foo.Bar; -- Foo and Bar are identifiers
+ * Count X Get_Symbol Ethelyn Marion
+ * Snobol_4 X1 Page_Count Store_Next_Item
  *
  * @author Andrea Lucarelli
  */
@@ -59,7 +57,7 @@ public class Identifier extends Expression {
 
     public Identifier(int start, int end, String name) {
         super(start, end);
-		this.name = name;
+        this.name = name;
     }
 
     public String getName() {

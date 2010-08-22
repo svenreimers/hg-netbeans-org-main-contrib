@@ -69,9 +69,14 @@ import org.openide.filesystems.FileUtil;
 public class AdaPlatformManager implements Serializable {
 
     private static final Logger LOGGER = Logger.getLogger(AdaPlatformManager.class.getName());
+    
+    // Ada platforms properties
     private static final String PLATFORM_FILE = System.getProperty("netbeans.user") + "/config/ada-platforms.xml";
     private static final String GNAT_EXECUTABLE_NAME = "gnat"; // NOI18N
+    private static final String JVM_GNAT_EXECUTABLE_NAME = "jvm-gnat"; // NOI18N
     private static final String GNAT_PLATFORM_NAME = "GNAT";
+    
+    // Ada platforms hash table
     private HashMap<String, AdaPlatform> platforms;
     private String defaultPlatform;
 
@@ -211,8 +216,12 @@ public class AdaPlatformManager implements Serializable {
 
     public AdaPlatform findPlatformProperties(FileObject folder) throws AdaException {
         AdaPlatform platform = null;
-        String id = null;
-
+        File tool = null;
+        AdaExecution adaExec = null;
+        ReaderInputStream is = null;
+        BufferedReader reader = null;
+        String line = null;
+        
         // Find GNAT Tool
         // ??? Now only GNAT platform is supported
         FileObject gnat = findTool(GNAT_EXECUTABLE_NAME, folder);
@@ -220,8 +229,8 @@ public class AdaPlatformManager implements Serializable {
         if (gnat != null) {
 
             try {
-                File tool = FileUtil.toFile(gnat);
-                AdaExecution adaExec = new AdaExecution();
+                tool = FileUtil.toFile(gnat);
+                adaExec = new AdaExecution();
                 adaExec.setCommand(tool.getPath());
                 adaExec.setDisplayName("Ada Platform Properties");
                 adaExec.setShowControls(false);
@@ -234,9 +243,9 @@ public class AdaPlatformManager implements Serializable {
                 Future<Integer> result = adaExec.run();
                 Integer value = result.get();
                 if (value.intValue() == 0) {
-                    ReaderInputStream is = new ReaderInputStream(adaExec.getOutput());
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                    String line = null;
+                    is = new ReaderInputStream(adaExec.getOutput());
+                    reader = new BufferedReader(new InputStreamReader(is));
+                    line = null;
                     try {
                         while ((line = reader.readLine()) != null) {
                             if (line.contains(GNAT_PLATFORM_NAME)) {
@@ -245,16 +254,12 @@ public class AdaPlatformManager implements Serializable {
                                 int endIndex2 = line.indexOf(")") < 0 ? line.length() : line.indexOf(")");
 
                                 platform = new AdaPlatform();
-                                platform.setName(GNAT_PLATFORM_NAME + line.substring(startIndex, endIndex));
+                                platform.setName((GNAT_PLATFORM_NAME + line.substring(startIndex, endIndex)).trim());
                                 if (endIndex < endIndex2) {
                                     platform.setInfo(line.substring(endIndex + 1, endIndex2));
                                 }
-                                platform.setCompilerCommand(GNAT_EXECUTABLE_NAME);
+                                platform.setGnatCompilerCommand(GNAT_EXECUTABLE_NAME);
                                 platform.setCompilerPath(tool.getPath().substring(0, tool.getPath().lastIndexOf(tool.getName())));
-                                if (platforms.size() == 0) {
-                                    setDefaultPlatform(platform.getName());
-                                }
-                                platforms.put(platform.getName(), platform);
                                 break;
                             }
                         }
@@ -277,6 +282,64 @@ public class AdaPlatformManager implements Serializable {
                 Exceptions.printStackTrace(ex);
             }
         }
+
+        FileObject jvmgnat = findTool(JVM_GNAT_EXECUTABLE_NAME, folder);
+
+        if (jvmgnat != null) {
+
+            try {
+                tool = FileUtil.toFile(jvmgnat);
+                adaExec = new AdaExecution();
+                adaExec.setCommand(tool.getPath());
+                adaExec.setDisplayName("Ada Platform Properties");
+                adaExec.setShowControls(false);
+                adaExec.setShowInput(false);
+                adaExec.setShowWindow(false);
+                adaExec.setShowProgress(false);
+                adaExec.setShowSuspended(false);
+                adaExec.attachOutputProcessor();
+                adaExec.setWorkingDirectory(tool.getPath().substring(0, tool.getPath().lastIndexOf(tool.getName())));
+                Future<Integer> result = adaExec.run();
+                Integer value = result.get();
+                if (value.intValue() == 0) {
+                    is = new ReaderInputStream(adaExec.getOutput());
+                    reader = new BufferedReader(new InputStreamReader(is));
+                    line = null;
+                    try {
+                        while ((line = reader.readLine()) != null) {
+                            if (line.contains(GNAT_PLATFORM_NAME)) {
+                                platform.setJvmGnatCompilerCommand(JVM_GNAT_EXECUTABLE_NAME);
+                                platform.setName(platform.getName() + "+JVM");
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            is.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    throw new AdaException("Could not discover Ada properties");
+                }
+            } catch (AdaException ex) {
+                Exceptions.printStackTrace(ex);
+                throw ex;
+            } catch (Exception ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
+        if (platform != null) {
+            if (platforms.size() == 0) {
+                setDefaultPlatform(platform.getName());
+            }
+            platforms.put(platform.getName(), platform);
+        }
+
         return platform;
     }
 

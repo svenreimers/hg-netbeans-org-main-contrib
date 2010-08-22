@@ -135,19 +135,24 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
         FileObject template = Templates.getTemplate(this.wizard);
         String ext = template.getExt();
         String postfix = "";
-        if (template.getName().startsWith("NewAdaMain")) {
-            ext = AdaOptions.getInstance().getSeparateExt();
-            postfix = AdaOptions.getInstance().getSeparatePostfix();
-        } else if (template.getName().startsWith("NewAdaPackageSpec")) {
-            ext = AdaOptions.getInstance().getPkgSpecExt();
-            postfix = AdaOptions.getInstance().getPkgSpecPostfix();
-        } else if (template.getName().startsWith("NewAdaPackageBody")) {
-            ext = AdaOptions.getInstance().getPkgBodyExt();
-            postfix = AdaOptions.getInstance().getPkgBodyPostfix();
+
+        Project project = Templates.getProject(wizard);
+        assert project instanceof AdaProject;
+        AdaProject adaProject = (AdaProject) project;
+
+        if (template.getName().startsWith("NewMain")) {
+            ext = adaProject.getEvaluator().getProperty(AdaOptions.SEPARATE_EXT);
+            postfix = adaProject.getEvaluator().getProperty(AdaOptions.SEPARATE_POSTFIX);
+        } else if (template.getName().startsWith("NewPackageSpec")) {
+            ext = adaProject.getEvaluator().getProperty(AdaOptions.PKG_SPEC_EXT);
+            postfix = adaProject.getEvaluator().getProperty(AdaOptions.PKG_SPEC_POSTFIX);
+        } else if (template.getName().startsWith("NewPackageBody")) {
+            ext = adaProject.getEvaluator().getProperty(AdaOptions.PKG_BODY_EXT);
+            postfix = adaProject.getEvaluator().getProperty(AdaOptions.PKG_BODY_POSTFIX);
         }
         String targetName = (targetFolder != null) ? FileUtil.findFreeFileName(targetFolder, template.getName(), ext) : template.getName();//NOI18N
         // TODO: manage postfix naming
-        targetName += /*postfix + */"." + ext;
+        targetName += "." + ext;
         Templates.setTargetName(this.wizard, targetName);//NOI18N
         wizardPanels = getPanels();
 

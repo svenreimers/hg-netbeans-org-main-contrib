@@ -48,10 +48,10 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class ExitStatement extends Statement {
 
-    private String loopName;
+    private Expression loopName;
     private Expression whenCondition;
 
-    public ExitStatement(int start, int end, String loopName, Expression whenCondition) {
+    public ExitStatement(int start, int end, Expression loopName, Expression whenCondition) {
         super(start, end);
         this.loopName = loopName;
         this.whenCondition = whenCondition;
@@ -62,7 +62,7 @@ public class ExitStatement extends Statement {
      * 
      * @return the loopName node
      */
-    public String getLoopName() {
+    public Expression getLoopName() {
         return loopName;
     }
 

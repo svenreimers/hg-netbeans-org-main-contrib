@@ -238,7 +238,7 @@ class EmptyAdaProjectPanelVisual extends SettingsPanel implements DocumentListen
 
         String projectName = (String) settings.getProperty(NewAdaProjectWizardIterator.PROP_PROJECT_NAME);
         if (projectName == null) {
-            projectName = NewAdaProjectWizardIterator.getFreeFolderName(projectLocation,"NewAdaApplication"); //NOI18N
+            projectName = NewAdaProjectWizardIterator.getFreeFolderName(projectLocation,"AdaApplication"); //NOI18N
         }
         this.projectNameTextField.setText(projectName);
         this.projectNameTextField.selectAll();

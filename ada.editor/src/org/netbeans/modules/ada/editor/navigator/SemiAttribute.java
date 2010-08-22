@@ -73,7 +73,8 @@ import org.netbeans.modules.ada.editor.ast.nodes.SubprogramSpecification;
 import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.TypeName;
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
-import org.netbeans.modules.ada.editor.ast.nodes.VariableBase;
+import org.netbeans.modules.ada.editor.ast.nodes.NameBase;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeAccess;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.DefaultVisitor;
 import org.netbeans.modules.ada.editor.indexer.AdaIndex;
 import org.netbeans.modules.ada.editor.indexer.IndexedElement;
@@ -144,7 +145,7 @@ public class SemiAttribute extends DefaultVisitor {
 
     @Override
     public void visit(Assignment node) {
-        final VariableBase vb = node.getLeftHandSide();
+        final NameBase vb = node.getLeftHandSide();
 
         if (vb instanceof Variable) {
             AttributedType at = null;
@@ -255,7 +256,14 @@ public class SemiAttribute extends DefaultVisitor {
                 scopes.peek().enterWrite(name, Kind.VARIABLE, var);
             }
         }
-        TypeName parameterType = node.getParameterType();
+
+        TypeName parameterType;
+        if (node.getParameterType() instanceof TypeAccess) {
+            parameterType = ((TypeAccess)node.getParameterType()).getField();
+        } else {
+            parameterType = (TypeName)node.getParameterType();
+        }
+
         if (parameterType != null) {
             String name = parameterType.getTypeName().getName();
             if (name != null) {
@@ -539,8 +547,8 @@ public class SemiAttribute extends DefaultVisitor {
 
     @CheckForNull
     //TODO converge this method with CodeUtils.extractTypeName()
-    public static String extractTypeName(TypeDeclaration var) {
-        String typeName = CodeUtils.extractTypeName(var);
+    public static String extractTypeName(TypeDeclaration type) {
+        String typeName = CodeUtils.extractTypeName(type);
 
         return typeName;
     }

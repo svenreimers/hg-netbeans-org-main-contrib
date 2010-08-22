@@ -36,13 +36,11 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
-
 package org.netbeans.modules.ada.project.ui.properties;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.netbeans.modules.ada.project.options.AdaGeneralOptionsPanel;
+import org.netbeans.modules.ada.project.options.ui.AdaGeneralOptionsPanel;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer.CompositeCategoryProvider;
 import org.openide.util.Lookup;
@@ -100,7 +98,7 @@ public class CompositePanelProviderImpl implements CompositeCategoryProvider {
                     null,
                     categories);
         }
-        
+
         assert toReturn != null : "No category for name: " + name;
         return toReturn;
     }
@@ -120,7 +118,7 @@ public class CompositePanelProviderImpl implements CompositeCategoryProvider {
         } else if (STANDARDS_AND_NAMING.equals(nm)) {
             return new AdaGeneralOptionsPanel(uiProps);
         }
-        
+
         return new JPanel();
     }
 

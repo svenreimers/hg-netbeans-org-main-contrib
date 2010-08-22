@@ -62,6 +62,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.FieldsDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
 import org.netbeans.modules.ada.editor.ast.nodes.GotoStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.IfStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.InfixExpression;
 import org.netbeans.modules.ada.editor.ast.nodes.LoopStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.NullStatement;
@@ -70,6 +71,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.PackageInstanceCreation;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageRenames;
 import org.netbeans.modules.ada.editor.ast.nodes.QualifiedExpression;
 import org.netbeans.modules.ada.editor.ast.nodes.RaiseStatement;
+import org.netbeans.modules.ada.editor.ast.nodes.Range;
 import org.netbeans.modules.ada.editor.ast.nodes.ReturnStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.Scalar;
 import org.netbeans.modules.ada.editor.ast.nodes.SingleFieldDeclaration;
@@ -94,9 +96,11 @@ public interface Visitor {
 
     public void visit(AbortStatement node);
 
-	public void visit(ArrayAccess arrayAccess);
+    public void visit(ArrayAccess arrayAccess);
 
     public void visit(Assignment node);
+
+    public void visit(Block node);
 
     public void visit(BlockStatement node);
 
@@ -114,17 +118,19 @@ public interface Visitor {
 
     public void visit(FieldsDeclaration node);
 
-	public void visit(FormalParameter node);
+    public void visit(FormalParameter node);
 
     public void visit(GotoStatement node);
 
     public void visit(Identifier node);
 
+    public void visit(InfixExpression infixExpression);
+
     public void visit(IfStatement node);
 
     public void visit(LoopStatement node);
 
-	public void visit(MethodDeclaration node);
+    public void visit(MethodDeclaration node);
 
     public void visit(NullStatement node);
 
@@ -132,7 +138,7 @@ public interface Visitor {
 
     public void visit(PackageBody node);
 
-	public void visit(PackageInstanceCreation node);
+    public void visit(PackageInstanceCreation node);
 
     public void visit(PackageName node);
 
@@ -142,19 +148,21 @@ public interface Visitor {
 
     public void visit(QualifiedExpression node);
 
-	public void visit(Scalar node);
+    public void visit(Scalar node);
 
-	public void visit(SubprogramBody node);
+    public void visit(SubprogramBody node);
 
-	public void visit(SubprogramSpecification node);
+    public void visit(SubprogramSpecification node);
 
     public void visit(RaiseStatement node);
+
+    public void visit(Range node);
 
     public void visit(ReturnStatement node);
 
     public void visit(SingleFieldDeclaration node);
 
-	public void visit(SubtypeDeclaration node);
+    public void visit(SubtypeDeclaration node);
 
     public void visit(TaskName node);
 
@@ -169,6 +177,4 @@ public interface Visitor {
     public void visit(Use node);
 
     public void visit(UnaryOperation node);
-
-    public void visit(Block node);
 }

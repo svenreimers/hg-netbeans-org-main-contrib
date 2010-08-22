@@ -50,9 +50,11 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
+import org.netbeans.modules.ada.editor.CodeUtils;
 import org.netbeans.modules.ada.editor.ast.ASTError;
 import org.netbeans.modules.ada.editor.ast.ASTUtils;
 import org.netbeans.modules.ada.editor.ast.nodes.Block;
+import org.netbeans.modules.ada.editor.ast.nodes.BlockStatement;
 import org.netbeans.modules.ada.editor.ast.nodes.Comment;
 import org.netbeans.modules.ada.editor.ast.nodes.Expression;
 import org.netbeans.modules.ada.editor.ast.nodes.FieldsDeclaration;
@@ -62,7 +64,9 @@ import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageSpecification;
 import org.netbeans.modules.ada.editor.ast.nodes.SubprogramBody;
 import org.netbeans.modules.ada.editor.ast.nodes.SubprogramSpecification;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeAccess;
 import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeName;
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.DefaultVisitor;
 import org.netbeans.modules.ada.editor.parser.AdaElementHandle.SubprogramSpecificationHandle;
@@ -402,7 +406,7 @@ public class AdaStructureScanner implements StructureScanner {
                     }
                     String type = null;
                     if (formalParameter.getParameterType() != null) {
-                        type = formalParameter.getParameterType().getTypeName().getName();
+                        type = CodeUtils.extractTypeName(formalParameter.getParameterType());
                     }
                     if (name != null) {
                         if (!first) {
@@ -469,7 +473,7 @@ public class AdaStructureScanner implements StructureScanner {
                     }
                     String type = null;
                     if (formalParameter.getParameterType() != null) {
-                        type = formalParameter.getParameterType().getTypeName().getName();
+                        type = CodeUtils.extractTypeName(formalParameter.getParameterType());
                     }
                     if (name != null) {
                         if (!first) {
@@ -686,6 +690,20 @@ public class AdaStructureScanner implements StructureScanner {
             }
             if (block.getStatements() != null) {
                 scan(block.getStatements());
+            }
+        }
+
+        @Override
+        public void visit(BlockStatement block) {
+            if (foldType != null) {
+                getRanges(folds, foldType).add(createOffsetRange(block));
+                foldType = null;
+            }
+            if (block.getDeclarations() != null) {
+                scan(block.getDeclarations());
+            }
+            if (block.getBody() != null) {
+                scan(block.getBody());
             }
         }
 

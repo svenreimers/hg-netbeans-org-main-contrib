@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.StringTokenizer;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.project.Project;
@@ -64,7 +65,6 @@ import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.util.Exceptions;
@@ -134,6 +134,15 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         return null;
     }
 
+    private String removeSpaces(String s) {
+        StringTokenizer st = new StringTokenizer(s, " ", false);
+        String t = "";
+        while (st.hasMoreElements()) {
+            t += st.nextElement();
+        }
+        return t;
+    }
+
     public Set instantiate(ProgressHandle handle) throws IOException {
         final Set<FileObject> resultSet = new HashSet<FileObject>();
 
@@ -163,8 +172,8 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
             // main file
             final String mainName = (String) descriptor.getProperty(NewAdaProjectWizardIterator.MAIN_FILE);
             if (mainName != null) {
-                resultSet.add(createMainFile(Repository.getDefault().getDefaultFileSystem().findResource("Templates/Ada/NewAdaMain"),
-                        sourceDir, mainName).getPrimaryFile());
+                resultSet.add(createMainFile(FileUtil.getConfigFile("Templates/Ada/NewMain"),
+                        sourceDir, removeSpaces(mainName)).getPrimaryFile());
             }
         }
 
@@ -279,7 +288,6 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
                         nameEl.appendChild(doc.createTextNode(name));
                         data.appendChild(nameEl);
 
-
                         EditableProperties properties = helper.getProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH);
 
                         configureSources(helper, data, properties);
@@ -351,11 +359,11 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         String platformId = (String) descriptor.getProperty(PROP_PLATFORM_ID);
         assert platformId != null;
         properties.setProperty(AdaProjectProperties.ACTIVE_PLATFORM, platformId);
-        properties.setProperty(AdaProjectProperties.ADA_LIB_PATH, "");    //NOI18N
-        final File projectDirectory = FileUtil.toFile(helper.getProjectDirectory());
-        String buildPath = projectDirectory + File.separator + DEFAULT_BUILD_DIR;
+        properties.setProperty(AdaProjectProperties.OUTPUT_BUILD_FORMAT, AdaProjectProperties.NATIVE_FORMAT);
+        properties.setProperty(AdaProjectProperties.ADA_LIB_PATH, ""); //NOI18N
+        String buildPath = DEFAULT_BUILD_DIR;
         properties.setProperty(AdaProjectProperties.BUILD_DIR, buildPath);
-        String distPath = projectDirectory + File.separator + DEFAULT_DIST_DIR;
+        String distPath = DEFAULT_DIST_DIR;
         properties.setProperty(AdaProjectProperties.DIST_DIR, distPath);
     }
 

@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.netbeans.modules.ada.editor.ast.ASTNode;
 import org.netbeans.modules.ada.editor.ast.nodes.Block;
 import org.netbeans.modules.ada.editor.ast.nodes.BodyDeclaration.Modifier;
@@ -53,6 +55,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageSpecification;
 import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeName;
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.DefaultVisitor;
 import org.netbeans.modules.csl.api.ColoringAttributes;
@@ -71,6 +74,8 @@ import org.netbeans.modules.parsing.spi.SchedulerEvent;
  */
 public class AdaSemanticAnalyzer extends SemanticAnalyzer {
 
+    private static final Logger LOGGER = Logger.getLogger(AdaSemanticAnalyzer.class.getName());
+
     public static final EnumSet<ColoringAttributes> UNUSED_FIELD_SET = EnumSet.of(ColoringAttributes.UNUSED, ColoringAttributes.FIELD);
     public static final EnumSet<ColoringAttributes> UNUSED_METHOD_SET = EnumSet.of(ColoringAttributes.UNUSED, ColoringAttributes.METHOD);
     private boolean cancelled;
@@ -78,6 +83,7 @@ public class AdaSemanticAnalyzer extends SemanticAnalyzer {
 
     public AdaSemanticAnalyzer() {
         semanticHighlights = null;
+        LOGGER.setLevel(Level.FINE);
     }
 
     public Map<OffsetRange, Set<ColoringAttributes>> getHighlights() {
@@ -202,32 +208,6 @@ public class AdaSemanticAnalyzer extends SemanticAnalyzer {
         }
 
         @Override
-        public void visit(MethodDeclaration method) {
-            boolean isPrivate = Modifier.isPrivate(method.getModifier());
-            EnumSet<ColoringAttributes> coloring = ColoringAttributes.METHOD_SET;
-
-            Identifier identifier = method.getSubrogramName();
-            addOffsetRange(identifier, coloring);
-            if (!method.isSpefication()) {
-                Identifier nameEnd = method.getSubrogramNameEnd();
-                addOffsetRange(nameEnd, coloring);
-            }
-
-            if (method.getSubprogramBody() != null) {
-                // don't scan the body now. It should be scanned after all declarations
-                // are known
-                Block declarations = method.getSubprogramBody().getDeclarations();
-                if (declarations != null) {
-                    needToScan.add(declarations);
-                }
-                Block body = method.getSubprogramBody().getBody();
-                if (body != null) {
-                    needToScan.add(body);
-                }
-            }
-        }
-
-        @Override
         public void visit(PackageBody node) {
             if (isCancelled()) {
                 return;
@@ -260,6 +240,59 @@ public class AdaSemanticAnalyzer extends SemanticAnalyzer {
         }
 
         @Override
+        public void visit(MethodDeclaration method) {
+            if (isCancelled()) {
+                return;
+            }
+
+            boolean isPrivate = Modifier.isPrivate(method.getModifier());
+            EnumSet<ColoringAttributes> coloring = ColoringAttributes.METHOD_SET;
+
+            Identifier identifier = method.getSubrogramName();
+            addOffsetRange(identifier, coloring);
+            if (!method.isSpefication()) {
+                Identifier nameEnd = method.getSubrogramNameEnd();
+                if (nameEnd != null) {
+                    addOffsetRange(nameEnd, coloring);
+                }
+            }
+
+            if (method.getSubprogramBody() != null) {
+                // don't scan the body now. It should be scanned after all declarations
+                // are known
+                Block declarations = method.getSubprogramBody().getDeclarations();
+                if (declarations != null) {
+                    declarations.accept(this);
+                }
+                Block body = method.getSubprogramBody().getBody();
+                if (body != null) {
+                    body.accept(this);
+                }
+            }
+        }
+
+//        @Override
+//        public void visit(BlockStatement block) {
+//            System.out.println("BlockStatement");
+//            if (block.getLabel() != null) {
+//                EnumSet<ColoringAttributes> coloring = ColoringAttributes.METHOD_SET;
+//                Identifier identifier = block.getLabel();
+//                addOffsetRange(identifier, coloring);
+//            }
+//
+//            // don't scan the body now. It should be scanned after all declarations
+//            // are known
+//            Block declarations = block.getDeclarations();
+//            if (declarations != null) {
+//                needToScan.add(declarations);
+//            }
+//            Block body = block.getBody();
+//            if (body != null) {
+//                needToScan.add(body);
+//            }
+//        }
+
+        @Override
         public void visit(FieldsDeclaration node) {
             if (isCancelled()) {
                 return;
@@ -279,6 +312,10 @@ public class AdaSemanticAnalyzer extends SemanticAnalyzer {
                         privateFieldsUsed.put(identifier.getName(), new IdentifierColoring(identifier, coloring));
                     }
                 }
+                if (variable.getVariableType() != null) {
+                    TypeName typeName = variable.getVariableType();
+                    typeName.accept(this);
+                }
             }
         }
 
@@ -296,6 +333,28 @@ public class AdaSemanticAnalyzer extends SemanticAnalyzer {
                 addOffsetRange(id, ColoringAttributes.FIELD_SET);
             } else {
                 privateFieldsUsed.put(id.getName(), new IdentifierColoring(id, coloring));
+            }
+        }
+
+        @Override
+        public void visit(Variable node) {
+            if (isCancelled()) {
+                return;
+            }
+
+            Identifier id = node.getName();
+            addOffsetRange(id, ColoringAttributes.FIELD_SET);
+        }
+
+        @Override
+        public void visit(TypeName node) {
+            if (isCancelled()) {
+                return;
+            }
+
+            if (node.isIsBaseType() == false) {
+                Identifier id = node.getTypeName();
+                addOffsetRange(id, ColoringAttributes.FIELD_SET);
             }
         }
     }

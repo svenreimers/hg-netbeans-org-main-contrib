@@ -38,8 +38,6 @@
  */
 package org.netbeans.modules.ada.editor.ast.nodes;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
 
 /**
@@ -59,42 +57,41 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class BlockStatement extends Statement {
 
-	private Identifier label;
+    private Identifier label;
     private Block declarations;
     private Block body;
 
     public BlockStatement(int start, int end, Identifier label, Block declarations, Block body) {
         super(start, end);
 
-		this.label = label;
+        this.label = label;
         this.declarations = declarations;
         this.body = body;
     }
 
-	public Identifier getLabel () {
-		return this.label;
-	}
+    public Identifier getLabel() {
+        return this.label;
+    }
 
     /**
      * Retrieves the declaration statements parts of this block
      * @return declaration statements parts of this block
      */
     public Block getDeclarations() {
-        return this.body;
+        return this.declarations;
     }
 
-	/**
+    /**
      * Retrieves the body statements parts of this block
      * @return body statements parts of this block
      */
     public Block getBody() {
         return this.body;
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
 }
 

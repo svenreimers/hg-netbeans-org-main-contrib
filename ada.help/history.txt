@@ -1,2 +1,9 @@
+0.1.2: dd-mm-2010
+- Uodate the help files for manage JVM.
+
+0.1.1: 13-10-2009
+- Add the signing of the nbm file.
+- Add the new help files.
+
 0.1.0: 01-11-2008
 - Initial release.

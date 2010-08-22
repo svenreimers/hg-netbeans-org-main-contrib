@@ -40,13 +40,15 @@ Portions Copyrighted 2008 Sun Microsystems, Inc.
 <!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN"
                      "http://java.sun.com/products/javahelp/toc_2_0.dtd">
 <toc version="2.0">
-	<tocitem text="Ada Development" expand="false">
-		<tocitem text="About Ada Development in the NetBeans IDE" target="org.netbeans.modules.ada.help.about" />
-		<tocitem text="New Ada Application" target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.NEW" />
-		<tocitem text="New Ada Application with Existing Sources" target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.EXISTING" />
-		<tocitem text="Customizing the Project Settings: Sources" target="org.netbeans.modules.ada.project.ui.properties.CustomizerSources" />
-		<tocitem text="Customizing the Project Settings: Libraries" target="org.netbeans.modules.ada.project.ui.properties.CustomizerLibrariesPath" />
-		<tocitem text="Customizing the Project Settings: Build" target="org.netbeans.modules.ada.project.ui.properties.CustomizerBuild" />
-		<tocitem text="Customizing the Project Settings: Run" target="org.netbeans.modules.ada.project.ui.properties.CustomizerRun" />
-	</tocitem>
+    <tocitem text="Ada Development" expand="false">
+        <tocitem text="About Ada Development in the NetBeans IDE" target="org.netbeans.modules.ada.help.about" />
+        <tocitem text="Ada Platform Manager Dialog Box" target="org.netbeans.modules.ada.platform.ui.PlatformsCustomizer" />
+        <tocitem text="New Ada Application" target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.NEW" />
+        <tocitem text="New Ada Application with Existing Sources" target="org.netbeans.modules.ada.project.ui.wizards.PanelConfigureProject.EXISTING" />
+        <tocitem text="Customizing the Project Settings: Sources Standards and Naming" target="org.netbeans.modules.ada.project.options.ui.AdaGeneralOptionsPanel" />
+        <tocitem text="Customizing the Project Settings: Sources Folders" target="org.netbeans.modules.ada.project.ui.properties.CustomizerSources" />
+        <tocitem text="Customizing the Project Settings: Libraries" target="org.netbeans.modules.ada.project.ui.properties.CustomizerLibrariesPath" />
+        <tocitem text="Customizing the Project Settings: Build" target="org.netbeans.modules.ada.project.ui.properties.CustomizerBuild" />
+        <tocitem text="Customizing the Project Settings: Run" target="org.netbeans.modules.ada.project.ui.properties.CustomizerRun" />
+    </tocitem>
 </toc>

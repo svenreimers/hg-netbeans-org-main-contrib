@@ -48,7 +48,6 @@ import org.netbeans.api.ada.platform.AdaPlatformManager;
 import org.netbeans.modules.ada.project.ui.Utils;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.Repository;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.InstanceDataObject;
 import org.openide.util.Exceptions;
@@ -63,7 +62,8 @@ public class CustomizerBuild extends JPanel implements HelpCtx.Provider {
 
     private final AdaProjectProperties uiProperties;
     private final DocListener listener;
-
+    private final AdaPlatformManager manager;
+    
     /** Creates new form CustomizerBuild */
     public CustomizerBuild(final AdaProjectProperties uiProperties) {
         assert uiProperties != null;
@@ -78,15 +78,36 @@ public class CustomizerBuild extends JPanel implements HelpCtx.Provider {
 
         this.platforms.setRenderer(Utils.createPlatformRenderer());
         this.platforms.setModel(Utils.createPlatformModel());
-        final AdaPlatformManager manager = AdaPlatformManager.getInstance();
+        manager = AdaPlatformManager.getInstance();
         String pid = uiProperties.getActivePlatformId();
         if (pid == null) {
             pid = manager.getDefaultPlatform();
         }
+
         final AdaPlatform activePlatform = manager.getPlatform(pid);
         if (activePlatform != null) {
             platforms.setSelectedItem(activePlatform);
         }
+        
+        if (activePlatform.getJvmGnatCompilerCommand() != null) {
+            nativeFormat.setEnabled(true);
+            jvmFormat.setEnabled(true);
+            if (uiProperties.getOutputBuildFormat().equalsIgnoreCase(AdaProjectProperties.NATIVE_FORMAT)) {
+                nativeFormat.setSelected(true);
+                jvmFormat.setSelected(false);
+            }
+            else {
+                nativeFormat.setSelected(false);
+                jvmFormat.setSelected(true);
+            }
+        }
+        else {
+            nativeFormat.setSelected(true);
+            jvmFormat.setSelected(false);
+            nativeFormat.setEnabled(false);
+            jvmFormat.setEnabled(false);
+        }
+        
     }
 
     public HelpCtx getHelpCtx() {
@@ -108,6 +129,9 @@ public class CustomizerBuild extends JPanel implements HelpCtx.Provider {
         platforms = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
         manage = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        nativeFormat = new javax.swing.JRadioButton();
+        jvmFormat = new javax.swing.JRadioButton();
 
         jLabel1.setLabelFor(mainModule);
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(CustomizerBuild.class, "CustomizerRun.mainModule.text")); // NOI18N
@@ -137,6 +161,23 @@ public class CustomizerBuild extends JPanel implements HelpCtx.Provider {
             }
         });
 
+        jLabel3.setLabelFor(mainModule);
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(CustomizerBuild.class, "CustomizerBuild.jLabel3.text")); // NOI18N
+
+        nativeFormat.setText(org.openide.util.NbBundle.getMessage(CustomizerBuild.class, "CustomizerBuild.nativeFormat.text")); // NOI18N
+        nativeFormat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nativeFormatActionPerformed(evt);
+            }
+        });
+
+        jvmFormat.setText(org.openide.util.NbBundle.getMessage(CustomizerBuild.class, "CustomizerBuild.jvmFormat.text")); // NOI18N
+        jvmFormat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jvmFormatActionPerformed(evt);
+            }
+        });
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -144,16 +185,24 @@ public class CustomizerBuild extends JPanel implements HelpCtx.Provider {
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jLabel1)
-                    .add(jLabel2))
-                .add(49, 49, 49)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(platforms, 0, 323, Short.MAX_VALUE)
-                    .add(mainModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, browse, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, manage, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(layout.createSequentialGroup()
+                        .add(jLabel3)
+                        .add(49, 49, 49)
+                        .add(nativeFormat)
+                        .add(18, 18, 18)
+                        .add(jvmFormat))
+                    .add(layout.createSequentialGroup()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jLabel1)
+                            .add(jLabel2))
+                        .add(49, 49, 49)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(platforms, 0, 323, Short.MAX_VALUE)
+                            .add(mainModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, browse, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, manage, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -169,7 +218,12 @@ public class CustomizerBuild extends JPanel implements HelpCtx.Provider {
                     .add(jLabel1)
                     .add(browse)
                     .add(mainModule, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(224, Short.MAX_VALUE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel3)
+                    .add(nativeFormat)
+                    .add(jvmFormat))
+                .addContainerGap(194, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -183,12 +237,32 @@ private void browseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:
 private void platformsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_platformsActionPerformed
     uiProperties.setActivePlatformId(
             ((AdaPlatform) platforms.getSelectedItem()).getName());
+
+    final AdaPlatform activePlatform = manager.getPlatform(uiProperties.getActivePlatformId());
+    
+    if (activePlatform.getJvmGnatCompilerCommand() != null) {
+        nativeFormat.setEnabled(true);
+        jvmFormat.setEnabled(true);
+        if (uiProperties.getOutputBuildFormat().equalsIgnoreCase(AdaProjectProperties.NATIVE_FORMAT)) {
+            nativeFormat.setSelected(true);
+            jvmFormat.setSelected(false);
+        } else {
+            nativeFormat.setSelected(false);
+            jvmFormat.setSelected(true);
+        }
+    } else {
+        nativeFormat.setSelected(true);
+        jvmFormat.setSelected(false);
+        nativeFormat.setEnabled(false);
+        jvmFormat.setEnabled(false);
+        uiProperties.setOutputBuildFormat(AdaProjectProperties.NATIVE_FORMAT);
+    }
+
 }//GEN-LAST:event_platformsActionPerformed
 
 private void manageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageActionPerformed
     // Workaround, Needs an API to display platform customizer
-//    final FileObject fo = FileUtil.getConfigFile("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
-    final FileObject fo = Repository.getDefault().getDefaultFileSystem().findResource("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
+    final FileObject fo = FileUtil.getConfigFile("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
     if (fo != null) {
         try {
             InstanceDataObject ido = (InstanceDataObject) DataObject.find(fo);
@@ -202,12 +276,26 @@ private void manageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:
         }
     }
 }//GEN-LAST:event_manageActionPerformed
+
+private void nativeFormatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nativeFormatActionPerformed
+    uiProperties.setOutputBuildFormat(AdaProjectProperties.NATIVE_FORMAT);
+    jvmFormat.setSelected(false);
+}//GEN-LAST:event_nativeFormatActionPerformed
+
+private void jvmFormatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jvmFormatActionPerformed
+    uiProperties.setOutputBuildFormat(AdaProjectProperties.JVM_FORMAT);
+    nativeFormat.setSelected(false);
+}//GEN-LAST:event_jvmFormatActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton browse;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JRadioButton jvmFormat;
     private javax.swing.JTextField mainModule;
     private javax.swing.JButton manage;
+    private javax.swing.JRadioButton nativeFormat;
     private javax.swing.JComboBox platforms;
     // End of variables declaration//GEN-END:variables
 
