@@ -262,7 +262,8 @@ public class InspectProjectAction extends AbstractAction implements ContextAware
                     }
                     pw.println();
                 }
-                for (String kind : new String[] {ClassPath.COMPILE, ClassPath.EXECUTE, ClassPath.BOOT}) {
+                for (String kind : new String[] {ClassPath.COMPILE, ClassPath.EXECUTE, ClassPath.BOOT,
+                        /*org.netbeans.modules.java.api.common.classpath.ClassPathSupport.ENDORSED*/"classpath/endorsed"}) {
                     cp = ClassPath.getClassPath(r, kind);
                     if (cp != null) {
                         pw.println("    " + kind + ":");
@@ -290,6 +291,15 @@ public class InspectProjectAction extends AbstractAction implements ContextAware
                         }
                     }
                 }
+            }
+        }
+        SourceGroup[] rsrcGroups = s.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_RESOURCES);
+        if (rsrcGroups.length > 0) {
+            pw.println();
+            pw.println("Java resource roots:");
+            for (SourceGroup g : rsrcGroups) {
+                FileObject r = g.getRootFolder();
+                pw.println("  \"" + g.getDisplayName() + "\" (" + g.getName() + "): " + FileUtil.getFileDisplayName(r));
             }
         }
         ActionProvider ap = l.lookup(ActionProvider.class);
