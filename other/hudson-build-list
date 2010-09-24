@@ -11,3 +11,5 @@ imagepaste
 insertunicode
 logmanagement
 quickfilechooser
+testng
+testng.maven
