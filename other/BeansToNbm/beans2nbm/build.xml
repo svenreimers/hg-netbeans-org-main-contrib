@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<project name="beans2nbm" default="default" basedir=".">
+    <description>Builds, tests, and runs the project beans2nbm.</description>
+    <import file="nbproject/build-impl.xml"/>
+
+    <property name="wizard-jar-loc" value="../../../o.yourorghere.wizard2/release/modules/ext/wizard.jar"/>
+    <available file="${wizard-jar-loc}" property="wizard-found"/>
+    
+    <target name="-pre-jar">
+        <fail unless="wizard-found" message="${wizard-jar-loc} not found.  Create a build.properties file beside build.xml that defines 'wizard-jar-loc' as a pointer to a fresh build of wizard.jar on your disk.  Build it from http://wizard.dev.java.net - it will be merged into the result jar "/> 
+        <echo message="Merging wizard.jar"/>
+        <unjar src="${wizard-jar-loc}" dest="build/classes" overwrite="true"/>
+    </target>
+    
+    <target name="build-libgen" description="Build library generator w/o bean selection page">
+        <property name="main.class" value="beans2nbm.LibGenMain"/>
+        <property name="dist.jar" value="dist/jar2nbm.jar"/>
+        <antcall inheritall="true" inheritrefs="true" target="jar"/>
+    </target>
+    
+    <target name="run-libgen" depends="build-libgen" description="Run the library generator">
+        <java jar="dist/jar2nbm.jar" fork="true"/>
+    </target>
+</project>

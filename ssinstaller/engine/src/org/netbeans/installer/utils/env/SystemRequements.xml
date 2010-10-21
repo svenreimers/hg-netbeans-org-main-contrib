@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system-requements version="1.0" product-name="" product-version="" >
+	<distributions>
+		<distribution name="SUSE Linux Enterprise Server" version="10.*" platform="x64" />
+                <distribution name="Red Hat Enterprise Linux.*" version="5.*" platform="x64" />
+                <distribution name="OpenSolaris" version=".*" />
+                <distribution name="Solaris" version="10.*" />
+                <distribution name="Solaris Express.*" version=".*" />
+	</distributions>
+	<hardware>
+		<cpus>
+			<cpu model=".*" minimum-frequency="450" />
+		</cpus>
+		<memory minimum-size="512" />
+	</hardware>
+        <patches> // Solaris only
+            <distribution name="Solaris" version="9.*" platform="x86" >
+                <patch id="111713-09" />
+            </distribution>
+            <distribution name="Solaris" version="10 1/06.*" platform="intel" >
+                <patch id="120754-05" />
+                <patch id="119255-19" />
+            </distribution>
+            <distribution name="Solaris" version="9.*" platform="sparc" >
+                <patch id="111711-12" />
+                <patch id="111712-12" />
+                <patch id="112963-26" />
+                <patch id="111703-04" />
+                <patch id="117560-06" />
+                <patch id="111722-05" />
+                <patch id="112785-43" />
+                <patch id="112233-12" />
+            </distribution>
+            <distribution name="Solaris" version="10 1/06.*" platform="sparc" >
+                <patch id="120753-05" />
+                <patch id="119254-19" />
+            </distribution>            
+        </patches>
+</system-requements>

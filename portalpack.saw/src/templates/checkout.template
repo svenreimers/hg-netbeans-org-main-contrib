@@ -1,0 +1,6 @@
+{
+        com.sun.saw.vo.CheckoutTaskVO checkoutVO = new com.sun.saw.vo.CheckoutTaskVO();
+        checkoutVO.setTaskIdList(taskIdList);
+        checkoutVO.setUserId(userId);
+        return workflowImpl.checkoutTasks(checkoutVO);
+}

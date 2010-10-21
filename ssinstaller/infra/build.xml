@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+  
+  Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+  
+  The contents of this file are subject to the terms of either the GNU General Public
+  License Version 2 only ("GPL") or the Common Development and Distribution
+  License("CDDL") (collectively, the "License"). You may not use this file except in
+  compliance with the License. You can obtain a copy of the License at
+  http://www.netbeans.org/cddl-gplv2.html or nbbuild/licenses/CDDL-GPL-2-CP. See the
+  License for the specific language governing permissions and limitations under the
+  License.  When distributing the software, include this License Header Notice in
+  each file and include the License file at nbbuild/licenses/CDDL-GPL-2-CP.  Sun
+  designates this particular file as subject to the "Classpath" exception as provided
+  by Sun in the GPL Version 2 section of the License file that accompanied this code.
+  If applicable, add the following below the License Header, with the fields enclosed
+  by brackets [] replaced by your own identifying information:
+  "Portions Copyrighted [year] [name of copyright owner]"
+  
+  Contributor(s):
+  
+  The Original Software is NetBeans. The Initial Developer of the Original Software
+  is Sun Microsystems, Inc. Portions Copyright 1997-2007 Sun Microsystems, Inc. All
+  Rights Reserved.
+  
+  If you wish your version of this file to be governed by only the CDDL or only the
+  GPL Version 2, indicate your decision by adding "[Contributor] elects to include
+  this software in this distribution under the [CDDL or GPL Version 2] license." If
+  you do not indicate a single choice of license, a recipient has the option to
+  distribute your version of this file under either the CDDL, the GPL Version 2 or
+  to extend the choice of license to its licensees as provided above. However, if you
+  add GPL Version 2 code and therefore, elected the GPL Version 2 license, then the
+  option applies only if the new code is made subject to such option by the copyright
+  holder.
+-->
+
+<project name="bootstrap" default="all" basedir=".">
+    <property file="${basedir}/build.properties"/>
+    
+    <target name="build" depends="init,-build"/>
+
+    <target name="bundle" depends="-init-ml,-init-sources,-init,-init-properties,generate-bundles"/>
+
+    
+    <target name="init" depends="-clean,-init-ml,-init-sources,-get-sources,-init,-init-properties,-post-init-clean"/>
+
+    
+    <target name="-clean">
+      <!--  <delete dir="${output.dir}"/> -->
+    </target>
+
+
+    <target name="-init-sources">
+	<!-- use.hg.root property is set if hg.root is set and not empty -->
+	<condition property="use.hg.root">
+	    <and>
+	        <isset property="hg.root"/>
+	        <not>
+	            <equals arg1="${hg.root}" arg2=""/> 
+	         </not>
+	    </and>
+        </condition>
+
+        <!-- use.hg.root.translatedfiles property is set if ml.build is set and hg.root.translated is set and not empty -->
+	<condition property="use.hg.root.translatedfiles">
+	    <and>
+	        <isset property="hg.root.translatedfiles"/>
+	        <not>
+	            <equals arg1="${hg.root.translatedfiles}" arg2=""/> 
+	         </not>		
+		<isset property="ml.build"/>
+	    </and>
+        </condition>
+    </target>
+
+
+    <target name="-get-sources" depends="-init-working-dir,-get-installer-sources,-get-translatedfiles"/>
+
+    <target name="-init-working-dir" if="use.hg.root">
+	<delete dir="${nbi.all.dir}"/>
+    </target>
+    
+    <target name="-get-installer-sources" if="use.hg.root">
+        <copy todir="${nbi.core.dir}">
+            <fileset dir="${hg.root}/nbi">
+                <exclude name="infra/server/**/build/**/*.*"/>
+                <exclude name="infra/server/**/dist/**/*.*"/>
+                <exclude name="infra/server/**/private/**/*.*"/>
+            </fileset>
+        </copy>
+        <copy todir="${nbi.netbeans.dir}">
+            <fileset dir="${hg.root}/ssinstaller">
+                <exclude name="infra/server/**/build/**/*.*"/>
+                <exclude name="infra/server/**/dist/**/*.*"/>
+                <exclude name="infra/server/**/private/**/*.*"/>
+                <include name="components/**/*.*"/>
+                <include name="infra/**/*.*"/>
+                <include name="engine/**/*.*"/>
+            </fileset>
+        </copy>
+        <mkdir dir="${nbi.all.dir}/reglib"/>
+        <copy todir="${nbi.all.dir}/reglib">
+            <fileset dir="${hg.root}/reglib">
+		<include name="**/*.*"/>
+                <exclude name="build/**/*.*"/>
+                <exclude name="dist/**/*.*"/>                
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-get-translatedfiles" if="use.hg.root.translatedfiles">
+	<copy todir="${nbi.all.dir}/translatedfiles/src/nbi">
+            <fileset dir="${hg.root.translatedfiles}/translatedfiles/src/nbi">
+                <include name="**/*.*"/>
+            </fileset>
+        </copy>
+        <copy todir="${nbi.all.dir}/translatedfiles/src/installer">
+            <fileset dir="${hg.root.translatedfiles}/translatedfiles/src/installer">
+                <include name="components/**/*.*"/>
+                <include name="infra/**/*.*"/>
+                <include name="engine/**/*.*"/>
+            </fileset>
+        </copy>
+    </target>
+
+
+
+    <target name="-remove-wrong-locale-files" if="nb.locales.isset">
+        <echo file="${nbi.all.dir}/locales.tmp">**/*_${nb.locales}.*</echo> 
+        <loadfile srcFile="${nbi.all.dir}/locales.tmp" property="locale.pattern.excludes">
+            <filterchain>
+                <tokenfilter>
+                    <replaceregex pattern="\," replace="\.\* \*\*\/\*_" flags="g"/>
+           	</tokenfilter>
+               </filterchain>
+        </loadfile>
+        <delete file="${nbi.all.dir}/locales.tmp"/>
+
+	<delete failonerror="false" verbose="true">
+            	<fileset dir="${nbi.all.dir}/translatedfiles" excludes="${locale.pattern.excludes}"/>
+	</delete>
+    </target>
+
+    <target name="-init-ml">
+        <condition property="ml.build">
+	     <equals arg1="${nb.build.type}" arg2="ml"/>
+        </condition>
+        <condition property="nb.locales.isset">
+ 	     <not>
+ 	     	<equals arg1="${nb.locales}" arg2=""/>
+ 	     </not>
+        </condition>
+    </target>
+
+    <target name="-init">
+        <delete dir="${custom.tasks.cls}"/>
+        <mkdir dir="${custom.tasks.cls}"/>
+        
+        <!-- first we need to perform an "unofficial" build of the engine in order 
+             to ensure it's available in the classpath for the custom ant tasks -->
+        <subant buildpath="${nbi.core.dir}/engine" 
+                target="compile" 
+                failonerror="true" 
+                output="core.engine.unofficial.build.output">
+            <property name="platforms.JDK_1.5.home" value="${jdk.home}"/>
+            <property name="basedir" value="${nbi.core.dir}/engine"/>
+        </subant>
+        <copy todir="${custom.tasks.cls}">
+            <fileset dir="${nbi.core.dir}/engine/build/classes">
+                <include name="**/*.*"/>
+            </fileset>
+        </copy>
+
+        <!-- second we compile the required custom libraries -->
+        <javac 
+            srcdir="${nbi.core.dir}/infra/lib/registries-management" 
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+        
+        <!-- then compile all the custom ant tasks -->
+        <javac 
+            srcdir="${custom.tasks.src.1}"
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+        <javac 
+            srcdir="${custom.tasks.src.2}" 
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+
+<!-- Added by Igor Nikiforov -->
+<!-- This addition is provided in order to have an ability to use SSI-engine utility classes
+     in custom SSI ant build task. We do not need to build all classes from SSI, but only utility ones
+     and theirs dependences. 
+-->
+        <javac 
+            srcdir="${nbi.netbeans.dir}/engine/src" 
+	    excludes="**/wizard/**" 
+            destdir="${custom.tasks.cls}"
+            classpath="${nbi.core.dir}/engine/build"
+            debug="true"/>
+<!-- End of addition -->
+
+        <javac 
+            srcdir="${custom.tasks.src.3}" 
+            destdir="${custom.tasks.cls}"
+            classpath="${custom.tasks.cls}"
+            debug="true"/>
+      
+        <taskdef 
+            name="for-each"
+            classname="org.netbeans.installer.infra.build.ant.ForEach"
+            classpath="${custom.tasks.cls}"/>
+        <taskdef 
+            name="if" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.If"/>
+        <taskdef 
+            name="set" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.SetProperty"/>
+        <taskdef 
+            name="export-registry" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.registries.ExportRegistry"/>
+        <taskdef 
+            name="generate-components-js" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.registries.GenerateComponentsJs"/>
+        <taskdef 
+            name="create-bundle" 
+            classpath="${custom.tasks.cls}" 
+            classname="org.netbeans.installer.infra.build.ant.registries.CreateBundle2"/>
+
+	<set property="nb.build.type.number"
+                 value="0"/>
+        <set property="nb.build.suffix"
+                 value=""/>
+
+        <if property="nb.build.type" value="ml">
+            <set property="nb.build.type.number"
+                 value="1"/>
+	    <set property="nb.build.suffix"
+                 value="-ml"/>
+        </if>
+
+	<set property="nb.full.version"
+             value="6.1.0.${nb.build.type.number}.${build.number}"/>
+
+        <set property="nb.zip.files.prefix"
+             value="${nb.files.prefix}-${build.number}${nb.build.suffix}"/>
+
+        <set property="ss.bundle.files.prefix"
+             value="${ss.name}-${ss.version}"/>
+
+        <set property="jdk.bundle.files.suffix"
+             value="${nb.files.prefix}-${build.number}${nb.build.suffix}"/>
+        
+        <delete file="${temp.file}" failonerror="false"/>
+    </target>
+    
+    <target name="-init-properties">
+        <echo file="${environment.properties}"/>
+        <!-- Obligatory properties -->
+
+        <echo file="${environment.properties}" append="true">
+cvs.root=${cvs.root}
+cvs.module=ssinstaller
+cvs.timestamp=${cvs.timestamp}
+cvs.branch=${cvs.branch}
+
+checkout.sources=false
+sources.dir=${nbi.all.dir}
+
+release.to.server=false
+release.registry.dir=${output.dir}/registry-temp
+
+build.number=${build.number}
+dont.build.custom.tasks=true
+custom.tasks.cls=${custom.tasks.cls}
+
+build.engine=false
+
+engine.dist.file.name=nbi-engine.jar
+engine.dist.file=${nbi.netbeans.dir}/infra/engine/dist/nbi-engine.jar
+current.platform.name=${current.platform.name}
+packaged.data.dir=${nbi.cache.dir}/packaged
+packaged.data.dir.release=${output.dir}/packaged
+downloads.cache.dir=${nbi.cache.dir}/raw
+
+binary.cache.host=${binary.cache.host}
+nb.builds.host=${nb.builds.host}
+installed.bits.dir1=${installed.bits.dir}
+remote.work.dir=~/.${ss.bundle.files.prefix}
+	</echo>
+
+	<!-- NetBeans Build properties -->
+        <echo file="${environment.properties}" append="true">
+
+nb.full.version=${nb.full.version}
+nb.build.suffix=${nb.build.suffix}
+nb.zip.files.prefix=${nb.zip.files.prefix}
+ss.bundle.files.prefix=${ss.bundle.files.prefix}
+	</echo>
+
+
+        
+        <replace file="${environment.properties}" token="\" value="/"/>
+    </target>
+    
+    <target name="-post-init-clean" depends="-remove-wrong-locale-files">
+        <delete dir="${nbi.cache.dir}/raw" failonerror="false"/>
+        <delete failonerror="false">
+            <fileset dir="${nbi.cache.dir}/packaged">
+                <!-- nb components -->
+                <exclude name="**/nb*${build.number}*"/>                          
+
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="build-netbeans">
+    	<antcall target="build-groups"/>
+	
+        <ant dir="${nbi.netbeans.dir}/infra/products/nb-extra" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/nb-extra"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="prerequisites"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+        <!--
+	<ant dir="${nbi.netbeans.dir}/infra/products/nb-base" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/nb-base"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="ide-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+	-->
+
+	<antcall target="build-products"/>
+	<!-- java -cp engine/build/ssinstaller/engine/build/classes buildhelper.Main products.xml products/native 
+	<java classpath="${nbi.netbeans.dir}/infra/engine/dist/nbi-engine.jar" fork="true" classname="buildhelper.Main" failonerror="true">
+	    <arg value="1${products.xml}"/>
+	    <arg value="products/native"/>
+	</java> 
+	-->
+        
+     </target>
+
+      <target name="build-groups">
+        <echo message="BUILDING GROUPS ==================================="/>
+        <subant target="release-all">
+	    <fileset dir="${nbi.netbeans.dir}/infra/groups/" includes="**/build.xml" excludes="**/native/build.xml"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="release.parent.uid"
+                value=""/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </subant>
+     </target>
+
+     <target name="build-products">
+            <subant target="release-all">
+	    <fileset dir="${nbi.netbeans.dir}/infra/products/build" includes="**/build.xml" excludes="**/native/build.xml"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </subant>
+     </target>
+
+    <target name="generate-bundles">
+        <!-- C/C++ bundles -->
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="${current.platform.name}" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-bundled-${ss.platform.name}.sh"
+		       componentlist="native.lst">
+	    <component uid="ss-base" version="1.0.0.0.0"/>            
+	    <component uid="nb-extra" version="${nb.full.version}"/>	
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+	<chmod file="${output.dir}/bundles/${ss.bundle.files.prefix}-bundled-${ss.platform.name}.sh" perm="ugo+rx"/>
+        <delete file="${output.dir}/registry-temp/bundles.list" /> 
+<!--
+        <create-bundle root="${output.dir}/registry-temp" 
+                       platform="${current.platform.name}" 
+                       target="${output.dir}/bundles/${ss.bundle.files.prefix}-external-${ss.platform.name}.sh"
+                       componentlist="native.lst">
+            <component uid="ss-base" version="1.0.0.0.0"/>
+	    <component uid="nb-extra" version="${nb.full.version}"/>
+            <property name="nbi.product.bundled.data.all.location" value="${bundles.url}" />
+	    <bundleProperty name="${welcome.type}" value="sunstudio"/>
+        </create-bundle>
+-->     <delete file="${output.dir}/registry-temp/bundles.list" />
+    </target>
+    
+    
+    <target name="build-engine" depends="-init">
+	<property name="engine.dist.file.name" value="nbi-engine.jar"/>
+        <echo message="BUILDING CORE ENGINE ======================================"/>
+
+        <ant dir="${nbi.core.dir}/infra/build/engine" target="build-all">
+            <property 
+                name="basedir" 
+                value="${nbi.core.dir}/infra/build/engine"/>
+           <property 
+                name="sources.dir" 
+                value="${nbi.all.dir}/.."/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>            
+            <property
+                name="build.native"
+                value="false"/>
+            <property 
+                name="cvs.module" 
+                value="${core.module.name}"/>
+        </ant>
+       
+        <echo message="BUILDING SUN STUDIO INSTALLER ENGINE =================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/engine" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/engine"/>                          
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>            
+            <property 
+                name="core.engine.dist.file" 
+                value="${nbi.core.dir}/infra/build/engine/dist/${engine.dist.file.name}"/>
+        </ant>
+
+	<ant dir="${nbi.netbeans.dir}/infra/products/ss-base" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/ss-base"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="tools-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+
+
+<!--
+        <ant dir="${nbi.netbeans.dir}/infra/products/nb-cnd" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/nb-cnd"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="ide-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+	
+    
+-->
+
+    </target>
+
+    <target name="rebuild-engine" depends="-init">
+       
+        <echo message="BUILDING SUN STUDIO INSTALLER ENGINE =================================="/>
+        <ant dir="${nbi.netbeans.dir}/infra/engine" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/engine"/>                          
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>            
+            <property 
+                name="core.engine.dist.file" 
+                value="${nbi.core.dir}/infra/build/engine/dist/${engine.dist.file.name}"/>
+        </ant>
+  <!--
+	<ant dir="${nbi.netbeans.dir}/infra/products/ss-base" target="release-all">
+            <property 
+                name="basedir" 
+                value="${nbi.netbeans.dir}/infra/products/ss-base"/>
+            <property 
+                name="environment.properties" 
+                value="${environment.properties}"/>
+            
+            <property
+                name="dist.dir"
+                value="${output.dir}/components"/>
+            
+            <property
+                name="release.parent.uid"
+                value="tools-group"/>
+            <property
+                name="release.parent.version"
+                value=""/>
+            <property
+                name="release.parent.platforms"
+                value=""/>
+        </ant>
+   -->
+    </target>
+
+    <target name="prepare-output-dir">
+	   
+        <mkdir dir="${output.dir}"/>
+        <mkdir dir="${output.dir}/bundles"/>
+        <mkdir dir="${output.dir}/components"/>    
+        <mkdir dir="${output.dir}/packaged"/>
+    </target>
+
+    <target name="-build">     
+        <antcall target="prepare-output-dir"/>
+        <antcall target="build-engine"/>
+        <antcall target="build-netbeans"/>
+    </target>
+
+    <target name="replace">
+        <property file="${token.file}"/>
+        <replaceregexp file="${file.to.replace}" flags="mg">
+            <regexp pattern="${regexp.token}"/>
+            <substitution expression="${regexp.replacement}"/>
+        </replaceregexp>
+    </target>
+</project>

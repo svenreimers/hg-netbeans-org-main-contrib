@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>Test Cases</title>
+</head>
+<body>
+<h3>Test Cases</h3>
+<ol>
+  <li>Adding a task should select the added task.</li>
+  <ol>
+    <li>Open test1.ics.</li>
+    <li>Select "A".</li>
+    <li>Local Menu. <br>
+    </li>
+    <li>Add Subtask.</li>
+    <li>Enter a summary.</li>
+    <li>OK.</li>
+    <li>The new subtask should be selected.</li>
+  </ol>
+  <li>Select next task after cut.</li>
+  <ol>
+    <li>Open test2.ics.</li>
+    <li>Select "A".</li>
+    <li>Local Menu.</li>
+    <li>Cut.</li>
+    <li>C should be selected.</li>
+  </ol>
+  <li>Adding a task should not collapse the tree.</li>
+  <ol>
+    <li>Open test3.ics.</li>
+    <li>Expand All.</li>
+    <li>Create a new task under the task list node.</li>
+    <li>"A" should not collapse.</li>
+  </ol>
+  <li>Sorting should not change the selection</li>
+  <ol>
+    <li>Open test4.ics.</li>
+    <li>Expand All.</li>
+    <li>Select "A".<br>
+    </li>
+    <li>Sort the tasks on summary.</li>
+    <li>"A" should remain selected.</li>
+  </ol>
+  <li>Filtering should work</li>
+  <ol>
+    <li>Open test5.ics.</li>
+    <li>Set the following filter: "Done is true".</li>
+    <li>G, E, B should be visible.</li>
+    <li>C, A, D should be grayed out.</li>
+    <li>F, H should be filtered out.</li>
+  </ol>
+  <li>Starting/stopping a task</li>
+  <ol>
+    <li>Open test6.ics</li>
+    <li>Start Colors/G</li>
+    <li>StartAction should be disabled.</li>
+    <li>StopAction should be enabled.</li>
+    <li>The icon for "G" should have the "started" badge.</li>
+    <li>Stop "G"</li>
+    <li>StopAction should be disabled.</li>
+    <li>StartAction should be enabled.</li>
+    <li>The icon for "G" should not have the "started" badge.</li>
+  </ol>
+  <li>Clear percent complete</li>
+  <ol>
+    <li>Open test7.ics.</li>
+    <li>"Clear Percent Complete" for "Test".</li>
+    <li>Confirmation dialog should appear.</li>
+    <li>All tasks under "Test" should have 0%.</li>
+    <li>"Clear Percent Complete" for "Colors".</li>
+    <li>R and B should have 0%, G - 25%</li>
+  </ol>
+  <li>Editable "Summary" column</li>
+  <ol>
+    <li>Open test8.ics.</li>
+    <li>Select the root node.</li>
+    <li>F2.</li>
+    <li>The cell should not become editable.</li>
+    <li>Select "Colors/B".</li>
+    <li>F2.</li>
+    <li>Enter "Test".</li>
+    <li>Show Task "Test".</li>
+    <li>Check the summary. It should be "Test".</li>
+  </ol>
+  <li>"Move up/Move down" should not change selection.<br>
+  </li>
+  <ol>
+    <li>Open test9.ics.</li>
+    <li>Select "Music".</li>
+    <li>Move it down.</li>
+    <li>"Music" still selected.</li>
+    <li value="2">Select "Music/Pop".</li>
+    <li>Move it down.</li>
+    <li>"Music/Pop" still selected.</li>
+  </ol>
+  <li>-</li>
+  <ol>
+  </ol>
+  <li>Expanded nodes/selection/started task/scrollbar positions should
+be restored after NB
+restart.</li>
+  <ol>
+    <li>Open test11.ics.</li>
+    <li>Expand "Lights" and "Music".</li>
+    <li>Start "Lights/Green"<br>
+    </li>
+    <li>Select "Colors"</li>
+    <li>Scroll down/right <br>
+    </li>
+    <li>Restart NB.</li>
+    <li>Check selection, expanded nodes and started task, scrollbar
+positions.</li>
+  </ol>
+  <li><br>
+  </li>
+</ol>
+</body>
+</html>

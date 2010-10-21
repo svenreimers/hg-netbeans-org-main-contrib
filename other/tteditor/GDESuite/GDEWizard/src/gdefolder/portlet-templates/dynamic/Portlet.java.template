@@ -1,0 +1,153 @@
+
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * Copyright 2007 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder. *
+ */
+
+package __GDEPACKAGE__;
+
+import java.io.IOException;
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+import javax.portlet.GenericPortlet;
+import javax.portlet.PortletConfig;
+import javax.portlet.PortletContext;
+import javax.portlet.PortletException;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
+import javax.portlet.UnavailableException;
+
+import com.sun.tthub.processor.RequestRouter;
+import com.sun.tthub.data.AppRequest;
+import com.sun.tthub.util.DataConstants;
+
+/**
+ * The class provides a default implementation
+ * for the <code>Portlet</code> interface.<p>
+ *
+ * It is recommended not to extend the Portlet interface directly.
+ * Rather, a portlet should derive from this or any other derived
+ * class and use the provided helper methods for the different modes.
+ */
+public class __GDEPORTLETNAME__ extends GenericPortlet {
+
+  public void init (PortletConfig config) throws PortletException, UnavailableException {
+    super.init (config);
+    myPortletContext = config.getPortletContext ();
+    
+  }
+
+  public void processAction (ActionRequest request, ActionResponse response) throws PortletException, IOException {
+    // add your code here
+     System.out.println("[Portlet processAction]");
+     
+      // Set App Request for request processing
+     AppRequest appRequest= new AppRequest(request.getParameter(DataConstants.USE_CASE_ID),
+                                            request.getParameter(DataConstants.REQUEST_ID),
+                                            request.getParameter(DataConstants.CUR_EDIT_PATH));
+     
+      System.out.println("[Portlet-usecaseid]-"+appRequest.getUsecaseId());
+      System.out.println("[Portlet-requestId]-"+appRequest.getRequestId());
+      System.out.println("[Portlet-parameter-requestId]-"+request.getParameter(DataConstants.REQUEST_ID));
+
+     request.getPortletSession(true).setAttribute(DataConstants.USE_CASE_ID,appRequest.getUsecaseId());
+     
+     RequestRouter reqRouter=new RequestRouter();
+     String returnEditPath= reqRouter.route(appRequest,request);
+     
+     String pageurl= "/"+appRequest.getUsecaseId();
+
+
+      System.out.println("[Portlet-pageurl]-"+pageurl);
+      System.out.println("[Portlet-returnEditPath]-"+returnEditPath);
+
+     if (returnEditPath!=null && !returnEditPath.equals("/")){
+         //e.g /web/creatett/a
+         //e.g /web/creatett/a/b
+		
+ 		pageurl=pageurl+returnEditPath;
+	    	
+	}
+      System.out.println("[Portlet-pageurl]-"+pageurl);
+	response.setRenderParameter("viewPage",pageurl);
+	
+	if(returnEditPath!=null)
+		response.setRenderParameter("returnEditPath",returnEditPath);
+      
+      
+  }
+
+  protected void doView (RenderRequest request, RenderResponse response) throws PortletException, IOException {
+    
+    request.setAttribute ("viewParam", "view");
+    String viewPage= request.getParameter("viewPage");
+    if (viewPage !=null){
+        processViewPage(request,response, viewPage);
+    }else{
+      processPage (request, response, "viewPage");
+    }
+  }
+
+  protected void doEdit (RenderRequest request, RenderResponse response) throws PortletException, IOException {
+    request.setAttribute("editParam", "edit");
+    processPage (request, response, "editPage");
+  }
+
+  protected void doHelp (RenderRequest request, RenderResponse response) throws PortletException, IOException {
+    processPage (request, response, "helpPage");
+  }
+
+  //Get page from config file
+  private void processPage (RenderRequest request, RenderResponse response, String page) throws PortletException, IOException {
+    response.setContentType (request.getResponseContentType ());
+    String value = request.getPreferences ().getValue (page, "");
+
+    if (value != null && value.length () > 0) {
+      myPortletContext.getRequestDispatcher (value).include (request, response);
+    }
+  }
+
+  //Get page from url
+  private void processViewPage (RenderRequest request, RenderResponse response, String pageurl) throws PortletException, IOException {
+    response.setContentType (request.getResponseContentType ());
+    System.out.println("[Portlet-processViewPage-pageurl]-"+pageurl);
+    if (pageurl != null && pageurl.length () > 0) {
+      myPortletContext.getRequestDispatcher (pageurl+"/PortletView.jsp").include (request, response);
+    }
+  }
+  private PortletContext myPortletContext;
+}

@@ -1,0 +1,32 @@
+<#if PACKAGE != "">package ${PACKAGE};
+</#if>
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+import javax.portlet.PortletRequest;
+import org.springframework.validation.BindException;
+import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
+import org.springframework.web.portlet.bind.PortletRequestDataBinder;
+import org.springframework.web.portlet.mvc.SimpleFormController;
+
+public class ${CONTROLLER_CLASS} extends SimpleFormController {
+<#assign enctype = "">
+<#foreach ip in input_params>
+    <#if ip.getDataType().getType() == "file">
+        <#assign enctype = "multipart/form-data">
+    </#if>
+</#foreach>
+
+    public void onSubmitAction(ActionRequest request, ActionResponse response,
+            Object command, BindException errors) throws Exception {
+        
+        ${CMD_CLASS} cmdBean = (${CMD_CLASS})command;
+
+        request.setAttribute("bean",cmdBean);
+    
+    }
+
+    protected void initBinder(PortletRequest request, PortletRequestDataBinder binder) throws Exception {
+        binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
+    }
+
+}

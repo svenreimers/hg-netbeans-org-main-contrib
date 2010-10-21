@@ -1,0 +1,196 @@
+/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common
+ * Development and Distribution License("CDDL") (collectively, the
+ * "License"). You may not use this file except in compliance with the
+ * License. You can obtain a copy of the License at
+ * http://www.netbeans.org/cddl-gplv2.html
+ * or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+ * specific language governing permissions and limitations under the
+ * License.  When distributing the software, include this License Header
+ * Notice in each file and include the License file at
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code. If applicable, add the following below the
+ * License Header, with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Leon Chiver. All Rights Reserved.
+ *
+ * If you wish your version of this file to be governed by only the CDDL
+ * or only the GPL Version 2, indicate your decision by adding
+ * "[Contributor] elects to include this software in this distribution
+ * under the [CDDL or GPL Version 2] license." If you do not indicate a
+ * single choice of license, a recipient has the option to distribute
+ * your version of this file under either the CDDL, the GPL Version 2 or
+ * to extend the choice of license to its licensees as provided above.
+ * However, if you add GPL Version 2 code and therefore, elected the GPL
+ * Version 2 license, then the option applies only if the new code is
+ * made subject to such option by the copyright holder.
+ */
+
+options {
+    CACHE_TOKENS=true;
+    STATIC=true;
+    FORCE_LA_CHECK=true;
+}
+
+
+PARSER_BEGIN(JavadocParser)
+
+package org.netbeans.modules.editor.java.doclet.parser;
+
+import org.netbeans.modules.editor.java.doclet.ast.*;
+
+public class JavadocParser {
+}
+
+PARSER_END(JavadocParser)
+
+TOKEN:
+{
+    < DOC_START: "/**" (" " | "\t")* > |
+    < PARAGRAPH_START0: "/**" (" " | "\t")* "@" > |
+    < PARAGRAPH_START1: ("\n" | "\r") (" " | "\t")* ("*")? (" " | "\t")* "@" > |
+    < DOC_END: ("\n" | "\r")* (" " | "\t")* "*/" > |
+    < EQ: "=" > |
+    < WORD: (~[" ", "\t", "\n", "\r", "="])+ >
+        {
+            if (image.toString().endsWith("*/")) {
+                // This is the end of the comment block
+                // We go back two chars to get the last word
+                input_stream.backup(2);
+                image.setLength(image.length() - 2);
+                matchedToken.image = image.toString();
+            }
+        }
+}
+
+SKIP:
+{
+    < LINE_START: ("\n" | "\r") (" " | "\t")* "*" >
+}
+
+SPECIAL_TOKEN:
+{
+    < WHITESPACE: ([" ", "\t", "\n", "\r"]) > 
+}
+
+
+Javadoc doc() :
+{
+    Javadoc jd = new Javadoc();
+    Token parStart;
+}
+{
+    try {
+        (<DOC_START> (text())? | parStart = <PARAGRAPH_START0> paragraph(jd, 0)) (parStart = <PARAGRAPH_START1> paragraph(jd, parStart.beginLine))* <DOC_END>
+    } catch (ParseException ex) {
+        // Should normally not happen
+        ex.printStackTrace();
+    } finally {
+        return jd;
+    }
+}
+
+void text():
+{
+}
+{
+    (<WORD>)+
+}
+
+void paragraph(Javadoc jd, int beginLine):
+{
+    Tag t = new Tag();
+    t.setBeginLine(beginLine);
+    Token tok1 = null;
+    Token tok2 = null;
+    Token tok;
+    boolean validTag = true;
+}
+{
+    (
+        (tok1 = <WORD> | tok2 = <EQ>)
+            { 
+                // We checked for both <WORD> or <EQ>, so that we don't
+                // get a parse exception if @= is in the javadoc
+                // Alternatively, we could handle the exception
+                tok = tok1 != null ? tok1 : tok2;
+                if (tok.specialToken != null) {
+                    validTag = false;
+                } else {
+                    t.setName(tok.image); 
+                    t.setNameBeginColumn(tok.beginColumn);
+                    t.setNameEndColumn(tok.endColumn);
+                }
+            } 
+        // Call attributeList in any case: if it's  valid tag we'll add
+        // the attributes, otherwise we'll just consume them
+        attributeList(t, validTag)
+    )? 
+        {
+            if (validTag) {
+                jd.addTag(t);
+            }
+        }
+}
+
+/**
+ * This method goes through a tag's content and decides if the words are attributes
+ * or attribute values. For example in "@tag a1=a2", a1 would be the attribute and a2
+ * would be it's value, while in "@tag a1 a2" both a1 and a2 would be attributes.
+ * The attributes are added to the tag only if the tag is a valid one
+ */
+void attributeList(Tag t, boolean validTag):
+{
+    Token word;
+    Attribute a = null;
+    boolean nextIsAttributeValue = false;
+}
+{
+    (
+        (
+            word = <WORD>
+            {   
+                if (validTag) {
+                    if (nextIsAttributeValue && a != null) {
+                        a.setValue(word.image); 
+                        // XXX - really strange behaviour of beginline
+                        // We get get line + 1, so we have to adjust this
+                        a.setValueLine(word.beginLine - 1);
+                        a.setValueBeginColumn(word.beginColumn);
+                        a.setValueEndColumn(word.endColumn);
+                        a = null;
+                    } else {
+                        a = new Attribute();
+                        a.setName(word.image);
+                        // XXX - really strange behaviour of beginline
+                        // We get get line + 1, so we have to adjust this
+                        a.setLine(word.beginLine - 1);
+                        a.setBeginColumn(word.beginColumn);
+                        a.setEndColumn(word.endColumn);
+                        t.addAttribute(a);
+                        nextIsAttributeValue = false;
+                    }
+                }   
+            }
+        ) | 
+        <EQ> 
+            { 
+                if (a != null) {
+                    // The next word is an attribute value
+                    nextIsAttributeValue = !nextIsAttributeValue; 
+                }
+            }
+    )*
+}

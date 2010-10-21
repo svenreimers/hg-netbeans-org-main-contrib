@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Leon Chiver. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+<doclet-completion><class-tags><tag name="spring.bean"><attribute name="id" required="false" type="text"/><attribute name="name" required="false" type="text"/><attribute name="autowire" required="false" type="text">
+                <value>no</value>
+                <value>byName</value>
+                <value>byType</value>
+                <value>constructor</value>
+                <value>auto-detect</value>
+              </attribute><attribute name="dependency-check" required="false" type="text">
+                  <value>none</value>
+                  <value>objects</value>
+                  <value>simple</value>
+                  <value>all</value>
+              </attribute><attribute name="description" required="false" type="text"/><attribute name="destroy-method" required="false" type="text"/><attribute name="init-method" required="false" type="text"/><attribute name="lazy-init" required="false" type="bool"/><attribute name="singleton" required="false" type="bool"/></tag><tag name="spring.property"><attribute name="ref" required="false" type="text"/><attribute name="list" required="false" type="text"/><attribute name="name" required="true" type="text"/><attribute name="value" required="false" type="text"/></tag></class-tags><method-tags><tag name="spring.constructor-arg"><attribute name="ref" required="false" type="text"/><attribute name="list" required="false" type="text"/><attribute name="value" required="false" type="text"/></tag><tag name="spring.property"><attribute name="ref" required="false" type="text"/><attribute name="list" required="false" type="text"/><attribute name="value" required="false" type="text"/></tag><tag name="spring.validator"><attribute name="type" required="true" type="text"/><attribute name="msgkey" required="false" type="text"/><attribute name="msgvalue" required="false" type="text"/><attribute name="page" required="false" type="text"/><attribute name="arg0value" required="false" type="text"/><attribute name="arg0resource" required="false" type="text"/><attribute name="arg1value" required="false" type="text"/><attribute name="arg1resource" required="false" type="text"/><attribute name="arg2value" required="false" type="text"/><attribute name="arg2resource" required="false" type="text"/><attribute name="arg3value" required="false" type="text"/><attribute name="arg3resource" required="false" type="text"/></tag><tag name="spring.validator-args"><attribute name="arg0value" required="false" type="text"/><attribute name="arg0resource" required="false" type="text"/><attribute name="arg1value" required="false" type="text"/><attribute name="arg1resource" required="false" type="text"/><attribute name="arg2value" required="false" type="text"/><attribute name="arg2resource" required="false" type="text"/><attribute name="arg3value" required="false" type="text"/><attribute name="arg3resource" required="false" type="text"/></tag><tag name="spring.validator-var"><attribute name="name" required="true" type="text"/><attribute name="value" required="true" type="text"/></tag></method-tags><field-tags/></doclet-completion>

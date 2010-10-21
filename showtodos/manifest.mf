@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.netbeans.modules.showtodos
+OpenIDE-Module-Layer: org/netbeans/modules/showtodos/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/showtodos/Bundle.properties
+

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+
+Contributor(s):
+
+Portions Copyrighted 2008 Sun Microsystems, Inc.
+-->
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+    <folder name="Projects">
+        <folder name="org-netbeans-modules-ada-project">
+            <folder name="Nodes">
+                <file name="org-netbeans-modules-ada-project-ui-SourceNodeFactory.instance">
+                    <attr name="position" intvalue="200"/>
+                </file>
+            </folder>
+            <folder name="Customizer">
+                <folder name="Sources">
+                    <file name="Naming.instance">
+                        <attr name="instanceCreate" methodvalue="org.netbeans.modules.ada.project.ui.properties.CompositePanelProviderImpl.createNamingConfig"/>
+                        <attr name="position" intvalue="100"/>
+                    </file>
+                    <file name="Sources.instance">
+                        <attr name="instanceCreate" methodvalue="org.netbeans.modules.ada.project.ui.properties.CompositePanelProviderImpl.createSources"/>
+                        <attr name="position" intvalue="200"/>
+                    </file>
+                </folder>
+                <file name="LibrariesPath.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.ada.project.ui.properties.CompositePanelProviderImpl.createLibrariesPath"/>
+                    <attr name="position" intvalue="300"/>
+                </file>
+                <file name="Build.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.ada.project.ui.properties.CompositePanelProviderImpl.createBuildConfig"/>
+                    <attr name="position" intvalue="400"/>
+                </file>
+                <file name="Run.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.ada.project.ui.properties.CompositePanelProviderImpl.createRunConfig"/>
+                    <attr name="position" intvalue="500"/>
+                </file>
+            </folder>
+            <folder name="Lookup"/>
+        </folder>
+    </folder>
+    <folder name="Templates">
+        <folder name="Project">
+            <folder name="Ada">
+                <attr name="position" intvalue="740"/>
+                <file name="AdaProject.xml">
+                    <attr name="position" intvalue="100"/>
+                    <attr name="template" boolvalue="true"/>
+                    <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.ada.project.resources.Bundle"/>
+                    <attr name="templateWizardIterator" methodvalue="org.netbeans.modules.ada.project.ui.wizards.NewAdaProjectWizardIterator.createApplication"/>
+                    <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/ada-lovelace-16.png"/>
+                    <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaProjectDescription.html"/>
+                </file>
+                <file name="ExistingAdaProject.xml">
+                    <attr name="position" intvalue="200"/>
+                    <attr name="template" boolvalue="true"/>
+                    <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.ada.project.resources.Bundle"/>
+                    <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/ada-lovelace-16.png"/>
+                    <attr name="instantiatingIterator" methodvalue="org.netbeans.modules.ada.project.ui.wizards.NewAdaProjectWizardIterator.createExistingProject"/>
+                    <attr name="instantiatingWizardURL" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/ExistingAdaProjectDescription.html"/>
+                </file>
+            </folder>
+        </folder>
+        <folder name="Ada">
+            <attr name="position" intvalue="40"/>
+            <file name="NewAdaMain" url="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaMain">
+                <attr name="template" boolvalue="true"/>
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.ada.project.resources.Bundle"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:org/netbeans/modules/ada/project/ui/resources/ada-body-16.png"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" newvalue="org.netbeans.modules.ada.project.ui.wizards.NewFileWizardIterator"/>
+                <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaMainFileDescription.html"/>
+                <attr name="templateCategory" stringvalue="Ada"/>
+                <attr name="position" intvalue="100"/>
+            </file>
+            <file name="NewAdaPackageSpec" url="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaSpec">
+                <attr name="template" boolvalue="true"/>
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.ada.project.resources.Bundle"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:org/netbeans/modules/ada/project/ui/resources/ada-spec-16.png"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" newvalue="org.netbeans.modules.ada.project.ui.wizards.NewFileWizardIterator"/>
+                <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaSpecFileDescription.html"/>
+                <attr name="templateCategory" stringvalue="Ada"/>
+                <attr name="position" intvalue="200"/>
+            </file>
+            <file name="NewAdaPackageBody" url="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaBody">
+                <attr name="template" boolvalue="true"/>
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.ada.project.resources.Bundle"/>
+                <attr name="SystemFileSystem.icon" urlvalue="nbresloc:org/netbeans/modules/ada/project/ui/resources/ada-body-16.png"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr name="instantiatingIterator" newvalue="org.netbeans.modules.ada.project.ui.wizards.NewFileWizardIterator"/>
+                <attr name="templateWizardURL" urlvalue="nbresloc:/org/netbeans/modules/ada/project/ui/resources/EmptyAdaBodyFileDescription.html"/>
+                <attr name="templateCategory" stringvalue="Ada"/>
+                <attr name="position" intvalue="300"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Loaders">
+        <folder name="text">
+            <folder name="x-ada">
+                <folder name="Actions">
+                    <file name="OpenAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.OpenAction"/>
+                        <attr name="position" intvalue="100"/>
+                    </file>
+                    <file name="Separator1.instance">
+                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                        <attr name="position" intvalue="200"/>
+                    </file>
+                    <file name="CutAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.CutAction"/>
+                        <attr name="position" intvalue="300"/>
+                    </file>
+                    <file name="CopyAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.CopyAction"/>
+                        <attr name="position" intvalue="400"/>
+                    </file>
+                    <file name="PasteAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.PasteAction"/>
+                        <attr name="position" intvalue="500"/>
+                    </file>
+                    <file name="Separator2.instance">
+                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                        <attr name="position" intvalue="600"/>
+                    </file>
+                    <file name="NewAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.NewAction"/>
+                        <attr name="position" intvalue="700"/>
+                    </file>
+                    <file name="DeleteAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.DeleteAction"/>
+                        <attr name="position" intvalue="800"/>
+                    </file>
+                    <file name="RenameAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.RenameAction"/>
+                        <attr name="position" intvalue="900"/>
+                    </file>
+                    <file name="Separator3.instance">
+                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                        <attr name="position" intvalue="1000"/>
+                    </file>
+                    <file name="SaveAsTemplateAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.SaveAsTemplateAction"/>
+                        <attr name="position" intvalue="1100"/>
+                    </file>
+                    <file name="Separator4.instance">
+                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                        <attr name="position" intvalue="1200"/>
+                    </file>
+                    <file name="FileSystemAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.FileSystemAction"/>
+                        <attr name="position" intvalue="1300"/>
+                    </file>
+                    <file name="Separator5.instance">
+                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
+                        <attr name="position" intvalue="1400"/>
+                    </file>
+                    <file name="ToolsAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.ToolsAction"/>
+                        <attr name="position" intvalue="1500"/>
+                    </file>
+                    <file name="PropertiesAction.instance">
+                        <attr name="instanceClass" stringvalue="org.openide.actions.PropertiesAction"/>
+                        <attr name="position" intvalue="1600"/>
+                    </file>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+<!DOCTYPE map
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/map_1_0.dtd">
+
+<map version="1.0">
+
+<!-- last updated 26oct2000 -->
+
+<mapID target="credits" url="credits.html" />
+
+<mapID target="corba_intro" url="corba_intro.html" />
+
+<mapID target="concepts_intro" url="concepts/corba_concepts.html" />
+<mapID target="concepts_basics" url="concepts/corba_concepts_basics.html" />
+<mapID target="concepts_files" url="concepts/corba_concepts_files.html" />
+<mapID target="concepts_procs" url="concepts/corba_concepts_procs.html" />
+<mapID target="concepts_model" url="concepts/corba_CORBA1.html" />	
+
+<mapID target="setup_intro" url="setup/corba_setup.html" />	
+<mapID target="setup_supportedorbs" url="setup/corba_setup_supportedorbs.html" />
+<mapID target="setup_specifyingorb" url="setup/corba_setup_ide.html" />		
+<mapID target="setup_idlcompiler" url="setup/corba_setup_idl.html" />	
+<mapID target="setup_accessruntime" url="setup/corba_setup_runtime.html" />	
+<mapID target="setup_nsbrowser" url="setup/corba_setup_nsbrowser.html" />	
+<mapID target="setup_irbrowser" url="setup/corba_setup_irbrowser.html" />	
+<mapID target="setup_properties" url="setup/corba_setup_settings.html" />	
+
+<mapID target="generating_intro" url="generating/corba_generating.html" />	
+<mapID target="generating_idl" url="generating/corba_generating_idl.html" />
+<mapID target="generating_tmplclient" url="generating/corba_generating_tmplclient.html" />	
+<mapID target="generating_client" url="generating/corba_generating_client.html" />
+<mapID target="generating_tmplserver" url="generating/corba_generating_tmplserver.html" />	
+<mapID target="generating_server" url="generating/corba_generating_server.html" />	
+
+<mapID target="completing_intro" url="completing/corba_completing.html" />	
+<mapID target="completing_client" url="completing/corba_completing_client.html" />	
+<mapID target="completing_server" url="completing/corba_completing_server.html" />
+<mapID target="completing_objcode" url="completing/corba_objcode.html" />
+<mapID target="completing_resolvecode" url="completing/corba_resolvecode.html" />
+
+<mapID target="POAintro" url="POA/POAintro.html" />	
+<mapID target="newchildpoa" url="POA/newchildpoa.html" />	
+<mapID target="displayprop" url="POA/displayprop.html" />
+<mapID target="idassign" url="POA/idassign.html" />
+<mapID target="policies" url="POA/policies.html" />
+<mapID target="changepol" url="POA/changepol.html" />
+<mapID target="adapteractivator" url="POA/adapteractivator.html" />
+<mapID target="regpoactivator" url="POA/regpoactivator.html" />
+<mapID target="servantactivator" url="POA/servantactivator.html" />
+<mapID target="servantlocator" url="POA/servantlocator.html" />
+<mapID target="unregistering" url="POA/unregistering.html" />	
+
+<mapID target="nsbrowser_intro" url="nsbrowser/corba_nsbrowser.html" />	
+<mapID target="nsbrowser_connecting" url="nsbrowser/corba_nsbrowser_connecting.html" />	
+<mapID target="nsbrowser_binding" url="nsbrowser/corba_nsbrowser_binding.html" />	
+<mapID target="nsbrowser_properties" url="nsbrowser/corba_nsbrowser_properties.html" />	
+
+<mapID target="irbrowser_intro" url="irbrowser/corba_irbrowser.html" />	
+<mapID target="irbrowser_connecting" url="irbrowser/corba_irbrowser_connecting.html" />	
+<mapID target="irbrowser_using" url="irbrowser/corba_irbrowser_using.html" />	
+<mapID target="irbrowser_properties" url="irbrowser/corba_irbrowser_properties.html" />	
+
+<mapID target="debugger_intro" url="debugging/corba_debugging.html" />	
+
+<mapID target="settings_intro" url="settings/corba_settings.html" />	
+<mapID target="settings_get" url="settings/corba_getsettings.html" />	
+<mapID target="settings_orbnamenode" url="settings/corba_settings_orbnodes.html" />	
+	
+</map>

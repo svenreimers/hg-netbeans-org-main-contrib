@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>Generating Server-Side Files Using the CORBA Template</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>Generating Server-Side Files Using the CORBA Template</h2>
+
+<p>
+You can generate server-side files with the CORBA template,
+ServerMain. Before creating the file, make sure the IDE is set up for
+the ORB product you want your CORBA programs to work with. You should
+set the Server Binding property for the ORB you are using so that the
+template generates the correct code templates in the server file. 
+</p>
+
+<p>
+<b>To set the binding method:</b>
+<ol>
+<li>Select Tools <img src="../images/arrow.gif" alt="and choose">&nbsp;Options.</li>
+<li>Expand Distributed Application Support <img src="../images/expand.gif" alt="and
+expand">&nbsp;CORBA Support Settings. Then select the node for the ORB that 
+you are using.</li>
+<li>Double-click the value for the Server Binding property and select
+the binding method of choice.
+<p>
+While the property sheet is open, set the binding method for the
+Server by changing the Client Binding property in the same way.</p></li>
+</ol>
+</p>
+
+
+<p>
+<b>To create a server file using the CORBA template:</b>
+<ol>
+<li>From the main window, choose File 
+<img src="../images/arrow.gif" alt="and choose">&nbsp;New.</li> 
+
+<li>Expand the CORBA template node and select the ServerMain
+template and click Next.</li>
+
+<li>Specify a name for your client file and the package in which
+it should be generated and click Next.</li> 
+
+<li>Click Finish.
+<p>
+The CORBA module creates a CORBA server source file, named
+<em>Filename</em><tt>.java</tt>.</p> 
+<p>
+In addition to generating server program source code, you need to copy
+the IDL on which your server is based to the server program's
+package.</p></li>
+</ol>
+</b>
+
+<table>
+<tr valign="top">
+<th colspan=2 align=left>See also</th>
+</tr>
+<tr valign="top">
+<td width="23"></td>
+<td><a href="corba_generating_server.html">Generating Server-Side Files With the CORBA Wizard</a> 
+<br>
+<a href="../completing/corba_completing_server.html">Completing Server-Side Files</a>
+</td>
+</tr>
+</table>
+
+
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small></body>
+</html>
+
