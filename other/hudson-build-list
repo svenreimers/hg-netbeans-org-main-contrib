@@ -10,6 +10,7 @@ docbook.project
 imagepaste
 insertunicode
 logmanagement
+php.smarty
 quickfilechooser
 testng
 testng.maven
