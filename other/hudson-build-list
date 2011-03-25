@@ -5,7 +5,7 @@ autoproject.core
 autoproject.java
 autoproject.profiler
 autoproject.web
-cnd.gdbserver
+cnd.debugger.gdbserver
 docbook
 docbook.project
 imagepaste
