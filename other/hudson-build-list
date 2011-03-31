@@ -13,5 +13,9 @@ insertunicode
 logmanagement
 php.smarty
 quickfilechooser
+selenium
+selenium.maven
+selenium.php
+selenium.server
 testng
 testng.maven
