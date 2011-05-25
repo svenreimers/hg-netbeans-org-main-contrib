@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright © 2008-2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -53,6 +53,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
+import org.netbeans.api.project.SourceGroupModifier;
 import org.netbeans.api.project.Sources;
 import org.netbeans.modules.contrib.testng.api.TestNGSupport;
 import org.netbeans.spi.java.project.support.ui.templates.JavaTemplates;
@@ -83,25 +84,16 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
         // Ask for Java folders
         Project project = Templates.getProject(wizardDescriptor);
         Sources sources = ProjectUtils.getSources(project);
-        SourceGroup[] groups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-        assert groups != null : "Cannot return null from Sources.getSourceGroups: " + sources;
-
-        //XXX - have to filter out regular source roots, there should
-        //be better way to do this... (Hint: use UnitTestForSourceQuery)
-        //${test - Ant based projects
-        //2TestSourceRoot - Maven projects
-        List<SourceGroup> result = new ArrayList<SourceGroup>(2);
-        for (SourceGroup sg : groups) {
-            if (sg.getName().startsWith("${test") || "2TestSourceRoot".equals(sg.getName())) { //NOI18N
-                result.add(sg);
+        SourceGroup[] groups = getTestRoots(sources);
+        if (groups.length == 0) {
+            if (SourceGroupModifier.createSourceGroup(project, JavaProjectConstants.SOURCES_TYPE_JAVA, JavaProjectConstants.SOURCES_HINT_TEST) != null) {
+                groups = getTestRoots(sources);
             }
         }
-        groups = result.toArray(new SourceGroup[result.size()]);
-
         if (groups.length == 0) {
             groups = sources.getSourceGroups(Sources.TYPE_GENERIC);
             return new WizardDescriptor.Panel[]{
-                        Templates.createSimpleTargetChooser(project, groups)
+                        Templates.buildSimpleTargetChooser(project, groups).create()
                     };
         } else {
             return new WizardDescriptor.Panel[]{
@@ -233,5 +225,22 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
             packageName = packageName.replaceAll("/", "."); // NOI18N
         }
         return packageName;
+    }
+    
+    private SourceGroup[] getTestRoots(Sources srcs) {
+        SourceGroup[] groups = srcs.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
+        assert groups != null : "Cannot return null from Sources.getSourceGroups: " + srcs;
+
+        //XXX - have to filter out regular source roots, there should
+        //be better way to do this... (Hint: use UnitTestForSourceQuery)
+        //${test - Ant based projects
+        //2TestSourceRoot - Maven projects
+        List<SourceGroup> result = new ArrayList<SourceGroup>(2);
+        for (SourceGroup sg : groups) {
+            if (sg.getName().startsWith("${test") || "2TestSourceRoot".equals(sg.getName())) { //NOI18N
+                result.add(sg);
+            }            
+        }
+        return result.toArray(new SourceGroup[result.size()]);
     }
 }

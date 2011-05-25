@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright © 2008-2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -113,7 +113,7 @@ public class MavenModelUtils {
                 Plugin plug = model.getFactory().createPlugin();
                 plug.setGroupId(Constants.GROUP_APACHE_PLUGINS);
                 plug.setArtifactId(Constants.PLUGIN_SUREFIRE);
-                plug.setVersion("2.4.2"); //NOI18N
+                plug.setVersion("2.8.1"); //NOI18N
                 Configuration conf = model.getFactory().createConfiguration();
                 POMExtensibilityElement suite = model.getFactory().createPOMExtensibilityElement(
                         POMQName.createQName("suiteXmlFiles", model.getPOMQNames().isNSAware()));//NOI18N

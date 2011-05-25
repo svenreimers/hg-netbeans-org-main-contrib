@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright © 2008-2011 Oracle and/or its affiliates. All rights reserved.
  * 
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -52,6 +52,10 @@ import org.netbeans.modules.contrib.testng.api.TestNGSupport;
 import org.netbeans.modules.contrib.testng.api.TestNGSupport.Action;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
 import org.openide.cookies.EditorCookie;
 import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileObject;
@@ -66,6 +70,11 @@ import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.CookieAction;
 
+@ActionID(id = "org.netbeans.modules.contrib.testng.actions.CreateTestAction", category = "TestNG")
+@ActionRegistration(displayName = "#CTL_CreateTestAction")
+@ActionReferences(value = {
+    @ActionReference(path = "Loaders/text/x-java/Actions", position = 2192),
+    @ActionReference(path = "Editors/text/x-java/Popup/TestNG", position = 100)})
 public final class CreateTestAction extends CookieAction {
 
     private static final Logger LOGGER = Logger.getLogger(CreateTestAction.class.getName());
