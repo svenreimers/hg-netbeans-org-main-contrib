@@ -46,34 +46,35 @@ import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.apisupport.project.spi.NbModuleProvider;
 import org.netbeans.modules.hudsonfindbugs.spi.FindBugsQueryImplementation;
+import org.netbeans.spi.project.ProjectServiceProvider;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
 /**
  *
  * @author Martin Grebac
  */
+@ProjectServiceProvider(service=FindBugsQueryImplementation.class, projectType="org-netbeans-modules-apisupport-project")
 public final class NBMFindBugsQueryProvider implements FindBugsQueryImplementation {
 
     private final static String NB_HUDSON_FBUGS_URLROOT = 
             "http://qa-findbugs.netbeans.org/job/FindBugsResults/lastSuccessfulBuild/artifact/";
-    
-    public NBMFindBugsQueryProvider() {}
-    
-    public static FindBugsQueryImplementation createInstance() {
-        // TODO possibly also use just one static instance everywhere..
-        return new NBMFindBugsQueryProvider();
-    }
 
+    private final Project project;
+
+    public NBMFindBugsQueryProvider(Project project) {
+        this.project = project;
+    }
+    
     @CheckForNull
-    public URL getFindBugsUrl(Project project, boolean remote) {
+    public URL getFindBugsUrl(boolean remote) {
         URL url = null;
         NbModuleProvider prov = project.getLookup().lookup(NbModuleProvider.class);
-        if (prov != null && prov.getModuleType() == NbModuleProvider.NETBEANS_ORG) {
+        if (prov != null) {
             if (!remote) {
-                File file = prov.getActivePlatformLocation();
-                File parent = file.getParentFile();
-                if (parent != null) {
-                    File findbugsFile = new File(parent, "build" + File.separator + "findbugs" + File.separator
+                File nbbuild = new File(FileUtil.toFile(project.getProjectDirectory()).getParentFile(), "nbbuild");
+                if (nbbuild.isDirectory()) {
+                    File findbugsFile = new File(nbbuild, "build" + File.separator + "findbugs" + File.separator
                             + prov.getCodeNameBase().replace('.', '-') + ".xml");
                     if (findbugsFile.exists() && findbugsFile.isFile() && findbugsFile.canRead()) {
                         try {
