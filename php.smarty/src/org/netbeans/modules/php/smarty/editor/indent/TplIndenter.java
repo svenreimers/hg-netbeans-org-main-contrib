@@ -52,14 +52,14 @@ import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenId;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.Utilities;
-import org.netbeans.modules.css.formatting.api.support.AbstractIndenter;
-import org.netbeans.modules.css.formatting.api.support.IndenterContextData;
-import org.netbeans.modules.css.formatting.api.support.IndentCommand;
-import org.netbeans.modules.css.formatting.api.embedding.JoinedTokenSequence;
-import org.netbeans.modules.css.formatting.api.LexUtilities;
 import org.netbeans.modules.editor.indent.spi.Context;
 import org.netbeans.modules.php.smarty.editor.lexer.TplTokenId;
 import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
+import org.netbeans.modules.web.indent.api.LexUtilities;
+import org.netbeans.modules.web.indent.api.embedding.JoinedTokenSequence;
+import org.netbeans.modules.web.indent.api.support.AbstractIndenter;
+import org.netbeans.modules.web.indent.api.support.IndentCommand;
+import org.netbeans.modules.web.indent.api.support.IndenterContextData;
 
 /**
  * @author Martin Fousek
@@ -319,16 +319,19 @@ public class TplIndenter extends AbstractIndenter<TplTopTokenId> {
 
     private boolean isBodyCommand(String tplToken, IndenterContextData<TplTopTokenId> context) {
         String tokenText = tplToken.toLowerCase();
+        if (tokenText.isEmpty()) return false;
         return bodyCommands.contains(tokenText) || bodyCommands.contains(tokenText.substring(1));
     }
 
     private boolean isElseCommand(String tplToken) {
         String tokenText = tplToken.toLowerCase();
+        if (tokenText.isEmpty()) return false;
         return elseCommands.contains(tokenText) || elseCommands.contains(tokenText.substring(1));
     }
 
     private boolean isInRelatedCommand(String actualString, String comparingString) {
         if (comparingString != null && actualString != null) {
+            if (actualString.isEmpty()) return false;
             return actualString.substring(1).equals(comparingString)
                     || (relatedCommands.get(comparingString) != null
                     && relatedCommands.get(comparingString).contains(actualString));
