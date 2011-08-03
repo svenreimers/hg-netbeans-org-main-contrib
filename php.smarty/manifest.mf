@@ -1,4 +1,3 @@
 OpenIDE-Module: org.netbeans.modules.php.smarty
 OpenIDE-Module-Layer: org/netbeans/modules/php/smarty/resources/layer.xml
 OpenIDE-Module-Localizing-Bundle: org/netbeans/modules/php/smarty/resources/Bundle.properties
-OpenIDE-Module-Module-Dependencies: org.netbeans.modules.php.editor = 2

@@ -41,11 +41,16 @@
  */
 package org.netbeans.modules.php.smarty.editor.indent;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.text.BadLocationException;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
@@ -66,6 +71,8 @@ import org.netbeans.modules.php.smarty.editor.lexer.TplTopTokenId;
  **/
 public class TplIndenter extends AbstractIndenter<TplTopTokenId> {
 
+    private static final Logger LOGGER = Logger.getLogger(TplIndenter.class.getName());
+    
     private Stack<TplStackItem> stack = null;
     private int preservedLineIndentation = -1;
     private static final List<String> bodyCommands = new ArrayList<String>(Arrays.asList("capture", "foreach", "foreachelse", "if", "elseif", "else", //NOI18N
@@ -134,20 +141,42 @@ public class TplIndenter extends AbstractIndenter<TplTopTokenId> {
             TokenId id = token.id();
 
             if (id == TplTopTokenId.T_SMARTY && ts.offset() < startOffset && balance == 0) {
-                int index = ts.index();
-                ts.moveNext();
-                Token tk = LexUtilities.findNext(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
-                ts.moveIndex(index);
-                ts.moveNext();
-                if (tk != null && tk.id() == TplTopTokenId.T_SMARTY_OPEN_DELIMITER) {
-                    if (ts.movePrevious()) {
-                        tk = LexUtilities.findPrevious(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
-                        if (tk != null) {
-                            ts.moveNext();
-                            tk = LexUtilities.findNext(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
-                        }
+                // compatibility hack for release70 vs. release701 branches via reflection
+                Method method = null; Token tk = null;
+                try {
+                    method = ts.getClass().getMethod("index");
+                    if (method.getReturnType() == int.class) {
+                        int index = ((Integer)method.invoke(ts)).intValue();
+                        ts.moveNext();
+                        tk = LexUtilities.findNext(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
+                        ts.getClass().getMethod("moveIndex", int.class).invoke(ts, index);
+                    } else {
+                        int[] indexes = (int[])method.invoke(ts);
+                        ts.moveNext();
+                        tk = LexUtilities.findNext(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
+                        ts.getClass().getMethod("moveIndex", Array.newInstance(int.class, 2).getClass()).invoke(ts, indexes);
                     }
-                    return ts.offset();
+                    ts.moveNext();
+                    if (tk != null && tk.id() == TplTopTokenId.T_SMARTY_OPEN_DELIMITER) {
+                        if (ts.movePrevious()) {
+                            tk = LexUtilities.findPrevious(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
+                            if (tk != null) {
+                                ts.moveNext();
+                                tk = LexUtilities.findNext(ts, Arrays.asList(TplTopTokenId.T_SMARTY));
+                            }
+                        }
+                        return ts.offset();
+                    }
+                } catch (NoSuchMethodException ex) {
+                    LOGGER.log(Level.INFO, null, ex);
+                } catch (SecurityException ex) {
+                    LOGGER.log(Level.INFO, null, ex);
+                } catch (IllegalAccessException ex) {
+                    LOGGER.log(Level.INFO, null, ex);
+                } catch (IllegalArgumentException ex) {
+                    LOGGER.log(Level.INFO, null, ex);
+                } catch (InvocationTargetException ex) {
+                    LOGGER.log(Level.INFO, null, ex);
                 }
             } else if (id == TplTopTokenId.T_SMARTY_CLOSE_DELIMITER) {
                 balance++;
