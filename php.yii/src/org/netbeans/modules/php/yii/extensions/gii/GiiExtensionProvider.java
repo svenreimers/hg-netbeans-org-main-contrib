@@ -37,15 +37,44 @@
  */
 package org.netbeans.modules.php.yii.extensions.gii;
 
+import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.netbeans.modules.php.yii.extensions.api.YiiExtensionProvider;
+import org.netbeans.modules.php.yii.extensions.api.YiiProjectConfiguration;
 
 /**
  *
  * @author Gevik Babakhani <gevik@netbeans.org>
  */
-public class GiiExtensionProvider extends YiiExtensionProvider {
+public class GiiExtensionProvider extends YiiExtensionProvider implements ChangeListener {
+
+    private GiiExtensionConfigPanel panel;
 
     public GiiExtensionProvider() {
         super("Gii Module");
+    }
+
+    @Override
+    public void configureExtension(YiiProjectConfiguration config) {
+    }
+
+    @Override
+    public JPanel getConfigPanel() {
+        if (panel == null) {
+            panel = new GiiExtensionConfigPanel();
+            panel.addChangeListener(this);
+        }
+        return panel;
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        fireChange();
+    }
+
+    @Override
+    public String getErrorMessage() {
+        return panel.getErrorMessage();
     }
 }
