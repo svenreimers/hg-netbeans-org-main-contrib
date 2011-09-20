@@ -76,6 +76,7 @@
 ^eview/Info$
 ^eview/eview\.nbm$
 ^eview/netbeans$
+^ext4yii-editor$
 ^gsf.api/anttask/gsfanttask\.jar$
 ^hibernate/src/org/netbeans/modules/hibernate/cfg/model$
 ^hibernate/src/org/netbeans/modules/hibernate/mapping/model$
@@ -145,6 +146,7 @@
 ^other/ubuntupackages55/upstream/netbeans-5_5\.tar\.gz$
 ^other/wadechandler/DiskUtilities/dist$
 ^performance.insane/parser/dist$
+^php.yii/release/modules/ext$
 ^pmd/netbeans$
 ^pmd/pmd\.nbm$
 ^pmd/tmp$

@@ -37,11 +37,13 @@
  */
 package org.netbeans.modules.php.yii.extensions.gii;
 
+import java.util.ArrayList;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.netbeans.modules.php.yii.commands.YiiCommandSupport;
 import org.netbeans.modules.php.yii.extensions.api.YiiExtensionProvider;
 import org.netbeans.modules.php.yii.extensions.api.YiiProjectConfiguration;
+import org.openide.filesystems.FileObject;
 
 /**
  *
@@ -57,6 +59,11 @@ public class GiiExtensionProvider extends YiiExtensionProvider implements Change
 
     @Override
     public void configureExtension(YiiProjectConfiguration config) {
+        ArrayList<String> items = new ArrayList<String>();
+        items.add(config.createArrayItem("class", "system.gii.GiiModule", true));
+        items.add(config.createArrayItem("password", panel.getPassword(), true));
+        items.add(config.createArrayItem("ipFilters", "array('" + panel.getIPAddess() + "','::1')", false));
+        config.addModuleConfiguration(config.createArrayItem("gii", items, false));
     }
 
     @Override
@@ -69,12 +76,18 @@ public class GiiExtensionProvider extends YiiExtensionProvider implements Change
     }
 
     @Override
-    public void stateChanged(ChangeEvent e) {
-        fireChange();
+    protected String getPanelErrorMessage() {
+        return panel.getErrorMessage();
     }
 
     @Override
-    public String getErrorMessage() {
-        return panel.getErrorMessage();
+    public boolean setupExtension(FileObject projectFolder) {
+        //no-op
+        return true;
+    }
+
+    @Override
+    public void installConsoleCommands(FileObject cmdPath) {
+        //no-op
     }
 }

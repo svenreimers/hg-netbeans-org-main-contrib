@@ -42,24 +42,52 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.openide.filesystems.FileObject;
 import org.openide.util.ChangeSupport;
 
 /**
  *
  * @author Gevik Babakhani <gevik@netbeans.org>
  */
-public abstract class YiiExtensionProvider {
+public abstract class YiiExtensionProvider implements ChangeListener {
     private final String name;
     private final ChangeSupport changeSupport = new ChangeSupport(this);    
+    private boolean active;
 
     public YiiExtensionProvider(String name) {
         this.name = name;
+        this.active = false;
+    }
+        
+    public abstract void configureExtension(YiiProjectConfiguration config);
+    public abstract boolean setupExtension(FileObject projectFolder);
+    public abstract JPanel getConfigPanel();
+    public abstract void installConsoleCommands(FileObject cmdPath);
+    protected abstract String getPanelErrorMessage();
+        
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        fireChange();
+    }
+
+    public String getErrorMessage() {
+        JPanel panel = getConfigPanel();
+        if(panel != null) {
+            return getPanelErrorMessage();
+        } else {
+            return null;
+        }        
+    }    
+    
+    public boolean getActive() {
+        return this.active;
     }
     
-    public abstract void configureExtension(YiiProjectConfiguration config);
-    public abstract JPanel getConfigPanel();
-    public abstract String getErrorMessage();
+    public void setActive(boolean value) {
+        this.active = value;
+    }
     
     protected void fireChange() {
         changeSupport.fireChange();

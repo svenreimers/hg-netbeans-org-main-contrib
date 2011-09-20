@@ -35,10 +35,9 @@
  *
  * Portions Copyrighted 2011 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.php.yii;
+package org.netbeans.modules.php.yii.extensions.api;
 
 import java.util.Collection;
-import org.netbeans.modules.php.yii.extensions.api.YiiExtensionProvider;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 
@@ -53,5 +52,9 @@ public class YiiExtensions {
  
     public static Collection<? extends YiiExtensionProvider> getExtensions() {
         return EXTENSIONS.allInstances();
+    }
+    
+    public static <T> T getInstanceOf(Class<T> clazz) {
+        return Lookups.forPath(EXTENSIONS_PATH).lookup(clazz);
     }
 }

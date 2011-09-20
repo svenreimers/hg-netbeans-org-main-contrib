@@ -37,6 +37,7 @@
  */
 package org.netbeans.modules.php.yii;
 
+import org.netbeans.modules.php.yii.extensions.api.YiiExtensions;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -46,6 +47,7 @@ import javax.swing.event.ChangeListener;
 import org.netbeans.modules.php.api.phpmodule.PhpModule;
 import org.netbeans.modules.php.api.phpmodule.PhpProgram.InvalidPhpProgramException;
 import org.netbeans.modules.php.spi.phpmodule.PhpModuleExtender;
+import org.netbeans.modules.php.yii.commands.YiiCommandSupport;
 import org.netbeans.modules.php.yii.extensions.api.YiiExtensionProvider;
 import org.netbeans.modules.php.yii.extensions.api.YiiProjectConfiguration;
 import org.netbeans.modules.php.yii.ui.wizards.NewProjectConfigurationPanel;
@@ -58,13 +60,14 @@ import org.openide.util.NbBundle;
  *
  * @author Gevik Babakhani <gevik@netbeans.org>
  */
-public class YiiPhpModuleExtender extends PhpModuleExtender{
+public class YiiPhpModuleExtender extends PhpModuleExtender {
     //@GuardedBy(this)
+
     private NewProjectConfigurationPanel panel = null;
 
     @Override
     public Set<FileObject> extend(PhpModule phpModule) throws ExtendingException {
-        
+        String configFile = "protected/config/main.php";
         // init project
         YiiScript yiiScript = null;
         try {
@@ -77,42 +80,30 @@ public class YiiPhpModuleExtender extends PhpModuleExtender{
 
         if (!yiiScript.initProject(phpModule)) {
             // can happen if zend script was not chosen
-            Logger.getLogger(YiiPhpModuleExtender.class.getName())
-                    .log(Level.INFO, "Framework Yii not found in newly created project {0}", phpModule.getDisplayName());
+            Logger.getLogger(YiiPhpModuleExtender.class.getName()).log(Level.INFO, "Framework Yii not found in newly created project {0}", phpModule.getDisplayName());
             throw new ExtendingException(NbBundle.getMessage(YiiPhpModuleExtender.class, "MSG_NotExtended"));
         }
         
         // prefetch commands
         YiiPhpFrameworkProvider.getInstance().getFrameworkCommandSupport(phpModule).refreshFrameworkCommandsLater(null);
         YiiProjectConfiguration projectConfig = panel.getProjectConfiguration();
-        for(YiiExtensionProvider extension : YiiExtensions.getExtensions()) {
-            extension.configureExtension(projectConfig);
+        for (YiiExtensionProvider extension : YiiExtensions.getExtensions()) {
+            if (extension.getActive()) {
+                if (extension.setupExtension(phpModule.getSourceDirectory())) {
+                    extension.configureExtension(projectConfig);
+                }
+            }
         }
-        projectConfig.renderTo(phpModule.getSourceDirectory().getFileObject("protected/config/main.php"));
+        projectConfig.renderTo(phpModule.getSourceDirectory().getFileObject(configFile));
 
 
         // return files
         Set<FileObject> files = new HashSet<FileObject>();
-        //Enumeration<? extends FileObject> nfiles = phpModule.getSourceDirectory().getChildren(true);
-        //while(nfiles.hasMoreElements()) {
-        //    files.add(nfiles.nextElement());
-        //}        
-        /*
-        FileObject appConfig = phpModule.getSourceDirectory().getFileObject("application/configs/application.ini"); // NOI18N
+
+        FileObject appConfig = phpModule.getSourceDirectory().getFileObject(configFile); // NOI18N
         if (appConfig != null) {
             files.add(appConfig);
         }
-        FileObject indexController = phpModule.getSourceDirectory().getFileObject("application/controllers/IndexController.php"); // NOI18N
-        if (indexController != null) {
-            files.add(indexController);
-        }
-        FileObject bootstrap = phpModule.getSourceDirectory().getFileObject("application/Bootstrap.php"); // NOI18N
-        if (bootstrap != null) {
-            files.add(bootstrap);
-        }
-         * 
-         * 
-         */
 
         return files;
     }
@@ -163,5 +154,4 @@ public class YiiPhpModuleExtender extends PhpModuleExtender{
         }
         return panel;
     }
-    
 }
