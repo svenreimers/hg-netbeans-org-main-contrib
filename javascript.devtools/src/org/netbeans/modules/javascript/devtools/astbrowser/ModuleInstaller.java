@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
  * Development and Distribution License("CDDL") (collectively, the
@@ -20,7 +20,13 @@
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
- * 
+ *
+ * Contributor(s):
+ *
+ * The Original Software is NetBeans. The Initial Developer of the Original
+ * Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+ * Microsystems, Inc. All Rights Reserved.
+ *
  * If you wish your version of this file to be governed by only the CDDL
  * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
@@ -31,52 +37,45 @@
  * However, if you add GPL Version 2 code and therefore, elected the GPL
  * Version 2 license, then the option applies only if the new code is
  * made subject to such option by the copyright holder.
- * 
- * Contributor(s):
- * 
- * Portions Copyrighted 2007 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.freemarker.loader;
 
-import java.io.IOException;
-import org.netbeans.modules.freemarker.MimeTypes;
-import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataObjectExistsException;
-import org.openide.loaders.MultiDataObject;
-import org.openide.loaders.UniFileLoader;
-import org.openide.util.NbBundle;
+package org.netbeans.modules.javascript.devtools.astbrowser;
 
-public class FreemarkerDataLoader extends UniFileLoader {
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.JTextComponent;
+import org.netbeans.editor.Registry;
+import org.openide.modules.ModuleInstall;
 
-    private static final long serialVersionUID = 1L;
+/**
+ * (From the stripwhitespace module's ModuleInstaller)
+ * @author Andrei Badea
+ */
+public class ModuleInstaller extends ModuleInstall {
 
-    public FreemarkerDataLoader() {
-        super("org.netbeans.modules.freemarker.loader.FreemarkerDataObject"); // NOI18N
-    }
+    // prevent the listener from begin GCd (Registry holds the listeners weakly)
+    private static ChangeListener listener;
 
-    @Override
-    protected String defaultDisplayName() {
-        return NbBundle.getMessage(FreemarkerDataLoader.class, "LBL_Freemarker_loader_name");
-    }
+    public void restored() {
+        assert listener == null;
+        listener = new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+              //  HighlightSections.getDefault().install(Registry.getMostActiveComponent());
+            }
+        };
+        Registry.addChangeListener(listener);
 
-    @Override
-    protected FileObject findPrimaryFile(FileObject fo) {
-        Object attr = fo.getAttribute("javax.script.ScriptEngine"); // NOI18N
-        
-        if (attr == null || !(attr instanceof String)) {
-            return null;
+        // we need to install the highlighting in the active component when the module
+        // is installed/enabled through Module Manager/Update Center
+        JTextComponent component = Registry.getMostActiveComponent();
+        if (component != null) {
+            //HighlightSections.getDefault().install(component);
         }
-        
-        return fo;
     }
 
-    protected MultiDataObject createMultiObject(FileObject primaryFile) throws DataObjectExistsException, IOException {
-        return new FreemarkerDataObject(primaryFile, this);
+    public void uninstalled() {
+        Registry.removeChangeListener(listener);
+        listener = null;
+        //HighlightSections.getDefault().uninstall();
     }
-
-    @Override
-    protected String actionsContext() {
-        return "Loaders/" + MimeTypes.FREEMARKER_TOP_LEVEL + "/Actions";
-    }
-
 }

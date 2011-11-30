@@ -50,6 +50,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
+import org.netbeans.api.templates.TemplateRegistration;
 import org.netbeans.modules.autoproject.spi.Cache;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.netbeans.spi.project.ui.templates.support.Templates;
@@ -57,9 +58,18 @@ import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
+import static org.netbeans.modules.autoproject.wizard.Bundle.*;
+import org.openide.util.NbBundle.Messages;
 
+@TemplateRegistration(
+    folder="Project/Standard",
+    position=410,
+    displayName="#template",
+    iconBase="org/netbeans/modules/autoproject/core/autoproject.png",
+    description="AutoProjectDescription.html"
+)
+@Messages("template=Automatic Project")
 public class AutoProjectWizardIterator implements WizardDescriptor.InstantiatingIterator {
     private int index;
 
@@ -76,9 +86,10 @@ public class AutoProjectWizardIterator implements WizardDescriptor.Instantiating
         };
     }
 
+    @Messages("LBL_CreateProjectStep=Location")
     private String[] createSteps() {
         return new String[] {
-            NbBundle.getMessage(AutoProjectWizardIterator.class, "LBL_CreateProjectStep")
+            LBL_CreateProjectStep()
         };
     }
 

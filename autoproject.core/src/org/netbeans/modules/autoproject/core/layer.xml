@@ -1,25 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
-    <folder name="Projects">
-        <folder name="org-netbeans-modules-autoproject">
-            <folder name="Lookup"/>
-            <folder name="Nodes"/>
-            <folder name="Actions"/>
-        </folder>
-    </folder>
-    <folder name="Templates">
-        <folder name="Project">
-            <folder name="Standard">
-                <file name="auto-project">
-                    <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.autoproject.core.Bundle"/>
-                    <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/netbeans/modules/autoproject/core/autoproject.png"/>
-                    <attr name="instantiatingIterator" newvalue="org.netbeans.modules.autoproject.wizard.AutoProjectWizardIterator"/>
-                    <attr name="instantiatingWizardURL" urlvalue="nbresloc:/org/netbeans/modules/autoproject/wizard/AutoProjectDescription.html"/>
-                    <attr name="template" boolvalue="true"/>
-                    <attr name="position" intvalue="410"/>
-                </file>
-            </folder>
+    <folder name="OptionsExport">
+        <folder name="Advanced">
+            <file name="AutomaticProjects">
+                <attr name="include" stringvalue="var/(cache/)?autoprojects[.]properties"/>
+                <attr name="displayName" bundlevalue="org.netbeans.modules.autoproject.core.Bundle#options-export-displayName"/>
+            </file>
         </folder>
     </folder>
 </filesystem>
