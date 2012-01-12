@@ -1,7 +1,10 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright © 2008-2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2011-2012 Oracle and/or its affiliates. All rights reserved.
+ *
+ * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
+ * Other names may be trademarks of their respective owners.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -13,9 +16,9 @@
  * specific language governing permissions and limitations under the
  * License.  When distributing the software, include this License Header
  * Notice in each file and include the License file at
- * nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+ * nbbuild/licenses/CDDL-GPL-2-CP.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
- * by Sun in the GPL Version 2 section of the License file that
+ * by Oracle in the GPL Version 2 section of the License file that
  * accompanied this code. If applicable, add the following below the
  * License Header, with the fields enclosed by brackets [] replaced by
  * your own identifying information:
@@ -34,7 +37,7 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2008 Sun Microsystems, Inc.
+ * Portions Copyrighted 2011 Sun Microsystems, Inc.
  */
 package org.netbeans.modules.contrib.testng;
 
@@ -47,7 +50,6 @@ import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.project.*;
 import org.netbeans.api.templates.TemplateRegistration;
 import org.netbeans.modules.contrib.testng.api.TestNGSupport;
-import org.netbeans.spi.java.project.support.ui.templates.JavaTemplates;
 import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -55,24 +57,22 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 
-/**
- * Wizard to create a new TestNG file.
- */
-@TemplateRegistration(folder = "TestNG", position = 1000,
-        content = "resources/EmptyTestNGTest.java.template",
+@TemplateRegistration(folder = "TestNG", position = 2000,
+        content = "resources/testng.xml.template",
         scriptEngine = "freemarker",
-        displayName = "#Templates/TestNG/TestNGTest.java",
-        iconBase = "org/netbeans/modules/contrib/testng/resources/testng.gif",
-        description = "/org/netbeans/modules/contrib/testng/resources/newTest.html")
-public final class NewTestWizardIterator implements WizardDescriptor.InstantiatingIterator {
+        displayName = "#Templates/TestNG/TestNGTestSuite.xml",
+        description = "/org/netbeans/modules/contrib/testng/resources/newTestSuite.html",
+        iconBase = "org/netbeans/modules/contrib/testng/resources/testng.gif")
+public final class NewTestSuiteWizardIterator implements WizardDescriptor.InstantiatingIterator<WizardDescriptor> {
 
     private transient int index;
     private transient WizardDescriptor.Panel[] panels;
     private transient WizardDescriptor wiz;
 
-    public NewTestWizardIterator() {
+    public NewTestSuiteWizardIterator() {
     }
 
+    
     private WizardDescriptor.Panel[] createPanels(final WizardDescriptor wizardDescriptor) {
         // Ask for Java folders
         Project project = Templates.getProject(wizardDescriptor);
@@ -85,14 +85,10 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
         }
         if (groups.length == 0) {
             groups = sources.getSourceGroups(Sources.TYPE_GENERIC);
-            return new WizardDescriptor.Panel[]{
-                        Templates.buildSimpleTargetChooser(project, groups).create()
-                    };
-        } else {
-            return new WizardDescriptor.Panel[]{
-                        JavaTemplates.createPackageChooser(project, groups)
-                    };
         }
+        return new WizardDescriptor.Panel[]{
+                    Templates.buildSimpleTargetChooser(project, groups).create()
+                };
     }
 
     private String[] createSteps(String[] before, WizardDescriptor.Panel[] panels) {
@@ -115,7 +111,7 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
         return res;
     }
 
-    public Set<FileObject> instantiate() throws IOException {
+    public Set<DataObject> instantiate() throws IOException {
         FileObject dir = Templates.getTargetFolder(wiz);
         String targetName = Templates.getTargetName(wiz);
 
@@ -124,16 +120,23 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
 
         DataObject dTemplate = DataObject.find(template);
         String pkgName = getSelectedPackageName(dir);
-        DataObject dobj;
-        if (pkgName == null) {
-            dobj = dTemplate.createFromTemplate(df, targetName);
-        } else {
-            dobj = dTemplate.createFromTemplate(df, targetName, Collections.singletonMap("package", pkgName)); // NOI18N
+        String suiteName = pkgName + " suite";
+        String projectName = ProjectUtils.getInformation(FileOwnerQuery.getOwner(dir)).getName();
+        if (pkgName == null || pkgName.trim().length() < 1) {
+            pkgName = ".*"; //NOI18N
+            suiteName = "All tests for " + projectName;
         }
+        
+        Map<String, String> props = new HashMap<String, String>();
+        props.put("name", projectName);
+        props.put("suiteName", suiteName);
+        props.put("pkg", pkgName);
 
-        FileObject createdFile = dobj.getPrimaryFile();
+        DataObject dobj = dTemplate.createFromTemplate(df, targetName, props);
+
+        FileObject createdFile = DataObject.find(dobj.getPrimaryFile()).getPrimaryFile();
         TestNGSupport.findTestNGSupport(FileOwnerQuery.getOwner(createdFile)).configureProject(createdFile);
-        return Collections.singleton(createdFile);
+        return Collections.singleton(dobj);
     }
 
     public void initialize(WizardDescriptor wiz) {
@@ -219,7 +222,7 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
         }
         return packageName;
     }
-    
+
     private SourceGroup[] getTestRoots(Sources srcs) {
         SourceGroup[] groups = srcs.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
         assert groups != null : "Cannot return null from Sources.getSourceGroups: " + srcs;
@@ -232,7 +235,7 @@ public final class NewTestWizardIterator implements WizardDescriptor.Instantiati
         for (SourceGroup sg : groups) {
             if (sg.getName().startsWith("${test") || "2TestSourceRoot".equals(sg.getName())) { //NOI18N
                 result.add(sg);
-            }            
+            }
         }
         return result.toArray(new SourceGroup[result.size()]);
     }

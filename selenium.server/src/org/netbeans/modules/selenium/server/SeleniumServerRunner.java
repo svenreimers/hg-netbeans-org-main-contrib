@@ -149,7 +149,7 @@ class SeleniumServerRunner implements Runnable, PropertyChangeListener {
         URL url = null;
         try {
             url = InstalledFileLocator.getDefault().locate(
-                        "modules/ext/selenium/selenium-server-2.0.jar", //NOI18N
+                        "modules/ext/selenium/selenium-server-2.16.1.jar", //NOI18N
                         null, //NOI18N
                         false).toURI().toURL();
         } catch (MalformedURLException ex) {
@@ -165,15 +165,15 @@ class SeleniumServerRunner implements Runnable, PropertyChangeListener {
             Thread.currentThread().setContextClassLoader(curr);
             server.getClass().getMethod(method).invoke(server);
         } catch (IllegalAccessException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.WARNING, null, ex);
         } catch (IllegalArgumentException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.WARNING, null, ex);
         } catch (NoSuchMethodException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.WARNING, null, ex);
         } catch (SecurityException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.WARNING, null, ex);
         } catch (InvocationTargetException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.WARNING, null, ex);
         } finally {
             Thread.currentThread().setContextClassLoader(original);
         }

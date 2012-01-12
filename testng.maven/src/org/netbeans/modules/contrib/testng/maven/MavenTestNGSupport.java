@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright © 2008-2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright © 2008-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common
@@ -76,6 +76,8 @@ public class MavenTestNGSupport extends TestNGSupportImplementation {
         s.add(Action.CREATE_TEST);
         s.add(Action.RUN_FAILED);
         s.add(Action.RUN_TESTMETHOD);
+        s.add(Action.RUN_TESTSUITE);
+        s.add(Action.DEBUG_TESTSUITE);
         SUPPORTED_ACTIONS = Collections.unmodifiableSet(s);
     }
 
@@ -114,19 +116,31 @@ public class MavenTestNGSupport extends TestNGSupportImplementation {
         }
 
         public void execute(Action action, TestConfig config) throws IOException {
-            RunConfig rc = new TestNGActionsProvider().createConfigForDefaultAction("testng.test", p, Lookups.singleton(config.getTest()));
+            RunConfig rc;
+            if (Action.DEBUG_TESTSUITE.equals(action)
+                    || Action.DEBUG_TEST.equals(action)
+                    || Action.DEBUG_TESTMETHOD.equals(action)) {
+                rc = new TestNGActionsProvider().createConfigForDefaultAction("testng.debug", p, Lookups.singleton(config.getTest()));
+            } else {
+                rc = new TestNGActionsProvider().createConfigForDefaultAction("testng.test", p, Lookups.singleton(config.getTest()));
+            }
 //            MavenProject mp = rc.getMavenProject();
             rc.setProperty("netbeans.testng.action", "true"); //NOI18N
             if (config.doRerun()) {
                 copy(getFailedConfig());
 //                mp.addPlugin(createPluginDef(failedConfPath));
             } else {
-                File f = XMLSuiteSupport.createSuiteforMethod(
+                File f = null;
+                if (Action.RUN_TESTSUITE.equals(action) || Action.DEBUG_TESTSUITE.equals(action)) {
+                    f = FileUtil.toFile(config.getTest());
+                } else {
+                   f = XMLSuiteSupport.createSuiteforMethod(
                         new File(System.getProperty("java.io.tmpdir")), //NOI18N
                         ProjectUtils.getInformation(p).getDisplayName(),
                         config.getPackageName(),
                         config.getClassName(),
                         config.getMethodName());
+                }
                 f = FileUtil.normalizeFile(f);
                 copy(FileUtil.toFileObject(f));
 //                mp.addPlugin(createPluginDef(FileUtil.getRelativePath(p.getProjectDirectory(), FileUtil.toFileObject(f))));

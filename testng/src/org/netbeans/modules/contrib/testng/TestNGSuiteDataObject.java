@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2011-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -39,54 +39,49 @@
  *
  * Portions Copyrighted 2011 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.contrib.testng.output;
+package org.netbeans.modules.contrib.testng;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import org.netbeans.api.extexecution.print.LineConvertors;
-import org.netbeans.api.project.Project;
-import org.netbeans.junit.NbTestCase;
-import org.netbeans.modules.contrib.testng.impl.ProjectImpl;
-import org.netbeans.modules.gsf.testrunner.api.TestSession;
+import org.netbeans.core.spi.multiview.MultiViewElement;
+import org.netbeans.core.spi.multiview.text.MultiViewEditorElement;
+import org.netbeans.spi.xml.cookies.CheckXMLSupport;
+import org.netbeans.spi.xml.cookies.DataObjectAdapters;
+import org.netbeans.spi.xml.cookies.ValidateXMLSupport;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.util.lookup.Lookups;
-//14226
-/**
- *
- * @author lukas
- */
-public class TestNGOutputReaderTest extends NbTestCase {
+import org.openide.loaders.DataObjectExistsException;
+import org.openide.loaders.MultiDataObject;
+import org.openide.loaders.MultiFileLoader;
+import org.openide.nodes.CookieSet;
+import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
+import org.openide.windows.TopComponent;
 
-    public TestNGOutputReaderTest(String name) {
-        super(name);
+public class TestNGSuiteDataObject extends MultiDataObject {
+
+    public static final String MIME_TYPE = "text/x-testng+xml";
+
+    public TestNGSuiteDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException {
+        super(pf, loader);
+        CookieSet cookies = getCookieSet();
+        cookies.add(new CheckXMLSupport(DataObjectAdapters.inputSource(this)));
+        cookies.add(new ValidateXMLSupport(DataObjectAdapters.inputSource(this)));
+        registerEditor(MIME_TYPE, true);
     }
 
-    public void testMsgLogged() throws IOException {
-        FileObject root = FileUtil.toFileObject(getWorkDir());
-        Project p = new ProjectImpl(root, Lookups.fixed(new LineConvertors.FileLocator() {
+    @Override
+    protected int associateLookup() {
+        return 1;
+    }
 
-            public FileObject find(String filename) {
-                return null;
-            }
-        }));
-        TestNGTestSession ts = new TestNGTestSession("UnitTest", p, TestSession.SessionType.TEST, new TestNGTestNodeFactory());
-        TestNGOutputReader r = new TestNGOutputReader(ts);
-
-        BufferedReader br = new BufferedReader(
-                new FileReader(new File(getDataDir(), "antOut/log.txt")));
-        String line;
-        while ((line = br.readLine()) != null) {
-            if (line.startsWith(RegexpUtils.TEST_LISTENER_PREFIX)) {
-                r.verboseMessageLogged(line);
-            }
-        }
-        assertEquals(23116, ts.getSessionResult().getElapsedTime());
-        assertEquals(0, ts.getSessionResult().getErrors());
-        assertEquals(0, ts.getSessionResult().getFailed());
-        System.out.println(ts.getSessionResult().getPassed());
-        System.out.println(ts.getSessionResult().getTotal());
+    @MultiViewElement.Registration(displayName = "#CTL_SourceTabCaption",
+        iconBase = "org/netbeans/modules/contrib/testng/resources/testng.gif",
+        persistenceType = TopComponent.PERSISTENCE_ONLY_OPENED,
+        preferredID = "testng",
+        mimeType = MIME_TYPE,
+        position = 1
+    )
+    @NbBundle.Messages("CTL_SourceTabCaption=&Source")
+    public static MultiViewEditorElement createMultiViewEditorElement(Lookup context) {
+        return new MultiViewEditorElement(context);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -37,56 +37,72 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2011 Sun Microsystems, Inc.
+ * Portions Copyrighted 2012 Sun Microsystems, Inc.
  */
 package org.netbeans.modules.contrib.testng.output;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import org.netbeans.api.extexecution.print.LineConvertors;
-import org.netbeans.api.project.Project;
-import org.netbeans.junit.NbTestCase;
-import org.netbeans.modules.contrib.testng.impl.ProjectImpl;
-import org.netbeans.modules.gsf.testrunner.api.TestSession;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.netbeans.modules.contrib.testng.TestNGEntityResolver;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.util.lookup.Lookups;
-//14226
+import org.openide.xml.XMLUtil;
+import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
+
 /**
  *
  * @author lukas
  */
-public class TestNGOutputReaderTest extends NbTestCase {
+public class XmlSuiteHandler extends DefaultHandler {
 
-    public TestNGOutputReaderTest(String name) {
-        super(name);
+    private static final Logger LOGGER = Logger.getLogger(XmlSuiteHandler.class.getName());
+    private Locator loc;
+    private String suite;
+    private int line;
+    private int column;
+
+    private XmlSuiteHandler(String name) {
+        suite = name;
     }
 
-    public void testMsgLogged() throws IOException {
-        FileObject root = FileUtil.toFileObject(getWorkDir());
-        Project p = new ProjectImpl(root, Lookups.fixed(new LineConvertors.FileLocator() {
-
-            public FileObject find(String filename) {
-                return null;
-            }
-        }));
-        TestNGTestSession ts = new TestNGTestSession("UnitTest", p, TestSession.SessionType.TEST, new TestNGTestNodeFactory());
-        TestNGOutputReader r = new TestNGOutputReader(ts);
-
-        BufferedReader br = new BufferedReader(
-                new FileReader(new File(getDataDir(), "antOut/log.txt")));
-        String line;
-        while ((line = br.readLine()) != null) {
-            if (line.startsWith(RegexpUtils.TEST_LISTENER_PREFIX)) {
-                r.verboseMessageLogged(line);
-            }
+    public static int[] getSuiteLocation(FileObject suiteFile, String suiteName) {
+        int[] location = new int[]{0, 0};
+        try {
+            XMLReader r = XMLUtil.createXMLReader(false, false);
+            r.setEntityResolver(new TestNGEntityResolver());
+            XmlSuiteHandler sl = new XmlSuiteHandler(suiteName);
+            r.setContentHandler(sl);
+            r.parse(new InputSource(suiteFile.getInputStream()));
+            location[0] = sl.getLine();
+            location[1] = sl.getColumn();
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
+        } catch (SAXException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
-        assertEquals(23116, ts.getSessionResult().getElapsedTime());
-        assertEquals(0, ts.getSessionResult().getErrors());
-        assertEquals(0, ts.getSessionResult().getFailed());
-        System.out.println(ts.getSessionResult().getPassed());
-        System.out.println(ts.getSessionResult().getTotal());
+        return location;
+    }
+
+    @Override
+    public void setDocumentLocator(Locator locator) {
+        loc = locator;
+    }
+
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+        super.startElement(uri, localName, qName, attributes);
+        if ("test".equals(qName) && attributes != null && suite.equals(attributes.getValue("name"))) {
+            line = loc.getLineNumber();
+            column = loc.getColumnNumber() - suite.length() - 3;
+        }
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public int getColumn() {
+        return column;
     }
 }
