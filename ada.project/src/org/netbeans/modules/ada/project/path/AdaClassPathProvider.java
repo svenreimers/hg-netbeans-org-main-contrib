@@ -44,6 +44,7 @@ import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.modules.ada.project.AdaProject;
 import org.netbeans.modules.ada.project.Pair;
 import org.netbeans.modules.ada.project.SourceRoots;
+import org.netbeans.modules.ada.project.api.AdaSourcePath;
 import org.netbeans.spi.java.classpath.ClassPathFactory;
 import org.netbeans.spi.java.classpath.ClassPathProvider;
 import org.openide.filesystems.FileObject;
@@ -140,12 +141,9 @@ public final class AdaClassPathProvider implements ClassPathProvider {
     }
 
     public ClassPath findClassPath(FileObject file, String type) {
-        if (type.equals(ClassPath.SOURCE)) {
+        if (type.equals(AdaSourcePath.SOURCE_CP)) {
             return getSourcepath(file);
-        } else if (type.equals(ClassPath.BOOT)) {
-            return getBootClassPath();
-        } else if (type.equals(ClassPath.COMPILE)) {
-            // Bogus
+        } else if (type.equals(AdaSourcePath.BOOT_CP)) {
             return getBootClassPath();
         } else {
             return null;

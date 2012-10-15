@@ -81,7 +81,7 @@ import org.w3c.dom.Text;
  *
  * @author Andrea Lucarelli
  */
-public class AdaProject implements Project {
+public final class AdaProject implements Project {
 
     protected AntProjectHelper helper;
     protected UpdateHelper updateHelper;
@@ -109,6 +109,7 @@ public class AdaProject implements Project {
     public AdaProject() {
     }
 
+    @Override
     public FileObject getProjectDirectory() {
         return helper.getProjectDirectory();
     }
@@ -146,6 +147,7 @@ public class AdaProject implements Project {
                 });
     }
 
+    @Override
     public Lookup getLookup() {
         return lookup;
     }
@@ -215,6 +217,7 @@ public class AdaProject implements Project {
     public String getName() {
         return ProjectManager.mutex().readAccess(new Mutex.Action<String>() {
 
+            @Override
             public String run() {
                 Element data = getHelper().getPrimaryConfigurationData(true);
                 NodeList nl = data.getElementsByTagNameNS(AdaProjectType.PROJECT_CONFIGURATION_NAMESPACE, "name"); // NOI18N
@@ -232,6 +235,7 @@ public class AdaProject implements Project {
     void setName(final String name) {
         ProjectManager.mutex().writeAccess(new Runnable() {
 
+            @Override
             public void run() {
                 Element data = getHelper().getPrimaryConfigurationData(true);
                 NodeList nl = data.getElementsByTagNameNS(AdaProjectType.PROJECT_CONFIGURATION_NAMESPACE, "name"); // NOI18N
@@ -258,26 +262,32 @@ public class AdaProject implements Project {
         private final ImageIcon PROJECT_ICON = new ImageIcon(ImageUtilities.loadImage("org/netbeans/modules/ada/project/ui/resources/ada-lovelace-16.png"));
         private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
+        @Override
         public void addPropertyChangeListener(PropertyChangeListener listener) {
             propertyChangeSupport.addPropertyChangeListener(listener);
         }
 
+        @Override
         public void removePropertyChangeListener(PropertyChangeListener listener) {
             propertyChangeSupport.removePropertyChangeListener(listener);
         }
 
+        @Override
         public String getDisplayName() {
             return getName();
         }
 
+        @Override
         public Icon getIcon() {
             return PROJECT_ICON;
         }
 
+        @Override
         public String getName() {
             return AdaProject.this.getName();
         }
 
+        @Override
         public Project getProject() {
             return AdaProject.this;
         }
@@ -289,6 +299,7 @@ public class AdaProject implements Project {
 
     public final class AdaOpenedHook extends ProjectOpenedHook {
 
+        @Override
         protected void projectOpened() {
             // register project's classpaths to GlobalPathRegistry
             final AdaClassPathProvider cpProvider = getLookup().lookup(AdaClassPathProvider.class);
@@ -297,6 +308,7 @@ public class AdaProject implements Project {
             GlobalPathRegistry.getDefault().register(ClassPath.SOURCE, cpProvider.getProjectClassPaths(ClassPath.SOURCE));
         }
 
+        @Override
         protected void projectClosed() {
             // unregister project's classpaths to GlobalPathRegistry
             final AdaClassPathProvider cpProvider = getLookup().lookup(AdaClassPathProvider.class);
@@ -316,6 +328,7 @@ public class AdaProject implements Project {
         public AdaProjectXmlSavedHook() {
         }
 
+        @Override
         protected void projectXmlSaved() throws IOException {
             Info info = getLookup().lookup(Info.class);
             assert info != null;
@@ -343,16 +356,18 @@ public class AdaProject implements Project {
 
         // List of primarily supported templates
         private static final String[] PRIVILEGED_NAMES = new String[]{
-            "Templates/Ada/NewAdaMain", //NOI18N
-            "Templates/Ada/NewAdaPackageSpec", // NOI18N
-            "Templates/Ada/NewAdaPackageBody", // NOI18N
+            "Templates/Ada/NewMain", //NOI18N
+            "Templates/Ada/NewPackageSpec", // NOI18N
+            "Templates/Ada/NewPackageBody", // NOI18N
             "Templates/Other/Folder"
         };
 
+        @Override
         public String[] getRecommendedTypes() {
             return RECOMMENDED_TYPES;
         }
 
+        @Override
         public String[] getPrivilegedTemplates() {
             return PRIVILEGED_NAMES;
         }

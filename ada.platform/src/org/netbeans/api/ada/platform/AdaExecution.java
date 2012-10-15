@@ -64,6 +64,7 @@ public class AdaExecution {
     private String commandArgs;
     private String displayName;
     private boolean redirect;
+    
     private ExecutionDescriptor descriptor = new ExecutionDescriptor().frontWindow(true).controllable(true).inputVisible(true).showProgress(true).showSuspended(true);
 
     /**

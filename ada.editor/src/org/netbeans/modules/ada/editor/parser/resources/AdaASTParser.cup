@@ -22,7 +22,7 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  * If you wish your version of this file to be governed by only the CDDL
- * or only the GPL Version 2, indicate your decision by binary_adding_operator
+ * or only the GPL Version 2, indicate your decision by adding
  * "[Contributor] elects to include this software in this distribution
  * under the [CDDL or GPL Version 2] license." If you do not indicate a
  * single choice of license, a recipient has the option to distribute
@@ -39,7 +39,7 @@
 package org.netbeans.modules.ada.editor.parser;
 
 import java.util.*;
-import org.netbeans.modules.ada.editor.lexer.Ada95ASTLexer;
+import org.netbeans.modules.ada.editor.lexer.AdaASTLexer;
 import org.netbeans.modules.ada.editor.ast.*;
 import org.netbeans.modules.ada.editor.ast.nodes.*;
 
@@ -63,21 +63,19 @@ parser code {:
         return this.errorHandler;
     }
 
-/*
-    public Dispatch createDispatch(VariableBase dispatcher, VariableBase property) {
+
+    public Dispatch createDispatch(NameBase dispatcher, NameBase property) {
         Dispatch dispatch = null;
 	if (property instanceof Variable) {
 	   dispatch = new FieldAccess(dispatcher.getStartOffset(), property.getEndOffset(), dispatcher, (Variable)property);
-	} else if (property instanceof FunctionInvocation) {
-	   dispatch = new MethodInvocation(dispatcher.getStartOffset(), property.getEndOffset(), dispatcher, (FunctionInvocation)property);
-	} else if (property instanceof ProcedureInvocation) {
-	   dispatch = new MethodInvocation(dispatcher.getStartOffset(), property.getEndOffset(), dispatcher, (ProcedureInvocation)property);
+	} else if (property instanceof TypeName) {
+	   dispatch = new TypeAccess(dispatcher.getStartOffset(), property.getEndOffset(), dispatcher, (TypeName)property);
 	} else {
 	   throw new IllegalArgumentException();
 	}
         return dispatch;
     }
-*/
+
 
     public List setModifier(List items, int modifier) {
         List list = new LinkedList();
@@ -106,7 +104,7 @@ parser code {:
     class DefaultErrorStrategy implements ErrorStrategy {
 
         public boolean errorRecovery(boolean debug) throws Exception {
-            return Ada95ASTParser.super.error_recovery(debug);
+            return AdaASTParser.super.error_recovery(debug);
         }
     }
 
@@ -182,18 +180,30 @@ parser code {:
 
 /*********************************************************
  *                                                       *
- * Ada 95 (LALR) AST Parser, based on:                   *
+ * Ada 83, 95, 2005 and 2012 (LALR) AST Parser, based on:*
  *                                                       *
- * 1. Ada Reference Manual                               *
+ * 1. Ada 83 Reference Manual                            *
+ * 2. Ada Reference Manual                               *
  *    ISO/IEC 8652:1995(E)                               *
  *    with Technical Corrigendum 1                       *
  *    Language and Standard Libraries                    *
  *    Copyright © 1992,1993,1994,1995 Intermetrics, Inc. *
  *    Copyright © 2000 The MITRE Corporation, Inc.       *
- * 2. http://www.adaic.com/standards/95lrm/grammar9x.y   *
+ * 3. http://www.adaic.com/standards/95lrm/grammar9x.y   *
+ * 4. Ada Reference Manual                               *
+ *    ISO/IEC 8652:201z Ed. 3                            *
+ *    with Technical Corrigendum 1                       *
+ *    and Amendment 1                                    *
+ *    and Amendment 2 (Draft 10)                         *
+ *    Language and Standard Libraries                    *
+ *    Copyright © 1992,1993,1994,1995 Intermetrics, Inc. *
+ *    Copyright © 2000 The MITRE Corporation, Inc.       *
+ *    Copyright © 2004, 2005, 2006 AXE Consultants       *
+ *    Copyright © 2004, 2005, 2006 Ada-Europe            *
+ *    Copyright © 2008, 2009, 2010 AXE Consultants       *
  *                                                       *
  * Author: Andrea Lucarelli                              *
- * Parser Generator: JavCup                              *
+ * Parser Generator: JavaCup                             *
  *                                                       *
  *********************************************************/
 
@@ -202,7 +212,7 @@ parser code {:
  *************************/
 
 //
-// Ada 95 keywords
+// Ada 83, 95 and 2005 keywords
 //
 terminal ABORT;
 terminal ABS;
@@ -235,6 +245,7 @@ terminal GENERIC;
 terminal GOTO;
 terminal IF;
 terminal IN;
+terminal INTERFACE;
 terminal IS;
 terminal LIMITED;
 terminal LOOP;
@@ -246,6 +257,7 @@ terminal OF;
 terminal OR;
 terminal OTHERS;
 terminal OUT;
+terminal OVERRIDING;
 terminal PACKAGE;
 terminal PRAGMA;
 terminal PRIVATE;
@@ -261,6 +273,8 @@ terminal RENAMES;
 terminal REQUEUE;
 terminal SELECT;
 terminal SEPARATE;
+terminal SOME;
+terminal SYNCHRONIZED;
 terminal SUBTYPE;
 terminal TAGGED;
 terminal TASK;
@@ -273,6 +287,7 @@ terminal WHEN;
 terminal WHILE;
 terminal WITH;
 terminal XOR;
+
 
 // 2.2 Lexical Elements, Separators, and Delimiters
 
@@ -358,11 +373,11 @@ non terminal Variable.Kind           object_qualifier_opt;
 non terminal List                    number_declaration;
 
 // 4.1 Names
-non terminal String                  name;
-non terminal String                  simple_name;
+non terminal Identifier              name;
+non terminal Identifier              simple_name;
 
 // 4.1.3 Selected Components
-non terminal String                  selected_component;
+non terminal Identifier              selected_component;
 
 // 4.4 Expressions
 non terminal Expression              expression;
@@ -373,11 +388,11 @@ non terminal Expression              factor;
 non terminal Expression              primary;
 
 // 4.5 Operators and Expression Evaluation
-non terminal String                  logical_operator;
-non terminal String                  relational_operator;
-non terminal UnaryOperation.Operator binary_adding_operator;
-non terminal UnaryOperation.Operator unary_adding_operator;
-non terminal String                  multiplying_operator;
+non terminal InfixExpression.OperatorType logical_operator;
+non terminal InfixExpression.OperatorType relational_operator;
+non terminal InfixExpression.OperatorType binary_adding_operator;
+non terminal UnaryOperation.Operator      unary_adding_operator;
+non terminal InfixExpression.OperatorType multiplying_operator;
 
 // 4.7 Qualified Expressions
 non terminal Expression              qualified_expression;
@@ -414,7 +429,7 @@ non terminal Block                   block_body;
 
 // 5.7 Exit Statements
 non terminal Statement               exit_statement;
-non terminal String                  name_opt;
+non terminal Expression              name_opt;
 
 // 5.8 Goto Statements
 non terminal Statement               goto_statement;
@@ -428,8 +443,8 @@ non terminal List                    formal_part_opt;
 non terminal List                    formal_part;
 non terminal List                    param;
 non terminal FormalParameter.Mode    mode;
-non terminal String                  designator;
-non terminal String                  operator_symbol;
+non terminal Identifier              designator;
+non terminal Identifier              operator_symbol;
 
 // 6.5 Return Statements
 non terminal Statement               return_statement;
@@ -491,30 +506,33 @@ non terminal Statement               code_statement;
 
 
 // TBD sections
-non terminal String                  compound_name;
-non terminal String                  compound_name_opt;
-non terminal TypeName                object_subtype_def;
-non terminal Expression              init_opt;
-non terminal Statement               type_decl;
-non terminal Expression              type_completion;
-non terminal String                  subtype_mark;
-non terminal List                    handled_stmt_s;
-non terminal Statement               statement;
-non terminal Statement               subunit;
-non terminal String                  id_opt;
-non terminal Statement               unlabeled;
-non terminal Expression              literal;
-non terminal Expression              parenthesized_primary;
-non terminal Expression              when_opt;
-non terminal Statement               procedure_call_statement;
-non terminal String                  used_char;
-non terminal Expression              choice_s;
-non terminal String                  label_opt;
-non terminal String                  attribute;
-non terminal String                  indexed_comp; // TODO: must be change it
-non terminal Expression              value_s;
-non terminal Expression              discrete_range;
-non terminal Expression              range;
+non terminal Identifier                   compound_name;
+non terminal Identifier                   compound_name_opt;
+non terminal TypeName                     object_subtype_def;
+non terminal Expression                   init_opt;
+non terminal Statement                    type_decl;
+non terminal Expression                   type_completion;
+non terminal NameBase                     subtype_mark;
+non terminal List                         handled_stmt_s;
+non terminal Statement                    statement;
+non terminal Statement                    subunit;
+non terminal Identifier                   id_opt;
+non terminal Statement                    unlabeled;
+non terminal Expression                   literal;
+non terminal Expression                   parenthesized_primary;
+non terminal Expression                   when_opt;
+non terminal Statement                    procedure_call_statement;
+non terminal String                       used_char;
+non terminal Expression                   choice_s;
+non terminal Identifier                   label_opt;
+non terminal Identifier                   attribute;
+non terminal Identifier                   indexed_component; // TODO: must be change it
+non terminal Expression                   value_s;
+non terminal Expression                   discrete_range;
+non terminal Expression                   range;
+non terminal InfixExpression.OperatorType short_circuit;
+non terminal InfixExpression.OperatorType membership;
+non terminal String                       attribute_id;
 
 // TBD RM sections and types
 non terminal     pragma;
@@ -567,13 +585,10 @@ non terminal     discrete_with_range;
 non terminal     prot_opt;
 non terminal     rep_spec;
 non terminal     declarative_item_or_body;
-non terminal     attribute_id;
 non terminal     value;
 non terminal     comp_assoc;
 non terminal     aggregate;
 non terminal     value_s_2;
-non terminal     short_circuit;
-non terminal     membership;
 non terminal     allocator;
 non terminal     label;
 non terminal     requeue_stmt;
@@ -635,26 +650,32 @@ non terminal     comp_loc_s;
  * JavaCup precedence    *
  *************************/
 
-//precedence left OR;
-//precedence left XOR;
-//precedence left AND;
+// TODO: must be complete
+precedence left OR;
+precedence left XOR;
+precedence left AND;
 
-//precedence left SEMICOLON;
+precedence left SEMICOLON;
 
-//precedence left ELSIF;
-//precedence left ELSE;
-//precedence left END IF;
+precedence left ELSIF;
+precedence left ELSE;
+precedence left END;
+
+precedence right NOT;
+
+precedence nonassoc ASSIGNMENT;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // start with root symbol 
 //
 start with compilation;
 
-/*****************
- *               *
- * Ada 95 syntax *
- *               *
- *****************/
+/******************************
+ *                            *
+ * Ada 83, 95 and 2005 syntax *
+ *                            *
+ ******************************/
 
 ///////////////////////////////////////////////////////////////////////////////
 // 2.8 Pragmas
@@ -862,15 +883,13 @@ SUBTYPE:token defining_identifier:identifier IS subtype_indication:subtypeIndica
 
 subtype_indication ::= 
 name:name constraint
-{:    
-    Identifier identifier = new Identifier(nameleft, nameright, name);
-    TypeName type = new TypeName (nameleft, nameright, identifier);
+{:
+    TypeName type = new TypeName (nameleft, nameright, name);
     RESULT = type;
 :}
 | name:name
 {:    
-    Identifier identifier = new Identifier(nameleft, nameright, name);
-    TypeName type = new TypeName (nameleft, nameright, identifier);
+    TypeName type = new TypeName (nameleft, nameright, name);
     RESULT = type;
 :}
 ;
@@ -893,14 +912,20 @@ range_constraint ::= RANGE range
 	;
 
 range ::=
-simple_expression:simple_expr DOT_DOT simple_expression
+simple_expression:simple_expression1 DOT_DOT simple_expression:simple_expression2
 {:
-    RESULT = simple_expr;
+    Range range = new Range (simple_expression1left, simple_expression2right, simple_expression1, simple_expression2);
+    RESULT = range;
 :}
-| name TICK RANGE
-| name:name TICK RANGE LPAREN expression:expr RPAREN
+| name:name TICK RANGE:end
 {:
-    RESULT = expr;
+    Range range = new Range (nameleft, endright, name, name);
+    RESULT = range;
+:}
+| name:name TICK RANGE LPAREN expression:expression RPAREN:end
+{:
+    Range range = new Range (nameleft, endright, name, expression);
+    RESULT = range;
 :}
 ;
 
@@ -994,11 +1019,11 @@ tagged_opt ::=
 :}
 | TAGGED
 {:
-    RESULT = Ada95ASTParser.TAGGED;
+    RESULT = AdaASTParser.TAGGED;
 :}
 | ABSTRACT TAGGED
 {:
-    RESULT = Ada95ASTParser.TAGGED + Ada95ASTParser.ABSTRACT;
+    RESULT = AdaASTParser.TAGGED + AdaASTParser.ABSTRACT;
 :}
 ;
 
@@ -1209,76 +1234,87 @@ subprogram_body:statement
 :}
 ;
 
-
 name ::=
-simple_name:name
+simple_name:simple_name // direct_name
 {:
-    RESULT = name;
+    RESULT = simple_name;
 :}
-| indexed_comp:comp
+| operator_symbol:operator_symbol // direct_name
 {:
-    RESULT = comp;
+    RESULT = operator_symbol;
 :}
-| selected_component:comp
+| indexed_component:indexed_component
 {:
-    RESULT = comp;
+    RESULT = indexed_component;
 :}
-| attribute:attr
+| selected_component:selected_component
 {:
-    RESULT = attr;
+    RESULT = selected_component;
 :}
-| operator_symbol:op
+| attribute:attribute
 {:
-    RESULT = op;
+    RESULT = attribute;
 :}
 ;
 
 subtype_mark ::=
 simple_name:name
 {:
+    TypeName typeName = new TypeName (nameleft, nameright, name);
+    RESULT = typeName;
+:}
+| subtype_mark:name TICK attribute_id:id
+{:
+    ((TypeName)name).setAttributeId(id);
     RESULT = name;
 :}
-| subtype_mark:name TICK attribute_id
+| subtype_mark:subtype_mark DOT simple_name:simple_name
 {:
-    // TODO: manage the attribute
-    RESULT = name;
-:}
-| subtype_mark:name DOT simple_name:simpleName
-{:
-    RESULT = name + "." + simpleName;
+    Dispatch dispatch;
+    TypeName typeName = new TypeName (simple_nameleft, simple_nameright, simple_name);
+    if (subtype_mark instanceof TypeName) {
+        PackageName packageName = new PackageName (subtype_markleft, subtype_markright, ((TypeName)subtype_mark).getTypeName());
+        dispatch = parser.createDispatch(packageName, typeName);
+    } else {
+        dispatch = parser.createDispatch(subtype_mark, typeName);
+    }
+
+    RESULT = dispatch;
 :}
 ;
 
 simple_name ::=
-IDENTIFIER:identifier
+IDENTIFIER:id
 {:
+    Identifier identifier = new Identifier (idleft, idright, id);
     RESULT = identifier;
 :}
 ;
 
+// TODO: must be create a list of identifiers
 compound_name ::=
-simple_name:simpleName
+simple_name:simple_name
 {:
-    RESULT = simpleName;
+    RESULT = simple_name;
 :}
-| compound_name:compoundName DOT simple_name:simpleName
+| compound_name:compound_name DOT simple_name:simple_name
 {:
-    RESULT = compoundName + "." + simpleName;
+    RESULT = simple_name;
 :}
 ;
 
 library_unit_name_list ::=
-compound_name:compoundName
+compound_name:compound_name
 {:
     List nameList = new LinkedList();
-    Identifier id = new Identifier(compoundNameleft, compoundNameright, (String)compoundName);
-    PackageName packageName = new PackageName(compoundNameleft, compoundNameright, id);
+    PackageName packageName = new PackageName(compound_nameleft, compound_nameright, compound_name);
     nameList.add(packageName);
     RESULT = nameList;
 :}
-| library_unit_name_list:nameList COMMA compound_name:compoundName
+| library_unit_name_list:nameList COMMA compound_name:compound_name
 {:
-    nameList.add(compoundName);
+    PackageName packageName = new PackageName(compound_nameleft, compound_nameright, compound_name);
+    nameList.add(packageName);
     RESULT = nameList;
 :}
 ;
@@ -1290,14 +1326,9 @@ CHAR_LITERAL:charLiteral
 :}
 ;
 
-indexed_comp ::=
+indexed_component ::=
 name:name LPAREN value_s:index RPAREN:end
 {:
-    System.out.println ("indexed_comp ::= name => " + name);
-    Identifier identifier = new Identifier(nameleft, nameright, name);
-    //Variable variable = new Variable (nameleft, nameright, name);
-	Variable indexedVar = new ArrayAccess(nameleft, endright, identifier, index, ArrayAccess.Type.VARIABLE_ARRAY);
-    //RESULT = indexedVar;
     RESULT = name;
 :}
 ;
@@ -1320,21 +1351,25 @@ value ::= expression
 // 4.1.3 Selected Components
 //
 selected_component ::=
-name:name DOT simple_name:simpleName
+name:name DOT simple_name:simple_name
 {:
-    RESULT = name + "." + simpleName;
+    Identifier identifier = new Identifier (nameleft, simple_nameright, name.getName() + "." + simple_name.getName());
+    RESULT = identifier;
 :}
-| name:name DOT used_char:usedChar
+| name:name DOT used_char:used_char
 {:
-    RESULT = name + "." + usedChar;
+    Identifier identifier = new Identifier (nameleft, used_charright, name.getName() + "." + used_char);
+    RESULT = identifier;
 :}
 | name:name DOT operator_symbol:operator
 {:
-    RESULT = name + "." + operator;
+    Identifier identifier = new Identifier (nameleft, operatorright, name.getName() + "." + operator.getName());
+    RESULT = identifier;
 :}
 | name:name DOT ALL:all
 {:
-    RESULT = name + "." + all;
+    Identifier identifier = new Identifier (nameleft, allright, name.getName() + "." + "all");
+    RESULT = identifier;
 :}
 ;
 
@@ -1345,29 +1380,34 @@ name:name TICK attribute_id
 :}
 ;
 
-attribute_id ::= IDENTIFIER
-	| DIGITS
-	| DELTA
-	| ACCESS
-	;
+attribute_id ::=
+IDENTIFIER
+| DIGITS
+| DELTA
+| ACCESS
+;
 
 literal ::=
 DECIMAL_LITERAL:dec
 {:
-	Scalar scalar = new Scalar(decleft, decright, dec, Scalar.Type.INT);
-	RESULT = scalar;
+    Scalar scalar = new Scalar(decleft, decright, dec, Scalar.Type.INT);
+    RESULT = scalar;
 :}
 | BASED_LITERAL:dec
 {:
-	Scalar scalar = new Scalar(decleft, decright, dec, Scalar.Type.INT);
-	RESULT = scalar;
+    Scalar scalar = new Scalar(decleft, decright, dec, Scalar.Type.INT);
+    RESULT = scalar;
 :}
 | used_char:usedChar
 {:
-	Scalar scalar = new Scalar(usedCharleft, usedCharright, usedChar, Scalar.Type.STRING);
-	RESULT = scalar;
+    Scalar scalar = new Scalar(usedCharleft, usedCharright, usedChar, Scalar.Type.STRING);
+    RESULT = scalar;
 :}
-| NULL
+| NULL:token
+{:
+    Scalar scalar = new Scalar(tokenleft, tokenright, "null", Scalar.Type.SYSTEM);
+    RESULT = scalar;
+:}
 ;
 
 aggregate ::= LPAREN comp_assoc RPAREN
@@ -1390,27 +1430,67 @@ comp_assoc ::= choice_s ARROW expression
 //
 logical_operator ::=
 AND
+{:
+    RESULT = InfixExpression.OperatorType.BOOL_AND;
+:}
 | OR
+{:
+    RESULT = InfixExpression.OperatorType.BOOL_OR;
+:}
 | XOR
+{:
+    RESULT = InfixExpression.OperatorType.BOOL_XOR;
+:}
 ;
 
-short_circuit ::= AND THEN
-	| OR ELSE
-	;
-
+short_circuit ::=
+AND THEN
+{:
+    RESULT = InfixExpression.OperatorType.BOOL_OR;
+:}
+| OR ELSE
+{:
+    RESULT = InfixExpression.OperatorType.BOOL_AND;
+:}
+;
 
 relational_operator ::=
 EQ
+{:
+    RESULT = InfixExpression.OperatorType.IS_EQUAL;
+:}
 | INEQ
+{:
+    RESULT = InfixExpression.OperatorType.IS_NOT_EQUAL;
+:}
 | GT
+{:
+    RESULT = InfixExpression.OperatorType.RGREATER;
+:}
 | LTEQ
+{:
+    RESULT = InfixExpression.OperatorType.IS_SMALLER_OR_EQUAL;
+:}
 | LT
+{:
+    RESULT = InfixExpression.OperatorType.LGREATER;
+:}
 | GTEQ
+{:
+    RESULT = InfixExpression.OperatorType.IS_GREATER_OR_EQUAL;
+:}
 ;
 
-membership ::= IN
-	| NOT IN
-	;
+membership ::=
+IN
+{:
+    RESULT = InfixExpression.OperatorType.IN;
+:}
+| NOT IN
+{:
+    RESULT = InfixExpression.OperatorType.NOT_IN;
+:}
+;
 
 unary_adding_operator ::=
 PLUS
@@ -1426,79 +1506,93 @@ PLUS
 binary_adding_operator ::= 
 PLUS
 {:
-    RESULT = UnaryOperation.Operator.PLUS;
+    RESULT = InfixExpression.OperatorType.PLUS;
 :}
 | MINUS
 {:
-    RESULT = UnaryOperation.Operator.MINUS;
+    RESULT = InfixExpression.OperatorType.MINUS;
 :}
 | AMP
 {:
-    RESULT = UnaryOperation.Operator.AMP;
+    RESULT = InfixExpression.OperatorType.STRING_AND;
 :}
 ;
 
 multiplying_operator ::=
 STAR
+{:
+    RESULT = InfixExpression.OperatorType.MUL;
+:}
 | SLASH
+{:
+    RESULT = InfixExpression.OperatorType.DIV;
+:}
 | MOD
+{:
+    RESULT = InfixExpression.OperatorType.MOD;
+:}
 | REM
+{:
+    RESULT = InfixExpression.OperatorType.REM;
+:}
 ;
 
 ///////////////////////////////////////////////////////////////////////////////
 // 4.4 Expressions
 //
 expression ::=
-relation:rel
+relation:relation
 {:
-    System.out.println ("expression ::= relation => " + rel);
-	RESULT = rel;
+    RESULT = relation;
 :}
-| expression:expr logical_operator relation:rel
+| expression:expression logical_operator:logical_operator relation:relation
 {:
-    System.out.println ("expression ::= expression => " + expr);
-    System.out.println ("expression ::= relation => " + rel);
-	RESULT = expr;
+    InfixExpression infixExpression = new InfixExpression(expressionleft, relationright, expression, logical_operator, relation);
+    RESULT = infixExpression;
 :}
-| expression:expr short_circuit relation:rel
+| expression:expression short_circuit:short_circuit relation:relation
 {:
-    System.out.println ("expression ::= expression => " + expr);
-    System.out.println ("expression ::= relation => " + rel);
-	RESULT = expr;
+    InfixExpression infixExpression = new InfixExpression(expressionleft, relationright, expression, short_circuit, relation);
+    RESULT = infixExpression;
 :}
 ;
 
 relation ::=
-simple_expression:simple_expr
+simple_expression:simple_expression
 {:
-    RESULT = simple_expr;
+    RESULT = simple_expression;
 :}
-| simple_expression:simple_expr relational_operator simple_expression
+| simple_expression:simple_expression1 relational_operator:relational_operator simple_expression:simple_expression2
 {:
-    RESULT = simple_expr;
+    InfixExpression infixExpression = new InfixExpression(simple_expression1left, simple_expression2right, simple_expression1, relational_operator, simple_expression2);
+    RESULT = infixExpression;
 :}
-| simple_expression:simple_expr membership range
+| simple_expression:simple_expression membership:membership range:range
 {:
-    RESULT = simple_expr;
+    InfixExpression infixExpression = new InfixExpression(simple_expressionleft, rangeright, simple_expression, membership, range);
+    RESULT = infixExpression;
 :}
-| simple_expression:simple_expr membership name
+| simple_expression:simple_expression membership:membership name:name
 {:
-    RESULT = simple_expr;
+    InfixExpression infixExpression = new InfixExpression(simple_expressionleft, nameright, simple_expression, membership, name);
+    RESULT = infixExpression;
 :}
 ;
 
 simple_expression ::=
-unary_adding_operator:op term:term
+unary_adding_operator:unary_adding_operator term:term
 {:
-	RESULT = new UnaryOperation(opleft, termright, term, op);
+    UnaryOperation unaryOperation = new UnaryOperation(unary_adding_operatorleft, termright, term, unary_adding_operator);
+    RESULT = unaryOperation;
 :}
 | term:term
 {:
     RESULT = term;
 :}
-| simple_expression:expr binary_adding_operator:op term:term
+| simple_expression:simple_expression binary_adding_operator:binary_adding_operator term:term
 {:
-	RESULT = new UnaryOperation(exprleft, termright, term, op);
+    InfixExpression infixExpression = new InfixExpression(simple_expressionleft, termright, simple_expression, binary_adding_operator, term);
+    RESULT = infixExpression;
 :}
 ;
 
@@ -1507,9 +1601,10 @@ factor:factor
 {:
     RESULT = factor;
 :}
-| term multiplying_operator factor:factor
+| term:term multiplying_operator:multiplying_operator factor:factor
 {:
-    RESULT = factor;
+    InfixExpression infixExpression = new InfixExpression(termleft, factorright, term, multiplying_operator, factor);
+    RESULT = infixExpression;
 :}
 ;
 
@@ -1518,58 +1613,57 @@ primary:primary
 {:
     RESULT = primary;
 :}
-| NOT primary:primary
+| NOT:token primary:primary
 {:
-    RESULT = primary;
+    UnaryOperation unaryOperation = new UnaryOperation(tokenleft, primaryright, primary, UnaryOperation.Operator.NOT);
+    RESULT = unaryOperation;
 :}
-| ABS primary:primary
+| ABS:token primary:primary
 {:
-    RESULT = primary;
+    UnaryOperation unaryOperation = new UnaryOperation(tokenleft, primaryright, primary, UnaryOperation.Operator.ABS);
+    RESULT = unaryOperation;
 :}
-| primary EXPON primary:primary
+| primary:primary1 EXPON primary:primary2
 {:
-    RESULT = primary;
+    InfixExpression infixExpression = new InfixExpression(primary1left, primary2right, primary1, InfixExpression.OperatorType.EXPON, primary2);
+    RESULT = infixExpression;
 :}
 ;
 
 primary ::=
 literal:literal
 {:
-    System.out.println ("primary ::= literal => " + literal);
     RESULT = literal;
 :}
 | name:name
 {:
-    System.out.println ("primary ::= name => " + name);
-    Scalar scalar = new Scalar(nameleft, nameright, name, Scalar.Type.STRING);
-    RESULT = scalar;
+// TODO: must be modified for manage all primery types
+    Variable variable = new Variable (nameleft, nameright, name);
+    RESULT = variable;
 :}
 | allocator
-| qualified_expression:expr
+| qualified_expression:qualified_expression
 {:
-    System.out.println ("primary ::= qualified_expression => " + expr);
-    RESULT = expr;
+    RESULT = qualified_expression;
 :}
-| parenthesized_primary:expr
+| parenthesized_primary:parenthesized_primary
 {:
-    System.out.println ("primary ::= parenthesized_primary => " + expr);
-    RESULT = expr;
+    RESULT = parenthesized_primary;
 :}
 ;
 
 parenthesized_primary ::=
 aggregate
-| LPAREN expression:expr RPAREN
+| LPAREN expression:expression RPAREN
 {:
-    RESULT = expr;
+    RESULT = expression;
 :}
 ;
 
 qualified_expression ::=
 name:name TICK parenthesized_primary:expr
 {:
-    Identifier subtypeMark = new Identifier (nameleft, nameright, name);
-    RESULT = new QualifiedExpression (nameleft, exprright, subtypeMark, expr);
+    RESULT = new QualifiedExpression (nameleft, exprright, name, expr);
 :}
 ;
 
@@ -1701,13 +1795,10 @@ NULL:token SEMICOLON:end
 // 5.2 Assignment Statements
 //
 assignment_statement ::=
-name:var ASSIGNMENT expression:expr SEMICOLON
+name:name ASSIGNMENT expression:expression SEMICOLON
 {:
-    System.out.println ("assignment_statement ::= var => " + var);
-    System.out.println ("assignment_statement ::= expr => " + expr);
-    Identifier id = new Identifier(varleft, varright, var);
-    Variable variable = new Variable (varleft, varright, (Identifier)id);
-    Assignment assignment = new Assignment(varleft, exprright, variable, expr);
+    Variable variable = new Variable (nameleft, nameright, name);
+    Assignment assignment = new Assignment(nameleft, expressionright, variable, expression);
     RESULT = assignment;
 :}
 ;
@@ -1722,19 +1813,19 @@ IF:token cond_clause_s:condList else_opt:iffalse END IF SEMICOLON:end
     Expression firstCondition = null;
     Statement trueStatement = null;
     Statement falseStatement = iffalse;
-		
+
     for (int i=1 ; i < condList[0].size() ; i++) {
         innerCondition = (Expression)condList[0].get(i);
         trueStatement = (Statement)condList[1].get(i);
         int start = ((Integer)condList[2].get(i)).intValue();
         falseStatement = new IfStatement(start, endright, innerCondition, trueStatement, falseStatement);
     }
-    
+
     firstCondition = (Expression)condList[0].get(0);
     trueStatement = (Statement)condList[1].get(0);
     int start = ((Integer)condList[2].get(0)).intValue();
     IfStatement ifStatement = new IfStatement(tokenleft, endright, firstCondition, trueStatement, falseStatement);		
-	
+
     RESULT = ifStatement;
 :}
 ;
@@ -1767,9 +1858,9 @@ condition:condition THEN:token sequence_of_statements:iftrue
 ;
 
 condition ::=
-expression:expr
+expression:expression
 {:
-    RESULT = expr;
+    RESULT = expression;
 :}
 ;
 
@@ -1824,8 +1915,7 @@ loop_statement ::=
 label_opt:label iteration:iteration basic_loop:statement id_opt SEMICOLON:end
 {:
     int start = (label == null) ? iterationleft : labelleft;
-    Identifier identifier = new Identifier(labelleft, labelright, label);
-    LoopStatement loopStatement = new LoopStatement(start, endright, identifier, iteration, statement);
+    LoopStatement loopStatement = new LoopStatement(start, endright, label, iteration, statement);
     RESULT = loopStatement;
 :}
 ;
@@ -1837,7 +1927,8 @@ label_opt ::=
 :}
 | IDENTIFIER:id COLON
 {:
-    RESULT = id;
+    Identifier identifier = new Identifier (idleft, idright, id);
+    RESULT = identifier;
 :}
 ;
 
@@ -1880,9 +1971,9 @@ id_opt ::=
 {:
     RESULT = null;
 :}
-| designator:name
+| designator:designator
 {:
-    RESULT = name;
+    RESULT = designator;
 :}
 ;
 
@@ -1893,8 +1984,7 @@ block_statement ::=
 label_opt:label block_declarative:declarations block_body:body END id_opt SEMICOLON:end
 {:
     int start = (label == null) ? declarationsleft : labelleft;
-    Identifier identifier = new Identifier(labelleft, labelright, label);
-    BlockStatement blockStatement = new BlockStatement (start, endleft, identifier, declarations, body);
+    BlockStatement blockStatement = new BlockStatement (start, endleft, label, declarations, body);
     RESULT = blockStatement;
 :}
 ;
@@ -1997,28 +2087,24 @@ subprogram_specification:subprog SEMICOLON:end
 :}
 | subprogram_specification:subprog IS ABSTRACT SEMICOLON:end
 {:
-    RESULT = new MethodDeclaration(subprogleft, endright, Ada95ASTParser.ABSTRACT, subprog);
+    RESULT = new MethodDeclaration(subprogleft, endright, AdaASTParser.ABSTRACT, subprog);
 :}
 ;
 
 subprogram_specification ::=
-PROCEDURE:procedure compound_name:procedureName formal_part_opt:formalPart
+PROCEDURE:procedure compound_name:compound_name formal_part_opt:formal_part
 {:
-    Identifier procedureId = new Identifier(procedureNameleft, procedureNameright, procedureName);
-    SubprogramSpecification subprogramSpecification = new SubprogramSpecification(procedureleft, formalPartright, procedureId, formalPart);
+    SubprogramSpecification subprogramSpecification = new SubprogramSpecification(procedureleft, formal_partright, compound_name, formal_part);
     RESULT = subprogramSpecification;
 :}
-| FUNCTION:function designator:functionName formal_part_opt:formalPart RETURN name:subtypeMark
+| FUNCTION:function designator:designator formal_part_opt:formal_part RETURN name:subtype_mark
 {:
-    Identifier functionId = new Identifier(functionNameleft, functionNameright, functionName);
-    Identifier subtypeReturn = new Identifier(subtypeMarkleft, subtypeMarkright, subtypeMark);
-    SubprogramSpecification subprogramSpecification = new SubprogramSpecification(functionleft, subtypeMarkright, functionId, formalPart, subtypeReturn);
+    SubprogramSpecification subprogramSpecification = new SubprogramSpecification(functionleft, subtype_markright, designator, formal_part, subtype_mark);
     RESULT = subprogramSpecification;
 :}
-| FUNCTION:function designator:functionName  /* for generic inst and generic rename */
+| FUNCTION:function designator:designator  /* for generic inst and generic rename */
 {:
-    Identifier functionId = new Identifier(functionNameleft, functionNameright, functionName);
-    SubprogramSpecification subprogramSpecification = new SubprogramSpecification(functionleft, functionNameright, functionId);
+    SubprogramSpecification subprogramSpecification = new SubprogramSpecification(functionleft, designatorright, designator);
     RESULT = subprogramSpecification;
 :}
 ;
@@ -2071,13 +2157,11 @@ param ::=
 defining_identifier_list:identifierList COLON mode:mode subtype_mark:subtype init_opt:init
 {:
     List list = new LinkedList();
-    Identifier subtypeId = new Identifier(subtypeleft, subtyperight, subtype);
-    TypeName typeName = new TypeName(subtypeleft, subtyperight, subtypeId);
     for (Object item : identifierList) {
         Identifier identifier = (Identifier)item;
         Variable variable = new Variable (identifier.getStartOffset(), identifier.getEndOffset(), identifier);
 	    int end = init == null ? subtyperight : initright;
-        FormalParameter parameter = new FormalParameter(identifierListleft, end, variable, mode, typeName, init);
+        FormalParameter parameter = new FormalParameter(identifierListleft, end, variable, mode, subtype, init);
     	list.add(parameter);
     }
     RESULT = list;
@@ -2116,23 +2200,23 @@ mode ::=
 
 // TODO: manage the overload operators ex: "+" "and" ecc.
 operator_symbol ::=
-STRING_LITERAL:stringLiteral
+STRING_LITERAL:string_literal
 {:
-    RESULT = stringLiteral;
+    Identifier identifier = new Identifier (string_literalleft, string_literalright, string_literal);
+    RESULT = identifier;
 :}
 ;
 
 subprogram_body ::=
 subprogram_specification:subprog IS
-declarative_part:declarativePart block_body:body END id_opt:idOpt SEMICOLON:end
+declarative_part:declarativePart block_body:body END id_opt:id_opt SEMICOLON:end
 {:
-    if (idOpt != null && !idOpt.equalsIgnoreCase (subprog.getSubprogramName().getName())) {
+    if (id_opt != null && !id_opt.getName().equalsIgnoreCase (subprog.getSubprogramName().getName())) {
         this.parser.message_error("mispelling of " + subprog.getSubprogramName().getName());
     } else {
         Block declarations = new Block(subprogright, bodyleft, declarativePart);
         body.setEndOffset(endright);
-        Identifier nameEnd = new Identifier(idOptleft, idOptright, idOpt);
-        SubprogramBody subprogramBody = new SubprogramBody(subprogleft, endright, subprog, declarations, body, nameEnd);
+        SubprogramBody subprogramBody = new SubprogramBody(subprogleft, endright, subprog, declarations, body, id_opt);
         MethodDeclaration methodDeclaration = new MethodDeclaration(subprogleft, endright, 0/*modifier*/, subprogramBody);
         RESULT = methodDeclaration;
     }
@@ -2159,20 +2243,18 @@ package_specification:statement SEMICOLON
 ;
 
 package_specification ::= 
-PACKAGE:declarationStart compound_name:packageName IS:blockStart
+PACKAGE:declarationStart compound_name:package_name IS:blockStart
   declarative_items_opt:declarativeItems private_part:privateDeclarativeItems
-END:declarationEnd compound_name_opt:packageNameEnd
+END:declarationEnd compound_name_opt:package_name_end
 {:
-    if (packageNameEnd != null && !packageNameEnd.equalsIgnoreCase (packageName)) {
-        this.parser.message_error("mispelling of " + packageName);
+    if (package_name_end != null && !package_name_end.getName().equalsIgnoreCase (package_name.getName())) {
+        this.parser.message_error("mispelling of " + package_name);
     }
     else {
-        Identifier packageId = new Identifier(packageNameleft, packageNameright, packageName);
-        Identifier packageIdEnd = new Identifier(packageNameEndleft, packageNameEndright, packageNameEnd);
         declarativeItems.addAll (privateDeclarativeItems);
         // Add private part on block statements
         Block block = new Block(blockStartleft, declarationEndright, declarativeItems);
-        PackageSpecification packageSpecification = new PackageSpecification(declarationStartleft, declarationEndright, packageId, packageIdEnd, block);
+        PackageSpecification packageSpecification = new PackageSpecification(declarationStartleft, declarationEndright, package_name, package_name_end, block);
         RESULT = packageSpecification;
     }
 :}
@@ -2184,15 +2266,15 @@ private_part ::=
 :}
 | PRIVATE declarative_items_opt:declarativeItems
 {:
-    RESULT = this.parser.setModifier (declarativeItems, Ada95ASTParser.PRIVATE);
+    RESULT = this.parser.setModifier (declarativeItems, AdaASTParser.PRIVATE);
 :}
 ;
 
 compound_name_opt ::=
 // empty
-| compound_name:compoundName
+| compound_name:compound_name
 {:
-    RESULT = compoundName;
+    RESULT = compound_name;
 :}
 ;
 
@@ -2200,20 +2282,18 @@ compound_name_opt ::=
 // 7.2 Package Bodies
 //
 package_body ::=
-PACKAGE:declarationStart BODY compound_name:packageName IS:blockStart
-  declarative_part:declarativePart body_opt END compound_name_opt:packageNameEnd SEMICOLON:declarationEnd
+PACKAGE:declarationStart BODY compound_name:package_name IS:blockStart
+  declarative_part:declarativePart body_opt END compound_name_opt:package_name_end SEMICOLON:declarationEnd
 {:
-    if (packageNameEnd != null && !packageNameEnd.equalsIgnoreCase (packageName)) {
-        this.parser.message_error("mispelling of " + packageName);
+    if (package_name_end != null && !package_name_end.getName().equalsIgnoreCase (package_name.getName())) {
+        this.parser.message_error("mispelling of " + package_name);
     }
     else {
-        Identifier packageId = new Identifier(packageNameleft, packageNameright, packageName);
-        Identifier packageIdEnd = new Identifier(packageNameEndleft, packageNameEndright, packageNameEnd);
 
-        List list = this.parser.setModifier (declarativePart, Ada95ASTParser.PRIVATE);
+        List list = this.parser.setModifier (declarativePart, AdaASTParser.PRIVATE);
         Block block = new Block(blockStartleft, declarationEndright, list);
 
-        PackageBody packageBody = new PackageBody(declarationStartleft, declarationEndright, packageId, packageIdEnd, block);
+        PackageBody packageBody = new PackageBody(declarationStartleft, declarationEndright, package_name, package_name_end, block);
         RESULT = packageBody;
     }
 :}
@@ -2229,7 +2309,7 @@ body_opt ::=
 private_type_declaration ::=
 tagged_opt:tagged limited_opt:limited PRIVATE:privateKeyword
 {:
-    PrivateType privateType = new PrivateType(taggedleft, privateKeywordright, tagged + limited + Ada95ASTParser.PRIVATE);
+    PrivateType privateType = new PrivateType(taggedleft, privateKeywordright, tagged + limited + AdaASTParser.PRIVATE);
     RESULT = privateType;
 :}
 ;
@@ -2240,7 +2320,7 @@ limited_opt ::=
 :}
 | LIMITED
 {:
-    RESULT = Ada95ASTParser.LIMITED;
+    RESULT = AdaASTParser.LIMITED;
 :}
 ;
 
@@ -2262,15 +2342,13 @@ package_name_list ::=
 name:name
 {:
     List idList = new LinkedList();
-    Identifier id = new Identifier(nameleft, nameright, name);
-    PackageName packageName = new PackageName(nameleft, nameright, id);
+    PackageName packageName = new PackageName(nameleft, nameright, name);
     idList.add(packageName);
     RESULT = idList;
 :}
 | package_name_list:idList COMMA name:name
 {:
-    Identifier id = new Identifier(nameleft, nameright, name);
-    PackageName packageName = new PackageName(nameleft, nameright, id);
+    PackageName packageName = new PackageName(nameleft, nameright, name);
     idList.add(packageName);
     RESULT = idList;
 :}
@@ -2280,15 +2358,13 @@ subtype_mark_list ::=
 name:name
 {:
     List idList = new LinkedList();
-    Identifier id = new Identifier(nameleft, nameright, name);
-    TypeName typeName = new TypeName(nameleft, nameright, id);
+    TypeName typeName = new TypeName(nameleft, nameright, name);
     idList.add(typeName);
     RESULT = idList;
 :}
 | subtype_mark_list:idList COMMA name:name
 {:
-    Identifier id = new Identifier(nameleft, nameright, name);
-    TypeName typeName = new TypeName(nameleft, nameright, id);
+    TypeName typeName = new TypeName(nameleft, nameright, name);
     idList.add(typeName);
     RESULT = idList;
 :}
@@ -2310,9 +2386,7 @@ defining_identifier_list COLON object_qualifier_opt subtype_indication RENAMES n
 rename_unit ::= 
 PACKAGE:token compound_name:name RENAMES name:renames SEMICOLON:end
 {:
-    Identifier packageNameId = new Identifier(nameleft, nameright, name);
-    Identifier packageRenamesId = new Identifier(renamesleft, renamesright, renames);
-    PackageRenames packageRenames = new PackageRenames(tokenleft, endright, packageNameId, packageRenamesId);
+    PackageRenames packageRenames = new PackageRenames(tokenleft, endright, name, renames);
     RESULT = packageRenames;
 :}
 | subprogram_specification RENAMES name SEMICOLON:end
@@ -2499,15 +2573,13 @@ task_name_list ::=
 name:name
 {:
     List idList = new LinkedList();
-    Identifier id = new Identifier(nameleft, nameright, name);
-    TaskName taskName = new TaskName(nameleft, nameright, id);
+    TaskName taskName = new TaskName(nameleft, nameright, name);
     idList.add(taskName);
     RESULT = idList;
 :}
 | task_name_list:idList COMMA name:name
 {:
-    Identifier id = new Identifier(nameleft, nameright, name);
-    TaskName taskName = new TaskName(nameleft, nameright, id);
+    TaskName taskName = new TaskName(nameleft, nameright, name);
     idList.add(taskName);
     RESULT = idList;
 :}
@@ -2519,8 +2591,8 @@ name:name
 compilation ::=
 compilation_units:units
 {:
-    Ada95ASTLexer adaAstLexer = (Ada95ASTLexer) parser.getScanner();
-    List comments = adaAstLexer.getCommentList();
+    AdaASTLexer AdaASTLexer = (AdaASTLexer) parser.getScanner();
+    List comments = AdaASTLexer.getCommentList();
     Program program = new Program(unitsleft, unitsright, units, comments);
     RESULT = program;
 :}

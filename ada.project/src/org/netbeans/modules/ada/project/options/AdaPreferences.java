@@ -58,7 +58,7 @@ public class AdaPreferences {
      * by upgrader when first started new NB version
      * @return instance of Preferences node
      */
-    public static final Preferences getPreferences(boolean importEnabled) {
+    public static Preferences getPreferences(boolean importEnabled) {
         Preferences forModule = NbPreferences.forModule(AdaPreferences.class);
         return (importEnabled) ? forModule : forModule.node(PRIVATE_PREFERENCES_PATH);
     }

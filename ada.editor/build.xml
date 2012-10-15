@@ -7,72 +7,54 @@
 
     <!-- SYNTAX LEXER GENERATOR -->
     <taskdef name="jflex"
-        classname="JFlex.anttask.JFlexTask"
-        classpath="c:/jflex/jflex-1.4.2/lib/JFlex.jar" />
-
+    classname="JFlex.anttask.JFlexTask"
+    classpath="c:/jflex/jflex-1.4.3/lib/JFlex.jar" />
     
-	<!-- SYNTAX LEXER GENERATOR -->
+    <!-- SYNTAX LEXER GENERATOR -->
     <target name="gen-lexer" description="Ada Syntax Lexer">
         <echo message="Rebuilding Ada Syntax Lexer..."/>
-        <jflex file="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/Ada95SyntaxLexer.flex"
+        <jflex file="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/AdaSyntaxLexer.flex"
         destdir="${basedir}/src"
-        skel="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/SyntaxLexer.skeleton"
+        skel="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/AdaSyntaxLexer.skeleton"
         />
     </target>
-    
     
     <!-- AST LEXER GENERATOR -->
     <target name="gen-astlexer" description="Ada AST Lexer">
         <echo message="Rebuilding Ada AST Lexer..."/>
-        <jflex file="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/Ada95ASTLexer.flex"
+        <jflex file="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/AdaASTLexer.flex"
         destdir="${basedir}/src"
-        skel="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/ASTLexer.skeleton"
+        skel="${basedir}/src/org/netbeans/modules/ada/editor/lexer/resources/AdaASTLexer.skeleton"
         />
     </target>
-    
     
     <!-- JAVACUP HANDLER -->
     <taskdef name="javacup"
         classname="java_cup.anttask.CUPTask"
         classpath="${nb_all}/libs.javacup/external/java-cup-11a.jar" />
-
+        
     <!-- BASE PARSER GENERATOR -->
-    <target name="gen-base-parser" description="Ada Parser baseline">
+    <target name="gen-base-parser" description="Ada Base Parser">
         <echo message="Rebuilding Ada Parser..."/>
-        <javacup srcfile="${basedir}/src/org/netbeans/modules/ada/editor/parser/resources/Ada95Parser.cup"
+        <javacup srcfile="${basedir}/src/org/netbeans/modules/ada/editor/parser/resources/AdaBaseParser.cup"
         destdir="${basedir}/src"
-        parser="Ada95ASTParser"
-        symbols="Ada95ASTSymbols"
+        parser="AdaASTParser"
+        symbols="AdaASTSymbols"
         interface="on"
         force="true"
         />
     </target>
 
     <!-- AST PARSER GENERATOR -->
-	<target name="gen-astparser" description="Ada AST Parser">
+    <target name="gen-astparser" description="Ada AST Parser">
         <echo message="Rebuilding Ada AST Parser..."/>
-        <javacup srcfile="${basedir}/src/org/netbeans/modules/ada/editor/parser/resources/Ada95ASTParser.cup"
+        <javacup srcfile="${basedir}/src/org/netbeans/modules/ada/editor/parser/resources/AdaASTParser.cup"
         destdir="${basedir}/src"
-        parser="Ada95ASTParser"
-        symbols="Ada95ASTSymbols"
+        parser="AdaASTParser"
+        symbols="AdaASTSymbols"
         interface="on"
         force="true"
         />
-    </target>
-
-<!--
-    <target name="jar" depends="init,compile,jar-prep" unless="is.jar.uptodate">
-        <taskdef name="gsfjar" classname="org.netbeans.modules.gsf.GsfJar" classpath="${nb_all}/contrib/gsf.api/anttask/gsfanttask.jar:${nbantext.jar}"/>
-        <gsfjar jarfile="${cluster}/${module.jar}" compress="${build.package.compress}" index="${build.package.index}" manifest="${manifest.mf}" stamp="${cluster}/.lastModified">
-            <fileset dir="${build.classes.dir}"/>
-        </gsfjar>
-    </target>
--->
-    <target name="jar" depends="init,compile,jar-prep" unless="is.jar.uptodate">
-        <taskdef name="csljar" classname="org.netbeans.modules.csl.CslJar" classpath="${nb_all}/csl.api/anttask/build/cslanttask.jar:${nbantext.jar}"/>
-        <csljar jarfile="${cluster}/${module.jar}" compress="${build.package.compress}" index="${build.package.index}" manifest="${manifest.mf}" stamp="${cluster}/.lastModified">
-            <fileset dir="${build.classes.dir}"/>
-        </csljar>
     </target>
 
 </project>

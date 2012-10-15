@@ -54,9 +54,9 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class Use extends Statement {
     
-    private final ArrayList<Identifier> packages = new ArrayList<Identifier>();
+    private final ArrayList<PackageName> packages = new ArrayList<PackageName>();
 
-    public Use(int start, int end, List<Identifier> packages) {
+    public Use(int start, int end, List<PackageName> packages) {
         super(start, end);
 
         this.packages.addAll(packages);
@@ -68,7 +68,7 @@ public class Use extends Statement {
      * 
      * @return the list of packages node
      */
-    public List<Identifier> getPackages() {
+    public List<PackageName> getPackages() {
         return packages;
     }
 

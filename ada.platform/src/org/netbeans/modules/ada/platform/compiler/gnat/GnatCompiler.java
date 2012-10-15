@@ -62,6 +62,7 @@ public class GnatCompiler implements Compiler {
     private final String projectPath;
     private final ArrayList<String> sourceFolders;
     private final String mainFile;
+    private final String adaDialects;
     private final String executableFile;
     private final String commandName;
     private final String spcPostfix;
@@ -75,7 +76,7 @@ public class GnatCompiler implements Compiler {
      * 
      * @param project
      */
-    public GnatCompiler(AdaPlatform platform, String projectName, String projectPath, ArrayList<String> sourceFolders, String mainFile, String executableFile, String commandName,
+    public GnatCompiler(AdaPlatform platform, String projectName, String projectPath, ArrayList<String> sourceFolders, String mainFile, String adaDialects, String executableFile, String commandName,
             String spcPostfix, String bdyPostfix, String sepPostfix, String spcExt, String bdyExt, String sepExt) {
 
         assert platform != null;
@@ -85,6 +86,7 @@ public class GnatCompiler implements Compiler {
         this.projectPath = projectPath;
         this.sourceFolders = sourceFolders;
         this.mainFile = mainFile;
+        this.adaDialects = adaDialects;
         this.executableFile = executableFile;
         this.commandName = commandName;
 
@@ -126,6 +128,7 @@ public class GnatCompiler implements Compiler {
         return gnatCommands.get(commandName);
     }
 
+    @Override
     public void Build() {
         try {
             invokeCommand(GnatCommand.GNAT_MAKE, this.getProjectName() + "(" + this.getCommandName() + ")", null);
@@ -136,6 +139,7 @@ public class GnatCompiler implements Compiler {
         }
     }
 
+    @Override
     public void Run(String args) {
         try {
             invokeCommand(GnatCommand.RUN, this.getProjectName() + "(" + this.getCommandName() + ")", args);
@@ -146,6 +150,7 @@ public class GnatCompiler implements Compiler {
         }
     }
 
+    @Override
     public void Compile() {
         try {
             invokeCommand(GnatCommand.GNAT_COMPILE, this.getProjectName() + "(" + this.getCommandName() + ")", null);
@@ -156,6 +161,7 @@ public class GnatCompiler implements Compiler {
         }
     }
 
+    @Override
     public void Clean() {
         try {
             invokeCommand(GnatCommand.GNAT_CLEAN, this.getProjectName() + "(" + this.getCommandName() + ")", null);
@@ -166,30 +172,42 @@ public class GnatCompiler implements Compiler {
         }
     }
 
+    @Override
     public AdaPlatform getPlatform() {
         return platform;
     }
 
+    @Override
     public String getExecutableFile() {
         return executableFile;
     }
 
+    @Override
     public String getCommandName() {
         return commandName;
     }
 
+    @Override
     public String getMainFile() {
         return mainFile;
     }
 
+    @Override
+    public String getAdaDialects() {
+        return adaDialects;
+    }
+
+    @Override
     public String getProjectPath() {
         return projectPath;
     }
 
+    @Override
     public String getProjectName() {
         return projectName;
     }
 
+    @Override
     public ArrayList<String> getSourceFolders() {
         return sourceFolders;
     }

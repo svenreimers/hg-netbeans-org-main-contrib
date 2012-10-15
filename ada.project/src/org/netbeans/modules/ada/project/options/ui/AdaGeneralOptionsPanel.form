@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.1" encoding="UTF-8" ?>
 
 <Form version="1.5" maxVersion="1.6" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
   <AuxValues>
@@ -7,7 +7,7 @@
     <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="true"/>
     <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="true"/>
-    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="2"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
@@ -18,147 +18,179 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="standardsLabel" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="standardsLineSeparator" pref="572" max="32767" attributes="0"/>
-                          </Group>
-                          <Component id="errorLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="12" pref="12" max="12" attributes="0"/>
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="adaRestrictionsLabel" linkSize="4" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  <Component id="adaDialectsLabel" linkSize="4" alignment="0" min="-2" pref="63" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="adaRestrictionsComboBox" linkSize="5" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  <Component id="adaDialectsComboBox" linkSize="5" alignment="0" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace min="-2" pref="373" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="10" pref="10" max="10" attributes="0"/>
+                      <Component id="standardsLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="4" pref="4" max="4" attributes="0"/>
+                      <Component id="standardsLineSeparator" min="-2" pref="572" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
-                      <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                          <Component id="pkgBodyMaskLabel" linkSize="6" alignment="0" max="32767" attributes="1"/>
-                          <Component id="pkgSpecMaskLabel" linkSize="6" alignment="0" max="32767" attributes="1"/>
-                          <Component id="separatorMaskLabel" linkSize="6" alignment="0" min="-2" pref="107" max="-2" attributes="1"/>
-                      </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <EmptySpace min="10" pref="10" max="10" attributes="0"/>
+                      <Component id="namingLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="4" pref="4" max="4" attributes="0"/>
+                      <Component id="namingLineSeparator" min="-2" pref="586" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="20" pref="20" max="20" attributes="0"/>
+                      <Component id="pkgBodyMaskLabel" min="-2" pref="107" max="-2" attributes="0"/>
+                      <EmptySpace min="10" pref="10" max="10" attributes="0"/>
+                      <Component id="pkgBodyPrefixComboBox" min="-2" pref="119" max="-2" attributes="0"/>
+                      <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                      <Component id="pkgBodySepTextField" min="-2" pref="38" max="-2" attributes="0"/>
+                      <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                      <Component id="pkgBodyPostfixComboBox" min="-2" pref="119" max="-2" attributes="0"/>
+                      <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                      <Component id="pkgBodyExtComboBox" min="-2" pref="115" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="20" pref="20" max="20" attributes="0"/>
+                      <Component id="separatorMaskLabel" min="-2" pref="107" max="-2" attributes="0"/>
+                      <EmptySpace min="10" pref="10" max="10" attributes="0"/>
+                      <Component id="separatePrefixComboBox" min="-2" pref="119" max="-2" attributes="0"/>
+                      <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                      <Component id="separateSepTextField" min="-2" pref="38" max="-2" attributes="0"/>
+                      <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                      <Component id="separatePostfixComboBox" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                      <Component id="separateExtComboBox" min="-2" pref="115" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="10" pref="10" max="10" attributes="0"/>
+                      <Component id="errorLabel" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="22" pref="22" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="103" alignment="0" groupAlignment="1" attributes="0">
-                              <Group type="103" alignment="1" groupAlignment="0" attributes="0">
-                                  <Component id="pkgSpecPrefixComboBox" linkSize="9" min="-2" max="-2" attributes="0"/>
-                                  <Component id="pkgBodyPrefixComboBox" linkSize="9" alignment="0" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <Component id="prefixTitleLabel" min="-2" max="-2" attributes="1"/>
-                          </Group>
-                          <Component id="separatePrefixComboBox" linkSize="9" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="adaRestrictionsLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="adaDialectsLabel" alignment="0" min="-2" pref="112" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="separatorTitleLabel" min="-2" max="-2" attributes="1"/>
-                          <Component id="pkgSpecSepTextField" linkSize="7" min="-2" pref="38" max="-2" attributes="0"/>
-                          <Component id="pkgBodySepTextField" linkSize="7" min="-2" pref="38" max="-2" attributes="0"/>
-                          <Component id="separateSepTextField" linkSize="7" min="-2" pref="38" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="pkgBodyPostfixComboBox" linkSize="9" alignment="0" pref="110" max="32767" attributes="1"/>
-                          <Component id="separatePostfixComboBox" linkSize="9" alignment="0" max="32767" attributes="1"/>
-                          <Component id="pkgSpecPostfixComboBox" linkSize="9" alignment="0" max="32767" attributes="1"/>
-                          <Component id="postfixTitleLabel" alignment="1" min="-2" max="-2" attributes="1"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="separateExtComboBox" min="0" pref="0" max="32767" attributes="1"/>
-                          <Component id="pkgBodyExtComboBox" alignment="0" min="0" pref="0" max="32767" attributes="1"/>
-                          <Component id="pkgSpecExtComboBox" alignment="0" min="0" pref="0" max="32767" attributes="1"/>
-                          <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="41" max="-2" attributes="0"/>
-                              <Component id="extTitleLabel" min="-2" max="-2" attributes="1"/>
-                          </Group>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="adaDialectsComboBox" min="-2" pref="87" max="-2" attributes="0"/>
+                          <Component id="adaRestrictionsComboBox" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="namingLabel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="namingLineSeparator" pref="586" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="prefixTitleLabel" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="separatorTitleLabel" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="20" pref="20" max="20" attributes="0"/>
+                              <Component id="pkgSpecMaskLabel" min="-2" pref="107" max="-2" attributes="0"/>
+                              <EmptySpace min="10" pref="10" max="10" attributes="0"/>
+                              <Component id="pkgSpecPrefixComboBox" min="-2" pref="119" max="-2" attributes="0"/>
+                              <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                              <Component id="pkgSpecSepTextField" min="-2" pref="38" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                              <Component id="pkgSpecPostfixComboBox" min="-2" pref="119" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <EmptySpace min="-2" pref="92" max="-2" attributes="0"/>
+                              <Component id="postfixTitleLabel" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+                              <Component id="pkgSpecExtComboBox" min="-2" pref="115" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <EmptySpace min="-2" pref="101" max="-2" attributes="0"/>
+                              <Component id="extTitleLabel" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
                   </Group>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="46" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="standardsLineSeparator" alignment="2" min="-2" pref="12" max="-2" attributes="0"/>
-                  <Component id="standardsLabel" alignment="2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="11" pref="11" max="11" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="standardsLabel" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="1" pref="1" max="1" attributes="0"/>
+                      <Component id="standardsLineSeparator" min="-2" pref="12" max="-2" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="adaDialectsComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="adaDialectsLabel" alignment="2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="adaDialectsLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="adaDialectsComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="adaRestrictionsComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="adaRestrictionsLabel" alignment="2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="3" pref="3" max="3" attributes="0"/>
+                      <Component id="adaRestrictionsLabel" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="adaRestrictionsComboBox" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="namingLineSeparator" alignment="2" min="-2" pref="10" max="-2" attributes="0"/>
-                  <Component id="namingLabel" alignment="2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="18" pref="18" max="18" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="namingLabel" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="2" pref="2" max="2" attributes="0"/>
+                      <Component id="namingLineSeparator" min="-2" pref="10" max="-2" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
+              <EmptySpace min="1" pref="1" max="1" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                      <Component id="prefixTitleLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="separatorTitleLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="prefixTitleLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="extTitleLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="postfixTitleLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="pkgSpecMaskLabel" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="pkgSpecPrefixComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="pkgSpecSepTextField" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="pkgSpecPostfixComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="pkgSpecExtComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="103" alignment="0" groupAlignment="2" attributes="0">
-                      <Component id="pkgBodyPrefixComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                      <Component id="pkgBodyMaskLabel" alignment="2" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Component id="pkgBodyExtComboBox" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                      <Component id="pkgBodyPostfixComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="pkgBodySepTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="extTitleLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="postfixTitleLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="separatorMaskLabel" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="separatePrefixComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="separateSepTextField" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="separatePostfixComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="separateExtComboBox" alignment="2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="4" pref="4" max="4" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="3" pref="3" max="3" attributes="0"/>
+                      <Component id="pkgSpecMaskLabel" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="pkgSpecPrefixComboBox" min="-2" max="-2" attributes="0"/>
+                  <Component id="pkgSpecSepTextField" min="-2" max="-2" attributes="0"/>
+                  <Component id="pkgSpecPostfixComboBox" min="-2" max="-2" attributes="0"/>
+                  <Component id="pkgSpecExtComboBox" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="150" max="32767" attributes="0"/>
+              <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="3" pref="3" max="3" attributes="0"/>
+                      <Component id="pkgBodyMaskLabel" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="pkgBodyPrefixComboBox" min="-2" max="-2" attributes="0"/>
+                  <Component id="pkgBodySepTextField" min="-2" max="-2" attributes="0"/>
+                  <Component id="pkgBodyPostfixComboBox" min="-2" max="-2" attributes="0"/>
+                  <Component id="pkgBodyExtComboBox" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="6" pref="6" max="6" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="3" pref="3" max="3" attributes="0"/>
+                      <Component id="separatorMaskLabel" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="separatePrefixComboBox" min="-2" max="-2" attributes="0"/>
+                  <Component id="separateSepTextField" min="-2" max="-2" attributes="0"/>
+                  <Component id="separatePostfixComboBox" min="-2" max="-2" attributes="0"/>
+                  <Component id="separateExtComboBox" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="150" pref="150" max="150" attributes="0"/>
               <Component id="errorLabel" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -167,7 +199,7 @@
     <Component class="javax.swing.JLabel" name="standardsLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_Standards" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_Standards" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -176,14 +208,14 @@
     <Component class="javax.swing.JLabel" name="adaDialectsLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_AdaDialects" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_AdaDialects" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="namingLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_Naming" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_Naming" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -197,17 +229,18 @@
     <Component class="javax.swing.JLabel" name="adaRestrictionsLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_adaRestrictions" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_adaRestrictions" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="adaDialectsComboBox">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="3">
+          <StringArray count="4">
             <StringItem index="0" value="Ada 83"/>
             <StringItem index="1" value="Ada 95"/>
             <StringItem index="2" value="Ada 2005"/>
+            <StringItem index="3" value="Ada 2012"/>
           </StringArray>
         </Property>
       </Properties>
@@ -232,21 +265,21 @@
     <Component class="javax.swing.JLabel" name="pkgSpecMaskLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_pkgSpecMask" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_pkgSpecMask" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="pkgBodyMaskLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_pkgBodyMask" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_pkgBodyMask" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="separatorMaskLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_separatorMask" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_separatorMask" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -268,7 +301,7 @@
     <Component class="javax.swing.JLabel" name="extTitleLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_extTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_extTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -286,7 +319,7 @@
     <Component class="javax.swing.JLabel" name="prefixTitleLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_prefixTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_prefixTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -304,7 +337,7 @@
     <Component class="javax.swing.JLabel" name="postfixTitleLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/general/Bundle.properties" key="LBL_postfixTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="LBL_postfixTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -402,7 +435,7 @@
     <Component class="javax.swing.JLabel" name="separatorTitleLabel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/project/options/Bundle.properties" key="AdaGeneralOptionsPanel.separatorTitleLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/netbeans/modules/ada/project/options/ui/Bundle.properties" key="AdaGeneralOptionsPanel.separatorTitleLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>

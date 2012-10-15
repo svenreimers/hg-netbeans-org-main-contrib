@@ -39,9 +39,7 @@
 
 package org.netbeans.api.ada.platform;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 
 /**
  *
@@ -53,36 +51,44 @@ public class AdaPlatform implements Serializable {
     private String info;
 
     private String compilerPath;
-    private String compilerCommand;
-    private String compilerArgs;
-    private boolean dirty;
+    private String gnatCompilerCommand;
+    private String gnatCompilerArgs;
+    private String jvmGnatCompilerCommand;
+    private String jvmGnatCompilerArgs;
+
+    public String getJvmGnatCompilerArgs() {
+        return jvmGnatCompilerArgs;
+    }
+
+    public void setJvmGnatCompilerArgs(String jvmGnatCompilerArgs) {
+        this.jvmGnatCompilerArgs = jvmGnatCompilerArgs;
+    }
+
+    public String getJvmGnatCompilerCommand() {
+        return jvmGnatCompilerCommand;
+    }
+
+    public void setJvmGnatCompilerCommand(String jvmGnatCompilerCommand) {
+        this.jvmGnatCompilerCommand = jvmGnatCompilerCommand;
+    }
 
     public AdaPlatform() {
     }
 
-    public String getCompilerArgs() {
-        return compilerArgs;
+    public String getGnatCompilerArgs() {
+        return gnatCompilerArgs;
     }
 
-    public void setCompilerArgs(String compilerArgs) {
-        this.compilerArgs = compilerArgs;
+    public void setGnatCompilerArgs(String gnatCompilerArgs) {
+        this.gnatCompilerArgs = gnatCompilerArgs;
     }
 
-    public String getInterpreterCommand() {
-        return compilerCommand;
+    public String getGnatCompilerCommand() {
+        return gnatCompilerCommand;
     }
 
-    public void setCompilerCommand(String compilerCommand) {
-        this.compilerCommand = compilerCommand;
-    }
-
-    public String getCompilerCommand() {
-        return compilerCommand;
-    }
-
-    /** Has this platform been changed since the last load? */
-    public boolean isDirty() {
-        return dirty;
+    public void setGnatCompilerCommand(String gnatCompilerCommand) {
+        this.gnatCompilerCommand = gnatCompilerCommand;
     }
 
     public String getName() {
@@ -108,22 +114,4 @@ public class AdaPlatform implements Serializable {
     public void setCompilerPath(String compilerPath) {
         this.compilerPath = compilerPath;
     }
-
-    /**
-     * Build a path string from arraylist
-     * @param path
-     * @return
-     */
-    public static String buildPath(ArrayList<String> path){
-        StringBuilder pathString = new StringBuilder();
-        int count = 0;
-        for(String pathEle: path){
-            pathString.append(pathEle);
-            if (count++ < path.size()){
-                pathString.append(File.pathSeparator);
-            }
-        }
-        return pathString.toString();
-    }
-
 }

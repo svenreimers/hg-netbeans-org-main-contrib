@@ -52,13 +52,12 @@ public class FormalParameter extends ASTNode {
     public enum Mode {
         IN, OUT, IN_OUT, ACCESS;
     }
-
     private Variable parameterName;
     private Mode parameterMode;
-	private TypeName parameterType;
+    private NameBase parameterType;
     private Expression defaultValue;
 
-    public FormalParameter(int start, int end, final Variable parameterName, Mode parameterMode, TypeName type, Expression defaultValue) {
+    public FormalParameter(int start, int end, final Variable parameterName, Mode parameterMode, NameBase type, Expression defaultValue) {
         super(start, end);
 
         this.parameterName = parameterName;
@@ -67,7 +66,7 @@ public class FormalParameter extends ASTNode {
         this.defaultValue = defaultValue;
     }
 
-    public FormalParameter(int start, int end, final Variable parameterName, Mode parameterMode, TypeName type) {
+    public FormalParameter(int start, int end, final Variable parameterName, Mode parameterMode, NameBase type) {
         this(start, end, parameterName, parameterMode, type, null);
     }
 
@@ -85,7 +84,7 @@ public class FormalParameter extends ASTNode {
         return parameterName;
     }
 
-	/**
+    /**
      * @return the mode of this parameter
      */
     public Mode getParameterMode() {
@@ -95,10 +94,10 @@ public class FormalParameter extends ASTNode {
     /**
      * @return the type of this parameter
      */
-    public TypeName getParameterType() {
+    public NameBase getParameterType() {
         return parameterType;
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

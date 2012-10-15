@@ -83,7 +83,7 @@ public class ArrayAccess extends Variable {
      */
     @Override
     public Identifier getName() {
-        return (Identifier) super.getName();
+        return super.getName();
     }
 
     @Override

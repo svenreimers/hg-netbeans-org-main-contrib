@@ -48,12 +48,14 @@ import org.netbeans.api.extexecution.input.InputProcessor;
  */
 public class AdaOutputProcessor implements InputProcessor {
     StringBuilder builder = new StringBuilder();
+
+    @Override
     public void processInput(char[] input) throws IOException {
         builder.append(input);
     }
 
     public void reset() throws IOException {
-        //builder = new StringBuilder();
+        builder.setLength(0);
     }
 
     public void close() throws IOException {

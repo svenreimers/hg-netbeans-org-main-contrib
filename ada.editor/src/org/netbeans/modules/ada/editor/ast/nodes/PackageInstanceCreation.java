@@ -64,7 +64,7 @@ public class PackageInstanceCreation extends Expression {
     }
     
     public PackageInstanceCreation(int start, int end, PackageName packageName, List<Expression> ctorParams) {
-		this(start, end, packageName, ctorParams == null ? null : (Expression[]) ctorParams.toArray(new Expression[ctorParams.size()]));
+		this(start, end, packageName, ctorParams == null ? null : ctorParams.toArray(new Expression[ctorParams.size()]));
 	}
 
     /**

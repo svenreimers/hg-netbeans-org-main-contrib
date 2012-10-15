@@ -54,6 +54,7 @@ import org.netbeans.modules.ada.project.options.AdaOptions;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.InstanceDataObject;
@@ -118,12 +119,21 @@ public class PanelOptionsVisual extends SettingsPanel implements ActionListener,
         }
     }
 
+    private String removeSpaces(String s) {
+        StringTokenizer st = new StringTokenizer(s, " ", false);
+        String t = "";
+        while (st.hasMoreElements()) {
+            t += st.nextElement();
+        }
+        return t;
+    }
+
     public void propertyChange(PropertyChangeEvent event) {
         if (NewAdaProjectWizardIterator.PROP_PROJECT_NAME.equals(event.getPropertyName())) {
             String newProjectName = (String) event.getNewValue();
             this.mainFileTextField.setText(MessageFormat.format(
                     NbBundle.getMessage(PanelOptionsVisual.class, "TXT_MainFileName"), 
-                    new Object[]{newProjectName + "." + AdaOptions.getInstance().getSeparateExt()}));
+                    new Object[]{removeSpaces(newProjectName) + "." + AdaOptions.getInstance().getSeparateExt()}));
         }
         if (NewAdaProjectWizardIterator.PROP_PROJECT_LOCATION.equals(event.getPropertyName())) {
             projectLocation = (String) event.getNewValue();
@@ -167,56 +177,49 @@ public class PanelOptionsVisual extends SettingsPanel implements ActionListener,
             }
         });
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(setAsMainCheckBox)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(setAsMainCheckBox)
                 .addContainerGap(562, Short.MAX_VALUE))
-            .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(createMainCheckBox)
-                    .add(jLabel1))
-                .add(18, 18, 18)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .add(platforms, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 233, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(manage)
-                        .add(4, 4, 4))
-                    .add(mainFileTextField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(createMainCheckBox)
+                    .addComponent(jLabel1))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(platforms, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(manage)
+                        .addGap(4, 4, 4))
+                    .addComponent(mainFileTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(setAsMainCheckBox)
-                .add(5, 5, 5)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(createMainCheckBox)
-                    .add(mainFileTextField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.CENTER)
-                    .add(jLabel1)
-                    .add(platforms, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(manage))
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(setAsMainCheckBox)
+                .addGap(5, 5, 5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(createMainCheckBox)
+                    .addComponent(mainFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(jLabel1)
+                    .addComponent(platforms, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(manage))
                 .addContainerGap(50, Short.MAX_VALUE))
         );
 
-        createMainCheckBox.getAccessibleContext().setAccessibleName("null");
-        createMainCheckBox.getAccessibleContext().setAccessibleDescription("null");
-        mainFileTextField.getAccessibleContext().setAccessibleName("null");
-        mainFileTextField.getAccessibleContext().setAccessibleDescription("null");
-        setAsMainCheckBox.getAccessibleContext().setAccessibleName("null");
-        setAsMainCheckBox.getAccessibleContext().setAccessibleDescription("null");
-
-        getAccessibleContext().setAccessibleName("null");
-        getAccessibleContext().setAccessibleDescription("null");
+        createMainCheckBox.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getBundle(PanelOptionsVisual.class).getString("LBL_createMainCheckBox")); // NOI18N
+        setAsMainCheckBox.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getBundle(PanelOptionsVisual.class).getString("LBL_setAsMainCheckBox")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
 private void manageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageActionPerformed
     // Workaround, Needs an API to display platform customizer
-    final FileObject fo = Repository.getDefault().getDefaultFileSystem().findResource("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
+    final FileObject fo = FileUtil.getConfigFile("Actions/Ada/org-netbeans-modules-ada-platform-PlatformsCustomizerAction.instance");  //NOI18N
     if (fo != null) {
         try {
             InstanceDataObject ido = (InstanceDataObject) DataObject.find(fo);

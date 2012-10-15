@@ -63,6 +63,8 @@ public interface Compiler {
 
     public String getMainFile();
 
+    public String getAdaDialects();
+
     public String getProjectPath();
 
     public String getProjectName();

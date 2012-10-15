@@ -39,7 +39,6 @@
 
 package org.netbeans.modules.ada.options;
 
-import org.netbeans.modules.ada.project.options.AdaGeneralOptionsPanel;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Collection;
@@ -52,6 +51,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.modules.ada.project.options.AdaOptions;
+import org.netbeans.modules.ada.project.options.ui.AdaGeneralOptionsPanel;
 import org.netbeans.modules.ada.editor.formatter.ui.FormattingOptionsPanel;
 import org.netbeans.spi.options.AdvancedOption;
 import org.netbeans.spi.options.OptionsPanelController;
@@ -63,7 +63,7 @@ import org.openide.util.lookup.Lookups;
 /**
  * @author Andrea Lucarelli
  */
-public class AdaOptionsPanelController extends OptionsPanelController implements ChangeListener {
+public class AdaOptionsPanelController extends OptionsPanelController implements ChangeListener, HelpCtx.Provider {
 
     private static final String TAB_FOLDER = "org.netbeans.modules.ada/options/"; // NOI18N
     private final AdaGeneralOptionsPanel generalOptionsPanel = new AdaGeneralOptionsPanel(null);
@@ -184,7 +184,7 @@ public class AdaOptionsPanelController extends OptionsPanelController implements
 
     @Override
     public HelpCtx getHelpCtx() {
-        return null;
+        return new HelpCtx(AdaGeneralOptionsPanel.class);
     }
 
     @Override
@@ -201,12 +201,24 @@ public class AdaOptionsPanelController extends OptionsPanelController implements
         return AdaOptions.getInstance();
     }
 
+    @Override
     public void stateChanged(ChangeEvent e) {
         changed();
     }
 
     private boolean validateComponent() {
         // errors
+        String postfixSpec = generalOptionsPanel.getPkgSpecPostfix();
+        String postfixBody = generalOptionsPanel.getPkgBodyPostfix();
+        String specExt = generalOptionsPanel.getPkgSpecExt();
+        String bodyExt = generalOptionsPanel.getPkgBodyExt();
+
+        if (specExt.equalsIgnoreCase(bodyExt)) {
+            if (postfixSpec.equalsIgnoreCase(postfixBody)) {
+                generalOptionsPanel.setError(NbBundle.getMessage(AdaOptionsPanelController.class, "MSG_ExtetionsError"));
+                return false;
+            }
+        }
 
         // everything ok
         generalOptionsPanel.setError(" "); // NOI18N

@@ -46,7 +46,6 @@ import javax.swing.text.Document;
 import org.netbeans.modules.ada.editor.ast.ASTNode;
 import org.netbeans.modules.ada.editor.ast.ASTUtils;
 import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
-import org.netbeans.modules.ada.editor.ast.nodes.Identifier;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageName;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageSpecification;
@@ -54,6 +53,7 @@ import org.netbeans.modules.ada.editor.ast.nodes.Scalar;
 import org.netbeans.modules.ada.editor.ast.nodes.SubprogramBody;
 import org.netbeans.modules.ada.editor.ast.nodes.SubprogramSpecification;
 import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeName;
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
 import org.netbeans.modules.ada.editor.ast.nodes.With;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.DefaultVisitor;
@@ -142,6 +142,12 @@ public class NavUtils {
                 continue;
             }
 
+            if (leaf instanceof TypeName) {
+                result = a.getElement(leaf);
+                previous = leaf;
+                continue;
+            }
+
             if (leaf instanceof Scalar) {
                 AttributedElement e = a.getElement(leaf);
 
@@ -160,13 +166,13 @@ public class NavUtils {
 
             if (leaf instanceof PackageSpecification) {
                 PackageSpecification cDeclaration = (PackageSpecification) leaf;
-                //class declaration
+                //package specification declaration
                 if (cDeclaration.getName() == previous) {
                     return a.getElement(leaf);
                 }
             } else if (leaf instanceof PackageBody) {
                 PackageBody iDeclaration = (PackageBody) leaf;
-                //class declaration
+                //package body declaration
                 if (iDeclaration.getName() == previous) {
                     return a.getElement(leaf);
                 }

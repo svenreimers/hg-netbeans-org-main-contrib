@@ -44,6 +44,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.netbeans.modules.ada.project.AdaMimeResolver;
 import org.openide.filesystems.FileObject;
@@ -55,7 +56,7 @@ import org.openide.util.RequestProcessor;
  *
  * @author  Andrea Lucarelli
  */
-final class MainModuleChooser extends javax.swing.JPanel {
+final class MainModuleChooser extends JPanel {
     
     private final FileObject[] roots;
     private final JButton okButton;

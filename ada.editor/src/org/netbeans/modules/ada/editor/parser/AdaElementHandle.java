@@ -100,7 +100,7 @@ public abstract class AdaElementHandle implements ElementHandle {
 
     @Override
     public OffsetRange getOffsetRange(ParserResult result) {
-        AdaElementHandle h = (AdaElementHandle) this;
+        AdaElementHandle h = this;
 
         if (h.getASTNode() != null) {
             return new OffsetRange(h.getASTNode().getStartOffset(), h.getASTNode().getEndOffset());

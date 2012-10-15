@@ -36,19 +36,26 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-
 package org.netbeans.modules.ada.editor.lexer;
 
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import org.netbeans.api.lexer.InputAttributes;
 import org.netbeans.api.lexer.Language;
+import org.netbeans.api.lexer.LanguagePath;
+import org.netbeans.api.lexer.Token;
+import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenId;
 import org.netbeans.modules.ada.editor.AdaMimeResolver;
+import org.netbeans.spi.lexer.LanguageEmbedding;
 import org.netbeans.spi.lexer.LanguageHierarchy;
 import org.netbeans.spi.lexer.Lexer;
+import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
+import org.netbeans.spi.lexer.TokenFactory;
+import org.openide.filesystems.FileObject;
 
 /**
  *
@@ -92,6 +99,7 @@ public enum AdaTokenId implements TokenId {
     GOTO("goto", "keyword"), //NOI18N
     IF("if", "keyword"), //NOI18N
     IN("in", "keyword"), //NOI18N
+    INTERFACE("interface", "keyword"), //NOI18N
     IS("is", "keyword"), //NOI18N
     LIMITED("limited", "keyword"), //NOI18N
     LOOP("loop", "keyword"), //NOI18N
@@ -103,6 +111,7 @@ public enum AdaTokenId implements TokenId {
     OR("or", "keyword"), //NOI18N
     OTHERS("others", "keyword"), //NOI18N
     OUT("out", "keyword"), //NOI18N
+    OVERRIDING("overriding", "keyword"), //NOI18N
     PACKAGE("package", "keyword"), //NOI18N
     PRAGMA("pragma", "keyword"), //NOI18N
     PRIVATE("private", "keyword"), //NOI18N
@@ -118,7 +127,9 @@ public enum AdaTokenId implements TokenId {
     REQUEUE("requeue", "keyword"), //NOI18N
     SELECT("select", "keyword"), //NOI18N
     SEPARATE("separate", "keyword"), //NOI18N
+    SOME("some", "keyword"), //NOI18N
     SUBTYPE("subtype", "keyword"), //NOI18N
+    SYNCHRONIZED("synchronized", "keyword"), //NOI18N
     TAGGED("tagged", "keyword"), //NOI18N
     TASK("task", "keyword"), //NOI18N
     TERMINATE("terminate", "keyword"), //NOI18N
@@ -131,11 +142,11 @@ public enum AdaTokenId implements TokenId {
     WITH("with", "keyword"), //NOI18N
     XOR("xor", "keyword"), //NOI18N
 
-    BOOLEAN("true", "literal"), //NOI18N
-    CHARACTER("true", "literal"), //NOI18N
-    FLOAT("true", "literal"), //NOI18N
-    INTEGER("true", "literal"), //NOI18N
-    WIDE_CHARECTER("true", "literal"), //NOI18N
+    BOOLEAN("boolean", "literal"), //NOI18N
+    CHARACTER("character", "literal"), //NOI18N
+    FLOAT("float", "literal"), //NOI18N
+    INTEGER("integer", "literal"), //NOI18N
+    WIDE_CHARACTER("wide_character", "literal"), //NOI18N
     TRUE("true", "literal"), //NOI18N
     FALSE("false", "literal"), //NOI18N
 
@@ -147,7 +158,7 @@ public enum AdaTokenId implements TokenId {
     DOT(".", "separator"), //NOI18N
     DOT_DOT("..", "separator"), //NOI18N
     ARROW("=>", "separator"), //NOI18N
-            
+
     EQ("=", "operator"), //NOI18N
     GT(">", "operator"), //NOI18N
     LT("<", "operator"), //NOI18N
@@ -175,7 +186,7 @@ public enum AdaTokenId implements TokenId {
     COMMENT(null, "comment"), //NOI18N
     ATTRIBUTE(null, "attribute"), //NOI18N
     IDENTIFIER(null, "identifier"); //NOI18N
-
+    
     private final String fixedText;
     private final String primaryCategory;
 
@@ -188,36 +199,80 @@ public enum AdaTokenId implements TokenId {
         return fixedText;
     }
 
+    @Override
     public String primaryCategory() {
         return primaryCategory;
     }
-    private static final Language<AdaTokenId> language =
-            new LanguageHierarchy<AdaTokenId>() {
 
-                @Override
-                protected Collection<AdaTokenId> createTokenIds() {
-                    return EnumSet.allOf(AdaTokenId.class);
-                }
+    private static final AdaLanguageHierarchy languageHierarchy = new AdaLanguageHierarchy();
 
-                @Override
-                protected Map<String, Collection<AdaTokenId>> createTokenCategories() {
-                    Map<String, Collection<AdaTokenId>> cats = new HashMap<String, Collection<AdaTokenId>>();
-                    return cats;
-                }
+    private static class AdaLanguageHierarchy extends LanguageHierarchy<AdaTokenId> {
 
-                @Override
-                protected Lexer<AdaTokenId> createLexer(LexerRestartInfo<AdaTokenId> info) {
-                    return AdaLexer.create(info);
-                }
+        public AdaLanguageHierarchy() {
+        }
 
-                @Override
-                protected String mimeType() {
-                    return AdaMimeResolver.ADA_MIME_TYPE;
-                }
+        @Override
+        protected Collection<AdaTokenId> createTokenIds() {
+            return EnumSet.allOf(AdaTokenId.class);
+        }
 
-            }.language();
+        @Override
+        protected Map<String, Collection<AdaTokenId>> createTokenCategories() {
+            Map<String, Collection<AdaTokenId>> cats = new HashMap<String, Collection<AdaTokenId>>();
+            return cats;
+        }
+
+        @Override
+        protected Lexer<AdaTokenId> createLexer(LexerRestartInfo<AdaTokenId> info) {
+            return AdaLexer.create(info);
+        }
+
+        @Override
+        protected String mimeType() {
+            return AdaMimeResolver.ADA_MIME_TYPE;
+        }
+
+        @Override
+        protected LanguageEmbedding<?> embedding(Token<AdaTokenId> token,
+                LanguagePath languagePath, InputAttributes inputAttributes) {
+            return null; // No embedding
+        }
+    }
+
+//    private static final Language<AdaTokenId> language =
+//            new LanguageHierarchy<AdaTokenId>() {
+//
+//                @Override
+//                protected Collection<AdaTokenId> createTokenIds() {
+//                    return EnumSet.allOf(AdaTokenId.class);
+//                }
+//
+//                @Override
+//                protected Map<String, Collection<AdaTokenId>> createTokenCategories() {
+//                    Map<String, Collection<AdaTokenId>> cats = new HashMap<String, Collection<AdaTokenId>>();
+//                    return cats;
+//                }
+//
+//                @Override
+//                protected Lexer<AdaTokenId> createLexer(LexerRestartInfo<AdaTokenId> info) {
+//                    return AdaLexer.create(info);
+//                }
+//
+//                @Override
+//                protected String mimeType() {
+//                    return AdaMimeResolver.ADA_MIME_TYPE;
+//                }
+//
+//                @Override
+//                protected LanguageEmbedding<?> embedding(
+//                        Token<AdaTokenId> token, LanguagePath languagePath,
+//                        InputAttributes inputAttributes) {
+//                    return null; // No embedding
+//                }
+//            }.language();
 
     public static Language<AdaTokenId> language() {
-        return language;
+//        return language;
+        return languageHierarchy.language();
     }
 }

@@ -42,7 +42,9 @@ package org.netbeans.modules.ada.editor.lexer;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.openide.filesystems.FileObject;
 import org.netbeans.api.lexer.Token;
+import org.netbeans.modules.ada.project.api.AdaLanguageOptions;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerRestartInfo;
 import org.netbeans.spi.lexer.TokenFactory;
@@ -54,11 +56,19 @@ import org.netbeans.spi.lexer.TokenFactory;
  */
 public class AdaLexer implements Lexer<AdaTokenId> {
     
-    private final Ada95SyntaxLexer scanner;
+    private final AdaSyntaxLexer scanner;
     private TokenFactory<AdaTokenId> tokenFactory;
     
     private AdaLexer(LexerRestartInfo<AdaTokenId> info) {
-        scanner = new Ada95SyntaxLexer(info);
+        AdaLanguageOptions.AdaVersion adaVersion = AdaLanguageOptions.AdaVersion.ADA_95;
+        
+        FileObject fileObject = (FileObject)info.getAttributeValue(FileObject.class);
+        if (fileObject != null) {
+            AdaLanguageOptions.Properties languageProperties = AdaLanguageOptions.getDefault().getProperties(fileObject);
+            adaVersion = languageProperties.getAdaVersion();
+        }
+
+        scanner = new AdaSyntaxLexer(info, adaVersion);
         tokenFactory = info.tokenFactory();
     }
     
@@ -66,6 +76,7 @@ public class AdaLexer implements Lexer<AdaTokenId> {
         return new AdaLexer(info);
     }
     
+    @Override
     public Token<AdaTokenId> nextToken() {
   
         try {
@@ -82,10 +93,12 @@ public class AdaLexer implements Lexer<AdaTokenId> {
         return null;
     }
 
+    @Override
     public Object state() {
         return scanner.getState();
     }
 
+    @Override
     public void release() {
     }
     

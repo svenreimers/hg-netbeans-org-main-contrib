@@ -43,14 +43,16 @@ import org.netbeans.modules.ada.editor.ast.nodes.Expression;
 import org.netbeans.modules.ada.editor.ast.nodes.FormalParameter;
 import org.netbeans.modules.ada.editor.ast.nodes.Identifier;
 import org.netbeans.modules.ada.editor.ast.nodes.MethodDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.MethodInvocation;
+import org.netbeans.modules.ada.editor.ast.nodes.NameBase;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageBody;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageName;
 import org.netbeans.modules.ada.editor.ast.nodes.PackageSpecification;
-import org.netbeans.modules.ada.editor.ast.nodes.Reference;
-import org.netbeans.modules.ada.editor.ast.nodes.Statement;
 import org.netbeans.modules.ada.editor.ast.nodes.SubprogramBody;
 import org.netbeans.modules.ada.editor.ast.nodes.SubprogramSpecification;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeAccess;
 import org.netbeans.modules.ada.editor.ast.nodes.TypeDeclaration;
+import org.netbeans.modules.ada.editor.ast.nodes.TypeName;
 import org.netbeans.modules.ada.editor.ast.nodes.Variable;
 
 /**
@@ -96,10 +98,10 @@ public class CodeUtils {
         return methodDeclaration.getMethodName();
     }
 
-    @CheckForNull // null for RelectionVariable
+    @CheckForNull
     public static String extractVariableName(Variable var) {
         if (var.getName() instanceof Identifier) {
-            Identifier id = (Identifier) var.getName();
+            Identifier id = var.getName();
             StringBuilder varName = new StringBuilder();
 
             varName.append(id.getName());
@@ -109,14 +111,41 @@ public class CodeUtils {
         return null;
     }
 
-    @CheckForNull // null for RelectionVariable
+    @CheckForNull
     public static String extractTypeName(TypeDeclaration var) {
         if (var.getTypeName() instanceof Identifier) {
-            Identifier id = (Identifier) var.getTypeName();
+            Identifier id = var.getTypeName();
             StringBuilder varName = new StringBuilder();
 
             varName.append(id.getName());
             return varName.toString();
+        }
+
+        return null;
+    }
+
+    @CheckForNull
+    public static String extractTypeName(NameBase type) {
+        if (type instanceof TypeName) {
+            Identifier id = ((TypeName)type).getTypeName();
+            StringBuilder typeName = new StringBuilder();
+            typeName.append(id.getName());
+            return typeName.toString();
+        } else if (type instanceof TypeAccess) {
+            NameBase name = ((TypeAccess) type).getMember();
+            return extractTypeName(name);
+        }
+
+        return null;
+    }
+
+    @CheckForNull
+    public static TypeName extractType(NameBase type) {
+        if (type instanceof TypeName) {
+            return (TypeName)type;
+        } else if (type instanceof TypeAccess) {
+            NameBase name = ((TypeAccess) type).getMember();
+            return extractType(name);
         }
 
         return null;
@@ -126,7 +155,7 @@ public class CodeUtils {
         Variable var = param.getParameterName();
         StringBuilder paramName = new StringBuilder();
 
-		Identifier id = (Identifier) var.getName();
+		Identifier id = var.getName();
 		paramName.append(id.getName());
 
         return paramName.length() == 0 ? null : paramName.toString();

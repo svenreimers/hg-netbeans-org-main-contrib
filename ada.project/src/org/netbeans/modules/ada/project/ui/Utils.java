@@ -122,9 +122,22 @@ public final class Utils {
         return fileObjects;
     }
 
+    /**
+     * Get a Ada project for the given FileObject.
+     * @return a Ada project or <code>null</code>.
+     */
+    public static AdaProject getAdaProject(FileObject fo) {
+        assert fo != null;
+
+        Project project = FileOwnerQuery.getOwner(fo);
+        if (project == null) {
+            return null;
+        }
+        return project.getLookup().lookup(AdaProject.class);
+    }
+
     public static String browseLocationAction(final Component parent, String path, String title) {
         JFileChooser chooser = new JFileChooser();
-        FileUtil.preventFileChooserSymlinkTraversal(chooser, null);
         chooser.setDialogTitle(title);
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (path != null && path.length() > 0) {
@@ -244,6 +257,7 @@ public final class Utils {
             delegate = HtmlRenderer.createRenderer();
         }
 
+        @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             String name;
             if (value instanceof AdaPlatform) {
@@ -267,10 +281,12 @@ public final class Utils {
             super(data, new Object[]{"location", "label"});//NOI18N
         }
 
+        @Override
         public boolean isCellEditable(int row, int column) {
             return column == 1;
         }
 
+        @Override
         public Class getColumnClass(int columnIndex) {
             switch (columnIndex) {
                 case 0:
@@ -331,6 +347,7 @@ public final class Utils {
             }
         }
 
+        @Override
         public void setRelatedEditMediator(final SourceRootsMediator rem) {
             this.relatedEditMediator = (EditMediator) rem;
         }
@@ -338,6 +355,7 @@ public final class Utils {
         // Implementation of ActionListener ------------------------------------
         /** Handles button events
          */
+        @Override
         public void actionPerformed(ActionEvent e) {
 
             Object source = e.getSource();
@@ -346,7 +364,6 @@ public final class Utils {
 
                 // Let user search for the Jar file
                 JFileChooser chooser = new JFileChooser();
-                FileUtil.preventFileChooserSymlinkTraversal(chooser, null);
                 chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 chooser.setMultiSelectionEnabled(true);
                 if (isTest) {
@@ -389,6 +406,7 @@ public final class Utils {
         // Selection listener implementation  ----------------------------------
         /** Handles changes in the selection
          */
+        @Override
         public void valueChanged(ListSelectionEvent e) {
 
             int[] si = rootsList.getSelectedRows();
@@ -413,9 +431,11 @@ public final class Utils {
             downButton.setEnabled(down);
         }
 
+        @Override
         public void editingCanceled(ChangeEvent e) {
         }
 
+        @Override
         public void editingStopped(ChangeEvent e) {
             fireChange();
         }
@@ -445,7 +465,7 @@ public final class Utils {
                     continue;
                 }
                 if ((p = FileOwnerQuery.getOwner(normalizedFile.toURI())) != null && !p.getProjectDirectory().equals(project.getProjectDirectory())) {
-                    final Sources sources = (Sources) p.getLookup().lookup(Sources.class);
+                    final Sources sources = p.getLookup().lookup(Sources.class);
                     if (sources == null) {
                         rootsFromOtherProjects.add(normalizedFile);
                         continue;
@@ -649,6 +669,7 @@ public final class Utils {
                 this.projectConflict = projectConflict;
             }
 
+            @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 File f = (File) value;
                 String message = f.getAbsolutePath();
@@ -675,6 +696,7 @@ public final class Utils {
             this.projectFolder = projectFolder;
         }
 
+        @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             String displayName;
             if (value instanceof File) {

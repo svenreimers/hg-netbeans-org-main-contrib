@@ -1,22 +1,13 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.1" encoding="UTF-8" ?>
 
 <Form version="1.5" maxVersion="1.7" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
-  <NonVisualComponents>
-    <Component class="javax.swing.JLabel" name="jLabel6">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/netbeans/modules/ada/platform/ui/Bundle.properties" key="PlatformsCustomizer.jLabel6.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
-  </NonVisualComponents>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
     <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="true"/>
-    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="2"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
@@ -28,18 +19,18 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="makeDefaultButton" alignment="0" pref="130" max="32767" attributes="0"/>
-                  <Component id="autoDetectButton" alignment="0" pref="130" max="32767" attributes="1"/>
+                  <Component id="makeDefaultButton" alignment="0" pref="168" max="32767" attributes="0"/>
+                  <Component id="autoDetectButton" alignment="0" pref="168" max="32767" attributes="1"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="newButton" max="32767" attributes="0"/>
+                      <Component id="newButton" pref="73" max="32767" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="removeButton" max="32767" attributes="0"/>
+                      <Component id="removeButton" pref="89" max="32767" attributes="0"/>
                   </Group>
                   <Component id="paltformsListTitleLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="platformsListScrollPanel" alignment="0" pref="130" max="32767" attributes="2"/>
+                  <Component id="platformsListScrollPanel" alignment="0" min="-2" pref="168" max="-2" attributes="2"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="tabbedPane" pref="512" max="32767" attributes="0"/>
+              <Component id="tabbedPane" pref="474" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -52,9 +43,9 @@
                   <Component id="tabbedPane" alignment="0" pref="321" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="paltformsListTitleLabel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="platformsListScrollPanel" pref="214" max="32767" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="removeButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="newButton" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -148,43 +139,37 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
+                  <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="compilerCommandLabel" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="1" attributes="0">
+                                  <Component id="otherInfoLabel" min="-2" pref="91" max="-2" attributes="0"/>
+                                  <Group type="103" alignment="1" groupAlignment="0" attributes="0">
+                                      <Component id="compilerCommandLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Component id="platfromNameLabel" alignment="1" min="-2" pref="91" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
-                              <Group type="102" alignment="1" attributes="0">
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="platfromNameLabel" min="-2" pref="91" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="compilerCommand" pref="324" max="32767" attributes="0"/>
+                                  <Component id="platformName" alignment="0" pref="324" max="32767" attributes="0"/>
+                                  <Component id="platformInfoTextField" alignment="1" pref="324" max="32767" attributes="0"/>
                               </Group>
-                          </Group>
-                          <Group type="102" attributes="0">
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="otherInfoLabel" min="-2" pref="91" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="compilerCommand" pref="392" max="32767" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="1" attributes="0">
-                              <Group type="103" groupAlignment="1" attributes="0">
-                                  <Component id="platformName" alignment="0" pref="392" max="32767" attributes="0"/>
-                                  <Component id="platformInfoTextField" alignment="1" pref="392" max="32767" attributes="0"/>
-                              </Group>
+                              <EmptySpace pref="192" max="32767" attributes="0"/>
+                              <Component id="autoDetectLabel" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="5" pref="5" max="5" attributes="0"/>
+                              <Component id="autoDetectProgress" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
+                              <Component id="jvmCompilerCommandLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jvmCompilerCommand" pref="323" max="32767" attributes="0"/>
                           </Group>
                       </Group>
-                  </Group>
-                  <Group type="102" alignment="1" attributes="0">
-                      <EmptySpace pref="230" max="32767" attributes="0"/>
-                      <Component id="autoDetectLabel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="5" pref="5" max="5" attributes="0"/>
-                      <Component id="autoDetectProgress" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -207,7 +192,12 @@
                           <Component id="compilerCommandLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="compilerCommand" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="175" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="jvmCompilerCommand" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jvmCompilerCommandLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace pref="144" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="autoDetectLabel" min="-2" max="-2" attributes="0"/>
                           <Component id="autoDetectProgress" min="-2" max="-2" attributes="0"/>
@@ -277,6 +267,22 @@
                 <Property name="indeterminate" type="boolean" value="true"/>
               </Properties>
             </Component>
+            <Component class="javax.swing.JTextField" name="jvmCompilerCommand">
+              <Properties>
+                <Property name="editable" type="boolean" value="false"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/netbeans/modules/ada/platform/ui/Bundle.properties" key="PlatformsCustomizer.jvmCompilerCommand.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jvmCompilerCommandLabel">
+              <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/netbeans/modules/ada/platform/ui/Bundle.properties" key="PlatformsCustomizer.jvmCompilerCommandLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+              </Properties>
+            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="adaPathPanel">
@@ -297,7 +303,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
-                              <Component id="jScrollPane2" pref="392" max="32767" attributes="0"/>
+                              <Component id="jScrollPane2" pref="354" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="moveDownPath" max="32767" attributes="0"/>

@@ -36,44 +36,45 @@
  *
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
+package org.netbeans.modules.ada.project.options.ui;
 
-package org.netbeans.modules.ada.project.options;
-
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import org.jdesktop.layout.GroupLayout;
-import org.jdesktop.layout.LayoutStyle;
 import org.netbeans.modules.ada.project.ui.properties.AdaProjectProperties;
 import org.openide.awt.Mnemonics;
 import org.openide.util.ChangeSupport;
+import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
 /**
  * @author  Andrea Lucarelli
  */
-public class AdaGeneralOptionsPanel extends JPanel {
+public final class AdaGeneralOptionsPanel extends JPanel implements ChangeListener, HelpCtx.Provider {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
     private final AdaProjectProperties uiProperties;
+    private static final String UI_NONE = "<none>"; // NOI18N
+    private static final String OPT_NONE = ""; // NOI18N
+    private static final String UI_PACKAGE_NAME = "<package name>"; // NOI18N
+    private static final String UI_PROCEDURE_NAME = "<procedure name>"; // NOI18N
 
     public AdaGeneralOptionsPanel(final AdaProjectProperties uiProperties) {
         this.uiProperties = uiProperties;
         initComponents();
         errorLabel.setText(" "); // NOI18N
 
-        // listeners
-        //DocumentListener documentListener = new DefaultDocumentListener();
         if (uiProperties != null) {
             setAdaDialects(uiProperties.getAdaDialects());
             setAdaRestrictions(uiProperties.getAdaRestrictions());
@@ -86,17 +87,44 @@ public class AdaGeneralOptionsPanel extends JPanel {
             setPkgSpecExt(uiProperties.getPkgSpecExt());
             setPkgBodyExt(uiProperties.getPkgBodyExt());
             setSeparateExt(uiProperties.getSeparateExt());
+
+            this.addChangeListener(this);
         }
     }
 
     public String getAdaDialects() {
+        String value = OPT_NONE;
         if (adaDialectsComboBox.getSelectedItem() != null) {
-            return adaDialectsComboBox.getSelectedItem().toString();
+            value = adaDialectsComboBox.getSelectedItem().toString();
+            if (value.equalsIgnoreCase("Ada 83")) {
+                value = "ADA_83";
+            }
+            else if(value.equalsIgnoreCase("Ada 95")) {
+                value = "ADA_95";
+            }
+            else if(value.equalsIgnoreCase("Ada 2005")) {
+                value = "ADA_2005";
+            }
+            else if(value.equalsIgnoreCase("Ada 2012")) {
+                value = "ADA_2012";
+            }
         }
-        return "";
+        return value;
     }
 
     public void setAdaDialects(String adaDialects) {
+        if (adaDialects.equalsIgnoreCase("ADA_83")) {
+            adaDialects = "Ada 83";
+        }
+        else if(adaDialects.equalsIgnoreCase("ADA_95")) {
+            adaDialects = "Ada 95";
+        }
+        else if(adaDialects.equalsIgnoreCase("ADA_2005")) {
+            adaDialects = "Ada 2005";
+        }
+        else if(adaDialects.equalsIgnoreCase("ADA_2012")) {
+            adaDialects = "Ada 2012";
+        }
         adaDialectsComboBox.setSelectedItem(adaDialects);
     }
 
@@ -104,7 +132,7 @@ public class AdaGeneralOptionsPanel extends JPanel {
         if (adaRestrictionsComboBox.getSelectedItem() != null) {
             return adaRestrictionsComboBox.getSelectedItem().toString();
         }
-        return "";
+        return OPT_NONE;
     }
 
     public void setAdaRestrictions(String adaRestrictions) {
@@ -136,12 +164,16 @@ public class AdaGeneralOptionsPanel extends JPanel {
     }
 
     public String getPkgSpecPostfix() {
-        return pkgSpecPostfixComboBox.getSelectedItem().toString();
+        String pkgSpecPostfix = pkgSpecPostfixComboBox.getSelectedItem().toString();
+        if (pkgSpecPostfix.equalsIgnoreCase(UI_NONE)) {
+            pkgSpecPostfix = OPT_NONE;
+        }
+        return pkgSpecPostfix;
     }
 
     public void setPkgSpecPostfix(String pkgSpecPostfix) {
-        if (pkgSpecPostfix.equalsIgnoreCase("<none>")) {
-            pkgSpecPostfixComboBox.setSelectedItem(pkgSpecPostfix);
+        if (pkgSpecPostfix.equalsIgnoreCase(OPT_NONE)) {
+            pkgSpecPostfixComboBox.setSelectedItem(UI_NONE);
         } else {
             pkgSpecPostfixComboBox.setEditable(true);
             pkgSpecPostfixComboBox.addItem(pkgSpecPostfix);
@@ -150,12 +182,16 @@ public class AdaGeneralOptionsPanel extends JPanel {
     }
 
     public String getPkgBodyPostfix() {
-        return pkgBodyPostfixComboBox.getSelectedItem().toString();
+        String pkgBodyPostfix = pkgBodyPostfixComboBox.getSelectedItem().toString();
+        if (pkgBodyPostfix.equalsIgnoreCase(UI_NONE)) {
+            pkgBodyPostfix = OPT_NONE;
+        }
+        return pkgBodyPostfix;
     }
 
     public void setPkgBodyPostfix(String pkgBodyPostfix) {
-        if (pkgBodyPostfix.equalsIgnoreCase("<none>")) {
-            pkgBodyPostfixComboBox.setSelectedItem(pkgBodyPostfix);
+        if (pkgBodyPostfix.equalsIgnoreCase(OPT_NONE)) {
+            pkgBodyPostfixComboBox.setSelectedItem(UI_NONE);
         } else {
             pkgBodyPostfixComboBox.setEditable(true);
             pkgBodyPostfixComboBox.addItem(pkgBodyPostfix);
@@ -269,7 +305,7 @@ public class AdaGeneralOptionsPanel extends JPanel {
         Mnemonics.setLocalizedText(namingLabel, NbBundle.getMessage(AdaGeneralOptionsPanel.class, "LBL_Naming"));
         Mnemonics.setLocalizedText(errorLabel, "ERROR");
         Mnemonics.setLocalizedText(adaRestrictionsLabel, NbBundle.getMessage(AdaGeneralOptionsPanel.class, "LBL_adaRestrictions"));
-        adaDialectsComboBox.setModel(new DefaultComboBoxModel(new String[] { "Ada 83", "Ada 95", "Ada 2005" }));
+        adaDialectsComboBox.setModel(new DefaultComboBoxModel(new String[] { "Ada 83", "Ada 95", "Ada 2005", "Ada 2012" }));
         adaDialectsComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 adaDialectsComboBoxActionPerformed(evt);
@@ -350,131 +386,145 @@ public class AdaGeneralOptionsPanel extends JPanel {
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(layout.createParallelGroup(GroupLayout.LEADING)
-                            .add(layout.createSequentialGroup()
-                                .add(standardsLabel)
-                                .addPreferredGap(LayoutStyle.RELATED)
-                                .add(standardsLineSeparator, GroupLayout.DEFAULT_SIZE, 572, Short.MAX_VALUE))
-                            .add(errorLabel)
-                            .add(layout.createSequentialGroup()
-                                .add(12, 12, 12)
-                                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                                    .add(adaRestrictionsLabel)
-                                    .add(adaDialectsLabel, GroupLayout.PREFERRED_SIZE, 63, GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(LayoutStyle.UNRELATED)
-                                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                                    .add(adaRestrictionsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                    .add(adaDialectsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                .add(373, 373, 373))))
-                    .add(layout.createSequentialGroup()
-                        .add(20, 20, 20)
-                        .add(layout.createParallelGroup(GroupLayout.TRAILING, false)
-                            .add(GroupLayout.LEADING, pkgBodyMaskLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(GroupLayout.LEADING, pkgSpecMaskLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(GroupLayout.LEADING, separatorMaskLabel, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(LayoutStyle.UNRELATED)
-                        .add(layout.createParallelGroup(GroupLayout.LEADING)
-                            .add(layout.createParallelGroup(GroupLayout.TRAILING)
-                                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                                    .add(pkgSpecPrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                    .add(pkgBodyPrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                .add(prefixTitleLabel))
-                            .add(separatePrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(GroupLayout.TRAILING)
-                            .add(separatorTitleLabel)
-                            .add(pkgSpecSepTextField, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
-                            .add(pkgBodySepTextField, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
-                            .add(separateSepTextField, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(GroupLayout.LEADING, false)
-                            .add(pkgBodyPostfixComboBox, 0, 110, Short.MAX_VALUE)
-                            .add(separatePostfixComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(pkgSpecPostfixComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(GroupLayout.TRAILING, postfixTitleLabel))
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(GroupLayout.LEADING, false)
-                            .add(separateExtComboBox, 0, 0, Short.MAX_VALUE)
-                            .add(pkgBodyExtComboBox, 0, 0, Short.MAX_VALUE)
-                            .add(pkgSpecExtComboBox, 0, 0, Short.MAX_VALUE)
-                            .add(layout.createSequentialGroup()
-                                .add(41, 41, 41)
-                                .add(extTitleLabel))))
-                    .add(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(namingLabel)
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(namingLineSeparator, GroupLayout.DEFAULT_SIZE, 586, Short.MAX_VALUE)))
-                .addContainerGap())
+            layout.createParallelGroup(Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(standardsLabel)
+                        .addGap(4, 4, 4)
+                        .addComponent(standardsLineSeparator, GroupLayout.PREFERRED_SIZE, 572, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(namingLabel)
+                        .addGap(4, 4, 4)
+                        .addComponent(namingLineSeparator, GroupLayout.PREFERRED_SIZE, 586, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addComponent(pkgBodyMaskLabel, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(pkgBodyPrefixComboBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(pkgBodySepTextField, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(pkgBodyPostfixComboBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(pkgBodyExtComboBox, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addComponent(separatorMaskLabel, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(separatePrefixComboBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(separateSepTextField, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(separatePostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(separateExtComboBox, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(errorLabel))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(22, 22, 22)
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                            .addComponent(adaRestrictionsLabel)
+                            .addComponent(adaDialectsLabel, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                            .addComponent(adaDialectsComboBox, GroupLayout.PREFERRED_SIZE, 87, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(adaRestrictionsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(prefixTitleLabel)
+                                .addGap(18, 18, 18)
+                                .addComponent(separatorTitleLabel))
+                            .addGroup(Alignment.LEADING, layout.createSequentialGroup()
+                                .addGap(20, 20, 20)
+                                .addComponent(pkgSpecMaskLabel, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
+                                .addGap(10, 10, 10)
+                                .addComponent(pkgSpecPrefixComboBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
+                                .addGap(6, 6, 6)
+                                .addComponent(pkgSpecSepTextField, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(pkgSpecPostfixComboBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE))
+                            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(92, 92, 92)
+                                .addComponent(postfixTitleLabel)))
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(pkgSpecExtComboBox, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE))
+                            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(101, 101, 101)
+                                .addComponent(extTitleLabel)))))
+                .addGap(46, 46, 46))
         );
-
-        layout.linkSize(new Component[] {adaDialectsLabel, adaRestrictionsLabel}, GroupLayout.HORIZONTAL);
-
-        layout.linkSize(new Component[] {adaDialectsComboBox, adaRestrictionsComboBox}, GroupLayout.HORIZONTAL);
-
-        layout.linkSize(new Component[] {pkgBodyMaskLabel, pkgSpecMaskLabel, separatorMaskLabel}, GroupLayout.HORIZONTAL);
-
-        layout.linkSize(new Component[] {pkgBodySepTextField, pkgSpecSepTextField, separateSepTextField}, GroupLayout.HORIZONTAL);
-
-        layout.linkSize(new Component[] {pkgBodyPostfixComboBox, pkgBodyPrefixComboBox, pkgSpecPostfixComboBox, pkgSpecPrefixComboBox, separatePostfixComboBox, separatePrefixComboBox}, GroupLayout.HORIZONTAL);
-
         layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(GroupLayout.CENTER)
-                    .add(standardsLineSeparator, GroupLayout.PREFERRED_SIZE, 12, GroupLayout.PREFERRED_SIZE)
-                    .add(standardsLabel))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.CENTER)
-                    .add(adaDialectsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(adaDialectsLabel))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.CENTER)
-                    .add(adaRestrictionsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(adaRestrictionsLabel))
-                .add(18, 18, 18)
-                .add(layout.createParallelGroup(GroupLayout.CENTER)
-                    .add(namingLineSeparator, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
-                    .add(namingLabel))
-                .add(1, 1, 1)
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(layout.createParallelGroup(GroupLayout.BASELINE)
-                        .add(prefixTitleLabel)
-                        .add(separatorTitleLabel))
-                    .add(extTitleLabel)
-                    .add(postfixTitleLabel))
-                .add(4, 4, 4)
-                .add(layout.createParallelGroup(GroupLayout.CENTER)
-                    .add(pkgSpecMaskLabel)
-                    .add(pkgSpecPrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(pkgSpecSepTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(pkgSpecPostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(pkgSpecExtComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(layout.createParallelGroup(GroupLayout.CENTER)
-                        .add(pkgBodyPrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .add(pkgBodyMaskLabel))
-                    .add(pkgBodyExtComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(layout.createParallelGroup(GroupLayout.BASELINE)
-                        .add(pkgBodyPostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .add(pkgBodySepTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.CENTER)
-                    .add(separatorMaskLabel)
-                    .add(separatePrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(separateSepTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(separatePostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(separateExtComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED, 150, Short.MAX_VALUE)
-                .add(errorLabel)
-                .addContainerGap())
+            layout.createParallelGroup(Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(11, 11, 11)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(standardsLabel)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(standardsLineSeparator, GroupLayout.PREFERRED_SIZE, 12, GroupLayout.PREFERRED_SIZE)))
+                .addGap(9, 9, 9)
+                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                    .addComponent(adaDialectsLabel)
+                    .addComponent(adaDialectsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(9, 9, 9)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(3, 3, 3)
+                        .addComponent(adaRestrictionsLabel))
+                    .addComponent(adaRestrictionsComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(namingLabel)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(2, 2, 2)
+                        .addComponent(namingLineSeparator, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)))
+                .addGap(1, 1, 1)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(separatorTitleLabel)
+                        .addComponent(prefixTitleLabel))
+                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(extTitleLabel)
+                        .addComponent(postfixTitleLabel)))
+                .addGap(4, 4, 4)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(3, 3, 3)
+                        .addComponent(pkgSpecMaskLabel))
+                    .addComponent(pkgSpecPrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pkgSpecSepTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pkgSpecPostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pkgSpecExtComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(3, 3, 3)
+                        .addComponent(pkgBodyMaskLabel))
+                    .addComponent(pkgBodyPrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pkgBodySepTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pkgBodyPostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pkgBodyExtComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(3, 3, 3)
+                        .addComponent(separatorMaskLabel))
+                    .addComponent(separatePrefixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separateSepTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separatePostfixComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separateExtComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(150, 150, 150)
+                .addComponent(errorLabel))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -491,8 +541,10 @@ public class AdaGeneralOptionsPanel extends JPanel {
     }//GEN-LAST:event_adaRestrictionsComboBoxActionPerformed
 
     private void pkgSpecPostfixComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_pkgSpecPostfixComboBoxActionPerformed
+        fireChange();
         if (pkgSpecPostfixComboBox.getSelectedIndex() != 0) {
             pkgSpecPostfixComboBox.setEditable(true);
+            pkgSpecPostfixComboBox.getEditor().selectAll();
         } else {
             pkgSpecPostfixComboBox.setEditable(false);
         }
@@ -502,8 +554,10 @@ public class AdaGeneralOptionsPanel extends JPanel {
     }//GEN-LAST:event_pkgSpecPostfixComboBoxActionPerformed
 
     private void pkgBodyPostfixComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_pkgBodyPostfixComboBoxActionPerformed
+        fireChange();
         if (pkgBodyPostfixComboBox.getSelectedIndex() != 0) {
             pkgBodyPostfixComboBox.setEditable(true);
+            pkgBodyPostfixComboBox.getEditor().selectAll();
         } else {
             pkgBodyPostfixComboBox.setEditable(false);
         }
@@ -522,12 +576,14 @@ public class AdaGeneralOptionsPanel extends JPanel {
         if (this.uiProperties != null) {
             this.uiProperties.setPkgSpecExt(getPkgSpecExt());
         }
+        fireChange();
     }//GEN-LAST:event_pkgSpecExtComboBoxActionPerformed
 
     private void pkgBodyExtComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_pkgBodyExtComboBoxActionPerformed
         if (this.uiProperties != null) {
             this.uiProperties.setPkgBodyExt(getPkgBodyExt());
         }
+        fireChange();
     }//GEN-LAST:event_pkgBodyExtComboBoxActionPerformed
 
     private void separateExtComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_separateExtComboBoxActionPerformed
@@ -535,8 +591,6 @@ public class AdaGeneralOptionsPanel extends JPanel {
             this.uiProperties.setSeparateExt(getSeparateExt());
         }
     }//GEN-LAST:event_separateExtComboBoxActionPerformed
-
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JComboBox adaDialectsComboBox;
     private JLabel adaDialectsLabel;
@@ -568,22 +622,24 @@ public class AdaGeneralOptionsPanel extends JPanel {
     private JSeparator standardsLineSeparator;
     // End of variables declaration//GEN-END:variables
 
-    private final class DefaultDocumentListener implements DocumentListener {
+    public void stateChanged(ChangeEvent e) {
+        // errors
+        String postfixSpec = this.getPkgSpecPostfix();
+        String postfixBody = this.getPkgBodyPostfix();
+        String specExt = this.getPkgSpecExt();
+        String bodyExt = this.getPkgBodyExt();
 
-        public void insertUpdate(DocumentEvent e) {
-            processUpdate();
-        }
+        // everything ok
+        this.setError(" "); // NOI18N
 
-        public void removeUpdate(DocumentEvent e) {
-            processUpdate();
+        if (specExt.equalsIgnoreCase(bodyExt)) {
+            if (postfixSpec.equalsIgnoreCase(postfixBody)) {
+                this.setError(NbBundle.getMessage(AdaGeneralOptionsPanel.class, "MSG_ExtetionsError"));
+            }
         }
+    }
 
-        public void changedUpdate(DocumentEvent e) {
-            processUpdate();
-        }
-
-        private void processUpdate() {
-            fireChange();
-        }
+    public HelpCtx getHelpCtx() {
+        return new HelpCtx(this.getClass());
     }
 }

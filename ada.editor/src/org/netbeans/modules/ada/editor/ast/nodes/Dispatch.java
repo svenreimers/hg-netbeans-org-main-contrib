@@ -45,11 +45,11 @@ package org.netbeans.modules.ada.editor.ast.nodes;
  * MyPackage.foo,
  * MyPackage.foo(bar : in bar_type)
  */
-public abstract class Dispatch extends VariableBase {
+public abstract class Dispatch extends NameBase {
 
-    private VariableBase dispatcher;
+    private NameBase dispatcher;
 
-    public Dispatch(int start, int end, VariableBase dispatcher) {
+    public Dispatch(int start, int end, NameBase dispatcher) {
         super(start, end);
         this.dispatcher = dispatcher;
     }
@@ -59,7 +59,7 @@ public abstract class Dispatch extends VariableBase {
      * 
      * @return dispatcher component of this dispatch expression 
      */
-    public VariableBase getDispatcher() {
+    public NameBase getDispatcher() {
         return dispatcher;
     }
 }

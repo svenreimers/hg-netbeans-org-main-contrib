@@ -51,16 +51,17 @@ import org.openide.util.Utilities;
  */
 public class AdaAutoDetector {
 
-    private Logger LOGGER = Logger.getLogger(AdaAutoDetector.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AdaAutoDetector.class.getName());
     private ArrayList<String> matches = new ArrayList<String>();
     private boolean searchNestedDirectoies = true;
-    
-	private void processAction(File dir, String tool) {
+
+    private void processAction(File dir, String tool) {
         //LOGGER.setLevel(Level.FINE);
-        LOGGER.fine("Inspecting: " + dir.getAbsolutePath());
+        LOGGER.log(Level.FINE, "Inspecting: {0}", dir.getAbsolutePath());
+        
         if (dir.isFile()) {
             int pos = dir.getName().indexOf(".");
-            String name = null;
+            String name;
             if (pos > -1) {
                 name = dir.getName().substring(0, pos);
             } else {
@@ -68,21 +69,36 @@ public class AdaAutoDetector {
             }
             if (name.equalsIgnoreCase(tool)) {
                 matches.add(dir.getParent());
-                LOGGER.fine("Match: " + dir.getAbsolutePath());
+                LOGGER.log(Level.FINE, "Match: {0}", dir.getAbsolutePath());
             }
         }
+        
         if (dir.isDirectory()) {
             if (Utilities.isWindows()) {
-                if ((dir.getName().toLowerCase().contains("mingw")) ||
-                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("mingw")) ||
-                    (dir.getName().toLowerCase().contains("cygwin")) ||
-                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("cygwin")) ||
-                    (dir.getName().toLowerCase().contains("gnat")) ||
-                    (dir.getName().toLowerCase().contains("2007") && dir.getPath().toLowerCase().contains("gnat")) ||
-                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat")) ||
-                    (dir.getName().toLowerCase().contains("gnat")) ||
-                    (dir.getName().toLowerCase().contains("2008") && dir.getPath().toLowerCase().contains("gnat")) ||
-                    (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))) {
+                if ((dir.getName().toLowerCase().contains("mingw"))
+                       ||  (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("mingw"))
+                        || (dir.getName().toLowerCase().contains("cygwin"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("cygwin"))
+                        || (dir.getName().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("2007") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("2008") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("2009") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("2010") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("2011") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))                        
+                        || (dir.getName().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("2012") && dir.getPath().toLowerCase().contains("gnat"))
+                        || (dir.getName().toLowerCase().contains("bin") && dir.getPath().toLowerCase().contains("gnat"))                        
+                        ) 
+                        {
                     String[] children = dir.list();
                     if (children != null) {
                         for (int i = 0; i < children.length; i++) {

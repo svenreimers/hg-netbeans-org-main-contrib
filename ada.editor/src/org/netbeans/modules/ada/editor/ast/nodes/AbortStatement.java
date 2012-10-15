@@ -52,9 +52,9 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class AbortStatement extends Statement {
     
-    private final ArrayList<Identifier> tasks = new ArrayList<Identifier>();
+    private final ArrayList<TaskName> tasks = new ArrayList<TaskName>();
 
-    public AbortStatement(int start, int end, List<Identifier> tasks) {
+    public AbortStatement(int start, int end, List<TaskName> tasks) {
         super(start, end);
 
         this.tasks.addAll(tasks);
@@ -66,7 +66,7 @@ public class AbortStatement extends Statement {
      * 
      * @return the list of packages node
      */
-    public List<Identifier> getTasks() {
+    public List<TaskName> getTasks() {
         return tasks;
     }
 

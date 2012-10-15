@@ -59,7 +59,7 @@ public class Reference extends Expression {
         this.expression = expression;
     }
 
-    public Reference(int start, int end, VariableBase variable) {
+    public Reference(int start, int end, NameBase variable) {
         this(start, end, (Expression)variable);
     }
 

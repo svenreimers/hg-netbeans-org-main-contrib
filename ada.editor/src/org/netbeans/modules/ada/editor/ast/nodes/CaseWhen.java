@@ -39,6 +39,7 @@
 package org.netbeans.modules.ada.editor.ast.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
 
@@ -63,16 +64,13 @@ public class CaseWhen extends Statement {
         }
 
         this.value = value;
-
-        for (Statement statement : actions) {
-            this.actions.add(statement);
-        }
+        this.actions.addAll(Arrays.asList(actions));
 
         this.isDefault = (value == null) ? true : false;
     }
 
     public CaseWhen(int start, int end, Expression value, List<Statement> actions) {
-        this(start, end, value, actions == null ? null : (Statement[]) actions.toArray(new Statement[actions.size()]));
+        this(start, end, value, actions == null ? null : actions.toArray(new Statement[actions.size()]));
     }
 
     /**

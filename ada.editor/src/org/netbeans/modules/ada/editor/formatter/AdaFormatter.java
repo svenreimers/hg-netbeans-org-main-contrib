@@ -449,7 +449,7 @@ public class AdaFormatter implements Formatter {
                     try {
                         // Iterate in reverse order such that offsets are not affected by our edits
                         assert indents.size() == offsets.size();
-                        org.netbeans.editor.Formatter editorFormatter = null;
+                        //org.netbeans.editor.Formatter editorFormatter = null;
                         for (int i = indents.size() - 1; i >= 0; i--) {
                             int indent = indents.get(i);
                             int lineBegin = offsets.get(i);
@@ -489,10 +489,10 @@ public class AdaFormatter implements Formatter {
                                     assert lineBegin == Utilities.getRowStart(doc, lineBegin);
                                     context.modifyIndent(lineBegin, indent);
                                 } else {
-                                    if (editorFormatter == null) {
-                                         editorFormatter = doc.getFormatter();
-                                    }
-                                    editorFormatter.changeRowIndent(doc, lineBegin, indent);
+//                                    if (editorFormatter == null) {
+//                                         editorFormatter = doc.getFormatter();
+//                                    }
+//                                    editorFormatter.changeRowIndent(doc, lineBegin, indent);
                                 }
                             }
                         }

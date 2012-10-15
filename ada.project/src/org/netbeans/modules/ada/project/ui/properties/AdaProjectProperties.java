@@ -77,6 +77,10 @@ public class AdaProjectProperties {
     public static final String ACTIVE_PLATFORM = "platform.active"; //NOI18N
     public static final String ADA_LIB_PATH = "ada.lib.path"; //NOI18N
     public static final String SOURCE_ENCODING = "source.encoding"; //NOI18N
+    public static final String OUTPUT_BUILD_FORMAT = "output.build.format"; //NOI18N
+
+    public static final String NATIVE_FORMAT = "NATIVE_FORMAT"; //NOI18N
+    public static final String JVM_FORMAT = "JVM_FORMAT"; //NOI18N
 
     private final AdaProject project;
     private final PropertyEvaluator eval;
@@ -89,6 +93,7 @@ public class AdaProjectProperties {
     private volatile ArrayList<String> librariesPath;
 
     private volatile String activePlatformId;
+    private volatile String outputBuildFormat;
     private volatile String adaDialects;
     private volatile String adaRestrictions;
     private volatile String pkgSpecPrefix;
@@ -217,6 +222,17 @@ public class AdaProjectProperties {
         this.activePlatformId = activePlatformId;
     }
 
+    public String getOutputBuildFormat() {
+        if (outputBuildFormat == null) {
+            outputBuildFormat = eval.getProperty(OUTPUT_BUILD_FORMAT);
+        }
+        return outputBuildFormat;
+    }
+
+    public void setOutputBuildFormat(String outputBuildFormat) {
+        this.outputBuildFormat = outputBuildFormat;
+    }
+
     // Storing
     void save() {
         try {
@@ -269,6 +285,10 @@ public class AdaProjectProperties {
 
         if (activePlatformId != null) {
             projectProperties.put(ACTIVE_PLATFORM, activePlatformId);
+        }
+
+        if (outputBuildFormat != null) {
+            projectProperties.put(OUTPUT_BUILD_FORMAT, outputBuildFormat);
         }
 
         if (adaDialects != null) {

@@ -39,6 +39,7 @@
 package org.netbeans.modules.ada.editor.ast.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
 
@@ -66,18 +67,16 @@ public class SubprogramSpecification extends Statement {
         super(start, end);
 
         this.subprogramName = subprogramName;
-        for (FormalParameter formalParameter : formalParameters) {
-            this.formalParameters.add(formalParameter);
-        }
+        this.formalParameters.addAll(Arrays.asList(formalParameters));
         this.subtypeReturn = subtypeReturn;
     }
 
     public SubprogramSpecification(int start, int end, Identifier subprogramName, List<FormalParameter> formalParameters) {
-        this(start, end, subprogramName, (FormalParameter[]) formalParameters.toArray(new FormalParameter[formalParameters.size()]), null);
+        this(start, end, subprogramName, formalParameters.toArray(new FormalParameter[formalParameters.size()]), null);
     }
 
     public SubprogramSpecification(int start, int end, Identifier subprogramName, List<FormalParameter> formalParameters, Identifier subtypeReturn) {
-        this(start, end, subprogramName, (FormalParameter[]) formalParameters.toArray(new FormalParameter[formalParameters.size()]), subtypeReturn);
+        this(start, end, subprogramName, formalParameters.toArray(new FormalParameter[formalParameters.size()]), subtypeReturn);
     }
 
     public SubprogramSpecification(int start, int end, Identifier subprogramName) {

@@ -48,8 +48,9 @@ import org.netbeans.modules.csl.api.Modifier;
 import org.openide.filesystems.FileObject;
 
 /**
+ * Based on org.netbeans.modules.php.editor.index (Tor Norbye)
  *
- * @author Tor Norbye
+ * @author Andrea Lucarelli
  */
 public abstract class AdaElement implements Element {
     public abstract String getName();

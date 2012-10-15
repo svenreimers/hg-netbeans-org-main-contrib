@@ -39,10 +39,8 @@
 
 package org.netbeans.modules.ada.project.options;
 
-import org.netbeans.modules.ada.project.options.AdaPreferences;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
-import org.openide.util.NbPreferences;
 
 /**
  *
@@ -57,8 +55,8 @@ public final class AdaOptions {
     public static final String DEFAULT_PKG_SPEC_PREFIX = "<package name>"; // NOI18N
     public static final String DEFAULT_PKG_BODY_PREFIX = "<package name>"; // NOI18N
     public static final String DEFAULT_SEPARATE_PREFIX = "<package name>"; // NOI18N
-    public static final String DEFAULT_PKG_SPEC_POSTFIX = "<none>"; // NOI18N
-    public static final String DEFAULT_PKG_BODY_POSTFIX = "<none>"; // NOI18N
+    public static final String DEFAULT_PKG_SPEC_POSTFIX = ""; // NOI18N
+    public static final String DEFAULT_PKG_BODY_POSTFIX = ""; // NOI18N
     public static final String DEFAULT_SEPARATE_POSTFIX = "<procdure name>"; // NOI18N
     public static final String DEFAULT_PKG_SPEC_EXT = "ads"; // NOI18N
     public static final String DEFAULT_PKG_BODY_EXT = "adb"; // NOI18N

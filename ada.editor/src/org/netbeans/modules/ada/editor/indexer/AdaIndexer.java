@@ -237,7 +237,7 @@ public final class AdaIndexer extends EmbeddingIndexer {
     private static void indexFieldsDeclaration(FieldsDeclaration fieldsDeclaration, IndexDocument document) {
         for (SingleFieldDeclaration field : fieldsDeclaration.getFields()) {
             if (field.getName().getName() instanceof Identifier) {
-                Identifier identifier = (Identifier) field.getName().getName();
+                Identifier identifier = field.getName().getName();
                 String signature = createFieldsDeclarationRecord(identifier.getName(), field.getStartOffset());
                 document.addPair(FIELD_FIELD, signature, false, true);
             }
@@ -246,15 +246,15 @@ public final class AdaIndexer extends EmbeddingIndexer {
 
     private static String createFieldsDeclarationRecord(String name, int offset) {
         StringBuilder fieldSignature = new StringBuilder();
-        fieldSignature.append(name + ";"); //NOI18N
-        fieldSignature.append(offset + ";"); //NOI18N
+        fieldSignature.append(name).append(";"); //NOI18N
+        fieldSignature.append(offset).append(";"); //NOI18N
         fieldSignature.append(";"); //NOI18N
         return fieldSignature.toString();
     }
 
     private static void indexTypeDeclaration(TypeDeclaration typeDeclaration, IndexDocument document) {
         if (typeDeclaration.getTypeName() instanceof Identifier) {
-            Identifier identifier = (Identifier) typeDeclaration.getTypeName();
+            Identifier identifier = typeDeclaration.getTypeName();
             String signature = createTypeDeclarationRecord(identifier.getName(), typeDeclaration.getStartOffset());
             document.addPair(FIELD_FIELD, signature, false, true);
         }
@@ -430,7 +430,7 @@ public final class AdaIndexer extends EmbeddingIndexer {
             // create a new document for each class
             IndexDocument pkgDocument = support.createDocument(indexable);
             documents.add(pkgDocument);
-            indexPkgSpec((PackageSpecification) node, pkgDocument, root);
+            indexPkgSpec(node, pkgDocument, root);
             List<IdentifierSignature> idSignatures = new ArrayList<IdentifierSignature>();
             for (IdentifierSignature idSign : idSignatures) {
                 identifierDocument.addPair(FIELD_IDENTIFIER_DECLARATION, idSign.getSignature(), true, true);
@@ -443,7 +443,7 @@ public final class AdaIndexer extends EmbeddingIndexer {
             // create a new document for each class
             IndexDocument pkgDocument = support.createDocument(indexable);
             documents.add(pkgDocument);
-            indexPkgBody((PackageBody) node, pkgDocument);
+            indexPkgBody(node, pkgDocument);
             List<IdentifierSignature> idSignatures = new ArrayList<IdentifierSignature>();
             for (IdentifierSignature idSign : idSignatures) {
                 identifierDocument.addPair(FIELD_IDENTIFIER_DECLARATION, idSign.getSignature(), true, true);
@@ -458,7 +458,7 @@ public final class AdaIndexer extends EmbeddingIndexer {
                 return;
             }
 
-            indexSubprogSpec((SubprogramSpecification) node, defaultDocument, root);
+            indexSubprogSpec(node, defaultDocument, root);
             super.visit(node);
         }
 
@@ -469,7 +469,7 @@ public final class AdaIndexer extends EmbeddingIndexer {
                 return;
             }
 
-            indexSubprogBody((SubprogramBody) node, defaultDocument, root);
+            indexSubprogBody(node, defaultDocument, root);
             super.visit(node);
         }
     }

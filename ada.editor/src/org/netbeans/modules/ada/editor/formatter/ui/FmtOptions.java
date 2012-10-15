@@ -72,7 +72,6 @@ import javax.swing.event.DocumentListener;
 import org.netbeans.api.editor.settings.SimpleValueNames;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 
-import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.ada.editor.formatter.AdaFormatter;
 import org.netbeans.modules.ada.editor.AdaMimeResolver;
 import org.netbeans.spi.options.OptionsPanelController;

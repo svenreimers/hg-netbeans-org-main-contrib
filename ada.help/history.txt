@@ -1,2 +1,12 @@
+0.1.3: 11-10-2012
+- Porting to NB7.2 and others improvements.
+
+0.1.2: 12-08-2010
+- Uodated the help files for manage JVM.
+
+0.1.1: 13-10-2009
+- Added the signing of the nbm file.
+- Added the new help files.
+
 0.1.0: 01-11-2008
 - Initial release.

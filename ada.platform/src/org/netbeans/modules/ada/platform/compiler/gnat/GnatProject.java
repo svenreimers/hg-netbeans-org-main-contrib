@@ -50,6 +50,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 import org.netbeans.modules.ada.platform.compiler.gnat.commands.GnatCommand;
 import org.openide.filesystems.FileUtil;
 
@@ -80,6 +81,34 @@ public class GnatProject {
         }
     }
 
+    public String removeSpaces(String s) {
+        StringTokenizer st = new StringTokenizer(s, " ", false);
+        String t = "";
+        while (st.hasMoreElements()) {
+            t += st.nextElement();
+        }
+        return t;
+    }
+
+    private String convToGnat(String adaDialects) {
+        String result = "95";
+
+        if (adaDialects.equalsIgnoreCase("ADA_83")) {
+            result = "83";
+        }
+        else if(adaDialects.equalsIgnoreCase("ADA_95")) {
+            result = "95";
+        }
+        else if(adaDialects.equalsIgnoreCase("ADA_2005")) {
+            result = "05";
+        }
+        else if(adaDialects.equalsIgnoreCase("ADA_2012")) {
+            result = "12";
+        }
+
+        return result;
+    }
+
     private void writeGprfileImpl() {
         String resource = "/org/netbeans/modules/ada/platform/resources/GprFileTemplate.gpr"; // NOI18N
         InputStream is = null;
@@ -91,11 +120,16 @@ public class GnatProject {
             is = GnatCommand.class.getResourceAsStream(resource);
         }
 
-        gprFilePath = gnat.getProjectPath() + '/' + "nbproject" + '/' + gnat.getProjectName() + ".gpr"; // UNIX path // NOI18N
+        String projectName = removeSpaces(gnat.getProjectName());
+        String mainFile = gnat.getMainFile();
+        String adaDialects = convToGnat(gnat.getAdaDialects());
+        String execFile = gnat.getExecutableFile();
+        ArrayList<String> sources = gnat.getSourceFolders();
+
+        gprFilePath = gnat.getProjectPath() + '/' + "nbproject" + '/' + projectName + ".gpr"; // UNIX path // NOI18N
         try {
             os = new FileOutputStream(gprFilePath);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
         }
 
         if (is == null || os == null) {
@@ -105,15 +139,6 @@ public class GnatProject {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-
-        String projectName = gnat.getProjectName();
-        String mainFile = gnat.getMainFile();
-        String execFile = gnat.getExecutableFile();
-        ArrayList<String> sources = gnat.getSourceFolders();
-
-        //if (src.equalsIgnoreCase("src")) {
-        //    src = "../src/**";
-        //}
 
         try {
             while (true) {
@@ -128,12 +153,17 @@ public class GnatProject {
                     String srcDirs = new String();
                     for (int index = 0; index < sources.size(); index++) {
                         srcDirs = srcDirs + "\"" + FileUtil.toFileObject(new File(sources.get(index))).getPath() + "/**\"";
-                        if (index < sources.size()-1) srcDirs = srcDirs + ",";
+                        if (index < sources.size() - 1) {
+                            srcDirs = srcDirs + ",";
+                        }
                     }
                     line = line.replaceFirst("\"<SRC>\"", srcDirs); // NOI18N
                 }
                 if (line.indexOf("<MAINFILE>") >= 0) { // NOI18N
                     line = line.replaceFirst("<MAINFILE>", mainFile); // NOI18N
+                }
+                if (line.indexOf("<DIALECTS>") >= 0) { // NOI18N
+                    line = line.replaceFirst("<DIALECTS>", adaDialects); // NOI18N
                 }
                 if (line.indexOf("<EXECFILE>") >= 0) { // NOI18N
                     line = line.replaceFirst("<EXECFILE>", execFile); // NOI18N

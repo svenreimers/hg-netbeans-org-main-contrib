@@ -67,14 +67,14 @@ import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
  */
 public class SubprogramBody extends Statement {
 
-	private SubprogramSpecification subprogramSpecification;
-	private Identifier subprogramNameEnd;
+    private SubprogramSpecification subprogramSpecification;
+    private Identifier subprogramNameEnd;
     private Block declarations;
     private Block body;
 
     public SubprogramBody(int start, int end, SubprogramSpecification subprogramSpecification, Block declarations, Block body, Identifier subprogramNameEnd) {
         super(start, end);
-		this.subprogramSpecification = subprogramSpecification;
+        this.subprogramSpecification = subprogramSpecification;
         this.declarations = declarations;
         this.body = body;
         this.subprogramNameEnd = subprogramNameEnd;
@@ -98,11 +98,11 @@ public class SubprogramBody extends Statement {
         return body;
     }
 
-	public SubprogramSpecification getSubprogramSpecification() {
-		return subprogramSpecification;
-	}
+    public SubprogramSpecification getSubprogramSpecification() {
+        return subprogramSpecification;
+    }
 
-	public Identifier getSubprogramNameEnd() {
+    public Identifier getSubprogramNameEnd() {
         return subprogramNameEnd;
     }
 

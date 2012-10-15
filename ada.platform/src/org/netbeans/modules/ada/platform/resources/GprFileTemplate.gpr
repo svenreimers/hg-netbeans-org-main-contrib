@@ -22,7 +22,7 @@ project <PN> is
    end Naming;
 
    package Compiler is
-      for Default_Switches ("ada") use ("-gnat95");
+      for Default_Switches ("ada") use ("-gnat<DIALECTS>");
    end Compiler;
 
    for Languages use ("Ada", "C", "C++");

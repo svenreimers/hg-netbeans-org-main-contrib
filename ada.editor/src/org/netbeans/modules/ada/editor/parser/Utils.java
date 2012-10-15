@@ -55,280 +55,280 @@ public class Utils {
     public static String getASTScannerTokenName(int id) {
         String name;
         switch (id) {
-            case Ada95ASTSymbols.REVERSE:
+            case AdaASTSymbols.REVERSE:
                 name = "REVERSE";
                 break;
-            case Ada95ASTSymbols.PROCEDURE:
+            case AdaASTSymbols.PROCEDURE:
                 name = "PROCEDURE";
                 break;
-            case Ada95ASTSymbols.OF:
+            case AdaASTSymbols.OF:
                 name = "OF";
                 break;
-            case Ada95ASTSymbols.ABORT:
+            case AdaASTSymbols.ABORT:
                 name = "ABORT";
                 break;
-            case Ada95ASTSymbols.AMP:
+            case AdaASTSymbols.AMP:
                 name = "AMP";
                 break;
-            case Ada95ASTSymbols.SEMICOLON:
+            case AdaASTSymbols.SEMICOLON:
                 name = "SEMICOLON";
                 break;
-            case Ada95ASTSymbols.CASE:
+            case AdaASTSymbols.CASE:
                 name = "CASE";
                 break;
-            case Ada95ASTSymbols.BASED_LITERAL:
+            case AdaASTSymbols.BASED_LITERAL:
                 name = "BASED_LITERAL";
                 break;
-            case Ada95ASTSymbols.DECIMAL_LITERAL:
+            case AdaASTSymbols.DECIMAL_LITERAL:
                 name = "DECIMAL_LITERAL";
                 break;
-            case Ada95ASTSymbols.MOD:
+            case AdaASTSymbols.MOD:
                 name = "MOD";
                 break;
-            case Ada95ASTSymbols.ARRAY:
+            case AdaASTSymbols.ARRAY:
                 name = "ARRAY";
                 break;
-            case Ada95ASTSymbols.WITH:
+            case AdaASTSymbols.WITH:
                 name = "WITH";
                 break;
-            case Ada95ASTSymbols.USE:
+            case AdaASTSymbols.USE:
                 name = "USE";
                 break;
-            case Ada95ASTSymbols.BAR:
+            case AdaASTSymbols.BAR:
                 name = "BAR";
                 break;
-            case Ada95ASTSymbols.GENERIC:
+            case AdaASTSymbols.GENERIC:
                 name = "GENERIC";
                 break;
-            case Ada95ASTSymbols.EXCEPTION:
+            case AdaASTSymbols.EXCEPTION:
                 name = "EXCEPTION";
                 break;
-            case Ada95ASTSymbols.TAGGED:
+            case AdaASTSymbols.TAGGED:
                 name = "TAGGED";
                 break;
-            case Ada95ASTSymbols.FOR:
+            case AdaASTSymbols.FOR:
                 name = "FOR";
                 break;
-            case Ada95ASTSymbols.IDENTIFIER:
+            case AdaASTSymbols.IDENTIFIER:
                 name = "IDENTIFIER";
                 break;
-            case Ada95ASTSymbols.SLASH:
+            case AdaASTSymbols.SLASH:
                 name = "SLASH";
                 break;
-            case Ada95ASTSymbols.AT:
+            case AdaASTSymbols.AT:
                 name = "AT";
                 break;
-            case Ada95ASTSymbols.TYPE:
+            case AdaASTSymbols.TYPE:
                 name = "TYPE";
                 break;
-            case Ada95ASTSymbols.EQ:
+            case AdaASTSymbols.EQ:
                 name = "EQ";
                 break;
-            case Ada95ASTSymbols.WHILE:
+            case AdaASTSymbols.WHILE:
                 name = "WHILE";
                 break;
-            case Ada95ASTSymbols.DELAY:
+            case AdaASTSymbols.DELAY:
                 name = "DELAY";
                 break;
-            case Ada95ASTSymbols.ENTRY:
+            case AdaASTSymbols.ENTRY:
                 name = "ENTRY";
                 break;
-            case Ada95ASTSymbols.DELTA:
+            case AdaASTSymbols.DELTA:
                 name = "DELTA";
                 break;
-            case Ada95ASTSymbols.DIGITS:
+            case AdaASTSymbols.DIGITS:
                 name = "DIGITS";
                 break;
-            case Ada95ASTSymbols.ABSTRACT:
+            case AdaASTSymbols.ABSTRACT:
                 name = "ABSTRACT";
                 break;
-            case Ada95ASTSymbols.LOOP:
+            case AdaASTSymbols.LOOP:
                 name = "LOOP";
                 break;
-            case Ada95ASTSymbols.ACCESS:
+            case AdaASTSymbols.ACCESS:
                 name = "ACCESS";
                 break;
-            case Ada95ASTSymbols.REQUEUE:
+            case AdaASTSymbols.REQUEUE:
                 name = "REQUEUE";
                 break;
-            case Ada95ASTSymbols.TASK:
+            case AdaASTSymbols.TASK:
                 name = "TASK";
                 break;
-            case Ada95ASTSymbols.ABS:
+            case AdaASTSymbols.ABS:
                 name = "ABS";
                 break;
-            case Ada95ASTSymbols.END:
+            case AdaASTSymbols.END:
                 name = "END";
                 break;
-            case Ada95ASTSymbols.REM:
+            case AdaASTSymbols.REM:
                 name = "REM";
                 break;
-            case Ada95ASTSymbols.MINUS:
+            case AdaASTSymbols.MINUS:
                 name = "MINUS";
                 break;
-            case Ada95ASTSymbols.ASSIGNMENT:
+            case AdaASTSymbols.ASSIGNMENT:
                 name = "ASSIGNMENT";
                 break;
-            case Ada95ASTSymbols.THEN:
+            case AdaASTSymbols.THEN:
                 name = "THEN";
                 break;
-            case Ada95ASTSymbols.GOTO:
+            case AdaASTSymbols.GOTO:
                 name = "GOTO";
                 break;
-            case Ada95ASTSymbols.NEW:
+            case AdaASTSymbols.NEW:
                 name = "NEW";
                 break;
-            case Ada95ASTSymbols.WHEN:
+            case AdaASTSymbols.WHEN:
                 name = "WHEN";
                 break;
-            case Ada95ASTSymbols.TERMINATE:
+            case AdaASTSymbols.TERMINATE:
                 name = "TERMINATE";
                 break;
-            case Ada95ASTSymbols.COLON:
+            case AdaASTSymbols.COLON:
                 name = "COLON";
                 break;
-            case Ada95ASTSymbols.EOF:
+            case AdaASTSymbols.EOF:
                 name = "EOF";
                 break;
-            case Ada95ASTSymbols.PLUS:
+            case AdaASTSymbols.PLUS:
                 name = "PLUS";
                 break;
-            case Ada95ASTSymbols.LTEQ:
+            case AdaASTSymbols.LTEQ:
                 name = "LTEQ";
                 break;
-            case Ada95ASTSymbols.BEGIN:
+            case AdaASTSymbols.BEGIN:
                 name = "BEGIN";
                 break;
-            case Ada95ASTSymbols.FUNCTION:
+            case AdaASTSymbols.FUNCTION:
                 name = "FUNCTION";
                 break;
-            case Ada95ASTSymbols.RECORD:
+            case AdaASTSymbols.RECORD:
                 name = "RECORD";
                 break;
-            case Ada95ASTSymbols.RANGE:
+            case AdaASTSymbols.RANGE:
                 name = "RANGE";
                 break;
-            case Ada95ASTSymbols.PROTECTED:
+            case AdaASTSymbols.PROTECTED:
                 name = "PROTECTED";
                 break;
-            case Ada95ASTSymbols.PRIVATE:
+            case AdaASTSymbols.PRIVATE:
                 name = "PRIVATE";
                 break;
-            case Ada95ASTSymbols.INEQ:
+            case AdaASTSymbols.INEQ:
                 name = "INEQ";
                 break;
-            case Ada95ASTSymbols.SEPARATE:
+            case AdaASTSymbols.SEPARATE:
                 name = "SEPARATE";
                 break;
-            case Ada95ASTSymbols.CONSTANT:
+            case AdaASTSymbols.CONSTANT:
                 name = "CONSTANT";
                 break;
-            case Ada95ASTSymbols.SELECT:
+            case AdaASTSymbols.SELECT:
                 name = "SELECT";
                 break;
-            case Ada95ASTSymbols.OTHERS:
+            case AdaASTSymbols.OTHERS:
                 name = "OTHERS";
                 break;
-            case Ada95ASTSymbols.ALIASED:
+            case AdaASTSymbols.ALIASED:
                 name = "ALIASED";
                 break;
-            case Ada95ASTSymbols.ELSE:
+            case AdaASTSymbols.ELSE:
                 name = "ELSE";
                 break;
-            case Ada95ASTSymbols.DO:
+            case AdaASTSymbols.DO:
                 name = "DO";
                 break;
-            case Ada95ASTSymbols.GT:
+            case AdaASTSymbols.GT:
                 name = "GT";
                 break;
-            case Ada95ASTSymbols.RENAMES:
+            case AdaASTSymbols.RENAMES:
                 name = "RENAMES";
                 break;
-            case Ada95ASTSymbols.LIMITED:
+            case AdaASTSymbols.LIMITED:
                 name = "LIMITED";
                 break;
-            case Ada95ASTSymbols.STAR:
+            case AdaASTSymbols.STAR:
                 name = "STAR";
                 break;
-            case Ada95ASTSymbols.NULL:
+            case AdaASTSymbols.NULL:
                 name = "NULL";
                 break;
-            case Ada95ASTSymbols.SUBTYPE:
+            case AdaASTSymbols.SUBTYPE:
                 name = "SUBTYPE";
                 break;
-            case Ada95ASTSymbols.RETURN:
+            case AdaASTSymbols.RETURN:
                 name = "RETURN";
                 break;
-            case Ada95ASTSymbols.ALL:
+            case AdaASTSymbols.ALL:
                 name = "ALL";
                 break;
-            case Ada95ASTSymbols.RAISE:
+            case AdaASTSymbols.RAISE:
                 name = "RAISE";
                 break;
-            case Ada95ASTSymbols.AND:
+            case AdaASTSymbols.AND:
                 name = "AND";
                 break;
-            case Ada95ASTSymbols.GTEQ:
+            case AdaASTSymbols.GTEQ:
                 name = "GTEQ";
                 break;
-            case Ada95ASTSymbols.UNTIL:
+            case AdaASTSymbols.UNTIL:
                 name = "UNTIL";
                 break;
-            case Ada95ASTSymbols.BODY:
+            case AdaASTSymbols.BODY:
                 name = "BODY";
                 break;
-            case Ada95ASTSymbols.EXIT:
+            case AdaASTSymbols.EXIT:
                 name = "EXIT";
                 break;
-            case Ada95ASTSymbols.ACCEPT:
+            case AdaASTSymbols.ACCEPT:
                 name = "ACCEPT";
                 break;
-            case Ada95ASTSymbols.PRAGMA:
+            case AdaASTSymbols.PRAGMA:
                 name = "PRAGMA";
                 break;
-            case Ada95ASTSymbols.IS:
+            case AdaASTSymbols.IS:
                 name = "IS";
                 break;
-            case Ada95ASTSymbols.OR:
+            case AdaASTSymbols.OR:
                 name = "OR";
                 break;
-            case Ada95ASTSymbols.OUT:
+            case AdaASTSymbols.OUT:
                 name = "OUT";
                 break;
-            case Ada95ASTSymbols.RPAREN:
+            case AdaASTSymbols.RPAREN:
                 name = "RPAREN";
                 break;
-            case Ada95ASTSymbols.ELSIF:
+            case AdaASTSymbols.ELSIF:
                 name = "ELSIF";
                 break;
-            case Ada95ASTSymbols.NOT:
+            case AdaASTSymbols.NOT:
                 name = "NOT";
                 break;
-            case Ada95ASTSymbols.XOR:
+            case AdaASTSymbols.XOR:
                 name = "XOR";
                 break;
-            case Ada95ASTSymbols.LPAREN:
+            case AdaASTSymbols.LPAREN:
                 name = "LPAREN";
                 break;
-            case Ada95ASTSymbols.IN:
+            case AdaASTSymbols.IN:
                 name = "IN";
                 break;
-            case Ada95ASTSymbols.COMMA:
+            case AdaASTSymbols.COMMA:
                 name = "COMMA";
                 break;
-            case Ada95ASTSymbols.LT:
+            case AdaASTSymbols.LT:
                 name = "LT";
                 break;
-            case Ada95ASTSymbols.PACKAGE:
+            case AdaASTSymbols.PACKAGE:
                 name = "PACKAGE";
                 break;
-            case Ada95ASTSymbols.DOT:
+            case AdaASTSymbols.DOT:
                 name = "DOT";
                 break;
-            case Ada95ASTSymbols.IF:
+            case AdaASTSymbols.IF:
                 name = "IF";
                 break;
-            case Ada95ASTSymbols.DECLARE:
+            case AdaASTSymbols.DECLARE:
                 name = "DECLARE";
                 break;
             default:

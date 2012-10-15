@@ -207,7 +207,7 @@ public class ASTUtils {
     public static String resolveVariableName(Variable variable) {
         String name = null;
         if (variable.getName() instanceof Identifier) {
-            name = ((Identifier) variable.getName()).getName();
+            name = (variable.getName()).getName();
         }
         return name;
     }

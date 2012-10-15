@@ -39,6 +39,7 @@
 
 package org.netbeans.modules.ada.editor.ast.nodes;
 
+import java.util.Arrays;
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
 import org.netbeans.modules.ada.editor.ast.ASTNode;
 import java.util.ArrayList;
@@ -64,13 +65,10 @@ public class Program extends ASTNode {
 
     private Program(int start, int end, Statement[] statements, List<Comment> commentsList) {
         super(start, end);
-        for (Statement statement : statements) {
-//            statement.setParent(this);
-            this.statements.add(statement);
-        }
+        this.statements.addAll(Arrays.asList(statements));
         for (Comment comment : commentsList) {
 //            comment.setParent(this);
-            this.comments.add((Comment) comment);
+            this.comments.add(comment);
         }
 
     }

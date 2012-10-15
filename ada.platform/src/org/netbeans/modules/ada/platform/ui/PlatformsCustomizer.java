@@ -81,7 +81,6 @@ public class PlatformsCustomizer extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel6 = new javax.swing.JLabel();
         platformsListScrollPanel = new javax.swing.JScrollPane();
         PlatformList = new javax.swing.JList();
         paltformsListTitleLabel = new javax.swing.JLabel();
@@ -98,6 +97,8 @@ public class PlatformsCustomizer extends JPanel {
         platformInfoTextField = new javax.swing.JTextField();
         autoDetectLabel = new javax.swing.JLabel();
         autoDetectProgress = new javax.swing.JProgressBar();
+        jvmCompilerCommand = new javax.swing.JTextField();
+        jvmCompilerCommandLabel = new javax.swing.JLabel();
         adaPathPanel = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -107,8 +108,6 @@ public class PlatformsCustomizer extends JPanel {
         moveUpPath = new javax.swing.JButton();
         moveDownPath = new javax.swing.JButton();
         makeDefaultButton = new javax.swing.JButton();
-
-        jLabel6.setText(org.openide.util.NbBundle.getMessage(PlatformsCustomizer.class, "PlatformsCustomizer.jLabel6.text")); // NOI18N
 
         PlatformList.setModel(platformListModel);
         PlatformList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -164,58 +163,65 @@ public class PlatformsCustomizer extends JPanel {
 
         autoDetectProgress.setIndeterminate(true);
 
-        org.jdesktop.layout.GroupLayout mainPanelLayout = new org.jdesktop.layout.GroupLayout(mainPanel);
+        jvmCompilerCommand.setEditable(false);
+        jvmCompilerCommand.setText(org.openide.util.NbBundle.getMessage(PlatformsCustomizer.class, "PlatformsCustomizer.jvmCompilerCommand.text")); // NOI18N
+
+        jvmCompilerCommandLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jvmCompilerCommandLabel.setText(org.openide.util.NbBundle.getMessage(PlatformsCustomizer.class, "PlatformsCustomizer.jvmCompilerCommandLabel.text")); // NOI18N
+
+        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
-            mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(mainPanelLayout.createSequentialGroup()
-                .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                        .add(mainPanelLayout.createSequentialGroup()
-                            .addContainerGap()
-                            .add(compilerCommandLabel))
-                        .add(org.jdesktop.layout.GroupLayout.TRAILING, mainPanelLayout.createSequentialGroup()
-                            .addContainerGap()
-                            .add(platfromNameLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 91, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                    .add(mainPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(otherInfoLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 91, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(mainPanelLayout.createSequentialGroup()
-                        .add(compilerCommand, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, mainPanelLayout.createSequentialGroup()
-                        .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                            .add(org.jdesktop.layout.GroupLayout.LEADING, platformName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
-                            .add(platformInfoTextField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE))
-                        .addContainerGap())))
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, mainPanelLayout.createSequentialGroup()
-                .addContainerGap(230, Short.MAX_VALUE)
-                .add(autoDetectLabel)
-                .add(5, 5, 5)
-                .add(autoDetectProgress, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(mainPanelLayout.createSequentialGroup()
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(mainPanelLayout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(otherInfoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(compilerCommandLabel)
+                                .addComponent(platfromNameLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(compilerCommand, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
+                            .addComponent(platformName, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
+                            .addComponent(platformInfoTextField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
+                        .addContainerGap(192, Short.MAX_VALUE)
+                        .addComponent(autoDetectLabel)
+                        .addGap(5, 5, 5)
+                        .addComponent(autoDetectProgress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
+                        .addGap(19, 19, 19)
+                        .addComponent(jvmCompilerCommandLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jvmCompilerCommand, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         mainPanelLayout.setVerticalGroup(
-            mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(mainPanelLayout.createSequentialGroup()
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(mainPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(platfromNameLabel)
-                    .add(platformName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(platformInfoTextField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(otherInfoLabel))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(compilerCommandLabel)
-                    .add(compilerCommand, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 175, Short.MAX_VALUE)
-                .add(mainPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(autoDetectLabel)
-                    .add(autoDetectProgress, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(platfromNameLabel)
+                    .addComponent(platformName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(platformInfoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(otherInfoLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(compilerCommandLabel)
+                    .addComponent(compilerCommand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jvmCompilerCommand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jvmCompilerCommandLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 144, Short.MAX_VALUE)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(autoDetectLabel)
+                    .addComponent(autoDetectProgress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -255,39 +261,39 @@ public class PlatformsCustomizer extends JPanel {
             }
         });
 
-        org.jdesktop.layout.GroupLayout adaPathPanelLayout = new org.jdesktop.layout.GroupLayout(adaPathPanel);
+        javax.swing.GroupLayout adaPathPanelLayout = new javax.swing.GroupLayout(adaPathPanel);
         adaPathPanel.setLayout(adaPathPanelLayout);
         adaPathPanelLayout.setHorizontalGroup(
-            adaPathPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(adaPathPanelLayout.createSequentialGroup()
+            adaPathPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(adaPathPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(adaPathPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(adaPathPanelLayout.createSequentialGroup()
-                        .add(jScrollPane2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(adaPathPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(moveDownPath, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .add(moveUpPath, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-                            .add(removePath, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-                            .add(addPath, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)))
-                    .add(jLabel5))
+                .addGroup(adaPathPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(adaPathPanelLayout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(adaPathPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(moveDownPath, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(moveUpPath, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                            .addComponent(removePath, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                            .addComponent(addPath, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)))
+                    .addComponent(jLabel5))
                 .addContainerGap())
         );
         adaPathPanelLayout.setVerticalGroup(
-            adaPathPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(adaPathPanelLayout.createSequentialGroup()
-                .add(jLabel5)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(adaPathPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, adaPathPanelLayout.createSequentialGroup()
-                        .add(addPath)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(removePath)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(moveUpPath)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(moveDownPath))
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jScrollPane2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE))
+            adaPathPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(adaPathPanelLayout.createSequentialGroup()
+                .addComponent(jLabel5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(adaPathPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, adaPathPanelLayout.createSequentialGroup()
+                        .addComponent(addPath)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removePath)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(moveUpPath)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(moveDownPath))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -300,43 +306,43 @@ public class PlatformsCustomizer extends JPanel {
             }
         });
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, makeDefaultButton, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, autoDetectButton, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                        .add(newButton, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(removeButton, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, paltformsListTitleLabel)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, platformsListScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(tabbedPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(makeDefaultButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
+                    .addComponent(autoDetectButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(newButton, javax.swing.GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removeButton, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
+                    .addComponent(paltformsListTitleLabel, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(platformsListScrollPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 474, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(tabbedPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE)
-                    .add(layout.createSequentialGroup()
-                        .add(paltformsListTitleLabel)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(platformsListScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(removeButton)
-                            .add(newButton))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(autoDetectButton)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(makeDefaultButton))))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(paltformsListTitleLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(platformsListScrollPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(removeButton)
+                            .addComponent(newButton))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(autoDetectButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(makeDefaultButton))))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -350,8 +356,9 @@ public class PlatformsCustomizer extends JPanel {
     private void loadPlatform() {
         platformName.setText(adaPlatform.getName());
         platformInfoTextField.setText(adaPlatform.getInfo());
-        compilerCommand.setText(adaPlatform.getInterpreterCommand());
-    // TODO: add in main tab the commands list for ada platform
+        compilerCommand.setText(adaPlatform.getGnatCompilerCommand());
+        jvmCompilerCommand.setText(adaPlatform.getJvmGnatCompilerCommand());
+        // TODO: add in main tab the commands list for ada platform
 //        adaPathModel.setModel(adaPlatform.getCompilerPath());
     }
 
@@ -410,9 +417,11 @@ public class PlatformsCustomizer extends JPanel {
                 if (fo != null) {
                     try {
                         adaPlatform = adaPlatformManager.findPlatformProperties(fo);
-                        loadPlatform();
-                        platformListModel.refresh();
-                        platformName.setEditable(true);
+                        if (adaPlatform != null) {
+                            loadPlatform();
+                            platformListModel.refresh();
+                            platformName.setEditable(true);
+                        }
                     } catch (AdaException ex) {
                         Exceptions.printStackTrace(ex);
                     }
@@ -434,14 +443,15 @@ public class PlatformsCustomizer extends JPanel {
     }//GEN-LAST:event_PlatformListValueChanged
 
     private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
-        int selectedIndex = PlatformList.getSelectedIndex();
-        if (selectedIndex != -1) {
-            adaPlatformManager.removePlatform(
-                    (String) platformListModel.getElementAt(
-                    PlatformList.getSelectedIndex()));
-            platformListModel.refresh();
-            adaPlatform = null;
-            clearPlatform();
+        if (platformListModel.getSize() > 0) {
+            int selectedIndex = PlatformList.getSelectedIndex();
+            if (selectedIndex != -1) {
+                adaPlatformManager.removePlatform(
+                        (String) platformListModel.getElementAt(selectedIndex));
+                platformListModel.refresh();
+                adaPlatform = null;
+                clearPlatform();
+            }
         }
 }//GEN-LAST:event_removeButtonActionPerformed
 
@@ -479,9 +489,11 @@ public class PlatformsCustomizer extends JPanel {
     private void autoDetectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoDetectButtonActionPerformed
         setAutoDetecting(true);
         RequestProcessor.getDefault().post(new Runnable() {
+
             public void run() {
                 adaPlatformManager.autoDetect();
                 EventQueue.invokeLater(new Runnable() {
+
                     public void run() {
                         platformListModel.refresh();
                         setAutoDetecting(false);
@@ -490,7 +502,6 @@ public class PlatformsCustomizer extends JPanel {
             }
         });
     }//GEN-LAST:event_autoDetectButtonActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList PlatformList;
     private javax.swing.JList adaPath;
@@ -502,8 +513,9 @@ public class PlatformsCustomizer extends JPanel {
     private javax.swing.JTextField compilerCommand;
     private javax.swing.JLabel compilerCommandLabel;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextField jvmCompilerCommand;
+    private javax.swing.JLabel jvmCompilerCommandLabel;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JButton makeDefaultButton;
     private javax.swing.JButton moveDownPath;
@@ -556,7 +568,7 @@ public class PlatformsCustomizer extends JPanel {
         }
 
         adaPlatform.setInfo(platformInfoTextField.getText());
-        adaPlatform.setCompilerCommand(compilerCommand.getText());
+        adaPlatform.setGnatCompilerCommand(compilerCommand.getText());
         // TODO: add in main tab the commands list for ada platform
 //        adaPlatform.setCompilerPath(adaPathModel.getModel());
         adaPlatformManager.addPlatform(adaPlatform);
@@ -566,5 +578,4 @@ public class PlatformsCustomizer extends JPanel {
         String defaultPlatform = adaPlatformManager.getDefaultPlatform();
         return defaultPlatform != null && !defaultPlatform.equals(platform);
     }
-
 }

@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.StringTokenizer;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.project.Project;
@@ -64,7 +65,6 @@ import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.util.Exceptions;
@@ -74,7 +74,7 @@ import org.openide.util.NbBundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressInstantiatingIterator {
+public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressInstantiatingIterator<WizardDescriptor> {
 
     static final String SET_AS_MAIN = "setAsMain"; //NOI18N
     static final String MAIN_FILE = "mainFile"; //NOI18N
@@ -97,7 +97,7 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
     }
     private final WizardType wizardType;
     private WizardDescriptor descriptor;
-    private WizardDescriptor.Panel[] panels;
+    private WizardDescriptor.Panel<WizardDescriptor>[] panels;
     private int index;
 
     public NewAdaProjectWizardIterator() {
@@ -116,6 +116,7 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         return new NewAdaProjectWizardIterator(WizardType.EXISTING);
     }
 
+    @Override
     public void initialize(WizardDescriptor wizard) {
         descriptor = wizard;
         index = 0;
@@ -124,17 +125,20 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         initDescriptor(wizard);
     }
 
+    @Override
     public void uninitialize(WizardDescriptor wizard) {
         panels = null;
         descriptor = null;
     }
 
-    public Set instantiate() throws IOException {
+    @Override
+    public Set<FileObject> instantiate() throws IOException {
         assert false : "Cannot call this method if implements WizardDescriptor.ProgressInstantiatingIterator.";
         return null;
     }
 
-    public Set instantiate(ProgressHandle handle) throws IOException {
+    @Override
+    public Set<FileObject> instantiate(ProgressHandle handle) throws IOException {
         final Set<FileObject> resultSet = new HashSet<FileObject>();
 
         handle.start(5);
@@ -163,8 +167,8 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
             // main file
             final String mainName = (String) descriptor.getProperty(NewAdaProjectWizardIterator.MAIN_FILE);
             if (mainName != null) {
-                resultSet.add(createMainFile(Repository.getDefault().getDefaultFileSystem().findResource("Templates/Ada/NewAdaMain"),
-                        sourceDir, mainName).getPrimaryFile());
+                resultSet.add(createMainFile(FileUtil.getConfigFile("Templates/Ada/NewMain"),
+                        sourceDir, removeSpaces(mainName)).getPrimaryFile());
             }
         }
 
@@ -175,18 +179,22 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         return resultSet;
     }
 
+    @Override
     public String name() {
         return NbBundle.getMessage(NewAdaProjectWizardIterator.class, "LBL_IteratorName", index + 1, panels.length);
     }
 
+    @Override
     public boolean hasNext() {
         return index < panels.length - 1;
     }
 
+    @Override
     public boolean hasPrevious() {
         return index > 0;
     }
 
+    @Override
     public void nextPanel() {
         if (!hasNext()) {
             throw new NoSuchElementException();
@@ -194,6 +202,7 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         index++;
     }
 
+    @Override
     public void previousPanel() {
         if (!hasPrevious()) {
             throw new NoSuchElementException();
@@ -201,7 +210,8 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         index--;
     }
 
-    public WizardDescriptor.Panel current() {
+    @Override
+    public WizardDescriptor.Panel<WizardDescriptor> current() {
         // wizard title
         String title = NbBundle.getMessage(NewAdaProjectWizardIterator.class, wizardType == WizardType.NEW ? "TXT_AdaProject" : "TXT_ExistingAdaProject");
         descriptor.putProperty("NewProjectWizard_Title", title); // NOI18N
@@ -228,15 +238,26 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         return freeName;
     }
 
-    private WizardDescriptor.Panel[] createPanels() {
+    private String removeSpaces(String s) {
+        StringTokenizer st = new StringTokenizer(s, " ", false);
+        String t = "";
+        while (st.hasMoreElements()) {
+            t += st.nextElement();
+        }
+        return t;
+    }
+
+    private WizardDescriptor.Panel<WizardDescriptor>[] createPanels() {
         switch (wizardType) {
             case NEW: {
                 String[] steps = new String[]{
                     NbBundle.getBundle(NewAdaProjectWizardIterator.class).getString("LBL_ProjectNameLocation"),};
 
                 PanelConfigureProject configureProjectPanel = new PanelConfigureProject(wizardType, steps);
-                return new WizardDescriptor.Panel[]{
-                            configureProjectPanel,};
+                @SuppressWarnings("unchecked") // Generic Array Creation
+                WizardDescriptor.Panel<WizardDescriptor>[] pnls = new WizardDescriptor.Panel[]{
+                    configureProjectPanel,};
+                return pnls;
             }
             case EXISTING: {
                 String[] steps = new String[]{
@@ -245,9 +266,11 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
 
                 PanelConfigureProject configureProjectPanel = new PanelConfigureProject(wizardType, steps);
                 PanelConfigureSources configureSourcesPanel = new PanelConfigureSources(wizardType, steps);
-                return new WizardDescriptor.Panel[]{
+                @SuppressWarnings("unchecked") // Generic Array Creation
+                WizardDescriptor.Panel<WizardDescriptor>[] pnls = new WizardDescriptor.Panel[]{
                             configureProjectPanel,
                             configureSourcesPanel,};
+                return pnls;
             }
             default:
                 throw new IllegalStateException(wizardType.toString());
@@ -278,7 +301,6 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
                         Element nameEl = doc.createElementNS(AdaProjectType.PROJECT_CONFIGURATION_NAMESPACE, "name"); // NOI18N
                         nameEl.appendChild(doc.createTextNode(name));
                         data.appendChild(nameEl);
-
 
                         EditableProperties properties = helper.getProperties(AntProjectHelper.PROJECT_PROPERTIES_PATH);
 
@@ -351,11 +373,11 @@ public class NewAdaProjectWizardIterator implements WizardDescriptor.ProgressIns
         String platformId = (String) descriptor.getProperty(PROP_PLATFORM_ID);
         assert platformId != null;
         properties.setProperty(AdaProjectProperties.ACTIVE_PLATFORM, platformId);
-        properties.setProperty(AdaProjectProperties.ADA_LIB_PATH, "");    //NOI18N
-        final File projectDirectory = FileUtil.toFile(helper.getProjectDirectory());
-        String buildPath = projectDirectory + File.separator + DEFAULT_BUILD_DIR;
+        properties.setProperty(AdaProjectProperties.OUTPUT_BUILD_FORMAT, AdaProjectProperties.NATIVE_FORMAT);
+        properties.setProperty(AdaProjectProperties.ADA_LIB_PATH, ""); //NOI18N
+        String buildPath = DEFAULT_BUILD_DIR;
         properties.setProperty(AdaProjectProperties.BUILD_DIR, buildPath);
-        String distPath = projectDirectory + File.separator + DEFAULT_DIST_DIR;
+        String distPath = DEFAULT_DIST_DIR;
         properties.setProperty(AdaProjectProperties.DIST_DIR, distPath);
     }
 

@@ -40,7 +40,6 @@
 package org.netbeans.modules.ada.editor.ast.nodes;
 
 import org.netbeans.modules.ada.editor.ast.nodes.visitors.Visitor;
-import org.netbeans.modules.ada.editor.ast.ASTNode;
 
 /**
  * Holds a package name. 
@@ -49,7 +48,7 @@ import org.netbeans.modules.ada.editor.ast.ASTNode;
  *
  * @author Andrea Lucarelli
  */
-public class PackageName extends ASTNode {
+public class PackageName extends NameBase {
 
     private Identifier packageName;
 

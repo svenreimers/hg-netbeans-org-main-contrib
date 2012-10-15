@@ -79,14 +79,17 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
     private WizardDescriptor.Panel<WizardDescriptor>[] getPanels() {
         Project p = Templates.getProject(wizard);
         final SourceGroup[] groups = Utils.getSourceGroups(p);
-        WizardDescriptor.Panel<WizardDescriptor> simpleTargetChooserPanel = Templates.createSimpleTargetChooser(p, groups);
+        WizardDescriptor.Panel<WizardDescriptor> simpleTargetChooserPanel = Templates.buildSimpleTargetChooser(p, groups).create();
         FileObject template = Templates.getTemplate(wizard);
 
-        return new WizardDescriptor.Panel[]{
-                    simpleTargetChooserPanel
-                };
+        @SuppressWarnings("unchecked") // Generic Array Creation
+        WizardDescriptor.Panel<WizardDescriptor>[] panels = new WizardDescriptor.Panel[] {
+            simpleTargetChooserPanel
+        };
+        return panels;
     }
 
+    @Override
     public Set instantiate() throws IOException {
         FileObject dir = Templates.getTargetFolder(wizard);
         FileObject template = Templates.getTemplate(wizard);
@@ -118,6 +121,7 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
         return Collections.<FileObject>singleton(createdFile.getPrimaryFile());
     }
 
+    @Override
     public void initialize(WizardDescriptor wizard) {
         this.wizard = wizard;
         FileObject targetFolder = Templates.getTargetFolder(wizard);
@@ -135,19 +139,24 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
         FileObject template = Templates.getTemplate(this.wizard);
         String ext = template.getExt();
         String postfix = "";
-        if (template.getName().startsWith("NewAdaMain")) {
-            ext = AdaOptions.getInstance().getSeparateExt();
-            postfix = AdaOptions.getInstance().getSeparatePostfix();
-        } else if (template.getName().startsWith("NewAdaPackageSpec")) {
-            ext = AdaOptions.getInstance().getPkgSpecExt();
-            postfix = AdaOptions.getInstance().getPkgSpecPostfix();
-        } else if (template.getName().startsWith("NewAdaPackageBody")) {
-            ext = AdaOptions.getInstance().getPkgBodyExt();
-            postfix = AdaOptions.getInstance().getPkgBodyPostfix();
+
+        Project project = Templates.getProject(wizard);
+        assert project instanceof AdaProject;
+        AdaProject adaProject = (AdaProject) project;
+
+        if (template.getName().startsWith("NewMain")) {
+            ext = adaProject.getEvaluator().getProperty(AdaOptions.SEPARATE_EXT);
+            postfix = adaProject.getEvaluator().getProperty(AdaOptions.SEPARATE_POSTFIX);
+        } else if (template.getName().startsWith("NewPackageSpec")) {
+            ext = adaProject.getEvaluator().getProperty(AdaOptions.PKG_SPEC_EXT);
+            postfix = adaProject.getEvaluator().getProperty(AdaOptions.PKG_SPEC_POSTFIX);
+        } else if (template.getName().startsWith("NewPackageBody")) {
+            ext = adaProject.getEvaluator().getProperty(AdaOptions.PKG_BODY_EXT);
+            postfix = adaProject.getEvaluator().getProperty(AdaOptions.PKG_BODY_POSTFIX);
         }
         String targetName = (targetFolder != null) ? FileUtil.findFreeFileName(targetFolder, template.getName(), ext) : template.getName();//NOI18N
         // TODO: manage postfix naming
-        targetName += /*postfix + */"." + ext;
+        targetName += "." + ext;
         Templates.setTargetName(this.wizard, targetName);//NOI18N
         wizardPanels = getPanels();
 
@@ -178,26 +187,32 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
         return res;
     }
 
+    @Override
     public void uninitialize(WizardDescriptor wizard) {
         wizardPanels = null;
     }
 
+    @Override
     public WizardDescriptor.Panel current() {
         return wizardPanels[index];
     }
 
+    @Override
     public String name() {
         return index + 1 + ". from " + getPanels().length;
     }
 
+    @Override
     public boolean hasNext() {
         return index < getPanels().length - 1;
     }
 
+    @Override
     public boolean hasPrevious() {
         return index > 0;
     }
 
+    @Override
     public void nextPanel() {
         if (!hasNext()) {
             throw new NoSuchElementException();
@@ -205,6 +220,7 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
         index++;
     }
 
+    @Override
     public void previousPanel() {
         if (!hasPrevious()) {
             throw new NoSuchElementException();
@@ -213,9 +229,11 @@ public final class NewFileWizardIterator implements WizardDescriptor.Instantiati
     }
 
     // If nothing unusual changes in the middle of the wizard, simply:
+    @Override
     public void addChangeListener(ChangeListener l) {
     }
 
+    @Override
     public void removeChangeListener(ChangeListener l) {
     }
 
