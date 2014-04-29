@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -37,50 +37,22 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
+ * Portions Copyrighted 2014 Sun Microsystems, Inc.
  */
+package org.netbeans.core.windows.options;
 
-package org.netbeans.modules.dew4nb;
+import java.util.prefs.Preferences;
+import static org.netbeans.core.windows.options.DocumentsPanel.getPreferences;
+import org.openide.modules.ModuleInstall;
 
-import java.awt.Dialog;
-import java.awt.Frame;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.annotations.common.NonNull;
-import org.openide.DialogDescriptor;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.lookup.ServiceProvider;
+public class Installer extends ModuleInstall {
 
-/**
- *
- * @author Tomas Zezula
- */
-@ServiceProvider(service=DialogDisplayer.class, position = 1)
-public class HiddenDisplayer extends DialogDisplayer {
-    private static final Logger LOG = Logger.getLogger(HiddenDisplayer.class.getName());
-
-    @NonNull
     @Override
-    public Object notify(NotifyDescriptor descriptor) {
-        LOG.log(Level.INFO, "Supressing dialog: {0}", descriptor.getMessage());
-        return NotifyDescriptor.YES_OPTION;
+    public void restored() {
+        Preferences prefs = getPreferences();
+        System.setProperty(DocumentsPanel.PROP_DOCS_ONLY_CTRLTAB, prefs.getBoolean(DocumentsPanel.PROP_DOCS_ONLY_CTRLTAB, true ) ? "true" : "false");
+        System.setProperty(DocumentsPanel.PROP_DND_MIXING, prefs.getBoolean(DocumentsPanel.PROP_DND_MIXING, false ) ? "true" : "false");
+        System.setProperty(DocumentsPanel.PROP_EDITOR_MODE_DND, prefs.getBoolean(DocumentsPanel.PROP_EDITOR_MODE_DND, true ) ? "true" : "false");
     }
-
-    @Override    
-    public Dialog createDialog(DialogDescriptor descriptor) {
-        LOG.log(Level.INFO, "Supressing dialog: {0}", descriptor.getMessage());
-        return new Dialog((Frame)null) {
-            @Override
-            public void setVisible(boolean b) {
-            }
-            @SuppressWarnings("deprecation")
-            @Override            
-            public void show() {
-            }
-        };
-    }
-
-
 
 }

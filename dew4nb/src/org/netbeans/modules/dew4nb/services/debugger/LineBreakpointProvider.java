@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -37,50 +37,26 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
+ * Portions Copyrighted 2014 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.dew4nb;
+package org.netbeans.modules.dew4nb.services.debugger;
 
-import java.awt.Dialog;
-import java.awt.Frame;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.annotations.common.NonNull;
-import org.openide.DialogDescriptor;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.lookup.ServiceProvider;
+import org.netbeans.api.debugger.Breakpoint;
+import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Tomas Zezula
+ * @author Jaroslav Tulach <jtulach@netbeans.org>
  */
-@ServiceProvider(service=DialogDisplayer.class, position = 1)
-public class HiddenDisplayer extends DialogDisplayer {
-    private static final Logger LOG = Logger.getLogger(HiddenDisplayer.class.getName());
-
-    @NonNull
-    @Override
-    public Object notify(NotifyDescriptor descriptor) {
-        LOG.log(Level.INFO, "Supressing dialog: {0}", descriptor.getMessage());
-        return NotifyDescriptor.YES_OPTION;
-    }
-
-    @Override    
-    public Dialog createDialog(DialogDescriptor descriptor) {
-        LOG.log(Level.INFO, "Supressing dialog: {0}", descriptor.getMessage());
-        return new Dialog((Frame)null) {
-            @Override
-            public void setVisible(boolean b) {
-            }
-            @SuppressWarnings("deprecation")
-            @Override            
-            public void show() {
-            }
-        };
-    }
-
-
-
+public interface LineBreakpointProvider {
+    /** Create a breakpoint if you know how.
+     * 
+     * @param fo file to create breakpoint in
+     * @param line the line number in the file
+     * @return a breakpoint representing the location or <code>null</code>
+     * @throws Exception exception that will be logged
+     */
+    public Breakpoint createLineBreakpoint(FileObject fo, int line)
+    throws Exception;
 }

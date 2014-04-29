@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -37,50 +37,35 @@
  *
  * Contributor(s):
  *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
+ * Portions Copyrighted 2014 Sun Microsystems, Inc.
  */
 
-package org.netbeans.modules.dew4nb;
+package org.netbeans.modules.dew4nb.services.debugger;
 
-import java.awt.Dialog;
-import java.awt.Frame;
+import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.annotations.common.NonNull;
-import org.openide.DialogDescriptor;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.api.debugger.Breakpoint;
+import org.openide.filesystems.FileObject;
+import org.openide.text.Line;
+import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 
-/**
+/** This calls should be moved into a module that has dependency on avatar_js.project
+ * one.
  *
- * @author Tomas Zezula
+ * @author Jaroslav Tulach <jtulach@netbeans.org>
  */
-@ServiceProvider(service=DialogDisplayer.class, position = 1)
-public class HiddenDisplayer extends DialogDisplayer {
-    private static final Logger LOG = Logger.getLogger(HiddenDisplayer.class.getName());
-
-    @NonNull
+@ServiceProvider(service = LineBreakpointProvider.class)
+public final class LineBreakpointProviderJS implements LineBreakpointProvider {
     @Override
-    public Object notify(NotifyDescriptor descriptor) {
-        LOG.log(Level.INFO, "Supressing dialog: {0}", descriptor.getMessage());
-        return NotifyDescriptor.YES_OPTION;
+    public Breakpoint createLineBreakpoint(FileObject file, int line) throws Exception {
+        if (file.hasExt("js")) {
+            ClassLoader l = Lookup.getDefault().lookup(ClassLoader.class);
+            Class<?> fl = Class.forName("org.netbeans.modules.javascript2.debug.breakpoints.FutureLine", true, l);
+            Line ln = (Line) fl.getConstructor(URL.class, int.class).newInstance(file.toURL(), line);
+            Class<?> jslb = Class.forName("org.netbeans.modules.javascript2.debug.breakpoints.JSLineBreakpoint", true, l);
+            return (Breakpoint) jslb.getConstructor(Line.class).newInstance(ln);
+        }
+        return null;
     }
-
-    @Override    
-    public Dialog createDialog(DialogDescriptor descriptor) {
-        LOG.log(Level.INFO, "Supressing dialog: {0}", descriptor.getMessage());
-        return new Dialog((Frame)null) {
-            @Override
-            public void setVisible(boolean b) {
-            }
-            @SuppressWarnings("deprecation")
-            @Override            
-            public void show() {
-            }
-        };
-    }
-
-
-
 }

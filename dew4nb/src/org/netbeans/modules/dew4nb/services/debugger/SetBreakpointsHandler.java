@@ -42,11 +42,13 @@
 
 package org.netbeans.modules.dew4nb.services.debugger;
 
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.api.debugger.Breakpoint;
 import org.netbeans.api.debugger.DebuggerManager;
+import org.netbeans.api.debugger.jpda.JPDABreakpoint;
 import org.netbeans.api.debugger.jpda.LineBreakpoint;
 import org.netbeans.modules.dew4nb.endpoint.BasicRequestHandler;
 import org.netbeans.modules.dew4nb.endpoint.RequestHandler;
@@ -87,6 +89,12 @@ public class SetBreakpointsHandler extends BasicRequestHandler<DebugAction, Debu
             }
             final DebuggerManager dbm = DebuggerManager.getDebuggerManager();
             for (Breakpoint bp : dbm.getBreakpoints()) {
+                if (bp instanceof JPDABreakpoint) {
+                    JPDABreakpoint jpdabp = (JPDABreakpoint) bp;
+                    if (jpdabp.isHidden()) {
+                        continue;
+                    }
+                }
                 dbm.removeBreakpoint(bp);
             }
             for (String line : request.getData()) {
@@ -97,11 +105,11 @@ public class SetBreakpointsHandler extends BasicRequestHandler<DebugAction, Debu
                     if (file != null) {
                         final String linesStr = line.substring(separator+1);
                         for (String lineStr : linesStr.split(":")) { //NOI18N
+                            final int lineNo = Integer.parseInt(lineStr);
                             try {
-                                final int lineNo = Integer.parseInt(lineStr);
-                                final LineBreakpoint lb = LineBreakpoint.create(file.toURL().toExternalForm(), lineNo);
-                                dbm.addBreakpoint(lb);
-                            } catch (NumberFormatException nfe) {
+                                Breakpoint b = createLineBreakpoint(file, lineNo);
+                                dbm.addBreakpoint(b);
+                            } catch (Exception nfe) {
                                 LOG.log(
                                     Level.WARNING,
                                     "Ignoring breakpoint(s) with wrong line number: {0}",   //NOI18N
@@ -124,6 +132,21 @@ public class SetBreakpointsHandler extends BasicRequestHandler<DebugAction, Debu
             status = Status.done;
         }
         return status;
+    }
+
+    private static Breakpoint createLineBreakpoint(final FileObject file, final int lineNo) 
+    throws Exception {
+        for (LineBreakpointProvider p : Lookup.getDefault().lookupAll(LineBreakpointProvider.class)) {
+            try {
+                Breakpoint b = p.createLineBreakpoint(file, lineNo);
+                if (b != null) {
+                    return b;
+                }
+            } catch (Exception ex) {
+                LOG.log(Level.WARNING, "Can't set JavaScript breakpoint ", ex);
+            }
+        }
+        throw new Exception("Cannot find breakpoint for " + file + " and " + lineNo);
     }
 
 }
