@@ -136,6 +136,9 @@ public class PythonSemanticHighlighter extends SemanticAnalyzer<PythonParserResu
 
         @Override
         public Object visitClassDef(ClassDef node) throws Exception {
+            OffsetRange range = PythonAstUtils.getNameRange(info, node);
+            highlights.put(range, ColoringAttributes.CLASS_SET);
+
             ScopeInfo oldScope = scope;
             scope = symbolTable.getScopeInfo(node);
             Object ret = super.visitClassDef(node);
@@ -153,6 +156,10 @@ public class PythonSemanticHighlighter extends SemanticAnalyzer<PythonParserResu
             OffsetRange range = PythonAstUtils.getNameRange(info, def);
             highlights.put(range, ColoringAttributes.METHOD_SET);
 
+            // vararg and kwarg from the function definition line must be handled here, since they
+            // are passed to visit name unlike ordinary arguments.
+            highlightVarargAndKwargs(def);
+
             ScopeInfo oldScope = scope;
             scope = symbolTable.getScopeInfo(def);
             Object result = super.visitFunctionDef(def);
@@ -160,21 +167,34 @@ public class PythonSemanticHighlighter extends SemanticAnalyzer<PythonParserResu
             return result;
         }
 
+        private void highlightVarargAndKwargs(FunctionDef def) {
+            Name vararg = def.getInternalArgs().getInternalVarargName();
+            highlightName(vararg, ColoringAttributes.PARAMETER_SET);
+            Name kwarg = def.getInternalArgs().getInternalKwargName();
+            highlightName(kwarg, ColoringAttributes.PARAMETER_SET);
+        }
+
+        private void highlightName(Name name, EnumSet<ColoringAttributes> color) {
+            if (name != null && !color.isEmpty()) {
+                OffsetRange range = PythonAstUtils.getNameRange(info, name);
+                highlights.put(range, color);
+            }
+        }
+
         @Override
         public Object visitName(Name node) throws Exception {
             String name = node.getInternalId();
             if (scope != null) {
+                EnumSet<ColoringAttributes> color = EnumSet.noneOf(ColoringAttributes.class);
                 if (scope.isUnused(name)) {
-                    OffsetRange r = PythonAstUtils.getNameRange(info, node);
-                    if (scope.isParameter(name) && !name.equals("self")) {
-                        highlights.put(r, EnumSet.of(ColoringAttributes.UNUSED, ColoringAttributes.PARAMETER));
-                    } else {
-                        highlights.put(r, EnumSet.of(ColoringAttributes.UNUSED));
-                    }
-                } else if (scope.isParameter(name) && !name.equals("self")) {
-                    OffsetRange r = PythonAstUtils.getNameRange(info, node);
-                    highlights.put(r, ColoringAttributes.PARAMETER_SET);
+                    color.add(ColoringAttributes.UNUSED);
                 }
+
+                if (scope.isParameter(name) && !name.equals("self")) {
+                    color.add(ColoringAttributes.PARAMETER);
+                }
+
+                highlightName(node, color);
             }
 
             return super.visitName(node);

@@ -47,6 +47,7 @@ import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.parsing.api.Task;
 import org.netbeans.modules.parsing.spi.Parser;
 import org.netbeans.modules.parsing.spi.SourceModificationEvent;
+import org.netbeans.modules.python.api.PythonFileEncodingQuery;
 import org.openide.filesystems.FileObject;
 import org.python.antlr.runtime.ANTLRStringStream;
 import org.python.antlr.runtime.BaseRecognizer;
@@ -88,6 +89,9 @@ public class PythonParser extends Parser {
     }
     
     private Result lastResult;
+    private final PythonFileEncodingQuery fileEncodingQuery = new PythonFileEncodingQuery();
+    private String headerCached = null;
+    private String encodingCache = null;
 
     public mod file_input(CharStream charStream, String fileName) throws RecognitionException {
         ListErrorHandler eh = new ListErrorHandler();
@@ -177,7 +181,14 @@ public class PythonParser extends Parser {
             //String charset = "ISO8859_1"; // NOI18N
             //String charset = "UTF-8"; // NOI18N
             //String charset = "iso8859_1"; // NOI18N
-            String charset = null;
+            // TODO: improve this check.
+            int cache_len = sourceCode.length() >= 64 ? 64 : sourceCode.length();
+            if (headerCached == null || cache_len != headerCached.length() || !headerCached.equals(sourceCode.substring(0, cache_len))) {
+                headerCached = sourceCode.substring(0, cache_len);
+                encodingCache = fileEncodingQuery.getPythonFileEncoding(sourceCode.split("\n", 2));                
+            }
+            String charset = encodingCache;            
+                
             final boolean ignoreErrors = sanitizedSource;
             ListErrorHandler errorHandler = new ListErrorHandler() {
                 @Override
@@ -288,19 +299,24 @@ public class PythonParser extends Parser {
 
                         errors.add(new DefaultError(null, message, null, file, start, end, Severity.ERROR));
 
+                        // In order to avoid a StackOverflowError, the BaseRecognizer must be recreated.
+                        // We must keep the names of the tokens to avoid a NullPointerException.
+                        // See bz252630
+                        final String[] tokenNames = br.getTokenNames();
                         br = new BaseRecognizer() {
 
                             @Override
                             public String getSourceName() {
                                 return file.getName();
                             }
+
+                            @Override
+                            public String[] getTokenNames() {
+                                return tokenNames;
+                            }
                         };
-                        try {
-                            super.reportError(br, re);
-                        } catch (NullPointerException e) {
-                            
-                        }
-                        
+
+                        super.reportError(br, re);
                     }
                 }
             };
@@ -311,7 +327,18 @@ public class PythonParser extends Parser {
             tokens.discardOffChannelTokens(true);
             PythonTokenSource indentedSource = new PythonTokenSource(tokens, fileName);
             CommonTokenStream indentedTokens = new CommonTokenStream(indentedSource);
-            org.python.antlr.PythonParser parser = new org.python.antlr.PythonParser(indentedTokens);
+            // Import line ending with a dot raise a NullPointerException in
+            // org.python.antlr.GrammarActions.makeDottedText called from parser.file_input
+            // sanitizeImportTokens will remove the dot token from the list of tokens in
+            // indentedTokens to avoid the bug and add an error at this file.
+            // See https://netbeans.org/bugzilla/show_bug.cgi?id=252356
+            sanitizeImportTokens(indentedTokens, errors, file);
+            org.python.antlr.PythonParser parser;
+            if (charset != null) {
+                parser = new org.python.antlr.PythonParser(indentedTokens, charset);
+            } else {
+                parser = new org.python.antlr.PythonParser(indentedTokens);
+            }
             parser.setTreeAdaptor(new PythonTreeAdaptor());
             parser.setErrorHandler(errorHandler);
             org.python.antlr.PythonParser.file_input_return r = parser.file_input();
@@ -368,6 +395,51 @@ public class PythonParser extends Parser {
             }
             return new PythonParserResult(null, context.snapshot);
         }
+    }
+
+    private void sanitizeImportTokens(CommonTokenStream indentedTokens, List errors, FileObject file) {
+        List tokens = indentedTokens.getTokens();
+        List<CommonToken> tokensToRemove = new ArrayList<>();
+        int i = 0;
+        while (i < tokens.size()) {
+            CommonToken importToken = (CommonToken)tokens.get(i);
+            if ("import".equals(importToken.getText()) || "from".equals(importToken.getText())) {
+                // sanitizeDotTokens return the index of the token that starts the next line
+                i = sanitizeDotTokens(tokens, tokensToRemove, importToken, i + 1, errors, file);
+            } else {
+                i++;
+            }
+        }
+
+        for (CommonToken token : tokensToRemove) {
+            tokens.remove(token);
+        }
+    }
+
+    private int sanitizeDotTokens(List tokens, List tokensToRemove, CommonToken importToken,
+            int startIndex, List errors, FileObject file) {
+        for (int j = startIndex; j < tokens.size() - 1; j++) {
+            CommonToken dotToken = (CommonToken)tokens.get(j);
+            CommonToken nextToken = (CommonToken)tokens.get(j + 1);
+            if (".".equals(dotToken.getText())) {
+                if (nextToken.getText().startsWith("\n")) {
+                    tokensToRemove.add(dotToken);
+                    String rawTokenText;
+                    if (nextToken.getText().startsWith("\n")) {
+                        rawTokenText = "\\n";
+                    } else {
+                        rawTokenText = " ";
+                    }
+                    errors.add(
+                        new DefaultError(null, "Mismatch input '.' expecting NAME\nMissing NAME at '" + rawTokenText + "'",
+                            null, file, importToken.getStartIndex(), dotToken.getStopIndex(), Severity.ERROR));
+                }
+            } else if ("\n".equals(nextToken.getText())) { // End of line, must continue looping from external loop
+                return j + 1;
+            }
+        }
+
+        return startIndex;
     }
 
     private static String asString(CharSequence sequence) {

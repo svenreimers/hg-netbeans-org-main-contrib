@@ -127,11 +127,9 @@ public class PythonProject2 implements Project {
     }
 
     public PythonPlatform getActivePlatform() {
-        String pid = getProp(ProjectUtils.getAuxiliaryConfiguration(this), PythonProject2.APPLICATION_ARGS);
+        String pid = getProp(ProjectUtils.getAuxiliaryConfiguration(this), PythonProject2.ACTIVE_PLATFORM);
         final PythonPlatformManager manager = PythonPlatformManager.getInstance();
-        if (pid == null) {
-            pid = manager.getDefaultPlatform();
-        }
+
         return manager.getPlatform(pid);
     }
 

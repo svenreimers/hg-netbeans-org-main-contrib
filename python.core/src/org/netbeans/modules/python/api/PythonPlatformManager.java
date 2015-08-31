@@ -93,12 +93,6 @@ public class PythonPlatformManager implements Serializable {
            jythonInstallDir + File.separator + "Lib" + File.separator + "site-packages" });
         List<String> list = discoverJythonClasspath(platform.getInterpreterCommand());
         platform.setJavaPath(list.toArray(new String[list.size()]));
-        try {
-            //platform.setDirty(false);
-            storePlatform(platform);
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-        }
 
         return platform;
     }
@@ -302,6 +296,9 @@ public class PythonPlatformManager implements Serializable {
     }
 
     public PythonPlatform getPlatform(String name){
+        if (name == null) {
+            return null;
+        }
         return platforms.get(name);
     }
 
