@@ -1,0 +1,249 @@
+? editor/libsrc/org/netbeans/editor/ScrollbarAnnotationAdapter.java
+? editor/libsrc/org/netbeans/editor/ScrollbarAnnotationFilter.java
+? nbbuild/obfuscate
+? nbbuild/external/proguard.jar
+Index: editor/lib/nbproject/project.xml
+===================================================================
+RCS file: /cvs/editor/lib/nbproject/project.xml,v
+retrieving revision 1.1
+diff -u -u -r1.1 project.xml
+--- editor/lib/nbproject/project.xml	1 Jul 2004 14:32:15 -0000	1.1
++++ editor/lib/nbproject/project.xml	8 Oct 2004 04:10:04 -0000
+@@ -43,6 +43,12 @@
+                         <specification-version>4.37</specification-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.swing.scrollbars</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency/>
++                </dependency>                
+             </module-dependencies>
+             <public-packages>
+                 <package>org.netbeans.editor</package>
+Index: editor/libsrc/org/netbeans/editor/Annotations.java
+===================================================================
+RCS file: /cvs/editor/libsrc/org/netbeans/editor/Annotations.java,v
+retrieving revision 1.23
+diff -u -u -r1.23 Annotations.java
+--- editor/libsrc/org/netbeans/editor/Annotations.java	18 Aug 2004 17:22:15 -0000	1.23
++++ editor/libsrc/org/netbeans/editor/Annotations.java	8 Oct 2004 04:10:06 -0000
+@@ -69,7 +69,7 @@
+     private DrawLayerFactory.AnnotationLayer drawLayer;
+ 
+     /** Reference to document */
+-    private BaseDocument doc;
++    BaseDocument doc;
+ 
+     /** List of listeners on AnnotationsListener*/
+     private EventListenerList listenerList;
+Index: editor/libsrc/org/netbeans/editor/EditorUI.java
+===================================================================
+RCS file: /cvs/editor/libsrc/org/netbeans/editor/EditorUI.java,v
+retrieving revision 1.69
+diff -u -u -r1.69 EditorUI.java
+--- editor/libsrc/org/netbeans/editor/EditorUI.java	5 Oct 2004 13:24:24 -0000	1.69
++++ editor/libsrc/org/netbeans/editor/EditorUI.java	8 Oct 2004 04:10:08 -0000
+@@ -24,9 +24,11 @@
+ import java.beans.PropertyChangeEvent;
+ import java.beans.PropertyChangeSupport;
+ import javax.swing.Action;
++import javax.swing.BorderFactory;
+ import javax.swing.JComponent;
+ import javax.swing.JViewport;
+ import javax.swing.JPanel;
++import javax.swing.JScrollBar;
+ import javax.swing.JScrollPane;
+ import javax.swing.JToolBar;
+ import javax.swing.SwingUtilities;
+@@ -38,6 +40,8 @@
+ import javax.swing.text.View;
+ import javax.swing.plaf.TextUI;
+ 
++import org.netbeans.swing.scrollbars.api.ScrollbarFactory;
++
+ /**
+ * Editor UI for the component. All the additional UI features
+ * like advanced scrolling, info about fonts, abbreviations,
+@@ -985,11 +989,17 @@
+         ec.putClientProperty(JTextComponent.class, component);
+ 
+         // Add the scroll-pane with the component to the center
+-        JScrollPane scroller = new JScrollPane(component);
++        JScrollPane scroller = ScrollbarFactory.createScrollPane(
++            new ScrollbarAnnotationAdapter(component, 
++            getDocument().getAnnotations()));
++
+         scroller.getViewport().setMinimumSize(new Dimension(4,4));
+-        
+-        // remove default scroll-pane border, winsys will handle borders itself           
+-        scroller.setBorder(null);
++
++        // remove default scroll-pane border, winsys will handle borders itself
++        scroller.setBorder(BorderFactory.createEmptyBorder());
++        scroller.setViewportBorder (BorderFactory.createEmptyBorder());
++
++        scroller.setViewportView(component);
+         
+         setGlyphGutter(new GlyphGutter(this));
+         scroller.setRowHeaderView(glyphGutter);
+Index: editor/nbproject/project.xml
+===================================================================
+RCS file: /cvs/editor/nbproject/project.xml,v
+retrieving revision 1.8
+diff -u -u -r1.8 project.xml
+--- editor/nbproject/project.xml	1 Jul 2004 14:32:16 -0000	1.8
++++ editor/nbproject/project.xml	8 Oct 2004 04:10:08 -0000
+@@ -107,6 +107,12 @@
+                         <release-version>1</release-version>
+                     </run-dependency>
+                 </dependency>
++                <dependency>
++                    <code-name-base>org.netbeans.swing.scrollbars</code-name-base>
++                    <build-prerequisite/>
++                    <compile-dependency/>
++                    <run-dependency/>
++                </dependency>  
+             </module-dependencies>
+             <public-packages>
+                 <package>org.netbeans.modules.editor</package>
+Index: editor/src/org/netbeans/modules/editor/NbEditorUI.java
+===================================================================
+RCS file: /cvs/editor/src/org/netbeans/modules/editor/NbEditorUI.java,v
+retrieving revision 1.29
+diff -u -u -r1.29 NbEditorUI.java
+--- editor/src/org/netbeans/modules/editor/NbEditorUI.java	31 Aug 2004 12:37:28 -0000	1.29
++++ editor/src/org/netbeans/modules/editor/NbEditorUI.java	8 Oct 2004 04:10:09 -0000
+@@ -23,13 +23,10 @@
+ import java.beans.PropertyChangeEvent;
+ import java.beans.PropertyChangeListener;
+ import javax.swing.Action;
+-import javax.swing.ActionMap;
+ import javax.swing.BorderFactory;
+ import javax.swing.text.Document;
+ import javax.swing.text.JTextComponent;
+-import org.netbeans.editor.BaseKit;
+-import org.netbeans.editor.EditorUI;
+-import org.netbeans.editor.Utilities;
++
+ import org.netbeans.editor.ext.ExtEditorUI;
+ import org.netbeans.editor.ext.ExtKit;
+ import org.openide.filesystems.FileObject;
+@@ -39,19 +36,16 @@
+ import org.openide.util.actions.SystemAction;
+ import org.openide.util.actions.CallbackSystemAction;
+ import org.openide.windows.TopComponent;
+-import org.openide.text.CloneableEditor;
+-import javax.swing.event.ChangeEvent;
+-import org.netbeans.editor.GuardedDocument;
+-import javax.swing.SwingUtilities;
+-import org.netbeans.editor.BaseDocument;
+-import javax.swing.text.Caret;
+-import javax.swing.JEditorPane;
+ import javax.swing.JComponent;
+ import javax.swing.JPanel;
+ import javax.swing.JScrollPane;
++import javax.swing.JScrollBar;
+ import javax.swing.JToolBar;
+-import javax.swing.event.ChangeListener;
+-import org.netbeans.editor.GlyphGutter;
++import org.netbeans.editor.BaseKit;
++import org.netbeans.editor.EditorUI;
++import org.netbeans.editor.ScrollbarAnnotationAdapter;
++import org.netbeans.editor.Utilities;
++import org.netbeans.swing.scrollbars.api.ScrollbarFactory;
+ import org.openide.text.CloneableEditorSupport;
+ import org.openide.util.ContextAwareAction;
+ import org.openide.util.Lookup;
+@@ -150,13 +144,19 @@
+         ec.putClientProperty(JTextComponent.class, component);
+ 
+         // Add the scroll-pane with the component to the center
+-        JScrollPane scroller = new JScrollPane(component);
++        JScrollPane scroller = ScrollbarFactory.createScrollPane(
++            new ScrollbarAnnotationAdapter(component, 
++            getDocument().getAnnotations()));
++        
+         scroller.getViewport().setMinimumSize(new Dimension(4,4));
+ 
+         // remove default scroll-pane border, winsys will handle borders itself           
+         scroller.setBorder(BorderFactory.createEmptyBorder());
+         scroller.setViewportBorder(BorderFactory.createEmptyBorder());
+         
++        scroller.setViewportView (component);
++        
++
+         CustomizableSideBar bar = new CustomizableSideBar(component);
+ 
+         scroller.setRowHeaderView(bar);
+Index: editor/src/org/netbeans/modules/editor/options/OptionUtilities.java
+===================================================================
+RCS file: /cvs/editor/src/org/netbeans/modules/editor/options/OptionUtilities.java,v
+retrieving revision 1.9
+diff -u -u -r1.9 OptionUtilities.java
+--- editor/src/org/netbeans/modules/editor/options/OptionUtilities.java	13 Sep 2004 12:56:09 -0000	1.9
++++ editor/src/org/netbeans/modules/editor/options/OptionUtilities.java	8 Oct 2004 04:10:11 -0000
+@@ -366,6 +366,8 @@
+     }
+     
+     
++    
++    
+     /** Converts KeyBings List to KeyBindings Map 
+      *  Map.key is the textual representation of keystroke(s) */
+     public static Map makeKeyBindingsMap(List propList){
+Index: nbbuild/build.xml
+===================================================================
+RCS file: /cvs/nbbuild/build.xml,v
+retrieving revision 1.566
+diff -u -u -r1.566 build.xml
+--- nbbuild/build.xml	6 Oct 2004 23:54:24 -0000	1.566
++++ nbbuild/build.xml	8 Oct 2004 04:10:21 -0000
+@@ -256,6 +256,10 @@
+     </antcall>
+     <ant dir="../core/windows" target="netbeans"/>
+   </target>
++  <target name="all-core/swing/scrollbars">
++    <echo message="Building marked scrollbar component library..."/>
++    <ant dir="../core/swing/scrollbars"/>
++  </target>
+   <target name="all-core/multiview" depends="all-openide,all-openide/loaders">
+     <echo message="Building module core/multiview..."/>
+     <getdependsclusters name="dependsClusters" list="${nb.clusters.list}"/>
+@@ -705,7 +709,7 @@
+     </antcall>
+     <ant dir="../debuggerjpda/ant" target="netbeans"/>
+   </target>
+-  <target name="all-editor" depends="init,all-java/srcmodel,all-java/api,all-java/javacore,all-editor/lib,all-editor/fold,all-editor/util">
++  <target name="all-editor" depends="init,all-java/srcmodel,all-java/api,all-java/javacore,all-editor/lib,all-editor/fold,all-editor/util,all-core/swing/scrollbars">
+     <echo message="Building module editor..."/>
+     <getdependsclusters name="dependsClusters" list="${nb.clusters.list}"/>
+     <antcall target="build-one-cluster-dependencies" inheritAll="false">
+@@ -714,7 +718,7 @@
+     </antcall>
+     <ant dir="../editor" target="netbeans"/>
+   </target>
+-  <target name="all-editor/lib" depends="init,all-editor/fold,all-editor/util">
++  <target name="all-editor/lib" depends="init,all-editor/fold,all-editor/util,all-core/swing/scrollbars">
+     <echo message="Building module editor/lib..."/>
+     <ant dir="../editor/lib" target="netbeans"/>
+   </target>
+Index: nbbuild/templates/modules.xml
+===================================================================
+RCS file: /cvs/nbbuild/templates/modules.xml,v
+retrieving revision 1.65
+diff -u -u -r1.65 modules.xml
+--- nbbuild/templates/modules.xml	4 Oct 2004 16:05:35 -0000	1.65
++++ nbbuild/templates/modules.xml	8 Oct 2004 04:10:24 -0000
+@@ -141,6 +141,10 @@
+         <cnb>org.netbeans.swing.tabcontrol</cnb>
+     </module>
+     <module>
++        <path>core/swing/scrollbars</path>
++        <cnb>org.netbeans.swing.scrollbars</cnb>
++    </module>
++    <module>
+         <path>core/term</path>
+         <cnb>org.netbeans.lib.terminalemulator</cnb>
+     </module>

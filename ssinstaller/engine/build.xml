@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+  
+  Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+  
+  The contents of this file are subject to the terms of either the GNU General Public
+  License Version 2 only ("GPL") or the Common Development and Distribution
+  License("CDDL") (collectively, the "License"). You may not use this file except in
+  compliance with the License. You can obtain a copy of the License at
+  http://www.netbeans.org/cddl-gplv2.html or nbbuild/licenses/CDDL-GPL-2-CP. See the
+  License for the specific language governing permissions and limitations under the
+  License.  When distributing the software, include this License Header Notice in
+  each file and include the License file at nbbuild/licenses/CDDL-GPL-2-CP.  Sun
+  designates this particular file as subject to the "Classpath" exception as provided
+  by Sun in the GPL Version 2 section of the License file that accompanied this code.
+  If applicable, add the following below the License Header, with the fields enclosed
+  by brackets [] replaced by your own identifying information:
+  "Portions Copyrighted [year] [name of copyright owner]"
+  
+  Contributor(s):
+  
+  The Original Software is NetBeans. The Initial Developer of the Original Software
+  is Sun Microsystems, Inc. Portions Copyright 1997-2007 Sun Microsystems, Inc. All
+  Rights Reserved.
+  
+  If you wish your version of this file to be governed by only the CDDL or only the
+  GPL Version 2, indicate your decision by adding "[Contributor] elects to include
+  this software in this distribution under the [CDDL or GPL Version 2] license." If
+  you do not indicate a single choice of license, a recipient has the option to
+  distribute your version of this file under either the CDDL, the GPL Version 2 or
+  to extend the choice of license to its licensees as provided above. However, if you
+  add GPL Version 2 code and therefore, elected the GPL Version 2 license, then the
+  option applies only if the new code is made subject to such option by the copyright
+  holder.
+-->
+
+<project name="NetBeans_Installer" default="default" basedir=".">
+    <import file="nbproject/build-impl.xml"/>
+    
+    <property file="build.properties"/>
+    
+    <target name="-post-compile" depends="init-custom-tasks">
+        <!-- Add the contents of the core engine to the engine we're building -->
+        <unjar 
+            src="${reference.NBI_Engine.jar}" 
+            dest="${build.classes.dir}" 
+            overwrite="false"/>
+        
+	<!-- Patch launcher.sh. This is very nasty, but quick way. This is TEMPORARY implementation!!! -->
+<echo file="${basedir}/launcher_patch.diff" >
+540,542c540,542
+&lt; 	out "$msg6"
+&lt; 	out "$msg7"
+&lt; 	out "$msg8"
+---
+&gt; #	out "$msg6"
+&gt; #	out "$msg7"
+&gt; #	out "$msg8"
+545a546,548
+&gt;  	out2 "\t--record\t&lt;state&gt;.xml\tRecords the states of components to the specified state file when you exit the installer.\n\t\t\t\t\tUse this option to generate state files." 
+&gt;  	out2 "\t--state\t\t&lt;state&gt;.xml\tLoads the states of components from the specified state file.\n\t\t\t\tThis option is required for --silent."
+&gt;  	out2 "\t--silent-logs-dir\t&lt;dir&gt;\tOutput silent logs to the specific directory" 
+575a579,587
+&gt; out2() {
+&gt; 	
+&gt;         if [ -n "$OUTPUT_FILE" ] ; then
+&gt;                 printf "%b\n" "$@" &gt;&gt; "$OUTPUT_FILE"
+&gt;         elif [ 0 -eq $SILENT_MODE ] ; then
+&gt;                 printf "%b\n" "$@"
+&gt; 	fi
+&gt; }
+&gt; 
+1636a1649
+&gt; 
+</echo>	
+	<exec executable="patch">
+		<arg value="${build.classes.dir}/native/launcher/unix/launcher.sh"/>
+		<arg value="${basedir}/launcher_patch.diff"/>
+	</exec>
+
+        <write-jar-content-list 
+            dir="${basedir}/${build.classes.dir}" 
+            output="${basedir}/${build.classes.dir}/${jar.contents.list}"
+            mask="(^native/.*|^org/.*|^com/sun/servicetag/.*|^com/apple/.*|^data/|^data/engine(_[a-zA-Z]+)*\.properties|^data/clioptions.list)"/>
+    </target>
+    
+    <target name="-post-jar">
+        <delete dir="${dist.dir}/lib"/>
+    </target>
+    
+    <target name="init-custom-tasks" depends="build-custom-tasks">
+        <taskdef 
+            name="write-jar-content-list" 
+            classname="org.netbeans.installer.infra.build.ant.WriteFileList" 
+            classpath="${custom.tasks.cls}"/>
+    </target>
+    
+    <target name="build-custom-tasks" unless="dont.build.custom.tasks">
+        <delete dir="${custom.tasks.cls}"/>
+        <mkdir dir="${custom.tasks.cls}"/>
+        
+        <javac 
+            srcdir="${custom.tasks.src.1}" 
+            destdir="${custom.tasks.cls}" 
+            debug="true" 
+            classpath="${custom.tasks.classpath}"/>
+        <javac 
+            srcdir="${custom.tasks.src.2}" 
+            destdir="${custom.tasks.cls}" 
+            debug="true" 
+            classpath="${custom.tasks.classpath}"/>
+    </target>
+</project>

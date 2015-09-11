@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+
+<!DOCTYPE orb-settings PUBLIC "-//Forte for Java//DTD ORBSettings 1.0//EN" "ORBSettings.dtd"[
+<!ENTITY corba23-poa SYSTEM "nbres:/org/netbeans/modules/corba/resources/impls/corba23-poa.ent">
+<!ENTITY corba23-generic-impl SYSTEM "nbres:/org/netbeans/modules/corba/resources/impls/corba23-generic-impl.ent">
+]>
+<orb-settings name='VisiBroker 4.x for Java' tag='vb4' supported='true'>
+
+  &corba23-poa;
+  &corba23-generic-impl;
+
+  <poa-settings>
+    <poa-policy name='Bind Support' mnemonic_character='B'>
+      <value name='BY_POA'>
+        <require-policy name='Lifespan' value='PERSISTENT'/>
+      </value>
+      <value name='BY_INSTANCE'>
+        <require-policy name='Lifespan' value='PERSISTENT'/>
+        <require-policy name='Servant Retention' value='RETAIN'/>
+      </value>
+      <value name='NONE'>
+      </value>
+      <prepare-code><![CDATA[org.omg.CORBA.Any _bsPolicyAny__$INDEX$__ = __ORB_VAR_NAME__.create_any();
+        com.inprise.vbroker.PortableServerExt.BindSupportPolicyValueHelper.insert(_bsPolicyAny__$INDEX$__, com.inprise.vbroker.PortableServerExt.BindSupportPolicyValue.__POLICY_VALUE__);]]>
+      </prepare-code>
+      <prepare-code-pattern value='org.omg.CORBA.Any _bsPolicyAny[0-9]+ = [:javastart:][:javapart:]*.create_any\s*\(\);\n\s* com.inprise.vbroker.PortableServerExt.BindSupportPolicyValueHelper.insert\s*\(_bsPolicyAny[0-9]+, com.inprise.vbroker.PortableServerExt.BindSupportPolicyValue.([:javastart:][:javapart:]*)\);\n'/>
+      <create-code><![CDATA[__ORB_VAR_NAME__.create_policy(com.inprise.vbroker.PortableServerExt.BIND_SUPPORT_POLICY_TYPE.value, _bsPolicyAny__$INDEX$__)]]></create-code>
+      <create-code-pattern value='[:javastart:][:javapart:]*.create_policy\s*\(com.inprise.vbroker.PortableServerExt.BIND_SUPPORT_POLICY_TYPE.value, _bsPolicyAny[0-9]+\),?'/>
+    </poa-policy>
+  </poa-settings>
+
+  <java-template-code>
+    <template-code name='ORB_PROPERTIES'><![CDATA[// setting system properties is necessary in order to use this ORB in JDK
+    Properties props = System.getProperties ();
+    props.put ("org.omg.CORBA.ORBClass", "com.inprise.vbroker.orb.ORB");
+    props.put ("org.omg.CORBA.ORBSingletonClass", "com.inprise.vbroker.orb.ORB");
+    System.setProperties (props);]]>
+    </template-code>
+  </java-template-code>
+
+  <server-binding name='Proprietary Binder' template-tag='SERVER_BINDING'
+		local-tag='proprietary_binder'>
+    <code><![CDATA[// binding to osagent is done automatically by POA]]>
+    </code>
+  </server-binding>
+
+  <client-binding name='Proprietary Binder' template-tag='CLIENT_BINDING'
+		local-tag='proprietary_binder'>
+    <code><![CDATA[// VisiBroker for Java proprietary binder:
+      /*FFJ_CORBA_TODO_INTERFACE_NAME*/ srv = /*FFJ_CORBA_TODO_INTERFACE_NAME*/Helper.bind (orb);
+      if (srv == null)
+      throw new RuntimeException ();
+
+      // add your client code here]]>
+    </code>
+  </client-binding>
+
+  <idl-compiler-settings>
+    <tie-param value=''/>
+    <dir-param value='-root_dir'/>
+    <package-param value='-package'/>
+    <compiler value='idl2java {cpp_params} {params} {dir_param} {package_root} {package_param} {package} {files}'/>
+    <package-delimiter value='.'/>
+    <error-expression value='^([^ ]+): ([0-9]+):(.*)'/>
+    <file-position value='1'/>
+    <line-position value='2'/>
+    <column-position value='-1'/>
+    <message-position value='3'/>
+    
+  </idl-compiler-settings>
+    
+    
+</orb-settings>

@@ -1,0 +1,83 @@
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head></head><body>
+
+The Convertor API allows to convertor object to namespace aware XML fragment and vice versa.
+
+<h2>API Overview</h2>
+The API part is quite straightforward. There is one main class with
+couple of static helper methods working on all registered convertors in
+the system.<br>
+
+<h2>Learn by example<br></h2>The typical workflow of storing and
+loading of an object is illustrated below. It expect that there is
+registered convertor for the object which does the actual conversion.
+For how to write a convertor see <a href="../../spi/convertor/package-summary.html">SPI package overview</a>.<br><br>1.) test whether there is a convertor for the object<br>
+<code><br>
+&nbsp;&nbsp;&nbsp; boolean canWrite = Convertors.canWrite(anObject);<br>
+</code><br>
+
+2.) if yes then save it to a file<br>
+<code><br></code><code>&nbsp;&nbsp;&nbsp; OutputStream os = new FileOutputStream("somefilename.xml");<br>
+&nbsp;&nbsp;&nbsp; try {<br>
+</code><code>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Convertors.write(os,
+anObject);<br>
+&nbsp;&nbsp;&nbsp; } finally {<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; os.close();<br>
+&nbsp;&nbsp;&nbsp; }<br>
+</code>
+<br>
+That's all for writing. The reading is adequately simple:<br>
+<br>
+<code>&nbsp;&nbsp;&nbsp; InputStream is = new FileInputStream("somefilename.xml");<br>
+&nbsp;&nbsp;&nbsp; try {<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </code><code>theObject</code><code> = Convertors.read(is);</code><br>
+<code>&nbsp;&nbsp;&nbsp; } catch (SAXException ex) {<br>
+&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;  // file is not valid XML document. <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // notify user and/or ignore file.<br>&nbsp;&nbsp;&nbsp; } catch (IOException ex) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;  // file cannot be read or there is no convertor for root element<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // notify user and/or ignore file.<br>&nbsp;&nbsp;&nbsp; } finally {<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; is.close();<br>
+&nbsp;&nbsp;&nbsp; }<br>
+</code><br>
+<br>
+
+</body></html>

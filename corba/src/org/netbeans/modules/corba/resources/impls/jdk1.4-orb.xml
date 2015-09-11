@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!--
+DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+
+
+The contents of this file are subject to the terms of either the GNU
+General Public License Version 2 only ("GPL") or the Common
+Development and Distribution License("CDDL") (collectively, the
+"License"). You may not use this file except in compliance with the
+License. You can obtain a copy of the License at
+http://www.netbeans.org/cddl-gplv2.html
+or nbbuild/licenses/CDDL-GPL-2-CP. See the License for the
+specific language governing permissions and limitations under the
+License.  When distributing the software, include this License Header
+Notice in each file and include the License file at
+nbbuild/licenses/CDDL-GPL-2-CP.  Sun designates this
+particular file as subject to the "Classpath" exception as provided
+by Sun in the GPL Version 2 section of the License file that
+accompanied this code. If applicable, add the following below the
+License Header, with the fields enclosed by brackets [] replaced by
+your own identifying information:
+"Portions Copyrighted [year] [name of copyright owner]"
+
+Contributor(s):
+
+The Original Software is NetBeans. The Initial Developer of the Original
+Software is Sun Microsystems, Inc. Portions Copyright 1997-2006 Sun
+Microsystems, Inc. All Rights Reserved.
+
+If you wish your version of this file to be governed by only the CDDL
+or only the GPL Version 2, indicate your decision by adding
+"[Contributor] elects to include this software in this distribution
+under the [CDDL or GPL Version 2] license." If you do not indicate a
+single choice of license, a recipient has the option to distribute
+your version of this file under either the CDDL, the GPL Version 2 or
+to extend the choice of license to its licensees as provided above.
+However, if you add GPL Version 2 code and therefore, elected the GPL
+Version 2 license, then the option applies only if the new code is
+made subject to such option by the copyright holder.
+-->
+
+
+<!DOCTYPE orb-settings PUBLIC "-//Forte for Java//DTD ORBSettings 1.0//EN" "ORBSettings.dtd"[
+<!ENTITY corba23-poa SYSTEM "nbres:/org/netbeans/modules/corba/resources/impls/corba23-poa.ent">
+<!ENTITY corba23-generic-impl SYSTEM "nbres:/org/netbeans/modules/corba/resources/impls/corba23-generic-impl.ent">
+]>
+
+<orb-settings name='JDK 1.4 ORB' tag='JDK1.4' supported='true'>
+
+&corba23-generic-impl;
+&corba23-poa;
+
+<poa-settings>
+  <root-poa-init value='POA __ROOT_POA_VAR_NAME__ = (POA)__ORB_VAR_NAME__.resolve_initial_references("RootPOA");\n\n'/>
+  <root-poa-pattern value='POA ([:javastart:][:javapart:]*) = \(POA\)\s*([:javastart:][:javapart:]*).resolve_initial_references\s*\("RootPOA"\);'/>
+</poa-settings>  
+ 
+
+<java-template-code>
+<template-code name='SERVER_IMPORT'><![CDATA[import org.omg.CORBA.ORB;
+    import org.omg.CORBA.Policy;
+    import org.omg.PortableServer.POA;
+    import org.omg.PortableServer.IdAssignmentPolicyValue;
+    import org.omg.PortableServer.IdUniquenessPolicyValue;
+    import org.omg.PortableServer.ImplicitActivationPolicyValue;
+    import org.omg.PortableServer.LifespanPolicyValue;
+    import org.omg.PortableServer.RequestProcessingPolicyValue;
+    import org.omg.PortableServer.ServantRetentionPolicyValue;
+    import org.omg.PortableServer.ThreadPolicyValue;
+    
+    import java.util.Properties;]]></template-code>
+
+
+  <template-code name='POA_INIT'><![CDATA[POA poa = (POA)orb.resolve_initial_references ("RootPOA");//GEN-LINE:poa_section]]>
+  </template-code>
+
+<template-code name='ORB_PROPERTIES'>
+  </template-code>
+
+<template-code name='ORB_INIT'><![CDATA[ORB orb = ORB.init (args, null);]]>
+  </template-code>
+
+  
+</java-template-code>
+
+<idl-compiler-settings>
+    <tie-param value='--tie'/>
+    <dir-param value='--directory'/>
+    <package-param value='--package'/>
+    <compiler value='java -classpath {classpath}{:}{library} org.netbeans.modules.corba.idl.compiler.jdk14.Compiler {cpp_params} {params} {dir_param} {package_root} {package_param} {package} {files}'/>
+    <package-delimiter value='.'/>
+    <error-expression value='^([^ \n]+) \(line ([0-9]+)\): (.*)'/>
+    <file-position value='1'/>
+    <line-position value='2'/>
+    <column-position value='-1'/>
+    <message-position value='3'/>
+
+  </idl-compiler-settings>
+	
+</orb-settings>

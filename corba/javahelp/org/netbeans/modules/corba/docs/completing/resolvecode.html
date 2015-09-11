@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * 
+ *     Copyright © 2003 Sun Microsystems, Inc. All rights reserved.
+ *     Use is subject to license terms.
+ * 
+-->
+<html>
+<head>
+<title>resolve() Code Example</title>
+<link rel="StyleSheet" href="../../../usersguide/ide.css" type="text/css">
+</head>
+<body>
+
+<h2>resolve() Code Example</h2>
+
+<pre>
+org.omg.CORBA.Object ns = orb.resolve_initial_references("NamingService");
+...
+
+String[] client_name_hierarchy = new String [] {"JDK", "Naming"};
+NameComponent[] aName = new NameComponent[client_name_hierarchy.length / 2];
+for (int i=0; i<(client_name_hierarchy.length / 2); i++) {
+    aName[i] = new NameComponent();
+    aName[i].id = client_name_hierarchy[i*2];
+    aName[i].kind = client_name_hierarchy[i*2+1];
+}
+org.omg.CORBA.Object obj = nc.resolve (aName);
+CORBA.Hello srv = corba.HelloHelper.narrow(obj);
+...
+</pre>
+
+<hr>
+<small><a href="../credits.html">Legal Notices</a></small>
+  </body>
+</html>

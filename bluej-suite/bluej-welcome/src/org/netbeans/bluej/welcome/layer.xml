@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Window">
+            <file name="org-netbeans-bluej-welcome-BluejWelcomeAction.instance"/>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="Help">
+            <file name="BluejWelcomeAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/org-netbeans-bluej-welcome-BluejWelcomeAction.instance"/>
+            </file>
+            <attr name="utilities-sep-3.instance/BluejWelcomeAction.shadow" boolvalue="true"/>
+            <attr name="BluejWelcomeAction.shadow/org-netbeans-core-actions-AboutAction.instance" boolvalue="true"/>
+        </folder>
+    </folder>
+    <folder name="Toolbars">
+        <!-- override configuration from core/ide -->
+        <folder name="Build">
+            <file name="org-netbeans-modules-debugger-ui-actions-ConnectAction.shadow_hidden"/>
+            <file name="org-netbeans-modules-debugger-ui-actions-DebugMainProjectAction.instance_hidden"/>
+        </folder>
+        <file name="Standard.xml" url="Standard.xml">
+        </file>
+    </folder>
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="BluejWelcomeTopComponent.settings" url="BluejWelcomeTopComponentSettings.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="editor">
+                <file name="BluejWelcomeTopComponent.wstcref" url="BluejWelcomeTopComponentWstcref.xml"/>
+            </folder>
+            <folder name="explorer">
+                <file name="projectTab_tc.wstcref" url="projects.wstcref"/>
+                <file name="runtime.wstcref" url="runtime.wstcref"/>
+
+            </folder>
+            <folder name="navigator">
+                <file name="navigatorTC.wstcref" url="navigatorTC.wstcref"/>
+            </folder>
+            <folder name="output">
+                <file name="output.wstcref" url="output.wstcref"/>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

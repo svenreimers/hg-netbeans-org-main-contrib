@@ -1,0 +1,19 @@
+[ ] Finish converting module to read new bpcatalog.xml instead of demo.xml
+   [ ] DOCTYPE was removed from bpcatalog.xml.  See if I can get
+       it working after adding it back in.
+
+[.] /clientside-state application
+       - additional library (base64) is not automatically on the classpath
+       - the rest of this app is OK.
+       Greg stated that app bundles base64 jars into the Web-INF/lib of that war file, which is portable solution and should be supported by NB, so no changes needed to application example code.
+       STATUS: seems like an NB problem or integration problem?
+       (disabled for now)
+[ ] Script for our workspace
+   [ ] Cases where WAR name does not equal directory name, like
+       clientside-validators
+   [ ] Check that it works with non-webapps
+       [ ] add code for JMS resource, EJB resource, etc.
+   [ ] Handle solutions that contain no examples, e.g. standalone-client
+[ ] Bookmarks
+[ ] If each time user clicks on an entry they get this dialog box, it could
+   be frustrating.  Can we jump to the already open project? 

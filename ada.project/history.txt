@@ -1,0 +1,24 @@
+0.1.7: dd-mm-2009
+- TBD
+
+0.1.6: 13-11-2009
+- Minor changes.
+
+0.1.5: 01-02-2009
+- Fix the manage clean/build/run actions.
+
+0.1.4: 05-01-2009
+- Fix project actions for linux systems.
+
+0.1.3: 28-12-2008
+- Update project actions.
+
+0.1.2: 19-11-2008
+- Update path classes.
+
+0.1.1: 09-11-2008
+- Add initial version of Build/Clean actions.
+
+0.1.0: 23-09-2008
+- Initial, very alpha release.
+- Based on python.project and php.project. Thanks to the authors of nbPython and PHP Project.

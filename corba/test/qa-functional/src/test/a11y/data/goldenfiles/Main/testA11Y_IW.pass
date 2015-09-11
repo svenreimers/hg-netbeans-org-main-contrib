@@ -1,0 +1,787 @@
+---> Testing Window: New Wizard - Empty
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   - none.
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: New Wizard - Empty
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   Class: org.openide.explorer.view.TreeView$ExplorerTree {  |  } 
+
+
+ No Accessible description :
+   Class: org.openide.explorer.view.TreeView$ExplorerTree {  |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   Class: org.openide.explorer.view.TreeView$ExplorerTree {  |  } 
+
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: New Wizard - Empty
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   Class: org.openide.explorer.view.TreeView$ExplorerTree {  |  } 
+
+
+ No Accessible description :
+   Class: org.openide.explorer.view.TreeView$ExplorerTree {  |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   Class: org.openide.explorer.view.TreeView$ExplorerTree {  |  } 
+
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Alias
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Length: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Constant
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+   Class: javax.swing.JTextField {  Value: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Enum Entry
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Enum Values: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Exception
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Forward Declaration
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Interface
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Base Interfaces: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Module
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Structure
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Union
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Discriminator Type: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create ValueBox
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Valuetype
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Base: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Supports: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Attribute
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Operation
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Context: |  } 
+   Class: javax.swing.JTextField {  Exceptions: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Parameters: |  } 
+   Class: javax.swing.JTextField {  Return Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Valuetype
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Base: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Supports: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Value
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Length: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Valuetype Factory
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Parameters: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Structure
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Member
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Length: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Union
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Discriminator Type: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Member
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Label: |  } 
+   Class: javax.swing.JTextField {  Length: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Union Default Member
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Length: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+   Class: javax.swing.JTextField {  Type: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Enum Entry
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Enum Values: |  } 
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: Create Entry
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   Class: javax.swing.JTextField {  Name: |  } 
+
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
+---> Testing Window: New Wizard - Empty
+Results of Accessibility test
+
+
+ Doesn't implement Accessible :
+   - none.
+
+ No Accessible name :
+   - none.
+
+ No Accessible description :
+   - none.
+
+ Label with LABEL_FOR not set :
+   - none.
+
+ Components with no LABEL_FOR pointing to it :
+   - none.
+
+ Components with no mnemonic :
+   - none.
+
+ Components with wrong mnemonic (mnemonic isn't ASCII , label doesn't contain mnemonic):
+   - none.
+
+ Components not reachable with tab traversal :
+   - not tested.
