@@ -50,13 +50,14 @@ package org.netbeans.modules.cnd.debugger.gdbserver;
 
 import java.beans.PropertyChangeListener;
 import javax.swing.JPanel;
+import org.netbeans.api.progress.BaseProgressUtils;
+import org.netbeans.api.project.Project;
 import org.netbeans.modules.cnd.api.remote.RemoteSyncSupport;
 import org.netbeans.modules.cnd.debugger.common2.debugger.NativeDebuggerInfo;
 import org.netbeans.modules.cnd.debugger.common2.debugger.NativeDebuggerManager;
 import org.netbeans.modules.cnd.debugger.common2.debugger.debugtarget.DebugTarget;
 import org.netbeans.modules.cnd.debugger.common2.debugger.options.DebuggerOption;
 import org.netbeans.modules.cnd.debugger.common2.debugger.remote.CndRemote;
-import org.netbeans.modules.cnd.debugger.common2.ui.ExecutableProjectPanel;
 import org.netbeans.modules.cnd.debugger.common2.utils.ProjectComboBoxSupport;
 import org.netbeans.modules.cnd.debugger.common2.utils.ProjectComboBoxSupport.ProjectCBItem;
 import org.netbeans.modules.cnd.debugger.gdb2.options.GdbDebuggerInfoFactory;
@@ -65,6 +66,7 @@ import org.netbeans.modules.cnd.makeproject.api.configurations.MakeConfiguration
 import org.netbeans.modules.nativeexecution.api.ExecutionEnvironment;
 import org.netbeans.spi.debugger.ui.Controller;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
 
 /**
@@ -151,7 +153,7 @@ public class GdbServerAttachPanel extends JPanel implements HelpCtx.Provider {
 
         @Override
         public boolean ok() {
-            String targetValue = targetTF.getText();
+            final String targetValue = targetTF.getText();
             if (targetValue.length() == 0) {
                 return false;
             }
@@ -159,24 +161,32 @@ public class GdbServerAttachPanel extends JPanel implements HelpCtx.Provider {
             //store last values
             NbPreferences.forModule(GdbServerAttachPanel.class).put(TARGET_KEY, targetValue);
 
-            ProjectCBItem pi = (ProjectCBItem) projectCB.getSelectedItem();
+            final ProjectCBItem pi = (ProjectCBItem) projectCB.getSelectedItem();            
             if (pi != null) {
-                MakeConfiguration conf = ConfigurationSupport.getProjectActiveConfiguration(pi.getProject()).clone();
-                DebugTarget dt = new DebugTarget(conf);
-                
-                // set executable
-                String path = conf.getAbsoluteOutputValue().replace("\\", "/"); // NOI18N
-                ExecutionEnvironment exEnv = conf.getDevelopmentHost().getExecutionEnvironment();
-                path = RemoteSyncSupport.getPathMap(exEnv, pi.getProject()).getRemotePath(path, true);
-                dt.setExecutable(path);
+                final Project project = pi.getProject();
+                BaseProgressUtils.showProgressDialogAndRun(new Runnable() {
+                    @Override
+                    public void run() {                        
+                        MakeConfiguration conf = 
+                                ConfigurationSupport.getProjectActiveConfiguration(project).clone();
+                        DebugTarget dt = new DebugTarget(conf);
 
-                // always use gdb
-                NativeDebuggerInfo gdi = GdbDebuggerInfoFactory.create(dt, 
-                        CndRemote.userhostFromConfiguration(conf), conf, NativeDebuggerManager.ATTACH, targetValue);                
-                String symbolFile = DebuggerOption.SYMBOL_FILE.getCurrValue(gdi.getDbgProfile().getOptions());
-                symbolFile = ((MakeConfiguration) conf).expandMacros(symbolFile);
-                gdi.setSymbolFile(symbolFile);
-                NativeDebuggerManager.get().debugNoAsk(gdi);
+                        // set executable
+                        String path = conf.getAbsoluteOutputValue().replace("\\", "/"); // NOI18N
+                        ExecutionEnvironment exEnv = conf.getDevelopmentHost().getExecutionEnvironment();
+                        path = RemoteSyncSupport.getPathMap(exEnv, project).getRemotePath(path, true);
+                        dt.setExecutable(path);
+
+                        // always use gdb
+                        final NativeDebuggerInfo gdi = GdbDebuggerInfoFactory.create(dt,
+                                CndRemote.userhostFromConfiguration(conf), conf, 
+                                NativeDebuggerManager.ATTACH, targetValue);
+                        String symbolFile = DebuggerOption.SYMBOL_FILE.getCurrValue(gdi.getDbgProfile().getOptions());
+                        symbolFile = ((MakeConfiguration) conf).expandMacros(symbolFile);
+                        gdi.setSymbolFile(symbolFile);
+                        NativeDebuggerManager.get().debugNoAsk(gdi);
+                    }
+                }, NbBundle.getMessage(GdbServerAttachPanel.class, "GdbServerAttachPanel.progress"));//NOI18N
 //                try {
 //                    GdbDebugger.attachGdbServer(target, pi.getProjectInformation());
 //                } catch (DebuggerStartException dse) {
