@@ -374,13 +374,16 @@ public class PythonParser extends Parser {
             } else {
                 return sanitize(context, sanitizing);
             }
+        } catch (IllegalArgumentException e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, e.getMessage());
+            return new PythonParserResult(null, context.snapshot);
         } catch (NullPointerException e) {
             String fileName = "";
             if (file != null) {
                 fileName = FileUtil.getFileDisplayName(file);
             }
             e = Exceptions.attachMessage(e, "Was parsing " + fileName);
-            Exceptions.printStackTrace(e);
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, e.getMessage());
             return new PythonParserResult(null, context.snapshot);
         } catch (Throwable t) {
             runtimeException = t;

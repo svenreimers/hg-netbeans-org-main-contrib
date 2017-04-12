@@ -363,14 +363,29 @@ public class PythonPlatformManager implements Serializable {
         PythonPlatform platform = null;
         try{
             PythonExecution pye = new PythonExecution();
-            int split = cmd.indexOf(" ");
-            pye.setCommand(split > 0 ? cmd.substring(0, split) : cmd);
+            String[] cmdParts = cmd.split(" ");
+            String cmdWithoutArgs = "";
+            String cmdArgs = "";
+            boolean isCommandComplete = false;
+            for (String cmdPart: cmdParts) {
+                if (!isCommandComplete) {
+                    cmdWithoutArgs = cmdWithoutArgs + " " + cmdPart;
+                } else {
+                    cmdArgs = cmdArgs + " " + cmdPart;
+                }
+
+                if (cmdPart.contains("python")) {
+                    isCommandComplete = true;
+                }
+            }
+            cmdWithoutArgs = cmdWithoutArgs.trim();
+            cmdArgs = cmdArgs.trim();
+            pye.setCommand(cmdWithoutArgs);
             pye.setDisplayName("Python Properties");
             File info = InstalledFileLocator.getDefault().locate(
                  "platform_info.py", "org.netbeans.modules.python.core", false);
             pye.setScript(info.getAbsolutePath());
-            if(split > 0) { 
-                String cmdArgs = cmd.substring(split).trim();
+            if(cmdArgs.length() > 0) {
                 pye.setCommandArgs(cmdArgs);
             }
             pye.setShowControls(false);
@@ -396,6 +411,10 @@ public class PythonPlatformManager implements Serializable {
                     command = cmd;
                 }
                 String name = prop.getProperty("platform.name");
+                // If name is null, the command that succeeded is not a Python interpreter (eg /usr/bin/ls)
+                if (name == null) {
+                    return null;
+                }
                 if (id == null) {
                     id = computeId(name);
                 }
@@ -476,17 +495,6 @@ public class PythonPlatformManager implements Serializable {
                     ad.traverseEnvPaths();
                     ad.searchNestedDirectoies = true;
                     ad.traverseDirectory(new File("/usr/bin")); // NOI18N // for all other (probably Unix-like) systems
-                    
-                    File fDefault = new File("/usr/bin/python"); // NOI18N  Default Python
-                    String path = fDefault.getAbsolutePath();
-                    PythonPlatform platform = findPlatformProperties(path, null);
-                    if (platform != null) {
-                        try {
-                            storePlatform(platform);
-                        } catch (IOException ioe) {
-                            Exceptions.printStackTrace(ioe);
-                        }
-                    }
                 }
             }
 

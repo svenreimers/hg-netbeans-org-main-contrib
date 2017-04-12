@@ -3,8 +3,17 @@ package org.netbeans.modules.python.project2;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -57,6 +66,8 @@ public class PythonProject2 implements Project {
      */
     public static final String PROP_PROJECT = "MavenProject"; //NOI18N
 
+    public static final String TEMPORARY_SETUPPY = "tmp_ENCODING_APPENDED_AT_BEGINNING_FOR_PYTHON_2_setup.py"; //NOI18N
+
     private static final String NS_PYTHON_1 = "http://nbpython.dev.java.net/ns/php-project/1"; // NOI18N
     private static final String EL_PYTHON = "python-data"; // NOI18N
     private static final ImageIcon PROJECT_ICON = ImageUtilities.loadImageIcon("org/netbeans/modules/python/project/resources/py_25_16.png", false);
@@ -75,6 +86,7 @@ public class PythonProject2 implements Project {
     private final Info info;
     private final PropertyChangeSupport support;
     private final PythonSources sources;
+    private static final Set<String> REGISTRED_SETUPPY = new HashSet<>();
 
     public PythonProject2(FileObject projectDirectory, ProjectState state) throws PythonException {
         support = new PropertyChangeSupport(this);
@@ -120,7 +132,7 @@ public class PythonProject2 implements Project {
             state
         });
     }
-    
+
     public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
         support.addPropertyChangeListener(propertyChangeListener);
     }
@@ -133,7 +145,12 @@ public class PythonProject2 implements Project {
         String pid = getProp(ProjectUtils.getAuxiliaryConfiguration(this), PythonProject2.ACTIVE_PLATFORM);
         final PythonPlatformManager manager = PythonPlatformManager.getInstance();
 
-        return manager.getPlatform(pid);
+        PythonPlatform activePlatform = manager.getPlatform(pid);
+        if (activePlatform == null) {
+            activePlatform = manager.getPlatform(manager.getDefaultPlatform());
+        }
+
+        return activePlatform;
     }
 
     public void setActivePlatform(final PythonPlatform platform) {
@@ -203,50 +220,81 @@ public class PythonProject2 implements Project {
             }
         });
     }
-    
+
     private static Properties findProjectProperties(FileObject projectDirectory, FileChangeListener listener) throws PythonException {
         Properties props = new Properties();
-        final PythonPlatformManager manager = PythonPlatformManager.getInstance();
-        PythonPlatform platform = manager.getPlatform(manager.getDefaultPlatform());
         PythonExecution pye;
         try {
-            pye = new PythonExecution();
-            pye.setCommand(platform.getInterpreterCommand());
-            pye.setDisplayName("Python Project Info");
             FileObject setuppy = projectDirectory.getFileObject(SETUPPY);
-            if(listener != null) {
+            if (listener != null && !REGISTRED_SETUPPY.contains(setuppy.getPath())) {
+                REGISTRED_SETUPPY.add(setuppy.getPath());
                 setuppy.addFileChangeListener(listener);
             }
-            pye.setScript(FileUtil.toFile(setuppy).getAbsolutePath());
-            pye.setScriptArgs("--name --version"); //NOI18N
-            pye.setShowControls(false);
-            pye.setShowInput(false);
-            pye.setShowWindow(false);
-            pye.setShowProgress(false);
-            pye.setShowSuspended(false);
-            //pye.setWorkingDirectory(info.getAbsolutePath().substring(0, info.getAbsolutePath().lastIndexOf(File.separator)));
-            pye.setWorkingDirectory(FileUtil.toFile(projectDirectory).getAbsolutePath());
-            pye.attachOutputProcessor();
+            pye = createProjectPropertiesReader(projectDirectory, setuppy);
             Future<Integer> result = pye.run();
             Integer value = result.get();
             if (value == 0) {
-                // Problem with encoding?
-//                    prop.load(new ReaderInputStream(pye.getOutput()));
-                try (Scanner sc = new Scanner(new ReaderInputStream(pye.getOutput()))) {
-                    String newName = sc.nextLine();
-                    props.setProperty(PROP_DISPLAY_NAME, newName);
-                    String newVersion = sc.nextLine();
-                    props.setProperty(PROP_VERSION, newVersion);
-                }
+                fillPropertiesFromSetupOutput(props, pye.getOutput());
             } else {
-                throw new PythonException("Could not discover Python Project Info in " + pye.getWorkingDirectory());
+                findProjectPropertiesForceUtf8InSetuppy(props, projectDirectory, setuppy);
             }
         } catch (InterruptedException | ExecutionException | IOException ex) {
             Exceptions.printStackTrace(ex);
         }
+
         return props;
     }
-    
+
+    private static PythonExecution createProjectPropertiesReader(FileObject projectDirectory, FileObject setuppy) {
+        final PythonPlatformManager manager = PythonPlatformManager.getInstance();
+        PythonPlatform platform = manager.getPlatform(manager.getDefaultPlatform());
+        PythonExecution pye = new PythonExecution();
+        pye.setCommand(platform.getInterpreterCommand());
+        pye.setDisplayName("Python Project Info");
+
+        pye.setScript(FileUtil.toFile(setuppy).getAbsolutePath());
+        pye.setScriptArgs("--name --version"); //NOI18N
+        pye.setShowControls(false);
+        pye.setShowInput(false);
+        pye.setShowWindow(false);
+        pye.setShowProgress(false);
+        pye.setShowSuspended(false);
+        pye.setWorkingDirectory(FileUtil.toFile(projectDirectory).getAbsolutePath());
+        pye.attachOutputProcessor();
+
+        return pye;
+    }
+
+    private static void fillPropertiesFromSetupOutput(Properties props, Reader output) throws IOException {
+        try (Scanner sc = new Scanner(new ReaderInputStream(output))) {
+            String newName = sc.nextLine();
+            props.setProperty(PROP_DISPLAY_NAME, newName);
+            String newVersion = sc.nextLine();
+            props.setProperty(PROP_VERSION, newVersion);
+        }
+    }
+
+    private static void findProjectPropertiesForceUtf8InSetuppy(Properties props, FileObject projectDirectory, FileObject setuppy)
+            throws IOException, PythonException, InterruptedException, ExecutionException {
+        // We trying to force UTF-8 encoding in setup.py to help Jython read the properties.
+        List<String> lines = Files.readAllLines(Paths.get(setuppy.getPath()));
+        lines.add(0, "# -*- encoding: utf-8 -*-");
+
+        Path tmpSetupPath = Paths.get(projectDirectory.getFileObject(SETUPPY).getParent().getPath(), TEMPORARY_SETUPPY);
+        Files.write(tmpSetupPath, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        FileObject tmpSetup = projectDirectory.getFileObject(TEMPORARY_SETUPPY);
+
+        PythonExecution pye = createProjectPropertiesReader(projectDirectory, tmpSetup);
+        Future<Integer> result = pye.run();
+        Integer value = result.get();
+        tmpSetup.delete();
+        if (value == 0) {
+            fillPropertiesFromSetupOutput(props, pye.getOutput());
+        } else {
+            throw new PythonException("Could not discover Python Project Info in " + pye.getWorkingDirectory());
+        }
+    }
+
     public static boolean isProject(FileObject projectDirectory) {
         try {
             return projectDirectory.getFileObject(PythonProject2.SETUPPY) != null &&
