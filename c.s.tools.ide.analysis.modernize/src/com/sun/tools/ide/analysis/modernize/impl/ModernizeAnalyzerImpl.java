@@ -73,8 +73,6 @@ public class ModernizeAnalyzerImpl extends AbstractAnalyzer {
 
     private static final String PREFIX = "tidy-"; //NOI18N
 
-    private ModernizeErrorProvider currentErrorProvider;
-
     private ModernizeAnalyzerImpl(Context ctx) {
         super(ctx);
     }
@@ -84,19 +82,9 @@ public class ModernizeAnalyzerImpl extends AbstractAnalyzer {
         return ModernizeErrorProvider.getInstance();
     }
 
-    @Override
+    @Override 
     protected boolean isCompileUnitBased() {
         return true;
-    }
-
-    @Override
-    protected Collection<ErrorDescription> done() {
-        if (currentErrorProvider != null) {
-            Collection<ErrorDescription> results = currentErrorProvider.done();
-            currentErrorProvider = null;
-            return results;
-        }
-        return Collections.<ErrorDescription>emptyList();
     }
 
     @Override
@@ -106,21 +94,20 @@ public class ModernizeAnalyzerImpl extends AbstractAnalyzer {
             return Collections.<ErrorDescription>emptyList();
         }
         CsmErrorProvider.Request request = new RequestImpl(csmFile, ctx, cancel);
-        final ArrayList<ErrorDescription> res = new ArrayList<>();
-        CsmErrorProvider.Response response = new ModernizeResponse(sr, res, cancel);
-        this.currentErrorProvider = (ModernizeErrorProvider) provider;
+        final ArrayList<ErrorDescription> res = new ArrayList<ErrorDescription>();
+        CsmErrorProvider.Response response = new ResponseImpl(sr, res, cancel);
         provider.getErrors(request, response);
         return res;
     }
 
-    protected static class ModernizeResponse extends AbstractResponse {
+    protected static class ResponseImpl extends AbstractResponse {
 
-        public ModernizeResponse(FileObject sr, ArrayList<ErrorDescription> res, AtomicBoolean cancel) {
+        public ResponseImpl(FileObject sr, ArrayList<ErrorDescription> res, AtomicBoolean cancel) {
             super(sr, res, cancel);
         }
 
         @Override
-        public ErrorDescription addErrorImpl(CsmErrorInfo errorInfo, FileObject fo) {
+        protected ErrorDescription addErrorImpl(CsmErrorInfo errorInfo, FileObject fo) {
             String messages[] = errorInfo.getMessage().split("\n"); //NOI18N
             if (messages.length > 0) {
                 StringBuilder sb = new StringBuilder();
@@ -173,7 +160,7 @@ public class ModernizeAnalyzerImpl extends AbstractAnalyzer {
 
         @Override
         public Iterable<? extends WarningDescription> getWarnings() {
-            List<WarningDescription> result = new ArrayList<>();
+            List<WarningDescription> result = new ArrayList<WarningDescription>();
             final ModernizeErrorProvider provider = ModernizeErrorProvider.getInstance();
             for (CodeAudit audit : provider.getAudits()) {
                 result.add(WarningDescription.create(PREFIX + audit.getID(), audit.getName(), ModernizeErrorProvider.NAME, provider.getDisplayName()));
