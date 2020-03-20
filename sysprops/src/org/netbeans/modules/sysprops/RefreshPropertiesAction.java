@@ -49,8 +49,6 @@ import org.openide.util.actions.CallableSystemAction;
 
 /** Action that refreshs all Properties.
  *
- * @author Jesse Glick
- * @author Michael Ruflin
  */
 public class RefreshPropertiesAction extends CallableSystemAction {
 

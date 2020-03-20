@@ -49,7 +49,6 @@ package org.netbeans.modules.sysprops;
  * default Properties listed in System.getProperties() in javadoc (1.3).
  * Maybe it would be better trying to delete each, to see if it's recreated.
  *
- * @author Michael Ruflin
  */
 public class DeleteChecker extends Object {
 

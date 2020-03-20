@@ -51,8 +51,6 @@ import org.openide.util.datatransfer.NewType;
 
 /** NewType that can create a new SystemProperty.
  *
- * @author Jesse Glick
- * @author Michael Ruflin
  */
 class SystemPropertyNewType extends NewType {
 

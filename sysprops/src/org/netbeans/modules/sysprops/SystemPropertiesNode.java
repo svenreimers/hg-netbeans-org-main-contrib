@@ -60,7 +60,6 @@ import org.openide.util.NbBundle;
 
 /** Root Node for all SystemProperties.
  *
- * @author Michael Ruflin, Jesse Glick
  */
 @ServicesTabNodeRegistration(name="sysprops", displayName="#LBL_AllPropsNode", shortDescription="#HINT_AllPropsNode",
     iconResource="org/netbeans/modules/sysprops/resources/propertiesRoot.gif", position=2020)

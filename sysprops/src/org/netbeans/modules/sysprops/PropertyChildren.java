@@ -70,8 +70,6 @@ import org.openide.nodes.Node;
  * and a given node can never change its children object (though the nodes
  * contained in the children object can change, provided it is a not a leaf).
  *
- * @author Jesse Glick
- * @author Michael Ruflin
  */
 public class PropertyChildren extends Children.Keys {
     

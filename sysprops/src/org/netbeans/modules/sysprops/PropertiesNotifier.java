@@ -54,7 +54,6 @@ import javax.swing.event.ChangeListener;
 /**
  * Notifier-Object for all Listeners on the System Properties.
  *
- * @author Jesse Glick
  */
 public class PropertiesNotifier {
 

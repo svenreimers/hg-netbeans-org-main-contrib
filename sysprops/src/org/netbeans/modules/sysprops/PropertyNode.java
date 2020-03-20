@@ -67,8 +67,6 @@ import org.openide.util.WeakListeners;
 
 /** A Node for a SystemProperty and/or a Parent-Node for SystemProperties.
  *
- * @author Jesse Glick
- * @author Michael Ruflin
  */
 public class PropertyNode extends AbstractNode {
     
