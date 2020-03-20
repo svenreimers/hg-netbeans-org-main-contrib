@@ -66,7 +66,6 @@ import org.openide.util.actions.Presenter;
 
 /**
  * Persistent version of {@link FileSensitiveActions#fileCommandAction}.
- * @author Jesse Glick
  */
 public final class Command implements Serializable, Action, Presenter.Menu, Presenter.Toolbar, Presenter.Popup, ContextAwareAction {
     
