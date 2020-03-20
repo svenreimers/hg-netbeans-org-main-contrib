@@ -44,7 +44,6 @@ import com.sun.jna.Pointer;
 
 /**
  *
- * @author Jan Lahoda
  */
 public interface C extends Library {
 

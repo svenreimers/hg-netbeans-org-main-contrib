@@ -46,7 +46,6 @@ import com.sun.jna.ptr.PointerByReference;
 
 /**
  *
- * @author Jan Lahoda
  */
 public interface Hunspell extends Library {
 

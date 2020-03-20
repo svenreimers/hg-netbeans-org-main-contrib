@@ -56,7 +56,6 @@ import org.netbeans.modules.spellchecker.spi.dictionary.ValidityType;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class DictionaryImpl implements Dictionary {
     
