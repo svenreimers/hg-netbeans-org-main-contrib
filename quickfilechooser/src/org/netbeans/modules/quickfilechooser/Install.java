@@ -48,7 +48,6 @@ import javax.swing.UIManager;
 
 /**
  * Install the proper UI.
- * @author Jesse Glick
  */
 public class Install {
 

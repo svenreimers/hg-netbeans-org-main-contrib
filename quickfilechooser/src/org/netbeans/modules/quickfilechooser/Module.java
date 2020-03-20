@@ -45,7 +45,6 @@ import org.openide.modules.ModuleInstall;
 
 /**
  * Registers the quick file chooser in NetBeans.
- * @author Jesse Glick
  */
 public class Module extends ModuleInstall {
 

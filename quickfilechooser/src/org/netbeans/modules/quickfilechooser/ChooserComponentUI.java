@@ -94,7 +94,6 @@ import javax.swing.plaf.basic.BasicFileChooserUI;
 
 /**
  * The UI for the {@link JFileChooser}.
- * @author Jesse Glick, Tim Boudreau
  */
 public class ChooserComponentUI extends BasicFileChooserUI {
     
