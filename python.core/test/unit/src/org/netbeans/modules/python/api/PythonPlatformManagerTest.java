@@ -9,7 +9,6 @@ import org.netbeans.junit.NbTestCase;
 
 /**
  *
- * @author alley
  */
 public class PythonPlatformManagerTest extends NbTestCase {
 

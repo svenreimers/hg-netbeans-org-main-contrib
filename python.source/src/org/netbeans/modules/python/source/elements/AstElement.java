@@ -49,7 +49,6 @@ import org.python.antlr.ast.Name;
 /**
  * Elements representing a node in a parse tree
  *
- * @author Tor Norbye
  */
 public class AstElement extends Element {
     protected PythonTree node;

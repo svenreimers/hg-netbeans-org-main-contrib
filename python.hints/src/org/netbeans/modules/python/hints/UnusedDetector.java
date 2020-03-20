@@ -71,7 +71,6 @@ import org.python.antlr.base.expr;
  * @todo Find a more reliable way of detecting return tuples without relying on the
  *  parent reference
  *
- * @author Tor Norbye
  */
 public class UnusedDetector extends PythonAstRule {
     /** Default names ignored */

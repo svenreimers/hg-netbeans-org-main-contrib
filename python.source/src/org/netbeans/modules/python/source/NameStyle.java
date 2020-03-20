@@ -46,7 +46,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tor Norbye
  */
 public enum NameStyle {
     NO_PREFERENCE(NbBundle.getMessage(NameStyle.class, "NoPreference")),

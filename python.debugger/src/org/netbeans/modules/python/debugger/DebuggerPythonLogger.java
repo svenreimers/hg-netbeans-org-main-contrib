@@ -66,7 +66,6 @@ import org.netbeans.modules.python.debugger.spi.PythonSession;
 /**
  * Debugger's tasking entry point class
  *
- * @author jean-yves Mengant
  */
 public class DebuggerPythonLogger {
 

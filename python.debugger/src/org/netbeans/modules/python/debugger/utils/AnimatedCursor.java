@@ -54,7 +54,6 @@ import java.awt.event.*;
  * - Animated dynamic cursor through the startAnimation/ run /stopAnimation
  * methods
  * 
- * @author jean-yves Mengant
  *
  */
 public class AnimatedCursor

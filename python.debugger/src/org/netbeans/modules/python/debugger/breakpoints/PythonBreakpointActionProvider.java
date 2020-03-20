@@ -66,7 +66,6 @@ import org.openide.util.WeakListeners;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class PythonBreakpointActionProvider
         extends ActionsProviderSupport

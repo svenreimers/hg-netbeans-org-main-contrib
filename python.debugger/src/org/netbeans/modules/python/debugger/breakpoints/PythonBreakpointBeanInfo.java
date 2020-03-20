@@ -48,7 +48,6 @@ import java.beans.SimpleBeanInfo;
 
 /**
  *
- * @author Jean-Yves Mengant
  */
 class PythonBreakpointBeanInfo extends SimpleBeanInfo {
     

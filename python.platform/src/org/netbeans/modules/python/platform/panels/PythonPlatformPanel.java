@@ -33,8 +33,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
 /**
- * @author Manuel Tijerino
- * @author Allan Davis
  */
 public class PythonPlatformPanel extends javax.swing.JPanel {
     boolean ignoreEvents;

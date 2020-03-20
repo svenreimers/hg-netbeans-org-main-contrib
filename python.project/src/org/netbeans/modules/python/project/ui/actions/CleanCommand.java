@@ -20,7 +20,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author alley
  */
 public class CleanCommand extends Command {
     

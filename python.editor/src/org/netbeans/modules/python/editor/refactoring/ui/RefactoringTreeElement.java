@@ -50,7 +50,6 @@ import org.netbeans.modules.refactoring.spi.ui.*;
 
 /**
  *
- * @author Jan Becicka
  */
 public class RefactoringTreeElement implements TreeElement {
     RefactoringElement element;

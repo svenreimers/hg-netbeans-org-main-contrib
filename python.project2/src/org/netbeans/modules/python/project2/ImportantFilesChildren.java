@@ -46,7 +46,6 @@ import org.openide.nodes.Node;
 
 /**
  *
- * @author jenselme
  */
 public class ImportantFilesChildren extends Children {
     @Override

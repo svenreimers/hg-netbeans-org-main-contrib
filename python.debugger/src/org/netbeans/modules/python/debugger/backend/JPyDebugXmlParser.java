@@ -57,7 +57,6 @@ import java.util.Vector;
 /**
  * this class is used to parse the network send debugging
  *         XmlStatements
- * @author jean-yves Mengant
  */
 public class JPyDebugXmlParser extends DefaultHandler {
 

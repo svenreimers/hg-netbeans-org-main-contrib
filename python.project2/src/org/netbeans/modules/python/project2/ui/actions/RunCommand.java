@@ -15,7 +15,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author alley
  */
 public class RunCommand extends Command {
 

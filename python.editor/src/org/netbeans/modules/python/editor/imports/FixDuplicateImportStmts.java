@@ -79,7 +79,6 @@ import org.openide.util.NbBundle;
  * JTable with custom renderer, so second column looks editable (JComboBox).
  * Second column also has CellEditor (also a JComboBox).
  *
- * @author  eakle, Martin Roskanin, Tor Norbye
  */
 public class FixDuplicateImportStmts extends javax.swing.JPanel {
 

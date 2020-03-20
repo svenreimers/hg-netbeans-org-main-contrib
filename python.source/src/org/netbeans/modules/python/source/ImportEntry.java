@@ -50,7 +50,6 @@ import org.python.antlr.PythonTree;
  *  can correspond to many atomic imports: one for each symbol or module
  *  imported)
  *
- * @author Tor Norbye
  */
 public class ImportEntry implements Comparable<ImportEntry> {
     public final String module;

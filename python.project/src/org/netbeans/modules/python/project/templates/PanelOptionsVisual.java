@@ -72,7 +72,6 @@ import org.openide.util.Utilities;
 import org.openide.util.actions.CallableSystemAction;
 
 /**
- * @author  Tomas Zezula
  */
 public class PanelOptionsVisual extends SettingsPanel implements ActionListener, PropertyChangeListener {
     

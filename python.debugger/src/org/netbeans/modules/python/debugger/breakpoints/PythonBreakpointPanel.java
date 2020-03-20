@@ -68,7 +68,6 @@ import org.openide.util.NbBundle;
 /**
  * Panel for customizing Python breakpoints.
  *
- * @author  Jean-Yves Mengant
  */
 public class PythonBreakpointPanel extends JPanel implements Controller, org.openide.util.HelpCtx.Provider {
 

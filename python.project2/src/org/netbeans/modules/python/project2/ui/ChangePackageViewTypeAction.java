@@ -62,7 +62,6 @@ import static org.netbeans.modules.python.project2.ui.Bundle.*;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Jesse Glick
  */
 @NbBundle.Messages({"LBL_change_package_type=&View Python Packages as",
     "ChangePackageViewTypeAction_list=&List",

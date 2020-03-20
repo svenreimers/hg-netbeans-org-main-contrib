@@ -47,7 +47,6 @@ import java.awt.event.KeyListener;
 
 /**
  *
- * @author tester
  */
 public class NumericKeyListener implements KeyListener {
     public NumericKeyListener() {

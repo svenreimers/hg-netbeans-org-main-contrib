@@ -55,7 +55,6 @@ import org.openide.util.NbPreferences;
  * <b>This is copied from the corresponding Java action in java.projects (JavaProjectSettings)</b>
  * </p>
  *
- * @author Tomas Zezula, Jesse Glick
  */
 public class PythonProjectSettings {
 

@@ -11,7 +11,6 @@ import org.netbeans.junit.NbTestCase;
 
 /**
  *
- * @author alley
  */
 public class DebuggerConceptTest extends NbTestCase {
 

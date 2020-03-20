@@ -51,7 +51,6 @@ package org.netbeans.modules.python.source.ui;
 
 /**
  *
- * @author  phrebejk
  */
 public class FmtBlankLines extends javax.swing.JPanel {
     

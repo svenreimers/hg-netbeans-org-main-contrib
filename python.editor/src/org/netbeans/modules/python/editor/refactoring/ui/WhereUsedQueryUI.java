@@ -61,7 +61,6 @@ import org.openide.util.lookup.Lookups;
 /**
  * WhereUsedQueryUI from the Java refactoring module, only moderately modified for Python
  * 
- * @author Martin Matula, Jan Becicka
  */
 public class WhereUsedQueryUI implements RefactoringUI {
     private WhereUsedQuery query = null;

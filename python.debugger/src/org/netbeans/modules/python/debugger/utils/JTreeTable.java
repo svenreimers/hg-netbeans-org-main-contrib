@@ -61,8 +61,6 @@ import java.util.EventObject;
  *
  * @version 1.2 10/27/98
  *
- * @author Philip Milne
- * @author Scott Violet
  */
 public class JTreeTable extends JTable {
 

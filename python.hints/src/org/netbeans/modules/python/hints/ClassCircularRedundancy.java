@@ -62,7 +62,6 @@ import org.python.antlr.ast.Module;
 
 /**
  * check for redundancy cycling in parent child
- * @author Jean-Yves Mengant
  */
 public class ClassCircularRedundancy extends PythonAstRule {
     private final static String CLASS_CIRCULAR_REDUNDANCY = "ClassCircularRedundancy";

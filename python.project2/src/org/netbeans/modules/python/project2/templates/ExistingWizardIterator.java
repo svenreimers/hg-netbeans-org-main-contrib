@@ -60,7 +60,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  *
- *@author mkleint
  */
 @TemplateRegistration(folder="Project/Python", position=140,
         displayName="#template.existing",

@@ -87,7 +87,6 @@ import org.openide.util.Exceptions;
  * @todo Uhm... It looks like the hit count is ALWAYS 1 - so store and parse in a more
  *   compressed format!
  *
- * @author Tor Norbye
  */
 public final class PythonCoverageProvider implements CoverageProvider {
     private static final int COUNT_INFERRED = -1;

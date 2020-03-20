@@ -49,7 +49,6 @@ import org.openide.text.Line;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class PythonBreakpoint
         extends Breakpoint {

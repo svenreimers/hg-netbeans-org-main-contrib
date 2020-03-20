@@ -18,7 +18,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author alley
  */
 public final class Util {
     private static final String USE_PROXY_AUTHENTICATION = "useProxyAuthentication"; // NOI18N

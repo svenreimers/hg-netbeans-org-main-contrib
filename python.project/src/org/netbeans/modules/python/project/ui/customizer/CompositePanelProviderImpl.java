@@ -14,7 +14,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class CompositePanelProviderImpl implements CompositeCategoryProvider {
     

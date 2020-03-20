@@ -51,7 +51,6 @@ import java.util.EventObject;
 
 /**
  *
- * @author Jean-Yves Mengant
  */
 public class AbstractCellEditor implements TableCellEditor, TreeCellEditor {
 

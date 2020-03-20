@@ -107,8 +107,6 @@ import org.python.antlr.base.expr;
  * @todo Code completion after raise or except should only
  *   include things that extend the basic exception/error classes!
  * 
- * @author alley
- * @author Tor Norbye
  */
 public class PythonCodeCompleter implements CodeCompletionHandler {
     private static ImageIcon keywordIcon;

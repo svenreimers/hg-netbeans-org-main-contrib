@@ -48,8 +48,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Jan Becicka
- * @author Tor Norbye
  */
 public final class ElementGrip {
     private String toString;

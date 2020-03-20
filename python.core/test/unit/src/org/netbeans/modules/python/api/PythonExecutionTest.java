@@ -13,7 +13,6 @@ import org.openide.util.io.ReaderInputStream;
 
 /**
  *
- * @author alley
  */
 public class PythonExecutionTest extends NbTestCase{
 

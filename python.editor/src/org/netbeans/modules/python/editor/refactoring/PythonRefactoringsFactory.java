@@ -54,7 +54,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author Jan Becicka
  */
 public class PythonRefactoringsFactory implements RefactoringPluginFactory {
     @Override

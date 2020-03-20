@@ -23,7 +23,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tomas Zezula
  */
 class ExistingPythonProjectPanelVisual extends SettingsPanel implements DocumentListener {
 

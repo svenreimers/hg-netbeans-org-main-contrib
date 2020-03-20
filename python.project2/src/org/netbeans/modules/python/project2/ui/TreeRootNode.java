@@ -82,7 +82,6 @@ import org.openide.util.lookup.ProxyLookup;
  * Unlike PackageViewChildren this class definitelly requires more generic API module, probably projectui.
  * Displays a package root in a tree.
  * @see "#42151"
- * @author Jesse Glick
  */
 public final class TreeRootNode extends FilterNode implements PropertyChangeListener {
 

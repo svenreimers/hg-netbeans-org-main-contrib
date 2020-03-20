@@ -51,7 +51,6 @@ import org.openide.util.Parameters;
 
 /**
  *
- * @author jenselme
  */
 /**
  * Information about important files.

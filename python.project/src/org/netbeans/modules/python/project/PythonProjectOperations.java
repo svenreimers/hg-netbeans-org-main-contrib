@@ -18,7 +18,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class PythonProjectOperations implements DeleteOperationImplementation, CopyOperationImplementation,
         MoveOperationImplementation {

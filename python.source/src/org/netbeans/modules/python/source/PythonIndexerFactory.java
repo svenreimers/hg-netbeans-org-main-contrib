@@ -13,7 +13,6 @@ import org.netbeans.modules.parsing.spi.indexing.Indexable;
 
 /**
  *
- * @author Ralph Benjamin Ruijs
  */
 public class PythonIndexerFactory extends EmbeddingIndexerFactory {    
 

@@ -47,7 +47,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author Maros Sandor
  */
 public class QShellConfig {
 

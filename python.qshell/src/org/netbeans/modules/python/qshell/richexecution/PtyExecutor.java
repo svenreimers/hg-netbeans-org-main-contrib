@@ -65,7 +65,6 @@ import org.openide.util.Exceptions;
  * <p>
  * If the pty is null, as the case might be on Windows, executes the program
  * as {@link java.lang.ProcessBuilder} would.
- * @author ivan
  */
 public class PtyExecutor {
     private static String setpgrpCmd = null;

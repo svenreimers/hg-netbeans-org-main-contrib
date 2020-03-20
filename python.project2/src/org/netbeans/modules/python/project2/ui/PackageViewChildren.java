@@ -118,7 +118,6 @@ import org.openide.util.lookup.ProxyLookup;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Adam Sotona, Jesse Glick, Petr Hrebejk, Tomas Zezula
  */
 @NbBundle.Messages({"TXT_PastePackage=Paste Package",
     "MSG_InvalidPackageName=Name is not a valid Java package.",

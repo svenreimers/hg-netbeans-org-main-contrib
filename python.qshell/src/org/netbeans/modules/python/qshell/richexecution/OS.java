@@ -50,7 +50,6 @@ package org.netbeans.modules.python.qshell.richexecution;
  * Pty's are notoriously un-standardized. Their use varies subtly between
  * Linux, BSD and Solaris, not to mention MacOS.
  * This enum helps with customization of behaviour.
- * @author ivan
  */
 public enum OS {
 

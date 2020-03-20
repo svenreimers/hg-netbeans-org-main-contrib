@@ -48,7 +48,6 @@ import java.io.OutputStream;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class PythonDebuggerTargetExecutor {
 

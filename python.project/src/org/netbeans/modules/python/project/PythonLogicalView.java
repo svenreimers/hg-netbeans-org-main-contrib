@@ -38,8 +38,6 @@ import org.openide.xml.XMLUtil;
 
 /**
  *
- * @author alley
- * @author Tomas Zezula
  */
 class PythonLogicalView implements LogicalViewProvider {
 

@@ -23,7 +23,6 @@ import org.openide.util.lookup.Lookups;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class PythonCustomizerProvider implements CustomizerProvider {
 

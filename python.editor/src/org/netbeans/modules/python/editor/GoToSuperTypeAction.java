@@ -95,7 +95,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tor Norbye
  */
 public class GoToSuperTypeAction extends BaseAction {
     @SuppressWarnings("deprecation")

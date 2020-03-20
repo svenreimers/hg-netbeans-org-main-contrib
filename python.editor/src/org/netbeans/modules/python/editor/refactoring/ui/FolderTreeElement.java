@@ -60,7 +60,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Jan Becicka
  */
 public class FolderTreeElement implements TreeElement {
     private FileObject fo;

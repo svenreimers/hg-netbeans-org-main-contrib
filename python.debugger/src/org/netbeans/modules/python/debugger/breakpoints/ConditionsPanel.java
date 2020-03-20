@@ -54,7 +54,6 @@ import org.netbeans.modules.python.debugger.gui.WatchPanel;
 /**
  * Panel for Python breakpoint conditions
  * 
- * @author  Jean-Yves Mengant
  */
 public class ConditionsPanel extends javax.swing.JPanel {
 

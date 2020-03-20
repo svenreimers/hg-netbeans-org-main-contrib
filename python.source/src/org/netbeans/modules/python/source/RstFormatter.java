@@ -86,7 +86,6 @@ import org.python.antlr.PythonTree;
  *    try to remove all items, or perhaps just make it shorter
  * @todo Render note:: into something cleaner etc.
  *
- * @author Tor Norbye
  */
 public class RstFormatter {
     private static final String BRBR = "\n<br><br>\n"; // NOI18N

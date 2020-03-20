@@ -62,7 +62,6 @@ import org.python.antlr.base.expr;
 
 /**
  * Check direct acces to parent protected variables or methods
- * @author jean-yves Mengant
  */
 public class AccessToProtected extends PythonAstRule {
     private final static String ACCESS_PROTECTED_ID = "AccessProtected"; // NOI18N

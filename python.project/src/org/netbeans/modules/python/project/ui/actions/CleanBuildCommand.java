@@ -61,7 +61,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author Amit Saha <amitksaha@netbeans.org>
  * 
  */
 public class CleanBuildCommand extends Command {

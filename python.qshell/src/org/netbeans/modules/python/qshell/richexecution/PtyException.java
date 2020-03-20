@@ -45,7 +45,6 @@
 package org.netbeans.modules.python.qshell.richexecution;
 
 /**
- * @author Ivan Soleinmanipour
  */
 public class PtyException extends Exception {
         public PtyException(String msg) {

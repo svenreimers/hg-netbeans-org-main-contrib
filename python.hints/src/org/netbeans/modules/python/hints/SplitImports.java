@@ -73,7 +73,6 @@ import org.python.antlr.ast.alias;
  * Import statements should be one per line. This quickfix
  * offers to make it so.
  *
- * @author Tor Norbye
  */
 public class SplitImports extends PythonAstRule {
     @Override

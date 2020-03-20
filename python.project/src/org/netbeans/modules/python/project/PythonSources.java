@@ -22,7 +22,6 @@ import org.openide.util.Mutex;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class PythonSources implements Sources, ChangeListener, PropertyChangeListener {
 

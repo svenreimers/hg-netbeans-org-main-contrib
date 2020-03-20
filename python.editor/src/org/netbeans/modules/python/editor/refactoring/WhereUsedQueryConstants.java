@@ -44,7 +44,6 @@
 package org.netbeans.modules.python.editor.refactoring;
 
 /**
- * @author Jan Becicka
  */
 public enum WhereUsedQueryConstants {
     FIND_OVERRIDING_METHODS,

@@ -54,8 +54,6 @@ import org.openide.util.Utilities;
 
 /**
  *
- * @author alley
- * @author Lou Dasaro <mr_lou_d@netbeans.org>
  */
 public class PythonAutoDetector {
     private static final Logger LOGGER = Logger.getLogger(PythonAutoDetector.class.getName());

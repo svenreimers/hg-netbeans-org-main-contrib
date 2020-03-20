@@ -93,8 +93,6 @@ import org.python.antlr.ast.Name;
  * Various utilies related to Python refactoring; the generic ones are based
  * on the ones from the Java refactoring module.
  * 
- * @author Jan Becicka
- * @author Tor Norbye
  */
 public class PythonRefUtils {
     private PythonRefUtils() {

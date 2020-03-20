@@ -60,7 +60,6 @@ import org.openide.util.Utilities;
  * <i>Most of the methods here
  * used to be in <code>PythonExecution</code>.</i>
  *
- * @author Erno Mononen
  */
 public final class ExecutionUtils {
 

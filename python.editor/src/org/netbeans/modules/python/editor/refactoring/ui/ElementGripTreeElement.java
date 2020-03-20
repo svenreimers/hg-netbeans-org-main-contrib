@@ -49,7 +49,6 @@ import org.netbeans.modules.refactoring.spi.ui.*;
 
 /**
  *
- * @author Jan Becicka
  */
 public class ElementGripTreeElement implements TreeElement {
     private ElementGrip element;

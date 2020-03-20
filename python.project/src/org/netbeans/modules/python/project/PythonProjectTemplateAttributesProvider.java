@@ -53,7 +53,6 @@ import org.openide.loaders.DataObject;
 
 /**
  *
- * @author Vincent van der Leun
  */
 
 public class PythonProjectTemplateAttributesProvider implements CreateFromTemplateAttributesProvider {

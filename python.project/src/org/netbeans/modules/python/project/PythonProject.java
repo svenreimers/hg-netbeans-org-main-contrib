@@ -44,8 +44,6 @@ import org.w3c.dom.Text;
 
 /**
  *
- * @author alley
- * @author Tomas Zezula
  */
 public class PythonProject implements Project {
 

@@ -49,7 +49,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  * Node specialization for Python Sources debugging context
- * @author jean-yves Mengant
  */
 public interface PythonSourceDebuggee
 {

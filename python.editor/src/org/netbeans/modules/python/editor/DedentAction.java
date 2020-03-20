@@ -57,7 +57,6 @@ import org.openide.util.Exceptions;
  *   http://www.netbeans.org/issues/show_bug.cgi?id=150830
  * for justification.
  *
- * @author Tor Norbye
  */
 public class DedentAction extends ActionFactory.RemoveTabAction {
     @Override

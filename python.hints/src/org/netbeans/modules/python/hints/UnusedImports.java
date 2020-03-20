@@ -73,7 +73,6 @@ import org.python.antlr.ast.alias;
 /**
  * Detect unused imports
  *
- * @author Tor Norbye
  */
 public class UnusedImports extends PythonAstRule {
     public UnusedImports() {

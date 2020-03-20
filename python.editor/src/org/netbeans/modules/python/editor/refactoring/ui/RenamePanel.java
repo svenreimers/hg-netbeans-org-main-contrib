@@ -55,7 +55,6 @@ import org.netbeans.modules.refactoring.spi.ui.CustomRefactoringPanel;
 /**
  * Rename refactoring parameters panel
  *
- * @author  Pavel Flaska
  */
 public class RenamePanel extends JPanel implements CustomRefactoringPanel {
     private final transient String oldName;

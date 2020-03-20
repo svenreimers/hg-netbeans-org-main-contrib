@@ -46,7 +46,6 @@ import org.netbeans.modules.python.debugger.CompositeCallback;
 /**
  * implement a compatible interface for netbeans / jedit python shell 
  * containers
- * @author jean-yves Mengant
  */
 public interface PythonContainer {
 

@@ -69,8 +69,6 @@ import org.openide.filesystems.FileObject;
 /**
  * Plugin implementation based on the one for Java refactoring.
  * 
- * @author Jan Becicka
- * @author Tor Norbye
  */
 /* Uncomment when it works ;-)
 public abstract class PythonRefactoringPlugin extends ProgressProviderAdapter implements RefactoringPlugin, CancellableTask<CompilationController> {

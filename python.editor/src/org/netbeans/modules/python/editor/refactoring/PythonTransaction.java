@@ -51,7 +51,6 @@ import org.netbeans.modules.refactoring.spi.Transaction;
 */
 /**
  *
- * @author Jan Becicka
  */
 /* Probably remove completely ;-)
 public class PythonTransaction implements Transaction {

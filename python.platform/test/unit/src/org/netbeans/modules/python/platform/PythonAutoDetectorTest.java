@@ -54,7 +54,6 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author alley
  */
 public class PythonAutoDetectorTest {
 

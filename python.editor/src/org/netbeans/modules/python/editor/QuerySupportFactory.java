@@ -51,7 +51,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Petr Pisl
  */
 public class QuerySupportFactory {
     

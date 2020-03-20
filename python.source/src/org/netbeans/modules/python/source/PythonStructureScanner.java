@@ -63,7 +63,6 @@ import org.python.antlr.ast.Str;
  * This class analyzes the structure of a Python parse tree
  * and infers structure (navigation items, folds, etc.)
  *
- * @author Tor Norbye
  */
 public class PythonStructureScanner implements StructureScanner {
     private static final Logger LOGGER = Logger.getLogger(Util.class.getName());

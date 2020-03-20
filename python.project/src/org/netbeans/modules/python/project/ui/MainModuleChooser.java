@@ -20,7 +20,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  *
- * @author  Tomas Zezula
  */
 final class MainModuleChooser extends javax.swing.JPanel {
     

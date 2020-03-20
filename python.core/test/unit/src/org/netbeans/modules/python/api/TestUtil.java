@@ -7,7 +7,6 @@ package org.netbeans.modules.python.api;
 
 /**
  *
- * @author alley
  */
 public class TestUtil {
 

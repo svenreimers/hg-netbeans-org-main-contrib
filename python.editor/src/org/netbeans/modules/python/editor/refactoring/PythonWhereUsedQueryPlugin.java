@@ -97,7 +97,6 @@ import org.python.antlr.base.expr;
  * @todo Perform index lookups to determine the set of files to be checked!
  * @todo Do more prechecks of the elements we're trying to find usages for
  * 
- * @author Tor Norbye
  */
 /* Uncomment when it works ;-)
 public class PythonWhereUsedQueryPlugin extends PythonRefactoringPlugin {

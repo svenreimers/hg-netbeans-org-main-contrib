@@ -57,7 +57,6 @@ import java.io.OutputStream;
  * See <a href="http://wiki.netbeans.org/TerminalEmulatorPty">
  * TerminalEmulatorPty</a> for a full description of
  * what a pty is.
- * @author Ivan Soleimanipour
  */
 public abstract class Pty {
     /**

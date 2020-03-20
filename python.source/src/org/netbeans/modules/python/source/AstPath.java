@@ -46,7 +46,6 @@ import org.python.antlr.Visitor;
  * non null, so we can't just pass a node as a reference to a traversable path
  * from the root to a node.
  *
- * @author Tor Norbye
  */
 public class AstPath implements Iterable<PythonTree> {
     private static final Logger LOGGER = Logger.getLogger(Util.class.getName());

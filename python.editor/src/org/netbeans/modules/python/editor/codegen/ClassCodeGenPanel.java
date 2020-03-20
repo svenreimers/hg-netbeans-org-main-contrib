@@ -43,7 +43,6 @@ package org.netbeans.modules.python.editor.codegen;
 
 /**
  *
- * @author alley
  */
 public class ClassCodeGenPanel extends javax.swing.JPanel {
 

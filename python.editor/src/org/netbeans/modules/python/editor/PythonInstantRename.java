@@ -54,7 +54,6 @@ import org.python.antlr.ast.Name;
 
 /**
  *
- * @author Tor Norbye
  */
 public class PythonInstantRename implements InstantRenamer {
     

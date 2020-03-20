@@ -14,7 +14,6 @@ import org.openide.util.WeakListeners;
 
 /**
  *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
  */
 class PythonProjectSourceLevelQuery implements SourceLevelQueryImplementation {
 

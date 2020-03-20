@@ -45,7 +45,6 @@ import org.python.antlr.PythonTree;
 /**
  * Elements representing information coming from the persistent index
  *
- * @author Tor Norbye
  */
 public class IndexedElement extends Element {
     public static final EnumSet<Modifier> PRIVATE_MODIFIERS = EnumSet.of(Modifier.PRIVATE);

@@ -53,7 +53,6 @@ import org.python.antlr.PythonTree;
 
 /**
  *
- * @author Tor Norbye
  */
 public class PythonIndexSearcher implements IndexSearcher {
 

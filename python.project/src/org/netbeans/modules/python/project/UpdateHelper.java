@@ -21,7 +21,6 @@ import org.w3c.dom.Element;
  * Currently there is no older version of ant based
  * python project, so the class has no upgrade logic.
  * Based on the UpdateHelper (java.common.api)
- * @author Tomas Zezula, Tomas Mysik
  */
 public final class UpdateHelper {
     

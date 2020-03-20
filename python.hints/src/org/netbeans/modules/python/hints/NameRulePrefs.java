@@ -52,7 +52,6 @@ import javax.swing.ListCellRenderer;
 
 /**
  *
- * @author Tor Norbye
  */
 public class NameRulePrefs extends javax.swing.JPanel {
     private NameRule rule;

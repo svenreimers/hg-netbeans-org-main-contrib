@@ -15,7 +15,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author alley
  */
 public class PythonOptions {
     public static String PYTHON_COMMAND = "python.command";

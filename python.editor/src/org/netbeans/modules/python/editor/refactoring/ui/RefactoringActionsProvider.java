@@ -84,7 +84,6 @@ import org.python.antlr.PythonTree;
 
 /**
  *
- * @author Jan Becicka
  */
 public class RefactoringActionsProvider extends ActionsImplementationProvider {
     private static boolean isFindUsages;

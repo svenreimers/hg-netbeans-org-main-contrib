@@ -58,7 +58,6 @@ import org.netbeans.modules.python.debugger.Utils;
 /**
  * IDEFrontEnd implementation for NetBeans
  *
- * @author jean-yves Mengant
  */
 public class NetBeansFrontend {
 

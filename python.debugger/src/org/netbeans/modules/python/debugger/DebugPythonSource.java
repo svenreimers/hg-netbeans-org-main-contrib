@@ -51,7 +51,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  * Starting Python debug main classes ( debug scripts , remote debug )
- * @author Jean-Yves Mengant
  */
 public class DebugPythonSource
         implements Runnable {

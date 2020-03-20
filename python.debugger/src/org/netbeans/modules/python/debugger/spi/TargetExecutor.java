@@ -56,7 +56,6 @@ import org.openide.util.TaskListener;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class TargetExecutor
         implements Runnable {

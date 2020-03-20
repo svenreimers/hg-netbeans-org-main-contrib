@@ -46,7 +46,6 @@ import org.openide.text.Annotatable;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class DebuggerAnnotation
         extends Annotation {

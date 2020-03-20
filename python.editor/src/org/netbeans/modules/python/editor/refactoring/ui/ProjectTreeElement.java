@@ -54,7 +54,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Jan Becicka
  */
 public class ProjectTreeElement implements TreeElement {
     private String name;

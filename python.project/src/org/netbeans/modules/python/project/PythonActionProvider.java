@@ -30,8 +30,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  *
- * @author alley
- * @author Tomas Zezula
  */
 public class PythonActionProvider implements ActionProvider {
 

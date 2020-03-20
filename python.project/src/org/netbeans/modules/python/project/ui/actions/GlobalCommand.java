@@ -46,7 +46,6 @@ import org.netbeans.modules.python.project.PythonProject;
 import org.openide.util.Lookup;
 
 /**
- * @author Radek Matous
  */
 public abstract class GlobalCommand extends Command {
 

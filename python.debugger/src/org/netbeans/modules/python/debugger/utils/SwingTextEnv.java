@@ -52,7 +52,6 @@ display context :
 - BCKGROUND color
 - FOREGROUND color
 
-@author Jean-Yves Mengant
 
  */
 public class SwingTextEnv {

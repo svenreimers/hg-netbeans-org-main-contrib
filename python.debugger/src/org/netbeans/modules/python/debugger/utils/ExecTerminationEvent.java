@@ -46,7 +46,6 @@ package org.netbeans.modules.python.debugger.utils;
 
 event associated with process termination
 
-@author Jean-Yves Mengant
 
  */
 public class ExecTerminationEvent {

@@ -28,7 +28,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author alley
  */
 public class RunSingleCommand extends Command {
     protected boolean isTest;

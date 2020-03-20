@@ -75,7 +75,6 @@ import org.openide.util.NbBundle;
 
 /**
  * Customizer panel "Sources": source roots, encoding.
- * @author  Tomas Zezula
  */
 public class CustomizerSources extends javax.swing.JPanel implements HelpCtx.Provider {
     

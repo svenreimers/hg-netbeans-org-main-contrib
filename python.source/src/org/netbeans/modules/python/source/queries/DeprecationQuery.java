@@ -46,7 +46,6 @@ import java.util.Map;
 
 /**
  *
- * @author Ralph Ruijs
  */
 public final class DeprecationQuery {
     private static final Map<String, String> DEPRECATED = new HashMap<>();

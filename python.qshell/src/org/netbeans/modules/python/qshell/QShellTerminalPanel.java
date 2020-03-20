@@ -57,7 +57,6 @@ import org.netbeans.modules.python.qshell.richexecution.PtyProcess;
 
 /**
  *
- * @author Maros Sandor
  */
 public class QShellTerminalPanel extends JComponent {
 

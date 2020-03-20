@@ -46,7 +46,6 @@ import java.util.TreeMap;
 /**
  * This interface is used to callback composite variable introspector 
  * 
- * @author jean-yves Mengant
  *
  */
 public interface CompositeCallback {

@@ -53,7 +53,6 @@ import org.netbeans.modules.python.api.PythonPlatform;
 
 /**
  *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
  */
 public class PythonPlatformManagerTest extends JellyTestCase {
 

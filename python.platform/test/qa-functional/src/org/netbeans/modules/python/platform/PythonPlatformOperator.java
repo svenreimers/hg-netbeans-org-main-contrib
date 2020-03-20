@@ -47,7 +47,6 @@ import org.netbeans.jemmy.operators.JListOperator;
 
 /**
  *
- * @author Ralph Benjamin Ruijs<ralphbenjamin@netbeans.org>
  */
 public class PythonPlatformOperator extends NbDialogOperator {
     

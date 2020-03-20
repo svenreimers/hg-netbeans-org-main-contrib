@@ -61,7 +61,6 @@ import org.python.antlr.ast.Module;
 
 /**
  *
- * @author Jean-Yves Mengant
  */
 public class AttributeDefinedOutsideInit extends PythonAstRule {
     private final static String ATTRIBUTE_DEFINED_OUTSIDE_INIT = "AttributeDefinedOutsideInit";

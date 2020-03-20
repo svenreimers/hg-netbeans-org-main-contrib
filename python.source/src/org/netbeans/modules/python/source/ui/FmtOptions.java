@@ -94,7 +94,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author phrebejk
  */
 public class FmtOptions {
     public static final String expandTabToSpaces = SimpleValueNames.EXPAND_TABS;

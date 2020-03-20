@@ -14,7 +14,6 @@ import org.w3c.dom.Element;
  * based on UpdateImplementation (java.common.api)
  * When the update support will be moved into ant based
  * project type from common java api this class can be removed.
- * @author Tomas Mysik, Tomas Zezula
  */
 public interface UpdateImplementation {
     

@@ -76,7 +76,6 @@ import org.python.antlr.base.stmt;
 /**
  * Assign an expression to a variable
  *
- * @author Tor Norbye
  */
 public class AssignToVariable extends PythonAstRule {
     @Override

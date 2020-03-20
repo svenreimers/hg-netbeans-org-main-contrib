@@ -60,7 +60,6 @@ import org.netbeans.spi.lexer.LexerRestartInfo;
 
 /**
  *
- * @author Tor Norbye
  */
 public enum PythonStringTokenId implements TokenId {
     STRING_TEXT("string"),

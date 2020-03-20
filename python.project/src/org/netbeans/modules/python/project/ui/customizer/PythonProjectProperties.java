@@ -31,7 +31,6 @@ import org.openide.util.MutexException;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class PythonProjectProperties {
     

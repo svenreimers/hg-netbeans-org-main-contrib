@@ -68,7 +68,6 @@ import org.openide.util.lookup.Lookups;
  * @todo There are a lot of constructors here; figure out which ones are unused, and
  *   nuke them!
  * 
- * @author Martin Matula, Jan Becicka
  */
 public class RenameRefactoringUI implements RefactoringUI, RefactoringUIBypass {
     private final AbstractRefactoring refactoring;

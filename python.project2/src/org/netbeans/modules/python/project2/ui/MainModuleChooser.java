@@ -24,7 +24,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  *
- * @author  Tomas Zezula
  */
 @NbBundle.Messages({"TXT_PleaseWait=Please Wait..."})
 final class MainModuleChooser extends javax.swing.JPanel {

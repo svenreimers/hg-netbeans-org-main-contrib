@@ -31,8 +31,6 @@ import org.openide.util.io.ReaderInputStream;
 
 /**
  *
- * @author alley
- * @author Lou Dasaro
  */
 public class PythonPlatformManager implements Serializable {
 

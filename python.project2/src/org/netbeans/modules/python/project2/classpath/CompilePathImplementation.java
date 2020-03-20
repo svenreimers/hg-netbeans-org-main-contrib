@@ -59,7 +59,6 @@ import org.openide.util.Parameters;
 
 /**
  *
- * @author Tomas Zezula
  */
 public final class CompilePathImplementation implements ClassPathImplementation, PropertyChangeListener, Runnable {
 

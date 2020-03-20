@@ -7,7 +7,6 @@ package org.netbeans.modules.python.api;
 
 /**
  *
- * @author alley
  */
 public class PythonMIMEResolver {
     public static final String PYTHON_MIME_TYPE = "text/x-python"; // NOI18N

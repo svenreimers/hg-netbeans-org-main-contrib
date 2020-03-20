@@ -63,7 +63,6 @@ import org.python.antlr.ast.Module;
 /**
  * Detect Unresolved class attributes
  *
- * @author Jean-Yves Mengant
  */
 public class UnresolvedClassComponents extends PythonAstRule {
 

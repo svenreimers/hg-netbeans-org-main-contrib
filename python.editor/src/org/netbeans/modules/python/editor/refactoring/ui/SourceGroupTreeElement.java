@@ -58,7 +58,6 @@ import org.openide.util.ImageUtilities;
 
 /**
  *
- * @author Jan Becicka
  */
 public class SourceGroupTreeElement implements TreeElement {
     private WeakReference<SourceGroup> sg;

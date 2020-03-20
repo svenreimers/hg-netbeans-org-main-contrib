@@ -53,7 +53,6 @@ package org.netbeans.modules.python.source.ui;
 
 /**
  *
- * @author  phrebejk
  */
 public class FmtAlignment extends javax.swing.JPanel {
     

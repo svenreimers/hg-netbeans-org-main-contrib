@@ -46,7 +46,6 @@ package org.netbeans.modules.python.debugger.backend;
  * subscriber of this interface will get populated with python event debugging
  * messages
  * 
- * @author jean-yves Mengant
  */
 public interface PythonDebugEventListener {
 

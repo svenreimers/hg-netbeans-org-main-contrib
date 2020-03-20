@@ -56,7 +56,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class BreakpointModel
         implements NodeModel {

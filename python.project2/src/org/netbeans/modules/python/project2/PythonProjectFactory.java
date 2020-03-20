@@ -18,7 +18,6 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
  */
 @ServiceProvider(service=ProjectFactory.class)
 public class PythonProjectFactory implements ProjectFactory {

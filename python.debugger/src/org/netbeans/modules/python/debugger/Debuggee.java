@@ -54,7 +54,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  * Define candidate for debug session
- * @author Jean-Yves Mengant
  */
 public class Debuggee
         implements PythonSourceDebuggee {

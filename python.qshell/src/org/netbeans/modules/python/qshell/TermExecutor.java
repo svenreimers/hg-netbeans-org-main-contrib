@@ -60,7 +60,6 @@ import org.netbeans.modules.python.qshell.richexecution.PtyProcess;
 
 /**
  * Execute a program connected to a Term.
- * @author ivan
  */
 public class TermExecutor extends PtyExecutor {
     private final static OS os = OS.get();

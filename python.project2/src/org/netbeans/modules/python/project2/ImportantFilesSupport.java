@@ -60,7 +60,6 @@ import org.openide.util.WeakListeners;
 
 /**
  *
- * @author jenselme
  * @see org.netbeans.modules.web.common.spi.ImportantFilesSupport
  */
 class ImportantFilesSupport {

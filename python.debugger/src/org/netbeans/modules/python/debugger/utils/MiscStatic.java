@@ -49,7 +49,6 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
 /**
- * @author jean-yves Mengant
  * Misc static utility methods 
  */
 public class MiscStatic {

@@ -23,7 +23,6 @@ import org.openide.windows.TopComponent;
 
 /**
  *
- * @author Ralph Benjamin Ruijs
  */
 @ServiceProvider(service = ActionProvider.class)
 public class RunSingleCommand implements ActionProvider {

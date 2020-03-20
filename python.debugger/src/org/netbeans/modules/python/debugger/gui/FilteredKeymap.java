@@ -56,7 +56,6 @@ import org.openide.util.RequestProcessor;
 /**
  * A keymap that filters ENTER, ESC and TAB, which have special meaning in dialogs
  *
- * @author Martin Entlicher
  */
 public class FilteredKeymap implements Keymap {
 

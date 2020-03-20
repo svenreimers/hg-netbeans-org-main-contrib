@@ -51,7 +51,6 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author ivan
  */
 public final class Util {
 

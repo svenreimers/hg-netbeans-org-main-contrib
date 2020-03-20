@@ -62,7 +62,6 @@ import org.openide.util.NbBundle;
  * </p>
  *
  *
- * @author Jesse Glick
  */
 @NbBundle.Messages({"#LBL_DefaultPackage=<default package>",
     "LBL_DefaultPackage=<Top Level>",

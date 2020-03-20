@@ -61,7 +61,6 @@ import org.openide.util.actions.Presenter;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Jesse Glick
  */
 public final class ChangePackageViewTypeAction extends AbstractAction implements Presenter.Popup {
     

@@ -12,7 +12,6 @@ import org.netbeans.modules.python.api.PythonPlatformManager;
 
 /**
  *
- * @author alley
  */
 public class PythonPlatformListModel extends AbstractListModel {
     private PythonPlatformManager manager = PythonPlatformManager.getInstance();

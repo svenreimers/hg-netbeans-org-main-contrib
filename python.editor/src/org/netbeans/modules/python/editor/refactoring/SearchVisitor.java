@@ -48,7 +48,6 @@ import org.openide.ErrorManager;
 *
 /**
  *
- * @author Jan Becicka
  */
 /* Could use a JavaSource like source rewriter
 public abstract class SearchVisitor {

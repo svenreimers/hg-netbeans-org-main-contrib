@@ -13,7 +13,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
  */
 public class PythonSources implements Sources {
     private final PythonProject2 project;

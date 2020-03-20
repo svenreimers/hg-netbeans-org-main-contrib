@@ -20,8 +20,6 @@ import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 
 /**
- * @author Radek Matous
- * @author Tomas Zezula
  */
 public abstract class Command {
 

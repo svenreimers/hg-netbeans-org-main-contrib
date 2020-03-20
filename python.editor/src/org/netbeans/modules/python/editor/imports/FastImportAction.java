@@ -74,7 +74,6 @@ import org.python.antlr.PythonTree;
  * @todo When you insert an import, attempt to add it in the right sorted
  *   place.
  *
- * @author Tor Norbye
  */
 public class FastImportAction extends BaseAction {
     private static final String ACTION_NAME = "fast-import";

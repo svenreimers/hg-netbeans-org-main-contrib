@@ -63,9 +63,6 @@ import org.openide.util.WeakListeners;
 
 /**
  * Returns source level of the given Python file if it is known.
- * @author David Konecny
- * @author Tomas Zezula
- * @author Ralph Benjamin Ruijs
  */
 public final class SourceLevelQuery {
 

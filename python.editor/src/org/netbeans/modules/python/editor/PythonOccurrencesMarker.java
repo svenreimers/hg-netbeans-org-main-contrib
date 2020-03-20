@@ -73,7 +73,6 @@ import org.python.antlr.ast.Name;
  *
  * @todo Highlight if/elif/else keyword pairs
  *
- * @author Tor Norbye
  */
 public class PythonOccurrencesMarker extends OccurrencesFinder<PythonParserResult> {
     private boolean cancelled;

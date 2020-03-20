@@ -84,7 +84,6 @@ import org.openide.util.WeakListeners;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Jesse Glick
  */
 public class PackageView {
         

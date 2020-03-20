@@ -13,7 +13,6 @@ import org.netbeans.spi.project.support.ant.AntProjectHelper;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class PythonProjectUtil {
     

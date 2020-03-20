@@ -58,7 +58,6 @@ import org.openide.util.NbBundle;
 /**
  * Code generator for generating a Python property
  *
- * @author Tor Norbye
  */
 public class PropertyCodeGenerator implements CodeGenerator {
     private JTextComponent target;

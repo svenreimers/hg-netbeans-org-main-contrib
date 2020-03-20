@@ -71,8 +71,6 @@ import org.openide.util.Exceptions;
 
 /**
  * Based on the WhereUsedPanel in Java refactoring by Jan Becicka.
- * @author Jan Becicka
- * @author  Tor Norbye
  */
 public class WhereUsedPanel extends JPanel implements CustomRefactoringPanel {
     private final transient PythonElementCtx element;

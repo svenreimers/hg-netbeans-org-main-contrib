@@ -52,7 +52,6 @@ package org.netbeans.modules.python.source.ui;
 
 /**
  *
- * @author  phrebejk
  */
 public class FmtTabsIndents extends javax.swing.JPanel {
    

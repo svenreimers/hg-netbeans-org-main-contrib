@@ -47,7 +47,6 @@ import java.util.Set;
 
 /**
  *
- * @author jenselme
  */
 public class BuiltinException {
     private final static String[] BUILTIN_EXCEPTIONS_ARRAY = {

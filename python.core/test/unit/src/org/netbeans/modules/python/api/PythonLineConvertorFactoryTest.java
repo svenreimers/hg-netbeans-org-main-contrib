@@ -57,7 +57,6 @@ import org.openide.windows.OutputListener;
 
 /**
  *
- * @author tor
  */
 public class PythonLineConvertorFactoryTest {
 

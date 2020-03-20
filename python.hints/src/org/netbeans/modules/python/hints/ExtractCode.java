@@ -97,7 +97,6 @@ import org.python.antlr.ast.Yield;
  *   for example pass back a to-return flag which returns the same value
  * @todo Unit tests must check instant rename as well!
  *
- * @author Tor Norbye
  */
 public class ExtractCode extends PythonSelectionRule {
     //private static final int NOT_APPLICABLE = 0;

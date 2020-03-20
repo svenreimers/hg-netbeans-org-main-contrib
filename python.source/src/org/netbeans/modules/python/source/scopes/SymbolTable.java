@@ -94,7 +94,6 @@ import org.python.antlr.ParseException;
  *
  * Based on Jython's ScopeManager.
  *
- * @author Tor Norbye
  */
 public class SymbolTable {
     private final static int YES = 1;

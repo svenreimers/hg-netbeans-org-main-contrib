@@ -49,7 +49,6 @@ import java.util.*;
  * Python debug event are translated into internal Java Event representation
  * The resulting java object is later populated to java python event subscribers
  * 
- * @author jean-yves Mengant
  */
 public class PythonDebugEvent {
 

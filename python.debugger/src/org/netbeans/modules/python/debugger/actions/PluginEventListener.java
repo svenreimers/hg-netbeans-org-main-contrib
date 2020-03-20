@@ -49,7 +49,6 @@ import org.netbeans.modules.python.debugger.backend.PythonDebugException;
  * used by pluggin implementors interfaces to get populated
  * With source debugging level instance 
  *   
- * @author jean-yves Mengant
  */
 public interface PluginEventListener {
 

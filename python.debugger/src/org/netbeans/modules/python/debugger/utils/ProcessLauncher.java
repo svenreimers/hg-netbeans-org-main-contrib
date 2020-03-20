@@ -48,7 +48,6 @@ import java.io.*;
 
 isolate process launching 
 
-@author Jean-Yves Mengant
 
  */
 public class ProcessLauncher {

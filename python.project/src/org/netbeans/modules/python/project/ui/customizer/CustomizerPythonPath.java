@@ -29,7 +29,6 @@ import org.openide.util.actions.CallableSystemAction;
 
 /**
  *
- * @author alley
  */
 public class CustomizerPythonPath extends javax.swing.JPanel {
     private final PythonProjectProperties uiProperties;

@@ -63,7 +63,6 @@ import org.python.antlr.ast.Str;
 
 /**
  *
- * @author Tor Norbye
  */
 public class AllAssignExists extends PythonAstRule {
     @Override

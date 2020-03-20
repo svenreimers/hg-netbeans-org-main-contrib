@@ -51,7 +51,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Ralph Ruijs
  */
 public final class QuerySupportFactory {
 

@@ -44,7 +44,6 @@ package org.netbeans.modules.python.qshell;
 
 /**
  *
- * @author Maros Sandor
  */
 public class QShellConfigPanel extends javax.swing.JPanel {
 

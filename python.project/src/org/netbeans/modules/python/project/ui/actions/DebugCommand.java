@@ -18,7 +18,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author jymen
  */
 public class DebugCommand extends RunCommand {
 

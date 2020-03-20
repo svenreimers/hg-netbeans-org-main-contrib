@@ -50,7 +50,6 @@ import org.openide.WizardValidationException;
 
 /**
  * 
- * @author Tomas Zezula
  */
 abstract class SettingsPanel extends JPanel {
 

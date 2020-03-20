@@ -28,8 +28,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Allan Davis
- * @author Jean-Yves
  */
 public final class PythonExecution {
     // execution commands

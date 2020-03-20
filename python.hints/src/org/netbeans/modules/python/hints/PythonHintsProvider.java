@@ -67,7 +67,6 @@ import org.python.antlr.Visitor;
  *   http://www.logilab.org/projects/pylint
  *   http://www.logilab.org/card/pylintfeatures
  *
- * @author Tor Norbye
  */
 public class PythonHintsProvider implements HintsProvider {
     private boolean cancelled;

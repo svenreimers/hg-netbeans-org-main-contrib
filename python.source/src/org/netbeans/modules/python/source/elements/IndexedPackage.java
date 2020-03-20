@@ -48,7 +48,6 @@ import org.netbeans.modules.csl.api.Modifier;
 
 /**
  *
- * @author Tor Norbye
  */
 public class IndexedPackage extends IndexedElement {
     private String pkg;

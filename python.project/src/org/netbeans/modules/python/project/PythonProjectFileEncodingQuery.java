@@ -16,7 +16,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Tomas Zezla
  */
 public class PythonProjectFileEncodingQuery extends FileEncodingQueryImplementation implements PropertyChangeListener {
     

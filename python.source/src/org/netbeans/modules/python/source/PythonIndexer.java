@@ -88,7 +88,6 @@ import org.python.antlr.base.expr;
 rjust(s, width)
 center(s, width)
  * Here I need to pick up all 3 signatures!
- * @author Tor Norbye
  */
 public class PythonIndexer extends EmbeddingIndexer {
     public static final String NAME = "PythonIndexer";

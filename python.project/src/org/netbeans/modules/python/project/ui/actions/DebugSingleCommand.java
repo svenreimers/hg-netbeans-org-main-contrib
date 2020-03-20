@@ -26,7 +26,6 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author jymen
  */
 public class DebugSingleCommand extends RunSingleCommand {
     public DebugSingleCommand(PythonProject project, boolean isTest) {

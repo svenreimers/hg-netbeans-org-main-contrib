@@ -58,8 +58,6 @@ import javax.swing.event.TreeModelListener;
  *
  * @version 1.2 10/27/98
  *
- * @author Philip Milne
- * @author Scott Violet
  */
 public class TreeTableModelAdapter extends AbstractTableModel {
 

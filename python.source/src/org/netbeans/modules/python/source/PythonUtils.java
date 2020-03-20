@@ -51,7 +51,6 @@ import org.python.antlr.ast.Name;
 
 /**
  *
- * @author Tor Norbye
  */
 public class PythonUtils {
     public static boolean canContainPython(FileObject f) {

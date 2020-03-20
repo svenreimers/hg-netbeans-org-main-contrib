@@ -73,7 +73,6 @@ import org.openide.windows.TopComponent;
 
 /**
  * Misc debugger utility classes
- * @author jean-yves Mengant
  */
 public class Utils {
 

@@ -75,8 +75,6 @@ import org.python.antlr.ast.alias;
 
 /**
  *
- * @author alley
- * @author Tor Norbye
  */
 public class PythonIndex {
 //    public static final Set<SearchScope> ALL_SCOPE = EnumSet.allOf(SearchScope.class);

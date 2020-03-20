@@ -42,7 +42,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Tor Norbye
  */
 public abstract class Element implements ElementHandle {
     @Override

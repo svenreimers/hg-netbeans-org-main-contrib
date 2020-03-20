@@ -26,7 +26,6 @@ import org.python.antlr.PythonTree;
 /**
  * Utility functions around the Python lexer
  * 
- * @author Tor Norbye
  */
 public class PythonLexerUtils {
     /**

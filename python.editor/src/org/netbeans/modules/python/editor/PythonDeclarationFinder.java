@@ -80,8 +80,6 @@ import org.python.antlr.ast.alias;
 
 /**
  *
- * @author alley
- * @Author Tor Norbye
  */
 public class PythonDeclarationFinder implements DeclarationFinder {
     @Override

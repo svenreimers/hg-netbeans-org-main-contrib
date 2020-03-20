@@ -54,7 +54,6 @@ basics stuffs as setting application LookAndFeel
 and defining misc static final stuff used by
 all swings panels
 
-@author Jean-Yves MENGANT
 
  */
 public class Swing {

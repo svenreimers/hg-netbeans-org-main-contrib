@@ -26,8 +26,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author alley
- * @author jean-yves
  */
 public class OptionsPanel extends javax.swing.JPanel
 {

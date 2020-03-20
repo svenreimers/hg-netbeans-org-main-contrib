@@ -54,7 +54,6 @@ import org.netbeans.spi.lexer.TokenFactory;
  *
  * Highlights TODO items and certain keywords (like @-param and @-type (without -)).
  *
- * @author Tor Norbye
  */
 public class PythonCommentLexer implements Lexer<PythonCommentTokenId> {
     private static final int EOF = LexerInput.EOF;

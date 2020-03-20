@@ -49,7 +49,6 @@ import org.python.antlr.PythonTree;
 /**
  * Represents a rule to be run on text selection
  *
- * @author Tor Norbye
  */
 public abstract class PythonSelectionRule implements SelectionRule, UserConfigurableRule {
     protected abstract int getApplicability(PythonRuleContext context, PythonTree root, OffsetRange astRange);

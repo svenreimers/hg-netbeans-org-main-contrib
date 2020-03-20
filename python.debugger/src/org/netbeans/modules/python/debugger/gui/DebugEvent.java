@@ -47,7 +47,6 @@ import javax.swing.*;
 /**
  *  Python debugging event
  *
- * @author jean-yves
  */
 public class DebugEvent
         extends EventObject {

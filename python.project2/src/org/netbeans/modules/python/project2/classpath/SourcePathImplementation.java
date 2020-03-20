@@ -58,8 +58,6 @@ import org.netbeans.spi.java.classpath.support.ClassPathSupport;
 
 /**
  * Source class path implementation
- * @author Tor Norbye
- * @author Tomas Zezula
  */
 final class SourcePathImplementation implements ClassPathImplementation, PropertyChangeListener {
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);

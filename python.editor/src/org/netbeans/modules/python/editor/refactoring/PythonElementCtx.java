@@ -58,7 +58,6 @@ import org.python.antlr.ast.Name;
  * Element and ElementHandle classes (plus some friends like CompilationInfo
  * and FileObject) passed around in the equivalent Java refactoring code.
  *
- * @author Tor Norbye
  */
 public class PythonElementCtx {
     private PythonTree node;

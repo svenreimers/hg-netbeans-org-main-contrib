@@ -121,7 +121,6 @@ import org.openidex.search.SearchInfoFactory;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Adam Sotona, Jesse Glick, Petr Hrebejk, Tomas Zezula
  */
 final class PackageViewChildren extends Children.Keys<String> implements FileChangeListener, ChangeListener, Runnable {
     

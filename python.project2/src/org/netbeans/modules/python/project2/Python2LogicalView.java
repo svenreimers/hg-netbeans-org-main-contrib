@@ -32,8 +32,6 @@ import static org.netbeans.modules.python.project2.Bundle.*;
 
 /**
  *
- * @author alley
- * @author Tomas Zezula
  */
 @NbBundle.Messages({"# {0} - Path to of project",
     "PythonLogicalView.ProjectTooltipDescription=Python project in {0}",

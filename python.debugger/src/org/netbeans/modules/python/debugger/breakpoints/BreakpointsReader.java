@@ -49,7 +49,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author jean-yves Mengant
  */
 public class BreakpointsReader
         implements Properties.Reader {

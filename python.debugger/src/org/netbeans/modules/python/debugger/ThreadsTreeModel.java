@@ -57,7 +57,6 @@ import org.netbeans.spi.viewmodel.TableModel;
 /**
  * Manage Python threading instances
  *
- * @author jean-yves Mengant
  */
 public class ThreadsTreeModel
         implements TreeModel,

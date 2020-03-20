@@ -54,7 +54,6 @@ import org.openide.util.NbBundle;
 /**
  * Create a constructor.
  *
- * @author Tor Norbye
  */
 public class ConstructorGenerator implements CodeGenerator {
     private JTextComponent target;

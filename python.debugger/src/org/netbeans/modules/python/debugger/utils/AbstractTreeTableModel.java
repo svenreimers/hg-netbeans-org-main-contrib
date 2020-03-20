@@ -45,7 +45,6 @@ import javax.swing.tree.*;
 import javax.swing.event.*;
 
 /**
- * @author Jean-Yves Mengant
  */
 public abstract class AbstractTreeTableModel implements TreeTableModel {
 

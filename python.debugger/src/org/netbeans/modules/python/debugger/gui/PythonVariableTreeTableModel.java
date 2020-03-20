@@ -46,7 +46,6 @@ import org.netbeans.modules.python.debugger.utils.TreeTableModel;
 
 /**
  *
- * @author Jean-Yves Mengant
  */
 public class PythonVariableTreeTableModel
         extends AbstractTreeTableModel {

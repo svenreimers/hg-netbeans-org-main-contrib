@@ -68,7 +68,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tomas Zezula
  */
 public class Utils {
     

@@ -35,8 +35,6 @@ import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 
 /**
- * @author Radek Matous
- * @author Tomas Zezula
  */
 public class DeleteCommand extends GlobalCommand {
 

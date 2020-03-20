@@ -52,8 +52,6 @@ import org.openide.util.NbPreferences;
  * (This came from the Java refactoring module, but it does not appear to be run as
  * a module install, so I've removed that part)
  *
- * @author Jan Becicka
- * @author Pavel Flaska
  */
 public class RefactoringModule {
     /** Holds the file objects whose attributes represents options */

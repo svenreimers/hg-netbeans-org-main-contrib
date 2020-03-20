@@ -53,7 +53,6 @@ package org.netbeans.modules.python.source.ui;
 
 /**
  *
- * @author  phrebejk
  */
 public class FmtWrapping extends javax.swing.JPanel {
     

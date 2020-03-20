@@ -103,7 +103,6 @@ import org.python.antlr.base.expr;
 /**
  * The actual Renaming refactoring work for Python.
  *
- * @author Tor Norbye
  * 
  * @todo Perform index lookups to determine the set of files to be checked!
  * @todo Check that the new name doesn't conflict with an existing name

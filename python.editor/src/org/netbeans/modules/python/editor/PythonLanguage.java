@@ -60,8 +60,6 @@ import org.openide.modules.InstalledFileLocator;
 
 /**
  *
- * @author alley
- * @author Tor Norbye
  */
 @LanguageRegistration(mimeType=PythonMIMEResolver.PYTHON_MIME_TYPE)
 @PathRecognizerRegistration(mimeTypes = PythonMIMEResolver.PYTHON_MIME_TYPE, sourcePathIds = ClassPath.SOURCE, binaryLibraryPathIds = ClassPath.BOOT)

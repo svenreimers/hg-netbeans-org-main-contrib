@@ -89,7 +89,6 @@ import org.python.antlr.ast.alias;
  * @todo Offer to group imports
  * @todo Don't import functions
  *
- * @author Tor Norbye
  */
 public final class ImportManager {
 
