@@ -47,7 +47,6 @@ import org.netbeans.spi.tasklist.Task;
 
 /**
  *
- * @author lahvac
  */
 public class ComputeTasks {
 

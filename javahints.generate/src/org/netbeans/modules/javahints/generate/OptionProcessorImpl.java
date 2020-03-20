@@ -63,7 +63,6 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
- * @author lahvac
  */
 @ServiceProvider(service=OptionProcessor.class)
 public class OptionProcessorImpl extends OptionProcessor {

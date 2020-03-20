@@ -51,7 +51,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author lahvac
  */
 public class AddConstructorTest extends ErrorHintsTestBase {
     

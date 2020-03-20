@@ -50,7 +50,6 @@ import org.openide.filesystems.FileUtil;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class RunOnceFactoryTest extends NbTestCase {
     

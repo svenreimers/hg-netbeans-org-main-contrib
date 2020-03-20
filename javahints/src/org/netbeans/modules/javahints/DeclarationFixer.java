@@ -65,7 +65,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class DeclarationFixer implements ErrorRule<Void> {
     

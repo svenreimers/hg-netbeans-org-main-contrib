@@ -49,7 +49,6 @@ import org.netbeans.spi.editor.hints.Fix;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class TypoDetectorTest extends ErrorHintsTestBase {
     

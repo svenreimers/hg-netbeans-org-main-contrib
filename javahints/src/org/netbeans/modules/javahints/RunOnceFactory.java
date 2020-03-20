@@ -57,7 +57,6 @@ import org.openide.util.Pair;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class RunOnceFactory extends JavaSourceTaskFactory {
 

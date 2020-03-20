@@ -50,7 +50,6 @@ import org.netbeans.spi.editor.hints.ErrorDescription;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class NoFileToURLTest extends TreeRuleTestBase {
     

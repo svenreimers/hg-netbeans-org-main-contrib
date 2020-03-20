@@ -71,7 +71,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class CodeStylePanel extends javax.swing.JPanel {
     

@@ -56,7 +56,6 @@ import org.netbeans.spi.editor.hints.ErrorDescriptionFactory;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class NoFileToURL extends AbstractHint {
 

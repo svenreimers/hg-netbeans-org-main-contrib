@@ -53,7 +53,6 @@ import org.openide.util.TaskListener;
 
 /**
  *
- * @author lahvac
  */
 public class HintsTaskScanner extends PushTaskScanner {
 

@@ -50,7 +50,6 @@ import org.openide.util.NbBundle;
  * Provides warnings when the Java Excluder is violated. The Import hint catches imports
  * of excluded classes, so we don't show warnings for assignations, casts, etc.
  *
- * @author Samuel Halliday
  * @see <a href="http://www.netbeans.org/issues/show_bug.cgi?id=125060">RFE 125060</a>
  * @see org.netbeans.modules.editor.java.Utilities#isExcludeMethods()
  * @see org.netbeans.modules.editor.java.Utilities#isExcluded(CharSequence)

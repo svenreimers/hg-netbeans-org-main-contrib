@@ -68,7 +68,6 @@ import org.netbeans.spi.editor.hints.Fix;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class MakeStatic implements ErrorRule<Void> {
 

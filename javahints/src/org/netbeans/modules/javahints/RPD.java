@@ -57,7 +57,6 @@ import org.netbeans.spi.java.hints.*;
 
 /**
  *
- * @author lahvac
  */
 @Hint(displayName="#DN_org.netbeans.modules.javahints.RPD",
       description="#DESC_org.netbeans.modules.javahints.RPD",

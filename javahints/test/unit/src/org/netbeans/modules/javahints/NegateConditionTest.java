@@ -49,7 +49,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class NegateConditionTest extends TreeRuleTestBase {
     

@@ -48,7 +48,6 @@ import org.netbeans.spi.editor.hints.Fix;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class MakeStaticTest extends ErrorHintsTestBase {
 

@@ -72,7 +72,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author lahvac
  */
 public class AddConstructor implements ErrorRule<Void> {
 
