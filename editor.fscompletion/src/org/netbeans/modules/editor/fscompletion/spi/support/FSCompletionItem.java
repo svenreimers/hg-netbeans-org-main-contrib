@@ -62,7 +62,6 @@ import org.openide.loaders.DataObject;
 
 /**
  *
- * @author Jan Lahoda
  */
 final class FSCompletionItem implements CompletionItem {
     

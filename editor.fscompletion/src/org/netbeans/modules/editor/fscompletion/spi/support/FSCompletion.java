@@ -53,7 +53,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class FSCompletion {
 
