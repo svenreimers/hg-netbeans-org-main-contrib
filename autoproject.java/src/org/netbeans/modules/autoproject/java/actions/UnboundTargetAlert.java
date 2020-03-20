@@ -77,7 +77,6 @@ import org.w3c.dom.Element;
 /**
  * Alert in case a common global action is invoked by the user but there is no binding.
  * The user is prompted to pick one.
- * @author Jesse Glick
  */
 public final class UnboundTargetAlert extends JPanel implements  ActionListener {
 

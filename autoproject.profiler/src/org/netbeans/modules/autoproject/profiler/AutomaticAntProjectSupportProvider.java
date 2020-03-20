@@ -52,7 +52,6 @@ import org.openide.modules.InstalledFileLocator;
 
 /**
  *
- * @author Jiri Sedlacek
  */
 @ProjectServiceProvider(service=AntProjectSupportProvider.class, projectType="org-netbeans-modules-autoproject") // NOI18N
 public final class AutomaticAntProjectSupportProvider extends AntProjectSupportProvider.Abstract {

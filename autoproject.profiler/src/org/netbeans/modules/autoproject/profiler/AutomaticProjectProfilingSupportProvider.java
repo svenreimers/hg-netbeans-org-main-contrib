@@ -51,7 +51,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Jiri Sedlacek
  */
 @ProjectServiceProvider(service=ProjectProfilingSupportProvider.class, projectType="org-netbeans-modules-autoproject") // NOI18N
 public final class AutomaticProjectProfilingSupportProvider extends JavaProjectProfilingSupportProvider {

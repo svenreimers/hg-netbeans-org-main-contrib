@@ -47,7 +47,6 @@ import org.netbeans.spi.project.ProjectServiceProvider;
 
 /**
  *
- * @author Jiri Sedlacek
  */
 @ProjectServiceProvider(service=JavaProjectContentsSupportProvider.class, projectType="org-netbeans-modules-autoproject") // NOI18N
 public final class AutomaticProjectContentsSupportProvider extends JavaProjectContentsSupportProvider {
