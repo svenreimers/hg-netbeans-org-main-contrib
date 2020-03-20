@@ -61,7 +61,6 @@ import org.openide.loaders.DataObject;
 
 /**
  *
- * @author Jan Lahoda
  */
 public class CompletionProviderImpl implements CompletionProvider {
     
