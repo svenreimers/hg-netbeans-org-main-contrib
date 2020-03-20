@@ -69,7 +69,6 @@ import org.openide.util.actions.Presenter;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
 
-/** @author Jesse Glick */
 public class InsertUnicodeAction extends SystemAction implements Presenter.Popup {
     
     public void actionPerformed(ActionEvent e) {
