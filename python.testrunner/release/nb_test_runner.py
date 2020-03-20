@@ -3,7 +3,6 @@
 # out more information during execution that is parsed and swallowed by the
 # NetBeans test runner GUI.)
 #
-# Tor Norbye <tor@netbeans.org> Dec 20 2008
 ##############################################################################
 
 import sys
@@ -206,7 +205,6 @@ if __name__ == '__main__':
         if len(args) > 1:
             parser.error("You can only specify one file with --file")
         #Fix for "ImportError: Import by filename is not supported." from 2.6
-        #Craig Milling <ctmilling@gmail.com> 2010-02-16
         dir_name = os.path.dirname(args[0])
         if not dir_name in sys.path:
             sys.path.append(dir_name)

@@ -1,5 +1,5 @@
 Python Editor
-tor@netbeans.org, Jan 12 2009
+Jan 12 2009
 
 This document is intended to be useful for developers working on the Python
 support in NetBeans.
