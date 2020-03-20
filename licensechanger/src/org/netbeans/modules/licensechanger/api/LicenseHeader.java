@@ -61,7 +61,6 @@ import org.openide.util.Exceptions;
  * License header resource/file abstraction class with static methods to load a
  * license header from file or registered license template.
  *
- * @author Nils Hoffmann
  */
 public final class LicenseHeader {
 

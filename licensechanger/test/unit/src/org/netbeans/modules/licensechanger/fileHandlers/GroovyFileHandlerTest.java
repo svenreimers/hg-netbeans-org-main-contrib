@@ -49,7 +49,6 @@ import org.netbeans.modules.licensechanger.api.FileHandler;
 /**
  * Test cases for groovy license replacement.
  *
- * @author Nils Hoffmann
  */
 public class GroovyFileHandlerTest {
 

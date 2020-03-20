@@ -32,7 +32,6 @@
 
 /**
  * Groovy allows classes without explicit package.
- * @author Nils Hoffmann
  */
 public class Yodeling {
     Boolean traditional

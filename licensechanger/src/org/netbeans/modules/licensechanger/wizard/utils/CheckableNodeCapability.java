@@ -47,7 +47,6 @@ import org.openide.explorer.view.CheckableNode;
  * Implements {@link CheckableNode} to allow display and use of checkable nodes
  * in views.
  *
- * @author Nils Hoffmann
  */
 public class CheckableNodeCapability implements CheckableNode {
 

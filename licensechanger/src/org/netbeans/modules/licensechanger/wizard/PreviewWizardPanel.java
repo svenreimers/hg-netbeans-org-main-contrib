@@ -54,7 +54,6 @@ import org.openide.util.HelpCtx;
 /**
  * Wizard panel for previewing of changes to license header.
  *
- * @author Nils Hoffmann
  */
 public class PreviewWizardPanel implements WizardDescriptor.ValidatingPanel<WizardDescriptor>, PropertyChangeListener {
 

@@ -49,8 +49,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
 /**
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring)
  */
 public class FileLoader {
 

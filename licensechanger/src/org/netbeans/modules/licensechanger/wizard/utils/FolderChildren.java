@@ -59,8 +59,6 @@ import org.openide.util.lookup.ProxyLookup;
 
 /**
  *
- * @author Tim Boudreau (original author)
- * @author Nils Hoffmann (changed to use CheckableNodeCapability)
  */
 public abstract class FolderChildren extends ChildFactory.Detachable<FileObject> implements Runnable {
 

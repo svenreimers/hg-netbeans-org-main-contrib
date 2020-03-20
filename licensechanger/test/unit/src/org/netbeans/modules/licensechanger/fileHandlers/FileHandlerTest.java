@@ -60,7 +60,6 @@ import org.openide.util.lookup.Lookups;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class FileHandlerTest {
 

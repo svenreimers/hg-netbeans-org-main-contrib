@@ -55,7 +55,6 @@ import org.openide.filesystems.FileUtil;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class TestUtils {
 

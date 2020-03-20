@@ -51,7 +51,6 @@ import org.openide.util.lookup.ProxyLookup;
 
 /**
  *
- * @author Tim Boudreau
  */
 public class FileChildren extends ChildFactory.Detachable <FileObject> {
     private final Set<FileObject> folders;

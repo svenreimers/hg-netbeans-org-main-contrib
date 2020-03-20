@@ -67,9 +67,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring, Freemarker Variables,
- * resolveLicenseTemplate)
  */
 public abstract class FileHandler {
 

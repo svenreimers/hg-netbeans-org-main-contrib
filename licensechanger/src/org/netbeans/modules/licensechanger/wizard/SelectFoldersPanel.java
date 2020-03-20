@@ -54,8 +54,6 @@ import org.openide.nodes.Node;
 
 /**
  *
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring)
  */
 public class SelectFoldersPanel extends javax.swing.JPanel implements ExplorerManager.Provider {
 

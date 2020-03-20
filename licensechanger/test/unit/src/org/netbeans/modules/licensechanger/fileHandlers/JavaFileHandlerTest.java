@@ -48,7 +48,6 @@ import org.netbeans.modules.licensechanger.api.FileHandler;
 
 /**
  *
- * @author Tim Boudreau
  */
 public class JavaFileHandlerTest {
 

@@ -71,8 +71,6 @@ import org.openide.util.EditableProperties;
 import org.openide.util.Exceptions;
 
 /**
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring)
  */
 public class LicenseChangerRunnable implements Runnable {
 

@@ -40,7 +40,6 @@ package org.netbeans.modules.licensechanger.fileHandlers;
 
 /**
  *
- * @author Tim Boudreau
  */
 public class XmlHandlerCustomizer extends javax.swing.JPanel {
 

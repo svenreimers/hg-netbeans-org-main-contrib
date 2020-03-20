@@ -46,7 +46,6 @@ import org.junit.Test;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class LineEndingPreferenceTest {
 

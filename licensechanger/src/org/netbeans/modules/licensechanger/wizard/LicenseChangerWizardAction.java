@@ -66,7 +66,6 @@ import org.openide.util.RequestProcessor;
 /**
  * Context-sensitive action to launch the license header change wizard.
  *
- * @author Nils Hoffmann
  */
 @ActionID(
         category = "Tools",

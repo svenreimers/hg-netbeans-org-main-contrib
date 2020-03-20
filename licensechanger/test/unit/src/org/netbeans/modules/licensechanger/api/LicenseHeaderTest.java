@@ -55,7 +55,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class LicenseHeaderTest extends NbTestCase {
 

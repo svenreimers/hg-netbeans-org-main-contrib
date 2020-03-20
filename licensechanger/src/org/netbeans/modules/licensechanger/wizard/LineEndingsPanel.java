@@ -52,7 +52,6 @@ import org.openide.util.NbPreferences;
 /**
  * Controls the line ending applied to all processed source files.
  *
- * @author Tim Boudreau
  */
 public class LineEndingsPanel extends javax.swing.JPanel {
 

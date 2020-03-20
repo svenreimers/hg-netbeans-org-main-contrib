@@ -70,8 +70,6 @@ import org.openide.util.lookup.Lookups;
 /**
  * Panel for selection of file types for license header update.
  *
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring)
  */
 public class ChooseFileTypesPanel extends javax.swing.JPanel implements ExplorerManager.Provider, PropertyChangeListener {
 

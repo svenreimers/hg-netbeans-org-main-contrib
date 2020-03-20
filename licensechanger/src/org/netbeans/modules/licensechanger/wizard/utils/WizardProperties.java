@@ -41,7 +41,6 @@ package org.netbeans.modules.licensechanger.wizard.utils;
 /**
  * Central class for Wizard-related property keys.
  *
- * @author Nils Hoffmann
  */
 public final class WizardProperties {
 

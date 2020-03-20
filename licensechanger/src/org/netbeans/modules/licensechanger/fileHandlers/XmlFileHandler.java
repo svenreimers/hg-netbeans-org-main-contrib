@@ -52,7 +52,6 @@ import org.openide.xml.XMLUtil;
 
 /**
  *
- * @author Tim Boudreau
  */
 @org.openide.util.lookup.ServiceProvider(service = org.netbeans.modules.licensechanger.api.FileHandler.class)
 public class XmlFileHandler extends FileHandler {// implements Customizable {

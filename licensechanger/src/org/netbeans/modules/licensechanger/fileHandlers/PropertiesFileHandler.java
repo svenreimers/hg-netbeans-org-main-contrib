@@ -46,7 +46,6 @@ import org.openide.util.NbBundle;
 /**
  * License transformer for properties files
  *
- * @author Tim Boudreau
  */
 @org.openide.util.lookup.ServiceProvider(service = org.netbeans.modules.licensechanger.api.FileHandler.class)
 public class PropertiesFileHandler extends FileHandler {

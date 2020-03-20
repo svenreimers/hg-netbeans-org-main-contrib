@@ -49,7 +49,6 @@ import org.openide.util.HelpCtx;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class LicenseChooserWizardPanel implements WizardDescriptor.ValidatingPanel<WizardDescriptor>, PropertyChangeListener {
 

@@ -58,8 +58,6 @@ import org.openide.util.RequestProcessor;
  * template text is displayed. Users can add custom licenses from the file
  * system. Users can set the currently selected project's default license.
  *
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring)
  */
 public class LicenseChooserPanel extends javax.swing.JPanel implements Runnable, DocumentListener {
 

@@ -51,7 +51,6 @@ import org.openide.util.HelpCtx;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class SelectFoldersWizardPanel implements WizardDescriptor.ValidatingPanel<WizardDescriptor>, PropertyChangeListener {
 

@@ -40,7 +40,6 @@ package org.netbeans.modules.licensechanger.api;
 
 /**
  *
- * @author Tim Boudreau
  */
 public final class Offsets {
 

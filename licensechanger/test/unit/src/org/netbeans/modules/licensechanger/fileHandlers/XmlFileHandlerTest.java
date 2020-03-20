@@ -50,7 +50,6 @@ import static org.netbeans.modules.licensechanger.TestUtils.*;
 
 /**
  *
- * @author Tim Boudreau
  */
 public class XmlFileHandlerTest {
 

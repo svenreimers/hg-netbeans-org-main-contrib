@@ -43,7 +43,6 @@ import java.util.regex.Pattern;
 
 /**
  *
- * @author Tim Boudreau
  */
 public abstract class RegexpFileHandler extends FileHandler {
 

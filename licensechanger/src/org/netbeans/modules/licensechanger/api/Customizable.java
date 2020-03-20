@@ -43,7 +43,6 @@ import java.awt.Component;
 /**
  * Implement on FileHandlers that have customizers
  *
- * @author Tim Boudreau
  */
 public interface Customizable {
 

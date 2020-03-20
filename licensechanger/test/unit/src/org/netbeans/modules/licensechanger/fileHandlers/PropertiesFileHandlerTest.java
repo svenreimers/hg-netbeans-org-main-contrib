@@ -47,7 +47,6 @@ import static org.netbeans.modules.licensechanger.TestUtils.readFile;
 
 /**
  *
- * @author Tim Boudreau
  */
 public class PropertiesFileHandlerTest {
 

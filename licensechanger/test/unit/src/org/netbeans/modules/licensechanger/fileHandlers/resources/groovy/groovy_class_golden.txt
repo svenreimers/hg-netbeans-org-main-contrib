@@ -32,7 +32,6 @@
 package org.netbeans.modules.licensechanger;
 /**
  * Groovy allows classes to have explicit packages.
- * @author Nils Hoffmann
  */
 public class Yodeling {
     Boolean traditional

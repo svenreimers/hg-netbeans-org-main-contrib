@@ -48,7 +48,6 @@ import org.netbeans.api.project.ProjectUtils;
  * object. This provides a thin wrapper for that. Class must be public to be
  * accessible by freemarker.
  *
- * @author Nils Hoffmann
  */
 public class Project {
 

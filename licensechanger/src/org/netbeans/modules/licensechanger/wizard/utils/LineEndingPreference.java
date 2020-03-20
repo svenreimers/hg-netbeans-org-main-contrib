@@ -41,7 +41,6 @@ package org.netbeans.modules.licensechanger.wizard.utils;
 /**
  * User preference for line ending conversion
  *
- * @author Tim Boudreau
  */
 public enum LineEndingPreference {
 

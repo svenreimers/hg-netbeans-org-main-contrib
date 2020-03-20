@@ -50,7 +50,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author Nils Hoffmann
  */
 public class ChooseFileTypesWizardPanel implements WizardDescriptor.ValidatingPanel<WizardDescriptor>, PropertyChangeListener {
 

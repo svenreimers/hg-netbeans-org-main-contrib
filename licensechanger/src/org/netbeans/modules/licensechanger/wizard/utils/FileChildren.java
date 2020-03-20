@@ -58,8 +58,6 @@ import org.openide.util.lookup.ProxyLookup;
 
 /**
  *
- * @author Tim Boudreau (original author)
- * @author Nils Hoffmann (changed to use CheckableNodeCapability)
  */
 public class FileChildren extends ChildFactory.Detachable<FileObject> {
 

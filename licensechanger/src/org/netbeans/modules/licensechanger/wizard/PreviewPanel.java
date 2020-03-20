@@ -79,8 +79,6 @@ import org.openide.util.WeakListeners;
  * header template. Users can manually deselect files to exclude them from being
  * processed.
  *
- * @author Tim Boudreau
- * @author Nils Hoffmann (Refactoring, Diff API inclusion)
  */
 public class PreviewPanel extends javax.swing.JPanel implements ExplorerManager.Provider, PropertyChangeListener {
 
