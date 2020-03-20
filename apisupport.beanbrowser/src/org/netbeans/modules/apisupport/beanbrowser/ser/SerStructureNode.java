@@ -49,7 +49,6 @@ import org.openide.nodes.*;
 import org.openide.util.NbBundle;
 
 /** Nodes representing pieces of a serialized file structurally.
- * @author Jesse Glick
  */
 public abstract class SerStructureNode {
 

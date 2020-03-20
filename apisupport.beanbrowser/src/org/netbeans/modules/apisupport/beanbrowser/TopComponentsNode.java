@@ -52,7 +52,6 @@ import org.openide.windows.TopComponent;
 
 /**
  * Shows open windows.
- * @author Jesse Glick
  */
 class TopComponentsNode extends AbstractNode {
 

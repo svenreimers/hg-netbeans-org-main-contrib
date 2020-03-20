@@ -48,7 +48,6 @@ import org.openide.util.NotImplementedException;
 /** Parser for Java serialization files.
  * Does no classloading or per-class semantics, simply parses the
  * raw serialization structure.
- * @author Jesse Glick
  */
 public final class SerParser implements ObjectStreamConstants {
     

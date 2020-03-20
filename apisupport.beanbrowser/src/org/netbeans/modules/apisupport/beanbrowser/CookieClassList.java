@@ -47,7 +47,6 @@ import org.openide.ErrorManager;
 
 /**
  * See enhancement #11911.
- * @author Jesse Glick
  */
 public final class CookieClassList {
 

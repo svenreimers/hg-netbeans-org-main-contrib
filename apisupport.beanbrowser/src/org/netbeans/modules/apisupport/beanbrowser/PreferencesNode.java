@@ -63,7 +63,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author Radek Matous
  */
 @ServicesTabNodeRegistration(name="preferences", displayName="Preferences",
     iconResource="org/netbeans/modules/apisupport/beanbrowser/BeanBrowserIcon.gif", position=2010)

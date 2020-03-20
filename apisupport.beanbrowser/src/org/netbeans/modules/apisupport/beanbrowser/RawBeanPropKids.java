@@ -54,7 +54,6 @@ import org.openide.nodes.Node;
  * or by known BeanInfo information.
  * <P>Keys may be PropertyDescriptor (a property)
  * or Exception (error during introspection).
- * @author Jesse Glick
  */
 public class RawBeanPropKids extends Children.Keys {
     
