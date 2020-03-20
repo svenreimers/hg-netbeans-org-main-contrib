@@ -48,7 +48,6 @@ import org.netbeans.Module;
  * Checks if all information about files are known and deletes file from disk.
  * This interface is implemented in <code>Autoupdate</code> module.
  *
- * @author Jirka Rechtacek (jrechtacek@netbeans.org)
  */
 public interface ModuleDeleter {
 

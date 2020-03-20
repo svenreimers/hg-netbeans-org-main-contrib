@@ -53,7 +53,6 @@ import org.openide.util.RequestProcessor;
 
 /**
  *
- * @author Jirka Rechtacek (jrechtacek@netbeans.org)
  */
 class ModuleNodeUtils {
 

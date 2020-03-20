@@ -57,7 +57,6 @@ import org.openide.util.actions.NodeAction;
 import org.openide.util.actions.Presenter;
 
 /**
- * @author Jirka Rechtacek (jrechtacek@netbeans.org), Jesse Glick
  */
 public class ModuleNodeActions {
     

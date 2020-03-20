@@ -82,7 +82,6 @@ import org.openide.util.WeakListeners;
  * Mirrors its properties but provides safe access from the event thread.
  * Also permits delayed write access, again safe to initiate from the event thread.
  * These changes are batched and auto-validating.
- * @author Jesse Glick
  */
 public final class ModuleBean implements Runnable, PropertyChangeListener {
     

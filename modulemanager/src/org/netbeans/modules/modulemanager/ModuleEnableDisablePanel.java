@@ -51,7 +51,6 @@ import org.openide.modules.ModuleInfo;
 import org.openide.util.NbBundle;
 
 /**
- * @author Jirka Rechtacek (jrechtacek@netbeans.org)
  * @see "#20323"
  */
 class ModuleEnableDisablePanel extends JPanel {

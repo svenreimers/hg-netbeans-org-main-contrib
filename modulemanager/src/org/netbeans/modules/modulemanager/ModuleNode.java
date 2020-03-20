@@ -79,7 +79,6 @@ import org.openide.util.actions.SystemAction;
 import org.openide.util.lookup.Lookups;
 
 /** Node representing modules.
- * @author Jesse Glick, Jaroslav Tulach, Rostislav Levy (?), et al.
  */
 public class ModuleNode extends AbstractNode {
 

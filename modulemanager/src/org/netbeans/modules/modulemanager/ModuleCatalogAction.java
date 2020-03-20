@@ -55,7 +55,6 @@ import org.openide.util.NbBundle;
 import org.openide.util.actions.CallableSystemAction;
 /**
  * PENDING
- * @author  Jirka Rechtacek (jrechtacek@netbeans.org)
  */
 public class ModuleCatalogAction extends CallableSystemAction {
 

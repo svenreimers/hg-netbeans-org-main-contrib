@@ -83,7 +83,6 @@ import org.openide.xml.XMLUtil;
 
 /** Module selection panel allows user to enable/disable modules in Module Catalog
  *
- * @author cledantec, jrojcek, Jesse Glick, Jirka Rechtacek (jrechtacek@netbeans.org)
  */
 public class ModuleSelectionPanel extends javax.swing.JPanel 
                                   implements PropertyChangeListener, ExplorerManager.Provider, Lookup.Provider {

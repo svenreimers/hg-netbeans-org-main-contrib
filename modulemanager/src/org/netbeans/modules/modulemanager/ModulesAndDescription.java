@@ -56,7 +56,6 @@ import org.openide.xml.XMLUtil;
 
 /**
  *
- * @author  Jirka Rechtacek (jrechtacek@netbeans.org)
  */
 public class ModulesAndDescription extends javax.swing.JPanel {
     

@@ -72,7 +72,6 @@ import org.xml.sax.SAXException;
  * If this <code>update_tracking</code> doesn't exist the files cannot be deleted.
  * The Deleter waits until the module is enabled before start delete its files.
  *
- * @author  Jirka Rechtacek (jrechtacek@netbeans.org)
  */
 public final class ModuleDeleterImpl implements ModuleDeleter {
     private static final ModuleDeleterImpl INSTANCE = new ModuleDeleterImpl();
