@@ -50,7 +50,6 @@ import org.netbeans.modules.gsf.Language;
  * within a filesystem root that can be processed as a single index update
  * when system memory is low or we're done with each file system.
  * 
- * @author Tor Norbye
  */
 final class IndexBatchEntry {
     private final String filename;

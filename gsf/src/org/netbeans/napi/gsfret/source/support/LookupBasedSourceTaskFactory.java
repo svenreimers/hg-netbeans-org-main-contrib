@@ -72,7 +72,6 @@ import org.openide.util.LookupListener;
  * in the lookup. If {@link Node}(s) are found, its/their lookup is searched for
  * {@link FileObject} and {@link DataObject}.
  *
- * @author Jan Lahoda
  */
 public abstract class LookupBasedSourceTaskFactory extends SourceTaskFactory {
 

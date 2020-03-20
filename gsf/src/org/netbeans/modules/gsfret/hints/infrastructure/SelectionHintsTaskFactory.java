@@ -51,7 +51,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  *
- * @author Tor Norbye
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.napi.gsfret.source.SourceTaskFactory.class)
 public class SelectionHintsTaskFactory extends SelectionAwareSourceTaskFactory {

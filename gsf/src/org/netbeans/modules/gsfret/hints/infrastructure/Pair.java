@@ -45,7 +45,6 @@ package org.netbeans.modules.gsfret.hints.infrastructure;
 
 /**
  *
- * @author Jan Lahoda
  */
 public final class Pair<A, B> {
 

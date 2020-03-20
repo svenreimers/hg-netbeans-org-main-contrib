@@ -54,7 +54,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author Tor Norbye
  */
 public class GsfUtilitiesTest extends NbTestCase {
 

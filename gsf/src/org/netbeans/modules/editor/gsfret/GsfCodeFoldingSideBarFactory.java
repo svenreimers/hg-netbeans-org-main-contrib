@@ -56,7 +56,6 @@ import org.netbeans.editor.SideBarFactory;
  *  Java Code Folding Side Bar Factory, responsible for creating CodeFoldingSideBar
  *  Plugged via layer.xml
  *
- *  @author  Martin Roskanin
  */
 public class GsfCodeFoldingSideBarFactory implements SideBarFactory{
 

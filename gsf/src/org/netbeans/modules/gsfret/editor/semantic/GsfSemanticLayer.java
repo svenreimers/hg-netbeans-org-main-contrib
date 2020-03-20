@@ -66,7 +66,6 @@ import org.openide.text.NbDocument;
 /**
  * A highlight layer for semantic highlighting OffsetRange lists provided by language clients
  * 
- * @author Tor Norbye
  */
 public class GsfSemanticLayer extends AbstractHighlightsContainer implements DocumentListener {
     
@@ -233,7 +232,6 @@ public class GsfSemanticLayer extends AbstractHighlightsContainer implements Doc
      * An implementation of a HighlightsSequence which can show OffsetRange
      * sections and keep them up to date during edits.
      *
-     * @author Tor Norbye
      */
     private static final class GsfHighlightSequence implements HighlightsSequence {
         private Iterator<SequenceElement> iterator;

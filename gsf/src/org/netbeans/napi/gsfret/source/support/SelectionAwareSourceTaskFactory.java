@@ -73,7 +73,6 @@ import org.openide.util.RequestProcessor;
  *
  * @since 0.15
  * 
- * @author Jan Lahoda
  */
 public abstract class SelectionAwareSourceTaskFactory extends SourceTaskFactory {
     

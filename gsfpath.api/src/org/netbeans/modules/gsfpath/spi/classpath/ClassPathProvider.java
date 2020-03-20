@@ -108,7 +108,6 @@ import org.openide.filesystems.FileObject;
  * </div>
  * @see ClassPath#getClassPath
  * @see org.netbeans.modules.gsfpath.api.classpath.GlobalPathRegistry
- * @author Jesse Glick
  * @since org.netbeans.modules.gsfpath.api/1 1.4
  */
 public interface ClassPathProvider {

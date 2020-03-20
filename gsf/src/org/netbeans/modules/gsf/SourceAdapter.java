@@ -59,7 +59,6 @@ import org.openide.util.Exceptions;
  * An implementation of the SourceModel which just adapts the Retouche-copied
  * "Source" class
  * 
- * @author Tor Norbye
  */
 public class SourceAdapter implements SourceModel {
     private Source source;

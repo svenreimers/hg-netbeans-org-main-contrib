@@ -75,7 +75,6 @@ import org.openide.filesystems.FileObject;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public class SemanticHighlighter extends ScanningCancellableTask<CompilationInfo> {
     

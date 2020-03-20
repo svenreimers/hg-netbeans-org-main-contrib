@@ -64,7 +64,6 @@ import org.openide.filesystems.FileUtil;
 
 /**
  *
- * @author Jaroslav Tulach <jtulach@netbeans.org>
  */
 public class LanguageRegistryTest extends NbTestCase {
     private FileObject plugins;

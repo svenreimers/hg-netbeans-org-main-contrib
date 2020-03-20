@@ -51,7 +51,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  *
  * Provides details about work that has been done by the parser.
  *
- * @author Jonathan Gibbons
  */
 public final class ParseEvent
 {

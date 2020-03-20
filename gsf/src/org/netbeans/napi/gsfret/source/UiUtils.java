@@ -84,8 +84,6 @@ import org.openide.util.Exceptions;
  *
  * XXX - needs cleanup
  *
- * @author Jan Lahoda
- * @author Tor Norbye
  */
 public final class UiUtils {
     private UiUtils() {

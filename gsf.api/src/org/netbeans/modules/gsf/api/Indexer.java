@@ -63,7 +63,6 @@ import org.openide.filesystems.FileObject;
  * @todo Queue up in RepositoryUpdater and process in a single batch operation
  *   for improved Lucene performance
  * 
- * @author Tor Norbye
  */
 public abstract interface Indexer {
     /** 

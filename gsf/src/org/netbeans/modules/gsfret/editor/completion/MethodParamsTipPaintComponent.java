@@ -52,7 +52,6 @@ import javax.swing.text.JTextComponent;
 
 /**
  *
- * @author  Dusan Balek
  */
 public class MethodParamsTipPaintComponent extends JToolTip {
     private int drawX;

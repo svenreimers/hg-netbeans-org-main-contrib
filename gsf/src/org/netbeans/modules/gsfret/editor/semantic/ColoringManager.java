@@ -84,7 +84,6 @@ import org.openide.util.NbBundle;
  * stashed in each Language.
  * 
  *
- * @author Jan Lahoda
  */
 public final class ColoringManager {
     private String mimeType;

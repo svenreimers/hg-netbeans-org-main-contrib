@@ -51,7 +51,6 @@ package org.netbeans.modules.gsfret.source.util;
  * possible. 
  *
  *
- * @author tom
  */
 public interface LowMemoryNotifierMBean {
 

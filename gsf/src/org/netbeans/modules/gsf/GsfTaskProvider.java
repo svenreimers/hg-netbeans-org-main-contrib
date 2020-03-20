@@ -89,7 +89,6 @@ import org.openide.util.TaskListener;
  * Much of this class is based on the similar JavaTaskProvider in
  * java/source by Stanislav Aubrecht and Jan Lahoda
  * 
- * @author Tor Norbye
  */
 public class GsfTaskProvider extends PushTaskScanner  {
     private TaskScanningScope scope;

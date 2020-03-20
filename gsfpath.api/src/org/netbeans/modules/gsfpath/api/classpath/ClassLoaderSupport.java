@@ -61,7 +61,6 @@ import org.openide.util.LookupListener;
  * or renamed clears the global variable that holds "current" classloader, so
  * on next request for current one new is created.
  *
- * @author Jaroslav Tulach
  */
 class ClassLoaderSupport extends NbClassLoader
     implements FileChangeListener, PropertyChangeListener {

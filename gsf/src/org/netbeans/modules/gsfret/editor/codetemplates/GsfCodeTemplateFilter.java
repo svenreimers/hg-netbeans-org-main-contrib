@@ -68,8 +68,6 @@ import org.openide.util.NbBundle;
  * Code template filter for GSF: Delegates to the plugin to determine which
  * templates are applicable. Based on JavaCodeTemplateFilter.
  * 
- * @author Dusan Balek
- * @author Tor Norbye
  */
 public class GsfCodeTemplateFilter implements CodeTemplateFilter, CancellableTask<CompilationController> {
     

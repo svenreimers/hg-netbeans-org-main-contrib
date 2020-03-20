@@ -47,7 +47,6 @@ package org.netbeans.modules.gsf.api;
 import org.netbeans.junit.NbTestCase;
 
 /**
- * @author Tor Norbye
  */
 public class OffsetRangeTest extends NbTestCase {
 

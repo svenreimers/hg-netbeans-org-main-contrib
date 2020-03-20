@@ -64,7 +64,6 @@ import org.openide.util.Exceptions;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 public final class ClassIndexManager {
     

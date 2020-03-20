@@ -87,7 +87,6 @@ import org.xml.sax.SAXException;
  * NetBeans build jar target), but subclassed to perform GSF
  * static registration during the build.
  *
- * @author Tor Norbye
  */
 public class GsfJar extends JarWithModuleAttributes {
     private static final String FILENAME = "name"; // NOI18N

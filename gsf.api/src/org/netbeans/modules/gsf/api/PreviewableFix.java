@@ -49,7 +49,6 @@ package org.netbeans.modules.gsf.api;
  * 
  * @todo Don't make this extend fix; perhaps I can use previewable elsewhere as well?
  * 
- * @author Tor Norbye
  */
 public interface PreviewableFix extends HintFix {
     /**

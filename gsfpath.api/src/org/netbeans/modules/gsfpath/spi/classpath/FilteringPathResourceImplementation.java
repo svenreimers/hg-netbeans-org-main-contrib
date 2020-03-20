@@ -48,7 +48,6 @@ import java.net.URL;
 
 /**
  * SPI interface for a classpath entry which can include or exclude particular files.
- * @author Jesse Glick
  * @see "issue #49026"
  * @since org.netbeans.modules.gsfpath.api/1 1.13
  */

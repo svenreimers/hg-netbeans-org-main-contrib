@@ -78,7 +78,6 @@ import org.openide.util.NbBundle;
  *
  * Based on JavaCompletionItem by Dusan Balek.
  * 
- * @author Tor Norbye
  */
 public abstract class GsfCompletionItem implements CompletionItem {
     private static CompletionFormatter FORMATTER = new CompletionFormatter();

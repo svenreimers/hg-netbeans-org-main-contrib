@@ -39,7 +39,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tor Norbye
  */
 final class DisableHintFix implements EnhancedFix {
     private final GsfHintsManager manager;

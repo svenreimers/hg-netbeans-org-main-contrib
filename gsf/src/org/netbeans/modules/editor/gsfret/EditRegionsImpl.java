@@ -47,7 +47,6 @@ import org.openide.util.Exceptions;
 /**
  * Provide access to document synch editing (until this is a core editing API)
  *
- * @author Tor Norbye
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.gsf.api.EditRegions.class)
 public class EditRegionsImpl extends EditRegions {

@@ -55,7 +55,6 @@ import org.openide.filesystems.FileObject;
 /**
  * Lexical information for a given language.
  *
- * @author <a href="mailto:tor.norbye@sun.com">Tor Norbye</a>
  */
 public interface GsfLanguage {
     /**

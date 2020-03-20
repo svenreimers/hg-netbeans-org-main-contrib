@@ -58,7 +58,6 @@ import org.openide.windows.WindowManager;
 
 /**
  * (From the stripwhitespace module's ModuleInstaller)
- * @author Andrei Badea
  */
 public class ModuleInstaller extends ModuleInstall {
     public static final boolean PREINDEXING = Boolean.getBoolean("gsf.preindexing");

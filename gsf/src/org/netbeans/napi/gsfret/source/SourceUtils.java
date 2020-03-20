@@ -54,7 +54,6 @@ import org.netbeans.modules.gsfret.source.usages.RepositoryUpdater;
 
 /**
  *
- * @author Dusan Balek
  */
 public class SourceUtils {    
      

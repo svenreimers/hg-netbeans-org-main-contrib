@@ -89,9 +89,6 @@ import org.openide.text.NbDocument;
  * possible. 
  *
  * 
- * @author Jan Lahoda
- * @author leon chiver
- * @author Tor Norbye
  */
 public final class GsfHintsProvider implements CancellableTask<CompilationInfo> {
     

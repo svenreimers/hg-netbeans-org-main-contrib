@@ -74,7 +74,6 @@ import org.openide.windows.WindowManager;
  * 
  * (This used to be PopupUtil in org.netbeans.modules.java.editor.overridden)
  *
- * @author phrebejk
  */
 public final class PopupUtil  {
     

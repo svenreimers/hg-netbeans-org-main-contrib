@@ -55,7 +55,6 @@ import org.openide.filesystems.FileObject;
  * This is already available in j2seproject, but when the java support
  * is not present it causes user source paths not to be indexed etc.
  * 
- * @author Jesse Glick
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.gsfpath.spi.classpath.ClassPathProvider.class, position=100)
 public class ProjectClassPathProvider implements ClassPathProvider {

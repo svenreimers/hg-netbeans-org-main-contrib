@@ -55,7 +55,6 @@ import org.netbeans.napi.gsfret.source.ModificationResult.Difference;
 /**
  * Support for working with modifications to a file
  * 
- * @author Tor Norbye
  */
 public class WorkingCopy extends CompilationController {
     private Set<Integer> diffStarts;

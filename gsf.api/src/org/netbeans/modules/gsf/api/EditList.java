@@ -62,7 +62,6 @@ import org.openide.util.Exceptions;
  * @todo Make formatting more explicit; allow to add a "format" region edit. These must
  *   be sorted such that they don't overlap after edits and are all applied last.
  * 
- * @author Tor Norbye
  */
 public class EditList {
     private BaseDocument doc;
@@ -219,7 +218,6 @@ public class EditList {
      * The edit regions are sorted in reverse order and applied from back to front such that
      * all the document offsets are correct at the time they are used.
      * 
-     * @author Tor Norbye
      */
     private static class Edit implements Comparable<Edit> {
 

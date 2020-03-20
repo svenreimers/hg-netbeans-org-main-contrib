@@ -70,7 +70,6 @@ import static org.netbeans.napi.gsfret.source.Phase.*;
  *  reentrant.
  *  
  *  XXX: make toPhase automatic in getTrees(), Trees.getElement, etc....
- * @author Petr Hrebejk, Tomas Zezula
  */
 public class CompilationController extends CompilationInfo {
     

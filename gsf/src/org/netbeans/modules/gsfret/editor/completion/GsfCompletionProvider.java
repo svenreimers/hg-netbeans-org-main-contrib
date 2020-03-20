@@ -106,7 +106,6 @@ import org.openide.util.WeakListeners;
  *   automatic completion vs "No Suggestions" issue; see 
  *    http://hg.netbeans.org/main?cmd=changeset;node=6740db8e6988
  *
- * @author Tor Norbye
  */
 public class GsfCompletionProvider implements CompletionProvider {
     

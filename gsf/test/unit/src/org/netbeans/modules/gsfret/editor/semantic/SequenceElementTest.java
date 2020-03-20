@@ -47,7 +47,6 @@ import org.netbeans.modules.gsf.api.OffsetRange;
 
 /**
  *
- * @author Tor Norbye
  */
 public class SequenceElementTest extends TestCase {
     

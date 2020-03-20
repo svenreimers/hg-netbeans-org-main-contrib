@@ -58,7 +58,6 @@ import org.netbeans.spi.editor.hints.HintsController;
 
 /**
  *
- * @author Tor Norbye
  */
 public class SelectionHintsTask extends ScanningCancellableTask<CompilationInfo> {
     

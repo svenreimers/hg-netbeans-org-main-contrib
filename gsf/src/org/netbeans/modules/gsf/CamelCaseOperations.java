@@ -56,8 +56,6 @@ import org.openide.ErrorManager;
  * CamelCase operations - based on Java ones but rewritten to delegate all logic
  * to language plugins
  * 
- * @author Sandip V. Chitale (Sandip.Chitale@Sun.Com)
- * @author Tor Norbye
  */
 /* package */ class CamelCaseOperations {
 

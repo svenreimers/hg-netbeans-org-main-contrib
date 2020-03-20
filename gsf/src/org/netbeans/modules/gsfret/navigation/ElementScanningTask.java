@@ -73,7 +73,6 @@ import org.openide.util.ImageUtilities;
  * XXX Remove the ElementScanner class from here it should be wenough to
  * consult the Elements class. It should also permit for showing inherited members.
  *
- * @author phrebejk
  */
 public class ElementScanningTask implements CancellableTask<CompilationInfo>{
     

@@ -53,7 +53,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * This service can often be provided by the parser itself (which would in that case
  * implement this interface). Offsets are 0-based.
  *
- * @author Tor Norbye
  */
 public interface PositionManager {
     /**

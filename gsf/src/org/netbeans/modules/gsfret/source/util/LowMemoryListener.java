@@ -52,7 +52,6 @@ import java.util.EventListener;
  * possible. 
  *
  *
- * @author tom
  */
 public interface LowMemoryListener extends EventListener {
 

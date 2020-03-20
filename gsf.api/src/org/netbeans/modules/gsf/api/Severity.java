@@ -46,7 +46,6 @@ package org.netbeans.modules.gsf.api;
 
 /**
  * Types of severities (generally for Errors)
- * @author Tor Norbye
  */
 public enum Severity {
     /** The error is only a warning; may be correct, may not be, but user should be alerted */

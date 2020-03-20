@@ -34,7 +34,6 @@ import javax.swing.Action;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
-/** @author Sandip V. Chitale (Sandip.Chitale@Sun.Com) */
 public final class DeleteToNextCamelCasePosition extends SelectNextCamelCasePosition {
     public static final String deleteNextCamelCasePosition = "delete-next-camel-case-position"; //NOI18N
 

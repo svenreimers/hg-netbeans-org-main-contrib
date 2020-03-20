@@ -49,8 +49,6 @@ import org.netbeans.modules.editor.NbEditorDocument;
 
 /**
  *
- * @author Jan Lahoda
- * @author Tor Norbye
  */
 public class GsfDocument extends NbEditorDocument {
     private Language language;

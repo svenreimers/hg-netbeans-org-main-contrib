@@ -36,7 +36,6 @@ import org.openide.filesystems.FileObject;
 /**
  * Wrapper around org.netbeans.spi.editor.hints.ErrorDescription
  *
- * @author Tor Norbye
  */
 public class Hint {
     private final String description;

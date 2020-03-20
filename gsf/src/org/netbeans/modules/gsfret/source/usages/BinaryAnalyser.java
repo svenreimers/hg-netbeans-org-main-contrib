@@ -66,7 +66,6 @@ import org.netbeans.modules.gsfret.source.util.LowMemoryListener;
  * possible. 
  *
  *
- * @author Petr Hrebejk, Tomas Zezula
  */
 public class BinaryAnalyser implements LowMemoryListener {
 

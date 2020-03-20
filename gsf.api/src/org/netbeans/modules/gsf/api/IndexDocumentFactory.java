@@ -48,7 +48,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * An IndexDocumentFactory allows you to create a IndexDocument that you pass
  * for storage in the GSF index.
  * 
- * @author Tor Norbye
  */
 public interface IndexDocumentFactory {
     @NonNull 

@@ -76,7 +76,6 @@ import org.openide.util.NbBundle;
  *  to handle bug 136665 - should we do the same to be
  *  consistent?
  *
- * @author Vladimir Voskresensky
  */
 public class GoToMarkOccurrencesAction extends BaseAction {
 

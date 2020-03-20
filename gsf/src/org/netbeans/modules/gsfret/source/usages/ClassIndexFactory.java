@@ -55,7 +55,6 @@ import org.netbeans.napi.gsfret.source.ClassIndex;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 
 public interface ClassIndexFactory {

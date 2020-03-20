@@ -82,7 +82,6 @@ import org.openide.util.Utilities;
  *
  * XXX - Rename to JavaFileObjects
  *
- * @author Petr Hrebejk
  */
 public class FileObjects {
     

@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * This class represents an index that is provided by the IDE to a language
  * plugin for storage and retrieval. Language plugins should not subclass this class.
  * 
- * @author Tor Norbye
  */
 public abstract class Index {
     

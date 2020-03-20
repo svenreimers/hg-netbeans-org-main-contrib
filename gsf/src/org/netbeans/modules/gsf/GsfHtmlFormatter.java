@@ -49,7 +49,6 @@ import org.netbeans.modules.gsf.api.HtmlFormatter;
 
 /**
  *
- * @author Tor Norbye
  */
 public class GsfHtmlFormatter extends HtmlFormatter {
     protected boolean isDeprecated;

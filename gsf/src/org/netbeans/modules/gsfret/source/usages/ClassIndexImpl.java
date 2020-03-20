@@ -63,7 +63,6 @@ import org.openide.filesystems.FileObject;
  *
  * Should probably final class with private constructor.
  *
- * @author Petr Hrebejk, Tomas Zezula
  */
 public abstract class ClassIndexImpl {
 

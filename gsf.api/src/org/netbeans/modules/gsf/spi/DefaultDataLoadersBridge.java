@@ -28,7 +28,6 @@ import org.openide.util.WeakListeners;
 
 /**
  *
- * @author Emilian Bold
  */
 public class DefaultDataLoadersBridge extends DataLoadersBridge {
 

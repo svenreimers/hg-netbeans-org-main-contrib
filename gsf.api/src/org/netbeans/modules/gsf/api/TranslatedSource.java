@@ -48,7 +48,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * An embedding model constructs a TranslatedSource which
  * provides translated source code and offsets.
  * 
- * @author Tor Norbye
  */
 public abstract class TranslatedSource {
     @NonNull public abstract String getSource();

@@ -71,7 +71,6 @@ import org.openide.util.RequestProcessor;
  *
  * The tasks may access current caret position using {@link #getLastPosition} method.
  *
- * @author Jan Lahoda
  */
 public abstract class CaretAwareSourceTaskFactory extends SourceTaskFactory {
     

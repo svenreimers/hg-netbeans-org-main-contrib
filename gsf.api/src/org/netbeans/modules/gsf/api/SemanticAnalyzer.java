@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * A CancellableTask which should analyze the given CompilationInfo
  * and produce a set of highlights.
  * 
- * @author Tor Norbye
  */
 public interface SemanticAnalyzer extends CancellableTask<CompilationInfo> {
     /**

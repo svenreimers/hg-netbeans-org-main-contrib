@@ -54,7 +54,6 @@ import org.netbeans.modules.gsf.api.OffsetRange;
  * There is a special subclass of ElementSequence, ComparisonItem, which is used
  * as comparison bounds (keys) passed into the TreeSet when generating subsequences.
  *
- * @author Tor Norbye
  */
 class SequenceElement implements Comparable<SequenceElement> {
     public final Language language;

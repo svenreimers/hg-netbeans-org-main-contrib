@@ -49,7 +49,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 
 /**
  *
- * @author Tor Norbye
  */
 public class ParameterInfo {
     public static final ParameterInfo NONE = new ParameterInfo(null, -1, -1);

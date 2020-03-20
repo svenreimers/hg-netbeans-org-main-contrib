@@ -104,7 +104,6 @@ import org.openide.filesystems.FileObject;
  * can use {@link #findResource} as a fallback.</p></li>
  * </ol>
  * </div>
- * @author Jesse Glick
  * @since org.netbeans.modules.gsfpath.api/1 1.4
  */
 public final class GlobalPathRegistry {

@@ -50,7 +50,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 
 /**
  *
- * @author marekfukala
  */
 public interface CommentHandler {
 

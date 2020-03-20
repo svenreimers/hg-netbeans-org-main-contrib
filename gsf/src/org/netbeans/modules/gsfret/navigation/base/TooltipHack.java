@@ -64,7 +64,6 @@ import javax.swing.ToolTipManager;
  * Navigator should better handle tooltips totally itself,
  * without Swing TooltipManager, to get rid of such hacks.
  *
- * @author Dafe Simonek
  */
 public final class TooltipHack implements ActionListener {
 

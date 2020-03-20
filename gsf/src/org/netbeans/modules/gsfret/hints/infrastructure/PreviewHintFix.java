@@ -71,7 +71,6 @@ import org.openide.text.NbDocument;
 /**
  * Offer a preview for hints (that support it)
  * 
- * @author Tor Norbye
  */
 final class PreviewHintFix implements EnhancedFix {
 

@@ -46,7 +46,6 @@ import org.netbeans.spi.editor.hints.EnhancedFix;
 
 /**
  *
- * @author Tor Norbye
  */
 final class FixWrapper implements EnhancedFix {
 

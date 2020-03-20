@@ -59,8 +59,6 @@ import org.openide.util.lookup.Lookups;
  *
  * Based on MimeLookupInitializer in the Schliemann prototype by Jan Jancura.
  *
- * @author Jan Jancura
- * @author Tor Norbye
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.spi.editor.mimelookup.MimeLookupInitializer.class)
 public class MimeLookupInitializerImpl implements MimeLookupInitializer {

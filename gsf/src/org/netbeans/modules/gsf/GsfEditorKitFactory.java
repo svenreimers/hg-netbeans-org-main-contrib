@@ -92,8 +92,6 @@ import org.openide.util.NbBundle;
  * called. This is worked around by having an outer class which holds the field
  * we need at constructor time (langauge).
  *
- * @author Tor Norbye
- * @author Jan Jancura
  */
 public class GsfEditorKitFactory {
     public static final String expandAllCodeBlockFolds = "expand-all-code-block-folds"; //NOI18N

@@ -54,7 +54,6 @@ import org.openide.filesystems.FileObject;
  * Simple implementation of the Error interface, which can be used for convenience
  * when generating errors during (for example) program parsing.
  *
- * @author Tor Norbye
  */
 public class DefaultError implements Error {
     private String displayName;

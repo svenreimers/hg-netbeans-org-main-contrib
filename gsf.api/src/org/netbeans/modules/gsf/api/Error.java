@@ -54,7 +54,6 @@ import org.openide.filesystems.FileObject;
  *
  * @todo Add a getArgs() method etc. such that error messages can be parameterized; see javax.tools.DiagnosticMessage
  *
- * @author Tor Norbye
  */
 public interface Error  {
     /**

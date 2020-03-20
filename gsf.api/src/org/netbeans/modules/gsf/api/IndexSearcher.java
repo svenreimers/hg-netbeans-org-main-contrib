@@ -54,7 +54,6 @@ import org.openide.filesystems.FileObject;
 /**
  * Helper to locate types for Goto Type, Go To Symbol, etc.
  * 
- * @author Tor Norbye
  */
 public interface IndexSearcher {
     @NonNull Set<? extends Descriptor> getTypes(@NonNull Index index, @NonNull String textForQuery,

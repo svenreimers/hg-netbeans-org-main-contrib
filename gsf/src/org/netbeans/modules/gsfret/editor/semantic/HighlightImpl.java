@@ -64,7 +64,6 @@ import org.openide.text.NbDocument;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public final class HighlightImpl {
     

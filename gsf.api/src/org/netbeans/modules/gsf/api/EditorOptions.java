@@ -39,7 +39,6 @@ import org.openide.util.Lookup;
  * but some editor options (such as tab settings) are managed by the IDE,
  * in and these can be accessed via this class.
  * 
- * @author Tor Norbye
  */
 public abstract class EditorOptions {
     public abstract int getTabSize();

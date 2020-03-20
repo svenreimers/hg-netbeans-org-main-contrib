@@ -54,7 +54,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 /**
  * An item to be added to the code completion dialog
  *
- * @author Tor Norbye
  */
 public interface CompletionProposal {
     /**

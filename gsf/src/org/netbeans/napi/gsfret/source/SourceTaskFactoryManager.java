@@ -54,7 +54,6 @@ import org.openide.util.LookupListener;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public final class SourceTaskFactoryManager {
     

@@ -57,7 +57,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  *
  * @todo Make this a CancellableTask
  * 
- * @author Tor Norbye
  */
 public interface StructureScanner {
     /**

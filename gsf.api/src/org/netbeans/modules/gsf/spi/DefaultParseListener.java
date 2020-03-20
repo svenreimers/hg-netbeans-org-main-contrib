@@ -54,7 +54,6 @@ import org.openide.util.Exceptions;
  * A default parse listener which keeps track of the most recently 
  * returned completed ParserResult
  * 
- * @author Tor Norbye
  */
 public class DefaultParseListener implements ParseListener {
     private ParserResult result;

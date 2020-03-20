@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.CompletionProposal;
  * attributes of a CodeCompletionResult is configurable by the client
  * of this class.
  *
- * @author Tor Norbye
  */
 public class DefaultCompletionResult extends CodeCompletionResult {
     protected boolean truncated;

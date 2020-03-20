@@ -55,7 +55,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * and return an instance of it from the {@link CodeCompletionHandler#complete} method.
  * object is provided by the language implementation
  * 
- * @author Tor Norbye
  */
 public abstract class CodeCompletionResult {
     /**

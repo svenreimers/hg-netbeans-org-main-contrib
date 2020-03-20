@@ -84,7 +84,6 @@ import org.openide.text.NbDocument;
  * as possible to make merging Retouche fixes back as simple as
  * possible.
  *
- * @author Jan Lahoda
  */
 public class InstantRenamePerformer implements DocumentListener, KeyListener {
     

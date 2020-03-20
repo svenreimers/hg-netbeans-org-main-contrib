@@ -142,9 +142,6 @@ import org.openide.util.WeakListeners;
  * This file is based on the JavaSource class in Retouche's org.netbeans.modules.gsfpath.api.source package.
  * It represents an open source file in the editor.
  *
- * @author Petr Hrebejk
- * @author Tomas Zezula
- * @author Tor Norbye
  */
 public final class Source {
 

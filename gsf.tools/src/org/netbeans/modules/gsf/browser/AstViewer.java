@@ -85,8 +85,6 @@ import org.openide.windows.WindowManager;
 /**
  * This class is based on ASTBrowserTopComponent in the Schliemann prototype by Jan Jancura
  *
- * @author Jan Jancura
- * @author Tor Norbye
  */
 public class AstViewer extends TopComponent {
     private static final long serialVersionUID = 1L;

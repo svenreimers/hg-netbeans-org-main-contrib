@@ -70,8 +70,6 @@ import org.openide.util.WeakSet;
  * Provides support for tab highlighting.
  * (This was based on the stripwhitespace module by Andrei Badea)
  *
- * @author Andrei Badea
- * @author Tor Norbye
  */
 public class HighlightSections {
     private static final HighlightSections DEFAULT = new HighlightSections();

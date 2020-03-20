@@ -53,7 +53,6 @@ import org.openide.filesystems.FileUtil;
 
 /**
  *
- * @author Tor Norbye
  */
 public class DefaultParserFile implements ParserFile {
     private FileObject fileObject;

@@ -51,8 +51,6 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author Petr Hrebejk
- * @author Jan Lahoda
  */
 public class HintsSettings {
 

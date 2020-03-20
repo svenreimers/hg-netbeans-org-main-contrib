@@ -79,7 +79,6 @@ import org.openide.util.Exceptions;
  * possible. 
  *
  *
- * @author Petr Hrebejk, Tomas Zezula
  */
 public class PersistentClassIndex extends ClassIndexImpl {    
     

@@ -80,7 +80,6 @@ import org.openide.util.Exceptions;
  * possible. 
  *
  * Index SPI. Represents an index for usages data
- * @author Tomas Zezula
  */
 // BEGIN TOR MODIFICATIONS
 public abstract class Index extends org.netbeans.modules.gsf.api.Index {    

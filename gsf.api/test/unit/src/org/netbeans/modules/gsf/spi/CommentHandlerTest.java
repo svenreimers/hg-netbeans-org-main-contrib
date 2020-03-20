@@ -55,7 +55,6 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author marekfukala
  */
 public class CommentHandlerTest extends NbTestCase {
 

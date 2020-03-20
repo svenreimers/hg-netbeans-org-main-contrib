@@ -62,7 +62,6 @@ import org.openide.util.actions.Presenter;
  * 
  * "Radio button" type action, base class designed for subclassing
  *
- * @author Dafe Simonek
  */
 public abstract class SortActionSupport extends AbstractAction implements Presenter.Popup {
     

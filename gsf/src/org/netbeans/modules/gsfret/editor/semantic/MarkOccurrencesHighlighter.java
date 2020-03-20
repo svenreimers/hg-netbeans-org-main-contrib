@@ -78,7 +78,6 @@ import org.openide.util.NbBundle;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public class MarkOccurrencesHighlighter implements CancellableTask<CompilationInfo> {
     

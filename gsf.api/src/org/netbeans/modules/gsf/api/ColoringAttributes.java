@@ -50,7 +50,6 @@ import java.util.Set;
 
 /**
  *
- * @author Jan Lahoda
  */
 public enum ColoringAttributes {
     ABSTRACT,

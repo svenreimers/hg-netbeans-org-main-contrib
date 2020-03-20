@@ -62,7 +62,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author Tor Norbye
  */
 public class GsfTypeDescription extends TypeDescriptor {
     private Icon icon;

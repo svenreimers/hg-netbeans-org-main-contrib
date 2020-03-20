@@ -54,7 +54,6 @@ import org.netbeans.modules.editor.errorstripe.privatespi.MarkProviderCreator;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public class OccurrencesMarkProviderCreator implements MarkProviderCreator{
 

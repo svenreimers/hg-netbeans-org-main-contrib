@@ -49,7 +49,6 @@ import junit.framework.TestCase;
 
 /**
  *
- * @author Tor Norbye
  */
 public class EditHistoryTest extends TestCase {
     public EditHistoryTest(String testName) {

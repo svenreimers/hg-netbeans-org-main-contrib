@@ -44,7 +44,6 @@ package org.netbeans.modules.gsf.tools;
 /**
  * This is extract from ruby just to remove dependency from gsf.tools on ruby
  *
- * @author Martin Adamek
  */
 public class IndexUtils {
 

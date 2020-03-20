@@ -176,7 +176,6 @@ import org.openide.util.Lookup;
 /**
  * @todo Add stress tests: Test every single position in an occurrences marker,
  *   test every single position for a declaration finder, etc.
- * @author Tor Norbye
  */
 public abstract class GsfTestBase extends NbTestCase {
 

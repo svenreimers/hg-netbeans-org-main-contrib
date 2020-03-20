@@ -53,7 +53,6 @@ import org.netbeans.spi.editor.fold.FoldManagerFactory;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public class GsfFoldManagerFactory implements FoldManagerFactory {
 

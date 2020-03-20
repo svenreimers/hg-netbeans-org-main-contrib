@@ -72,7 +72,6 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author tor
  */
 public final class GsfTestCompilationInfo extends CompilationInfo {
     protected String text;

@@ -63,7 +63,6 @@ import org.netbeans.spi.editor.hints.HintsController;
 /**
  * Task which delegates to the language plugins for actual suggestions-computation
  * 
- * @author Tor Norbye
  */
 public class SuggestionsTask extends ScanningCancellableTask<CompilationInfo> {
     

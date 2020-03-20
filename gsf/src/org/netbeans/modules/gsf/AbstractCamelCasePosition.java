@@ -55,7 +55,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Sandip V. Chitale (Sandip.Chitale@Sun.Com)
  */
 public abstract class AbstractCamelCasePosition extends BaseAction {
 

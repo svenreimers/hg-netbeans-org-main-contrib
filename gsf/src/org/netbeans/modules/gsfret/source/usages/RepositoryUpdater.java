@@ -135,8 +135,6 @@ import org.openide.util.Utilities;
  * I have also changed references to other parts that have been renamed, such
  * as JavaSource => Source, etc.
  * 
- * @author Tomas Zezula
- * @author Tor Norbye
  */
 public class RepositoryUpdater implements PropertyChangeListener, FileChangeListener {
     // Flag for controlling last-minute workaround for issue #120231

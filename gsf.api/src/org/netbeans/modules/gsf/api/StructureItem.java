@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 
 /**
  *
- * @author Tor Norbye
  */
 public interface StructureItem {
     @NonNull String getName();

@@ -64,7 +64,6 @@ import org.openide.util.Exceptions;
  * Code template processor for GSF: Delegates mostly to the plugin
  * to resolve parameters.
  *
- * @author Tor Norbye
  */
 public class GsfCodeTemplateProcessor implements CodeTemplateProcessor {
     private CodeTemplateInsertRequest request;

@@ -69,7 +69,6 @@ import org.openide.util.Utilities;
  * <p>
  * Creates filtering for the ClassMemberPanel
  *
- * @author phrebejk
  */
 public final class ClassMemberFilters {
     

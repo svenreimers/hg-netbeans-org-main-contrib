@@ -91,7 +91,6 @@ import org.openide.util.NbBundle;
 
 /**
  *
- * @author Tor Norbye
  */
 public class GsfHintsManager extends HintsProvider.HintsManager {
     public GsfHintsManager(String mimeType, HintsProvider provider, Language language) {

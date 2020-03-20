@@ -63,7 +63,6 @@ import org.openide.filesystems.FileLock;
  *
  *   DataAccessor for Code Completion DB files via FileObject streams
  *
- *   @author  Martin Roskanin
  */
 public class FileObjectAccessor implements DataAccessor {
 

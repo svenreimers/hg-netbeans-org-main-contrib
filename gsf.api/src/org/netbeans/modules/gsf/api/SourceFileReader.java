@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * The IDE can for example provide a reader which either fetches the contents
  * from disk, or from an open editor buffer if it has been edited.
  * 
- * @author Tor Norbye
  */
 public interface SourceFileReader {
     /** 

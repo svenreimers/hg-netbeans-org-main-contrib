@@ -53,7 +53,6 @@ import org.openide.filesystems.FileObject;
 /**
  * Based on org.netbeans.modules.gsfpath.api.source by Tomas Zezula
  *
- * @author Tor Norbye
  */
 public interface ElementHandle {
     /** 
