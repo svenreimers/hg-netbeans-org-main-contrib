@@ -47,7 +47,6 @@ import org.openide.filesystems.FileObject;
 
 /**
  * Removes one mount.
- * @author Jesse Glick
  */
 final class UnmountAction extends AbstractAction {
 

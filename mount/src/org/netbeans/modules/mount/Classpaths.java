@@ -63,7 +63,6 @@ import org.openide.util.WeakListeners;
 
 /**
  * Manages the global classpath corresponding to mounts.
- * @author Jesse Glick
  */
 final class Classpaths implements ClassPathProvider {
     

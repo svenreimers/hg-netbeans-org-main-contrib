@@ -59,7 +59,6 @@ import org.openide.util.WeakListeners;
 
 /**
  * Reports all mount points as Java package roots.
- * @author Jesse Glick
  */
 final class MountSources implements Sources, ChangeListener {
     

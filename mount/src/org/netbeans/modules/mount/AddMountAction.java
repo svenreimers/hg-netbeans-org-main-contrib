@@ -49,7 +49,6 @@ import org.openide.windows.WindowManager;
 
 /**
  * Adds a new mount.
- * @author Jesse Glick
  */
 final class AddMountAction extends AbstractAction {
 

@@ -62,7 +62,6 @@ import org.openide.util.NbPreferences;
 
 /**
  * Keeps the list of mounts.
- * @author Jesse Glick
  */
 final class MountList {
     

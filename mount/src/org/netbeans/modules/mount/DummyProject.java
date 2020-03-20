@@ -53,7 +53,6 @@ import org.openide.util.lookup.Lookups;
 
 /**
  * "Project" corresponding to mounts.
- * @author Jesse Glick
  */
 final class DummyProject implements Project {
 

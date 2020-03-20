@@ -56,7 +56,6 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
- * @author Petr Hrebejk, Jesse Glick
  */
 public class MountTab extends TopComponent 
                         implements ExplorerManager.Provider {

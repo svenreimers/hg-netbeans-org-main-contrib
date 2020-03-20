@@ -46,7 +46,6 @@ import org.openide.util.Lookup;
 
 /**
  * Manages actions for the mount dummy project.
- * @author Jesse Glick
  */
 final class Actions implements ActionProvider {
     

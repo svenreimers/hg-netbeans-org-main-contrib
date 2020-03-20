@@ -51,7 +51,6 @@ import org.openide.filesystems.URLMapper;
 
 /**
  * Maps binary roots onto... themselves! Cool.
- * @author Jesse Glick
  */
 final class SourcesForBinary implements SourceForBinaryQueryImplementation {
 

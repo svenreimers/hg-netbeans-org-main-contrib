@@ -70,7 +70,6 @@ import org.openide.util.actions.SystemAction;
 
 /**
  * Shows mounts.
- * @author Jesse Glick
  */
 final class MountRootNode extends AbstractNode {
     

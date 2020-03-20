@@ -56,7 +56,6 @@ import org.openide.filesystems.URLMapper;
 
 /**
  * Marks any file listed in {@link MountList} as owned by a mount pseudo-project.
- * @author Jesse Glick
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.spi.project.FileOwnerQueryImplementation.class)
 public final class FOQ implements FileOwnerQueryImplementation {

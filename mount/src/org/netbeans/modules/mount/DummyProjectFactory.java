@@ -52,7 +52,6 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Loads DummyProject.
- * @author Jesse Glick
  */
 @ServiceProvider(service=ProjectFactory.class)
 public final class DummyProjectFactory implements ProjectFactory {
