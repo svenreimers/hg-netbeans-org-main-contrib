@@ -46,10 +46,6 @@ import org.netbeans.modules.python.project2.ui.ImportantFiles;
 import org.netbeans.spi.project.ui.support.NodeFactory;
 import org.netbeans.spi.project.ui.support.NodeList;
 
-/**
- *
- * @author Julien Enselme <jenselme@netbeans.org>
- */
 @NodeFactory.Registration(projectType = "org-netbeans-modules-python-project2", position = 300)
 public class PythonImportantFilesNodeFactory implements NodeFactory {
     @Override

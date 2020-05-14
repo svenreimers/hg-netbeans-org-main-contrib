@@ -34,7 +34,6 @@ import javax.swing.Action;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
-/** @author Sandip V. Chitale (Sandip.Chitale@Sun.Com) */
 public class SelectNextCamelCasePosition extends NextCamelCasePosition {
     public static final String selectNextCamelCasePosition = "select-next-camel-case-position"; //NOI18N
 

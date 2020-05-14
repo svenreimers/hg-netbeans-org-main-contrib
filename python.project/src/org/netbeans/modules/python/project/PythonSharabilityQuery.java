@@ -16,10 +16,6 @@ import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.netbeans.spi.queries.SharabilityQueryImplementation;
 import org.openide.util.Mutex;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonSharabilityQuery implements SharabilityQueryImplementation, PropertyChangeListener  {
     
     private final AntProjectHelper helper;

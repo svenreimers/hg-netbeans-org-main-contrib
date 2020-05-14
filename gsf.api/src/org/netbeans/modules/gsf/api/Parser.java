@@ -53,7 +53,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * and fires parsing events including the parse result at the end of parsing
  * each file.
  * 
- * @author Tor Norbye
  */
 public interface Parser {
     /** Parse the given set of files, and notify the parse listener for each transition 

@@ -64,7 +64,6 @@ import org.openide.util.Exceptions;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public class ActivatedDocumentListener implements PropertyChangeListener {
     

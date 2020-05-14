@@ -68,7 +68,6 @@ import org.openide.util.NbBundle;
 
 /**
  * Source roots view
- * @author Tomas Zezula
  */
 @NbBundle.Messages({"LBL_Properties_Action=Properties"})
 public final class SourceNodeFactory implements NodeFactory {

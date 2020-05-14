@@ -18,10 +18,6 @@ import org.netbeans.modules.python.platform.panels.PythonPlatformPanel;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
-/**
- *
- * @author  Julien Enselme
- */
 @NbBundle.Messages({"PPC_TXT_PleaseWait=Please Wait..."})
 final class PythonPlatformChooser extends javax.swing.JPanel {
 

@@ -41,11 +41,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-/**
- *
- * @author alley
- * @author Tomas Zezula
- */
 //public class PythonBaseProject implements Project {
 //
 //    private static final ImageIcon PROJECT_ICON = ImageUtilities.loadImageIcon("org/netbeans/modules/python/project/resources/py_25_16.png", false);

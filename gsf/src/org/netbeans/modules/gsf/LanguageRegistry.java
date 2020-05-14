@@ -94,7 +94,6 @@ import org.openide.util.RequestProcessor;
  * @todo Check to see if a module has had its generator run
  * @todo Do cleanup of older files? Also make sure import wizard does the right thing
  *
- * @author Tor Norbye
  */
 public final class LanguageRegistry implements Iterable<Language> {
 

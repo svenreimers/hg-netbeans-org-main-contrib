@@ -93,10 +93,6 @@ import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tor Norbye
- */
 public class GoToSuperTypeAction extends BaseAction {
     @SuppressWarnings("deprecation")
     public GoToSuperTypeAction() {

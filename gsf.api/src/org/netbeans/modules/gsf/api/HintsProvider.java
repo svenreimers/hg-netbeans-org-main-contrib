@@ -46,7 +46,6 @@ import org.openide.util.Lookup;
 /**
  * Interface implemented by plugins that wish to provide quickfixes and hints.
  *
- * @author Tor Norbye
  */
 public interface HintsProvider {
 

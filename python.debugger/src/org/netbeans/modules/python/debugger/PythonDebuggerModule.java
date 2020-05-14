@@ -44,10 +44,6 @@ package org.netbeans.modules.python.debugger;
 import org.openide.ErrorManager;
 import org.openide.modules.ModuleInstall;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class PythonDebuggerModule
         extends ModuleInstall {
 

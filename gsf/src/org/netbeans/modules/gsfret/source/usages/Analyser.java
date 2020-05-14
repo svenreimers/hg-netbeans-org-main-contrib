@@ -54,7 +54,6 @@ import org.openide.filesystems.FileObject;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 public interface Analyser {
 

@@ -48,7 +48,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * This class provides context regarding a code completion request. The infrastructure
  * will subclass this class and pass an instance to you.
  * 
- * @author Tor Norbye
  */
 public abstract class CodeCompletionContext {
 

@@ -59,11 +59,6 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author Amit Saha <amitksaha@netbeans.org>
- * 
- */
 public class CleanBuildCommand extends Command {
 
     public CleanBuildCommand(PythonProject project) {

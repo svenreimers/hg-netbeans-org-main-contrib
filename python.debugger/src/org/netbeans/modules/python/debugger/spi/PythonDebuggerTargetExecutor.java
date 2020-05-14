@@ -46,10 +46,6 @@ import org.openide.execution.ExecutorTask;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class PythonDebuggerTargetExecutor {
 
   private final Env _env;

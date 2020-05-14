@@ -47,7 +47,6 @@ package org.netbeans.modules.gsf.api;
 /** Cancellable runnable which takes parameter of given type.
  *
  * @param <P> The return type passed back from the task's <code>run</code> method
- * @author Petr Hrebejk
  */
 public interface CancellableTask<P> {
 

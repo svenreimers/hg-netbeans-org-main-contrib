@@ -53,7 +53,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 /**
  * Provide an implementation that will help with instant renaming (in place refactoring)
  *
- * @author <a href="mailto:tor.norbye@sun.com">Tor Norbye</a>
  */
 public interface InstantRenamer {
     /**

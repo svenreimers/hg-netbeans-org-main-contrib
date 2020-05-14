@@ -71,7 +71,6 @@ import org.openide.util.NbBundle;
  *
  * TODO: javadoc selection
  *
- * @author Miloslav Metelka, Jan Pokorsky
  */
 public final class SelectCodeElementAction extends BaseAction {
     public static final String selectNextElementAction = "select-element-next"; //NOI18N

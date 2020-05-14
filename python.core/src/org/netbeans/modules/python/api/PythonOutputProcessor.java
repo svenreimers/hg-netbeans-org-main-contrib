@@ -8,10 +8,6 @@ package org.netbeans.modules.python.api;
 import java.io.IOException;
 import org.netbeans.api.extexecution.input.InputProcessor;
 
-/**
- *
- * @author alley
- */
 public class PythonOutputProcessor implements InputProcessor {
     StringBuilder builder = new StringBuilder();
     @Override

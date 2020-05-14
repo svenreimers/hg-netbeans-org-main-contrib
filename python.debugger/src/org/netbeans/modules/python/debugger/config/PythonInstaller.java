@@ -62,7 +62,6 @@ import org.netbeans.modules.python.debugger.gui.PythonDebugContainer;
 /**
  * automatically install and check necessary Python resources for the IDE
  *
- * @author jean-yves Mengant
  */
 public class PythonInstaller {
   // private final static String _PYLOC_   = "python/";

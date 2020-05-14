@@ -32,10 +32,6 @@ package org.netbeans.modules.python.source.elements;
 
 import org.netbeans.modules.csl.api.ElementKind;
 
-/**
- *
- * @author Tor Norbye
- */
 public class IndexedMethod extends IndexedElement {
     private String[] params;
 

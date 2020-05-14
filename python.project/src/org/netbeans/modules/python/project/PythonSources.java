@@ -20,10 +20,6 @@ import org.netbeans.spi.project.support.ant.SourcesHelper;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Mutex;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonSources implements Sources, ChangeListener, PropertyChangeListener {
 
     private final Project project;

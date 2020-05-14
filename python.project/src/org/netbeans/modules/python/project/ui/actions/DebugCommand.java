@@ -16,10 +16,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author jymen
- */
 public class DebugCommand extends RunCommand {
 
     public DebugCommand(PythonProject project) {

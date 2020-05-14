@@ -51,10 +51,6 @@ import org.openide.loaders.CreateFromTemplateAttributesProvider;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 
-/**
- *
- * @author Vincent van der Leun
- */
 
 public class PythonProjectTemplateAttributesProvider implements CreateFromTemplateAttributesProvider {
     private final PropertyEvaluator eval;

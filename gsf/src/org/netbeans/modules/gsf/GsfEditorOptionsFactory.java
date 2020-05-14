@@ -36,10 +36,6 @@ import org.netbeans.api.editor.settings.SimpleValueNames;
 import org.netbeans.modules.gsf.api.EditorOptions;
 import org.netbeans.modules.gsf.api.EditorOptionsFactory;
 
-/**
- *
- * @author tor
- */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.gsf.api.EditorOptionsFactory.class)
 public class GsfEditorOptionsFactory implements EditorOptionsFactory {
     

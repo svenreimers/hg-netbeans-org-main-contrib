@@ -47,10 +47,6 @@ import org.netbeans.modules.python.debugger.Utils;
 import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class BreakpointsReader
         implements Properties.Reader {
 

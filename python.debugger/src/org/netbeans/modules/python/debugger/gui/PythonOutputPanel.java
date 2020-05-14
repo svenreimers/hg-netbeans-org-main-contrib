@@ -51,7 +51,6 @@ import org.netbeans.modules.python.debugger.utils.SwingMessageArea;
 
 /**
  * A basic StdOut panel for Debugging or running instances
- * @author jean-yves Mengant
  */
 public class PythonOutputPanel
         extends JPanel {

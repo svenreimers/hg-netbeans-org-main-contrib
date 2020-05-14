@@ -52,10 +52,6 @@ import java.util.ArrayList;
 import java.beans.PropertyChangeEvent;
 import java.util.Vector;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class PersistenceManager
         implements LazyDebuggerManagerListener {
 

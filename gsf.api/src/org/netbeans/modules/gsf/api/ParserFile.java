@@ -54,7 +54,6 @@ import org.openide.filesystems.FileObject;
  * in particular that it may be passed after a file has been deleted - so its
  * associated invalid file object may not have a mime type.
  *  
- * @author Tor Norbye
  */
 public interface ParserFile {
 

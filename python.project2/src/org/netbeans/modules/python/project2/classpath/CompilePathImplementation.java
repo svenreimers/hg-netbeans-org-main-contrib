@@ -57,10 +57,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Parameters;
 
-/**
- *
- * @author Tomas Zezula
- */
 public final class CompilePathImplementation implements ClassPathImplementation, PropertyChangeListener, Runnable {
 
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);

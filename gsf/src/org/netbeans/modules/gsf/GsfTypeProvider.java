@@ -77,10 +77,6 @@ import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author Tor Norbye
- */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.spi.jumpto.type.TypeProvider.class)
 public class GsfTypeProvider implements TypeProvider, IndexSearcher.Helper {
     private static final Logger LOGGER = Logger.getLogger(GsfTypeProvider.class.getName());

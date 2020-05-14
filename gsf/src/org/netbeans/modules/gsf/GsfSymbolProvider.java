@@ -83,7 +83,6 @@ import org.openide.util.Exceptions;
  * Highly similar to GsfTypeProvider; this implements the SymbolProvider instead of
  * the TypeProvider interface from the jumpto module
  *
- * @author Tor Norbye
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.spi.jumpto.symbol.SymbolProvider.class)
 public class GsfSymbolProvider implements SymbolProvider, IndexSearcher.Helper {

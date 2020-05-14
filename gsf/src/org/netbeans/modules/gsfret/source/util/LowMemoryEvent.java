@@ -54,7 +54,6 @@ import java.util.EventObject;
  * possible. 
  *
  *
- * @author tom
  */
 public class LowMemoryEvent extends EventObject {
 

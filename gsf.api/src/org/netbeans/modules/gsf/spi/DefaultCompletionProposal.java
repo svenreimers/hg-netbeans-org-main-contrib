@@ -56,7 +56,6 @@ import org.netbeans.modules.gsf.api.Modifier;
  * Default implementation of a CompletionProposal with some useful base
  * functionality.
  *
- * @author Tor Norbye
  */
 public abstract class DefaultCompletionProposal implements CompletionProposal {
     protected int anchorOffset;

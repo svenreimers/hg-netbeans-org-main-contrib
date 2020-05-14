@@ -50,10 +50,6 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-/**
- *
- * @author  Dusan Balek
- */
 public class MethodParamsTipPaintComponent extends JToolTip {
     private int drawX;
     private int drawY;

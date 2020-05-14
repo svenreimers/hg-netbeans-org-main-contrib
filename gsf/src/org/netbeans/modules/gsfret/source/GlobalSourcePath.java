@@ -87,7 +87,6 @@ import org.openide.util.WeakListeners;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 public class GlobalSourcePath {
     

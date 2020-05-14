@@ -24,10 +24,6 @@ import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author jymen
- */
 public class DebugSingleCommand extends RunSingleCommand {
     public DebugSingleCommand(PythonProject project, boolean isTest) {
         super(project, isTest);

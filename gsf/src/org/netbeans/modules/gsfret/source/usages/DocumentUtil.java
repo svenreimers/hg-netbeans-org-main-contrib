@@ -67,7 +67,6 @@ import org.apache.lucene.search.WildcardQuery;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 class DocumentUtil {
     

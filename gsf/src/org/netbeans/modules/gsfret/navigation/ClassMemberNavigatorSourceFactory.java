@@ -64,7 +64,6 @@ import org.netbeans.napi.gsfret.source.support.LookupBasedSourceTaskFactory;
  * possible. 
  * <p>
  *
- * @author Jan Lahoda, Petr Hrebejk
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.napi.gsfret.source.SourceTaskFactory.class)
 public final class ClassMemberNavigatorSourceFactory extends LookupBasedSourceTaskFactory {

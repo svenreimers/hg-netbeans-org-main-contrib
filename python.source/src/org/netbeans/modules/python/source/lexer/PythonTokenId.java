@@ -67,8 +67,6 @@ import static org.netbeans.modules.python.source.lexer.PythonLexer.*;
 /**
  * @todo add the rest of the tokens
  *
- * @author Martin Adamek
- * @author alley
  */
 public enum PythonTokenId implements TokenId {
     ERROR(null, ERROR_CAT),

@@ -58,11 +58,6 @@ import org.openide.util.ChangeSupport;
 import org.openide.util.Parameters;
 import org.openide.util.WeakListeners;
 
-/**
- *
- * @author jenselme
- * @see org.netbeans.modules.web.common.spi.ImportantFilesSupport
- */
 class ImportantFilesSupport {
     private final FileObject directory;
     final List<String> fileNames;

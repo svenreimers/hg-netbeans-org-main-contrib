@@ -78,11 +78,6 @@ import org.python.antlr.ast.ImportFrom;
 import org.python.antlr.ast.Name;
 import org.python.antlr.ast.alias;
 
-/**
- *
- * @author alley
- * @Author Tor Norbye
- */
 public class PythonDeclarationFinder implements DeclarationFinder {
     @Override
     public OffsetRange getReferenceSpan(Document doc, int lexOffset) {

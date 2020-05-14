@@ -52,10 +52,6 @@ import org.netbeans.modules.gsfpath.api.classpath.GlobalPathRegistry;
 import org.netbeans.modules.gsfret.source.usages.RepositoryUpdater;
 
 
-/**
- *
- * @author Dusan Balek
- */
 public class SourceUtils {    
      
     private SourceUtils() {}

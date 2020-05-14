@@ -49,7 +49,6 @@ import org.netbeans.modules.python.debugger.utils.ProcessLauncher;
 import org.netbeans.modules.python.debugger.utils.UtilsError;
 
 /**
- * @author jean-yves Mengant
  *
  * implement a local python interpretor launcher utility
  *

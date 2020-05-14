@@ -47,10 +47,6 @@ import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 import junit.framework.TestCase;
 
-/**
- *
- * @author Tor Norbye
- */
 public class EditHistoryTest extends TestCase {
     public EditHistoryTest(String testName) {
         super(testName);

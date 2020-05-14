@@ -57,7 +57,6 @@ import static org.netbeans.modules.python.source.ui.FmtOptions.*;
  *  XXX get the preferences node from somewhere else in odrer to be able not to
  *      use the getters and to be able to write to it.
  * 
- * @author Dusan Balek
  */
 public final class CodeStyle {
     static {

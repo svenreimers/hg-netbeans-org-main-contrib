@@ -68,7 +68,6 @@ import java.util.logging.Logger;
  * Because apparently on solaris one can manipulate terminal characteristics,
  * like size changes, only from the slave side. But the key word here is
  * apparently. SHOULD experiment further.
- * @author ivan
  */
 public final class PtyProcess extends java.lang.Process {
 

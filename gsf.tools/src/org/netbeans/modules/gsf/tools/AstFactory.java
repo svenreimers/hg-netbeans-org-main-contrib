@@ -67,7 +67,6 @@ import org.openide.loaders.DataObject;
  * Source factory for displaying the AST in the AST viewer when
  * it has been parsed
  *
- * @author Tor Norbye
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.napi.gsfret.source.SourceTaskFactory.class)
 public class AstFactory extends EditorAwareSourceTaskFactory {

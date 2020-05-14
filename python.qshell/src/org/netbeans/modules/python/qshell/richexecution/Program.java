@@ -53,7 +53,6 @@ import java.util.Map;
  * Description of a program to be executed.
  * After and partial delegator to {@link java.lang.ProcessBuilder}.
  * Use {@link PtyExecutor} or subclasses thereof to run the program.
- * @author ivan
  */
 public class Program {
     private final ProcessBuilder processBuilder;

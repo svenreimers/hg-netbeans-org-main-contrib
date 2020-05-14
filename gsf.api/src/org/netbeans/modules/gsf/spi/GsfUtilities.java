@@ -77,7 +77,6 @@ import org.openide.util.Exceptions;
 /**
  * Misc utilities to avoid code duplication among the various language plugins
  *
- * @author Tor Norbye
  */
 public class GsfUtilities {
     private GsfUtilities() { // Utility class only, no instances

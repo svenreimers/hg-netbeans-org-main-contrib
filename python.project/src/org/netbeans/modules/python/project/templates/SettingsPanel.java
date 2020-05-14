@@ -48,10 +48,6 @@ import javax.swing.JPanel;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 
-/**
- * 
- * @author Tomas Zezula
- */
 abstract class SettingsPanel extends JPanel {
 
     abstract void store (WizardDescriptor settings);

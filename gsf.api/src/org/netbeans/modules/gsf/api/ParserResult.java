@@ -60,7 +60,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * 
  * @todo Stash the errors on the parser result too? Sounds reasonable!
  *
- * @author Tor Norbye
  */
 public abstract class ParserResult {
     @NonNull protected final ParserFile file;
@@ -225,7 +224,6 @@ public abstract class ParserResult {
      * Services can either indicate that they don't support incremental updating, or
      * report various stages of incremental support.
      *
-     * @author Tor Norbye
      */
     public enum UpdateState {
         /**

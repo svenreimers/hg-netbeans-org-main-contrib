@@ -21,10 +21,6 @@ import org.openide.WizardValidationException;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tomas Zezula
- */
 class ExistingPythonProjectPanelVisual extends SettingsPanel implements DocumentListener {
 
     private PanelConfigureProject panel;

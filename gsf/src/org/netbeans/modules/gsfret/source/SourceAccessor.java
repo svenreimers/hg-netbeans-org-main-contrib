@@ -62,7 +62,6 @@ import org.openide.util.Exceptions;
  * possible. 
  *
  *
- * @author tom
  */
 public abstract class SourceAccessor {
 

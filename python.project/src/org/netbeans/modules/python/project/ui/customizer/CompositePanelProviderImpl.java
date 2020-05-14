@@ -12,10 +12,6 @@ import org.netbeans.spi.project.ui.support.ProjectCustomizer.CompositeCategoryPr
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class CompositePanelProviderImpl implements CompositeCategoryProvider {
     
     public static final String SOURCES = "Sources"; // NOI18N

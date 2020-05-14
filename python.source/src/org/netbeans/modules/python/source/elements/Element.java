@@ -40,10 +40,6 @@ import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.python.api.PythonMIMEResolver;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Tor Norbye
- */
 public abstract class Element implements ElementHandle {
     @Override
     public abstract String getName();

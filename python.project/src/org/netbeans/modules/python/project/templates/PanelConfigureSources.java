@@ -11,10 +11,6 @@ import org.openide.WizardValidationException;
 import org.openide.util.ChangeSupport;
 import org.openide.util.HelpCtx;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PanelConfigureSources implements WizardDescriptor.Panel,
         WizardDescriptor.ValidatingPanel, WizardDescriptor.FinishablePanel{
 

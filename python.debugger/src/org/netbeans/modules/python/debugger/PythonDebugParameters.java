@@ -48,8 +48,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
 /** 
- * @author jean-yves Mengant
- *
  * this class is used to store python debuggers parameters
  * ( refactored to get everything from PythonOptions Core )
  */

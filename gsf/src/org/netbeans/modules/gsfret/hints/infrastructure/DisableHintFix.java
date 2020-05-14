@@ -37,10 +37,6 @@ import org.netbeans.spi.editor.hints.ChangeInfo;
 import org.netbeans.spi.editor.hints.EnhancedFix;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tor Norbye
- */
 final class DisableHintFix implements EnhancedFix {
     private final GsfHintsManager manager;
     private final RuleContext context;

@@ -41,10 +41,6 @@
  */
 package org.netbeans.modules.python.debugger.utils;
 
-/**
- *
- * @author Jean-Yves Mengant
- */
 public interface CommandLineListener {
 
   public void commandEntered(CommandLineEvent evt);

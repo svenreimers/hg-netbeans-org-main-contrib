@@ -62,10 +62,6 @@ import org.netbeans.modules.gsf.spi.DefaultLanguageConfig;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
-/**
- *
- * @author Jaroslav Tulach <jtulach@netbeans.org>
- */
 public class LanguageRegistryTest extends NbTestCase {
     private FileObject plugins;
     private GsfDataLoader loader;

@@ -56,7 +56,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  *   http://www.netbeans.org/issues/show_bug.cgi?id=144160
  *   for the kinds of bugs that can result from this.
  * 
- * @author Tor Norbye
  */
 public interface OccurrencesFinder extends CancellableTask<CompilationInfo> {
     /**

@@ -87,7 +87,6 @@ import org.openide.util.RequestProcessor;
 /**
  * A GUI panel for customizing a Watch in python Debugging.
 
- * @author Jean-Yves Mengant
  */
 public class WatchPanel {
 

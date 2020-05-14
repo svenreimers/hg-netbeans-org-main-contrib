@@ -53,7 +53,6 @@ import org.openide.util.Lookup;
  * @todo Discourage use in documentation for class and methods.
  * @todo Expose source factory to clients (but also discourage use of this.
  *   GSF should be enhanced to handle most feature use-cases.
- * @author Tor Norbye
  */
 public abstract class SourceModelFactory {
     

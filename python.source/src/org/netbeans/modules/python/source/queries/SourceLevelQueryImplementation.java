@@ -60,8 +60,6 @@ import org.openide.filesystems.FileObject;
  * this query, if it depends on the Python Project module and uses this style.
  * </p>
  * @see org.netbeans.modules.python.source.queries.SourceLevelQuery
- * @author Tomas Zezula
- * @author Ralph Benjamin Ruijs
  */
 public interface SourceLevelQueryImplementation {
 

@@ -55,7 +55,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * Interface that a plugin can implement to assist with bracket completion during
  * editing.
  *
- * @author Tor Norbye
  */
 public interface KeystrokeHandler {
     /**

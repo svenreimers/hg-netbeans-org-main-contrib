@@ -80,7 +80,6 @@ import org.openide.util.NbBundle;
  *
  * (This used to be ImportClassPanel in org.netbeans.modules.java.editor.imports)
  *
- * @author Jan Lahoda, Tor Norbye
  */
 public class ImportModulePanel extends javax.swing.JPanel {
 

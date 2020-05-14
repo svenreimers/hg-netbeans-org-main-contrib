@@ -45,7 +45,6 @@ package org.netbeans.modules.python.debugger.backend;
  *
  * PyDebugException : exception thrown by PyDebug environment
  * 
- * @author jean-yves Mengant
  */
 public class PythonDebugException
         extends Exception {

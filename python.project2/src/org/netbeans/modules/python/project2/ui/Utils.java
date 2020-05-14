@@ -24,10 +24,6 @@ import org.openide.awt.HtmlRenderer;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class Utils {
 
     @NbBundle.Messages({"LBL_SelectMainModule=Select Main Module", "LBL_BrowseMainModules=Browse Main Modules"})

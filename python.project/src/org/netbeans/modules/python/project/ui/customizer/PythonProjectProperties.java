@@ -29,10 +29,6 @@ import org.openide.util.Exceptions;
 import org.openide.util.Mutex;
 import org.openide.util.MutexException;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonProjectProperties {
     
     public static final String SRC_DIR = "src.dir"; //NOI18N

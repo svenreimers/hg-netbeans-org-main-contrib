@@ -45,7 +45,6 @@ import java.util.*;
 
 /**
  * Python variable DataNode to be used inside PythonVariableTreeDataModel
- * @author jean-yves Mengant
  *
  */
 public class PythonVariableTreeDataNode {

@@ -40,7 +40,6 @@ import org.openide.filesystems.FileObject;
 /**
  * Provide access to document synch editing (until this is a core editing API)
  *
- * @author Tor Norbye
  */
 public class TestEditRegionsImpl extends EditRegions {
     public static FileObject lastFileObject;

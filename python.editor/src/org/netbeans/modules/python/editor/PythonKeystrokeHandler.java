@@ -70,7 +70,6 @@ import org.python.antlr.PythonTree;
  * @todo If you press \, the next line should be indented!
  * @todo Deletion should remove the colon too
  *
- * @author Tor Norbye
  */
 public class PythonKeystrokeHandler implements KeystrokeHandler {
     // Make this an option

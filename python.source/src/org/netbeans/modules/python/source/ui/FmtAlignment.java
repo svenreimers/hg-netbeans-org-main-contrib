@@ -51,10 +51,6 @@ package org.netbeans.modules.python.source.ui;
 //import org.netbeans.modules.options.editor.spi.PreferencesCustomizer;
 
 
-/**
- *
- * @author  phrebejk
- */
 public class FmtAlignment extends javax.swing.JPanel {
     
     /** Creates new form FmtAlignment */

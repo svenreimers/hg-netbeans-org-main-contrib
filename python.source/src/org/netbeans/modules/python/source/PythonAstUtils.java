@@ -87,7 +87,6 @@ import org.python.antlr.base.stmt;
 /**
  * Utility functions for dealing with the Jython AST
  *
- * @author Tor Norbye
  */
 public class PythonAstUtils {
     private PythonAstUtils() {

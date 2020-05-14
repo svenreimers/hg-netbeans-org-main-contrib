@@ -24,11 +24,6 @@ import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author alley
- * @author jean-yves
- */
 public class OptionsPanel extends javax.swing.JPanel
 {
     private OptionsOptionsPanelController controller;

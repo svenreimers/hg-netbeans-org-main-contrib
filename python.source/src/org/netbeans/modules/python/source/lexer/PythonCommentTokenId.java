@@ -57,10 +57,6 @@ import org.netbeans.spi.lexer.LanguageHierarchy;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerRestartInfo;
 
-/**
- *
- * @author Tor Norbye
- */
 public enum PythonCommentTokenId implements TokenId {
     TEXT("comment"),
     KEYWORD("comment"),

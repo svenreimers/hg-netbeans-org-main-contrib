@@ -51,7 +51,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 /**
  * Information about the current context a rule is being asked to evaluate.
  * 
- * @author Tor Norbye
  */
 public class RuleContext {
 

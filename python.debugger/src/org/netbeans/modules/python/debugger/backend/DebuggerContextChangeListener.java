@@ -43,7 +43,6 @@ package org.netbeans.modules.python.debugger.backend;
 
 /**
  * Just used to populate change in thread list back
- * @author jean-yves Mengant
  */
 public interface DebuggerContextChangeListener {
 

@@ -8,10 +8,6 @@ import org.netbeans.spi.project.ui.support.ProjectCustomizer.CompositeCategoryPr
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class CompositePanelProviderImpl implements CompositeCategoryProvider {
 
     private static final String PYTHON_PATH = "PythonPath";  //NOI18N

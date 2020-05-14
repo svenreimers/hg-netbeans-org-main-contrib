@@ -41,10 +41,6 @@
  */
 package org.netbeans.modules.python.debugger.backend;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class StackInfo {
 
   private String _name;

@@ -52,7 +52,6 @@ import static org.netbeans.modules.python.source.ui.FmtOptions.CategorySupport.O
 /**
  * Preferences for formatting related to spaces
  * 
- * @author  Tor Norbye
  */
 public class FmtSpaces extends JPanel {
     public FmtSpaces() {

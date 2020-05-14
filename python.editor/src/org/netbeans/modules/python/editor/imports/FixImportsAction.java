@@ -99,7 +99,6 @@ import org.openide.util.NbPreferences;
  * @todo Remove duplicate imports and remove froms when included by a whole packge import
  *   unless it's used as a rename!
  *
- * @author Tor Norbye
  */
 public class FixImportsAction extends BaseAction {
     private static final String PREFS_KEY = FixImportsAction.class.getName();

@@ -11,10 +11,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import org.netbeans.modules.python.project.ui.Utils;
 
-/**
- *
- * @author  Tomas Zezula
- */
 public class CustomizerRun extends javax.swing.JPanel {
     
     private final PythonProjectProperties uiProperties;

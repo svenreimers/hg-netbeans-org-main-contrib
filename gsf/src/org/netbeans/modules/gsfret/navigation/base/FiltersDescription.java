@@ -55,7 +55,6 @@ import javax.swing.Icon;
  * possible. 
  * <p>
  * 
- * @author Dafe Simonek
  */
 public final class FiltersDescription {
 

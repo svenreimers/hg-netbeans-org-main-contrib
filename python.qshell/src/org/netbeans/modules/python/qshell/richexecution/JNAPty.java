@@ -53,7 +53,6 @@ import com.sun.jna.Native;
 
 /**
  * An implementation of Pty based on JNA.
- * @author Ivan Soleimanipour
  */
 
 class JNAPty extends Pty {

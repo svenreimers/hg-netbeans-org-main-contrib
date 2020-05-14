@@ -72,7 +72,6 @@ import org.openide.util.Parameters;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 class OpenedEditors implements PropertyChangeListener {
 

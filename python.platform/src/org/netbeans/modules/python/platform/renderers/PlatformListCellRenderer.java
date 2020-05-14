@@ -12,10 +12,6 @@ import javax.swing.ListCellRenderer;
 import org.netbeans.modules.python.api.PythonPlatform;
 import org.netbeans.modules.python.api.PythonPlatformManager;
 
-/**
- *
- * @author alley
- */
 public class PlatformListCellRenderer extends JLabel implements ListCellRenderer {
 
     public PlatformListCellRenderer() {

@@ -70,7 +70,6 @@ import org.openide.util.lookup.Lookups;
 /**
  * An element in the refactoring preview list which holds information about the find-usages-match
  * 
- * @author Tor Norbye
  */
 public class WhereUsedElement extends SimpleRefactoringElementImplementation {
     private PositionBounds bounds;

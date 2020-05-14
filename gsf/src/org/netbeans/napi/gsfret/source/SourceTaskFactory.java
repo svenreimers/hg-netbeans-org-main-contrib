@@ -83,7 +83,6 @@ import org.openide.util.RequestProcessor;
  * @see CaretAwareSourceTaskFactory
  * @see LookupBasedSourceTaskFactory
  *
- * @author Jan Lahoda
  */
 public abstract class SourceTaskFactory {
 

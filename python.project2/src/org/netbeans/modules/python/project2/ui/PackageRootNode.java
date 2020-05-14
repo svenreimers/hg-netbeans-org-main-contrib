@@ -102,7 +102,6 @@ import org.openide.util.lookup.ProxyLookup;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Petr Hrebejk
  */
 final class PackageRootNode extends AbstractNode implements Runnable, FileStatusListener {
 

@@ -56,10 +56,6 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 
-/**
- *
- * @author Jan Becicka
- */
 public class DiffElement extends SimpleRefactoringElementImplementation {
     private PositionBounds bounds;
     private String displayText;

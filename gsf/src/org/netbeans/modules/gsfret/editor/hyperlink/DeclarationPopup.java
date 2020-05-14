@@ -80,8 +80,6 @@ import org.openide.util.NbBundle;
  * (This used to be IsOverriddenPopup in org.netbeans.modules.java.editor.overridden)
  *
  *
- * @author Jan Lahoda
- * @author Tor Norbye
  */
 public class DeclarationPopup extends JPanel implements FocusListener {
     

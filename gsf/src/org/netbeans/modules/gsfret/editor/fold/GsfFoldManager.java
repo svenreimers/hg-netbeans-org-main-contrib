@@ -92,8 +92,6 @@ import org.netbeans.modules.gsf.api.DataLoadersBridge;
  * Copied from both JavaFoldManager and JavaElementFoldManager
  * 
  *
- * @author Jan Lahoda
- * @author Tor Norbye
  */
 public class GsfFoldManager implements FoldManager {
     public static final FoldType CODE_BLOCK_FOLD_TYPE = new FoldType("code-block"); // NOI18N

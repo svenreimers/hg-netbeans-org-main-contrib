@@ -77,7 +77,6 @@ import org.openide.text.NbDocument;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 public class SourceFileObject/* implements DocumentProvider*/ {    
     

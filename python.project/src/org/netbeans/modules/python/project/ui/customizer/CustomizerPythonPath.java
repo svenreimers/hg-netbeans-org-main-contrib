@@ -27,10 +27,6 @@ import org.openide.loaders.InstanceDataObject;
 import org.openide.util.Exceptions;
 import org.openide.util.actions.CallableSystemAction;
 
-/**
- *
- * @author alley
- */
 public class CustomizerPythonPath extends javax.swing.JPanel {
     private final PythonProjectProperties uiProperties;
     private PlatformComponentFactory.PlatformChangeListener platformListener;
@@ -201,7 +197,6 @@ public class CustomizerPythonPath extends javax.swing.JPanel {
         fc.setFileHidingEnabled(false);
         fc.setDialogTitle("Select Python Egg or Python Lib Directory");
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        /* jean-Yves for practical reasons @@@ ENHANCE to have multiple selection enabled here */
         fc.setMultiSelectionEnabled(true);
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {

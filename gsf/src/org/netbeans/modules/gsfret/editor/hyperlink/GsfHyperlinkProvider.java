@@ -58,7 +58,6 @@ import org.netbeans.lib.editor.hyperlink.spi.HyperlinkType;
  * <br>
  * The click action corresponds to performing the goto-declaration action.
  *
- * @author Jan Lahoda
  */
 public final class GsfHyperlinkProvider implements HyperlinkProviderExt {
     /** Creates a new instance of GsfHyperlinkProvider */

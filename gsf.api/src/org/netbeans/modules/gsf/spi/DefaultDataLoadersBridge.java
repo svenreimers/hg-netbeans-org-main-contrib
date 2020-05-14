@@ -26,10 +26,6 @@ import org.openide.text.Line;
 import org.openide.util.Exceptions;
 import org.openide.util.WeakListeners;
 
-/**
- *
- * @author Emilian Bold
- */
 public class DefaultDataLoadersBridge extends DataLoadersBridge {
 
     private static Logger log = Logger.getLogger(DataLoadersBridge.class.getName());

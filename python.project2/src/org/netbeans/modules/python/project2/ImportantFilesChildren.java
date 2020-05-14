@@ -44,10 +44,6 @@ package org.netbeans.modules.python.project2;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 
-/**
- *
- * @author jenselme
- */
 public class ImportantFilesChildren extends Children {
     @Override
     public boolean add(Node[] nodes) {

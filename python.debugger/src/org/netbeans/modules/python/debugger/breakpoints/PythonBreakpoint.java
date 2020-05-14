@@ -47,10 +47,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.text.Line;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class PythonBreakpoint
         extends Breakpoint {
 

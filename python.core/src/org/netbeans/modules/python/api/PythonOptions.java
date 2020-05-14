@@ -13,10 +13,6 @@ import java.util.prefs.Preferences;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 
-/**
- *
- * @author alley
- */
 public class PythonOptions {
     public static String PYTHON_COMMAND = "python.command";
     public static String PYTHON_NATIVE = "python.native" ;
@@ -64,7 +60,7 @@ public class PythonOptions {
                         + File.separator + "bin" + File.separator + "jython";
                 if (System.getProperty("os.name").toLowerCase().contains("windows")){
                     defaultPython += ".bat";
-                    // jymen : FileZilla 152322 : check that the parent directory exist
+                    // FileZilla 152322 : check that the parent directory exist
                     // before creating the jythonbatfile to avoid IOException in netbeans log
                     File check = new File(defaultPython) ;
                     File parentDir = check.getParentFile() ;

@@ -44,10 +44,6 @@ package org.netbeans.modules.python.editor.codegen;
 import org.netbeans.lib.editor.codetemplates.api.CodeTemplate;
 import org.netbeans.lib.editor.codetemplates.api.CodeTemplateManager;
 
-/**
- *
- * @author Ralph Ruijs
- */
 public final class CodeGenUtils {
 
     private CodeGenUtils() {

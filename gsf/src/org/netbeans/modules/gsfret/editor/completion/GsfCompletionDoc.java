@@ -65,7 +65,6 @@ import org.openide.util.Exceptions;
 /**
  * Produce completion-popup help for elements
  * 
- * @author Tor Norbye
  */
 public class GsfCompletionDoc implements CompletionDocumentation {
     private String content = null;

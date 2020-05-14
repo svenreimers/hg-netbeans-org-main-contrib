@@ -46,10 +46,6 @@ import java.util.Set;
 import org.netbeans.modules.csl.api.ElementKind;
 import org.netbeans.modules.csl.api.Modifier;
 
-/**
- *
- * @author Tor Norbye
- */
 public class IndexedPackage extends IndexedElement {
     private String pkg;
     private boolean hasMore;

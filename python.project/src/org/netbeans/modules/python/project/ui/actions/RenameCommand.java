@@ -34,9 +34,6 @@ import org.netbeans.modules.python.project.PythonProject;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 
-/**
- * @author Radek Matous
- */
 public class RenameCommand extends GlobalCommand {
 
     public RenameCommand(PythonProject project) {

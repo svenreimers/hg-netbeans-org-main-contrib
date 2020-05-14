@@ -92,10 +92,6 @@ import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author phrebejk
- */
 public class FmtOptions {
     public static final String expandTabToSpaces = SimpleValueNames.EXPAND_TABS;
     public static final String tabSize = SimpleValueNames.TAB_SIZE;

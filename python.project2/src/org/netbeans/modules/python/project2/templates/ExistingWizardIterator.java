@@ -58,10 +58,6 @@ import org.openide.awt.Actions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor;
 
-/**
- *
- *@author mkleint
- */
 @TemplateRegistration(folder="Project/Python", position=140,
         displayName="#template.existing",
         iconBase = "org/netbeans/modules/python/project2/resources/py_25_16.png",

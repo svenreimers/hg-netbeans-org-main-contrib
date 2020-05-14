@@ -83,8 +83,6 @@ import org.openide.util.lookup.InstanceContent;
  * possible.
  *
  *
- * @author Jan Lahoda
- * @author Tor Norbye
  */
 public class InstantRenameAction extends BaseAction {
     /** Creates a new instance of InstantRenameAction */

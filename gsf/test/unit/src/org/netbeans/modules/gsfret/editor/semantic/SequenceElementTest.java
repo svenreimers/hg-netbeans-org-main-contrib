@@ -45,10 +45,6 @@ package org.netbeans.modules.gsfret.editor.semantic;
 import junit.framework.TestCase;
 import org.netbeans.modules.gsf.api.OffsetRange;
 
-/**
- *
- * @author Tor Norbye
- */
 public class SequenceElementTest extends TestCase {
     
     public SequenceElementTest(String testName) {

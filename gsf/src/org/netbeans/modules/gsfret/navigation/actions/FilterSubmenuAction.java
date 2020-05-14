@@ -64,7 +64,6 @@ import org.openide.util.actions.Presenter;
  * 
  * Popup submenu consisting of boolean state filters
  *
- * @author Dafe Simonek
  */
 public final class FilterSubmenuAction extends AbstractAction implements Presenter.Popup {
     

@@ -65,7 +65,6 @@ import org.openide.filesystems.FileObject;
  * possible. 
  *
  *
- * @author Tomas Zezula
  */
 public class SourceAnalyser implements IndexDocumentFactory {    
     

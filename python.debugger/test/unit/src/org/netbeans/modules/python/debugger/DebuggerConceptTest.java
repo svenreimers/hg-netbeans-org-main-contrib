@@ -9,10 +9,6 @@ import java.io.File;
 import org.netbeans.modules.python.api.PythonExecution;
 import org.netbeans.junit.NbTestCase;
 
-/**
- *
- * @author alley
- */
 public class DebuggerConceptTest extends NbTestCase {
 
     public DebuggerConceptTest(String name) {

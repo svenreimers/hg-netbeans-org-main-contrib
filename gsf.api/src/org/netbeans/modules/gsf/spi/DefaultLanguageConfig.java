@@ -67,7 +67,6 @@ import org.openide.filesystems.FileObject;
  * class also get some extra support; instead of registering services in the
  * layer you can just override the service creation methods below.
  * 
- * @author Tor Norbye
  */
 public abstract class DefaultLanguageConfig implements GsfLanguage {
     public DefaultLanguageConfig() {

@@ -61,7 +61,6 @@ import org.python.antlr.ast.ImportFrom;
 /**
  * Offer to surround code with for example try/except/finally
  *
- * @author Tor Norbye
  */
 public class SurroundWith extends PythonSelectionRule {
     @Override

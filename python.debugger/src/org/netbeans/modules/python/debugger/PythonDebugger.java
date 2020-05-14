@@ -64,7 +64,6 @@ import org.netbeans.api.debugger.Session;
 /**
  * Netbeans Python / Jython Debugger Core
  *
- * @author jean-yves Mengant
  */
 public class PythonDebugger
         extends ActionsProviderSupport {

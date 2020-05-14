@@ -17,7 +17,6 @@ import org.openide.util.Lookup;
  * Provides the FileObject from a Document. Normally this means getting the info
  * from the Document's stream, but other implementations might exist.
  * 
- * @author Emilian Bold
  */
 public abstract class DataLoadersBridge {
 

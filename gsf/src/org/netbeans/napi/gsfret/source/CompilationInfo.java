@@ -73,7 +73,6 @@ import org.openide.filesystems.FileUtil;
  * Assorted information about the Source.
  *
  *
- * @author Petr Hrebejk, Tomas Zezula
  */
 public class CompilationInfo extends org.netbeans.modules.gsf.api.CompilationInfo {
     private Phase phase = Phase.MODIFIED;

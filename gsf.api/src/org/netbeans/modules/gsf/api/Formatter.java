@@ -53,7 +53,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * helps indent or reformat source code, or even determine where the caret should
  * be placed on a newly created line.
  * 
- * @author Tor Norbye
  */
 public interface Formatter {
     /**

@@ -51,7 +51,6 @@ import static org.netbeans.modules.python.source.ui.FmtOptions.CategorySupport.O
 /**
  * Options related to imports
  * 
- * @author  Tor Norbye
  */
 public class FmtImports extends javax.swing.JPanel {
     

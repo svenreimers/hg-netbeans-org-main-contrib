@@ -47,7 +47,6 @@ import org.netbeans.modules.python.debugger.actions.JpyDbgView;
 
 /**
  * A Python debugging session instance
- * @author jean-yves Mengant
  */
 public class PythonSession {
 

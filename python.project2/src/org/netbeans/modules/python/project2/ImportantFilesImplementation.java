@@ -50,10 +50,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.util.Parameters;
 
 /**
- *
- * @author jenselme
- */
-/**
  * Information about important files.
  * <p>
  * Implementations are expected to be found in project's lookup.

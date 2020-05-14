@@ -18,10 +18,6 @@ import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 
-/**
- * @author Radek Matous
- * @author Tomas Zezula
- */
 public abstract class Command {
 
     private final PythonProject2 project;

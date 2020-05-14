@@ -14,7 +14,6 @@ import org.netbeans.modules.python.project2.ui.Utils;
 
 /**
  *
- * @author  Tomas Zezula
  */
 public class CustomizerRun extends javax.swing.JPanel {
 

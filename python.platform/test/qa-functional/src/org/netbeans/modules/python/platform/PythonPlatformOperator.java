@@ -45,10 +45,6 @@ import javax.swing.ListModel;
 import org.netbeans.jellytools.NbDialogOperator;
 import org.netbeans.jemmy.operators.JListOperator;
 
-/**
- *
- * @author Ralph Benjamin Ruijs<ralphbenjamin@netbeans.org>
- */
 public class PythonPlatformOperator extends NbDialogOperator {
     
     public PythonPlatformOperator() {

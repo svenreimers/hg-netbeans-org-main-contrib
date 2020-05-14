@@ -63,8 +63,6 @@ import org.openide.util.Pair;
  * Based on the Ruby project, in turn based on the J2SE project.
  * Greatly simplified at the moment since Python projects don't have a Sources object,
  * and there's no separate source/test folders.
- * @author Tor Norbye
- * @author Tomas Zezula
  */
 public final class ClassPathProviderImpl implements ClassPathProvider {
     private final PythonProject2 project;

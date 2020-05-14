@@ -44,9 +44,6 @@ package org.netbeans.modules.python.debugger.utils;
 import javax.swing.tree.*;
 import javax.swing.event.*;
 
-/**
- * @author Jean-Yves Mengant
- */
 public abstract class AbstractTreeTableModel implements TreeTableModel {
 
   protected Object root;

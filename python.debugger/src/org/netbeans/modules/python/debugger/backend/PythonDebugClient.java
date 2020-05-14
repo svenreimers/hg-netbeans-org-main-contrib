@@ -49,7 +49,6 @@ import java.util.*;
  *
  * This class is the basic TCP/IP client side used to setup and 
  * drive a networked Python shell debugging session 
- * @author jean-yves Mengant
  */
 public class PythonDebugClient {
 

@@ -89,7 +89,6 @@ import org.openide.util.Exceptions;
 
 /** Contains all important listeners and logic of the Hints Panel.
  *
- * @author Petr Hrebejk
  */
 class HintsPanelLogic implements MouseListener, KeyListener, TreeSelectionListener, ChangeListener, ActionListener {
 

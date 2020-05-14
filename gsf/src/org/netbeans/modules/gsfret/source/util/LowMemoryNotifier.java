@@ -65,7 +65,6 @@ import org.openide.ErrorManager;
  * possible. 
  *
  *
- * @author tom
  */
 public class LowMemoryNotifier {
     

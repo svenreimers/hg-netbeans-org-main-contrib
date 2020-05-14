@@ -107,7 +107,6 @@ import org.python.antlr.base.expr;
  * figuring out the type of variables and expressions, by analyzing the
  * python parse tree, and in some cases, consulting the persistent index.
  *
- * @author Tor Norbye
  */
 public class PythonTypeAnalyzer {
     private PythonIndex index;

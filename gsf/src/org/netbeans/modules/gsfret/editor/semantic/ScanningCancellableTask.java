@@ -52,7 +52,6 @@ import org.netbeans.modules.gsf.api.CancellableTask;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public abstract class ScanningCancellableTask<T> implements CancellableTask<T> {
 

@@ -39,7 +39,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * An embedding model is used for files that have a GSF model embedded in some
  * other language.
  *
- * @author Tor Norbye
  */
 public interface EmbeddingModel {
     /** This model creates target source code of the given mime type */

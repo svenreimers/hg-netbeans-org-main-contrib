@@ -60,7 +60,6 @@ import org.openide.util.NbBundle;
  * possible. 
  * <p>
  *
- * @author Tomas Zezula
  */
 public class ClassMemberPanel implements NavigatorPanel {
 

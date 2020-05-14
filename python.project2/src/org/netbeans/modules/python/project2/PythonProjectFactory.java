@@ -16,10 +16,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
-/**
- *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
- */
 @ServiceProvider(service=ProjectFactory.class)
 public class PythonProjectFactory implements ProjectFactory {
     

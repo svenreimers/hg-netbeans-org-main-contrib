@@ -87,7 +87,6 @@ import org.openide.util.Utilities;
  * Node representing an element
  * 
  * 
- * @author Petr Hrebejk
  */
 public class ElementNode extends AbstractNode {
 

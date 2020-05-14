@@ -18,10 +18,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
-/**
- *
- * @author  Tomas Zezula
- */
 final class MainModuleChooser extends javax.swing.JPanel {
     
     private final FileObject[] roots;

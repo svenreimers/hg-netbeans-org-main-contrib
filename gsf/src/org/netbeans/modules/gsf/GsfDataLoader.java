@@ -64,7 +64,6 @@ import org.openide.util.NbBundle;
 /**
  * Loader for recognizing languages handled by the generic scripting framework
  *
- * @author Tor Norbye
  */
 public class GsfDataLoader extends UniFileLoader {
     boolean initialized;

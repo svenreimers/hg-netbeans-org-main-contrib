@@ -44,10 +44,6 @@ package org.netbeans.modules.gsfret.hints.infrastructure;
 import org.netbeans.spi.editor.hints.ChangeInfo;
 import org.netbeans.spi.editor.hints.EnhancedFix;
 
-/**
- *
- * @author Tor Norbye
- */
 final class FixWrapper implements EnhancedFix {
 
     private org.netbeans.modules.gsf.api.HintFix fix;

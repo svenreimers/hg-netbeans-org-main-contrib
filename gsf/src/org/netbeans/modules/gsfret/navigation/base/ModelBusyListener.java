@@ -56,7 +56,6 @@ package org.netbeans.modules.gsfret.navigation.base;
  * Note, this is temporary and will be deleted and replaced by simpler JComponent
  * navigator based API.
  *
- * @author Dafe Simonek
  */
 public interface ModelBusyListener {
 

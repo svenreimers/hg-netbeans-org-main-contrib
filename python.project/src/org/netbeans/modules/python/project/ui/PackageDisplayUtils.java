@@ -62,7 +62,6 @@ import org.openide.util.NbBundle;
  * </p>
  *
  *
- * @author Jesse Glick
  */
 public final class PackageDisplayUtils {
 

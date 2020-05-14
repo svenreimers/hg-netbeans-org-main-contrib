@@ -56,7 +56,6 @@ import org.openide.util.Lookup;
  * Provide access to initiate editing of synchronized regions in a document
  * for a file.
  *
- * @author <a href="mailto:tor.norbye@sun.com">Tor Norbye</a>
  */
 public abstract class EditRegions {
     /**

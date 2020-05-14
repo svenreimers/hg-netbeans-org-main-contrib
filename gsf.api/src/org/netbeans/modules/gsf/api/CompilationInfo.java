@@ -61,7 +61,6 @@ import org.openide.filesystems.FileObject;
  *  and so on. (Each client checks if it's initialized, and if not, perform
  *  work and store it in the context.)
  *
- * @author Petr Hrebejk, Tomas Zezula, Tor Norbye
  */
 public abstract class CompilationInfo {
     private FileObject fo;

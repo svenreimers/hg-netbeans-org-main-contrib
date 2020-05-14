@@ -52,10 +52,6 @@ import org.netbeans.modules.refactoring.spi.RefactoringPluginFactory;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author Jan Becicka
- */
 public class PythonRefactoringsFactory implements RefactoringPluginFactory {
     @Override
     public RefactoringPlugin createInstance(AbstractRefactoring refactoring) {

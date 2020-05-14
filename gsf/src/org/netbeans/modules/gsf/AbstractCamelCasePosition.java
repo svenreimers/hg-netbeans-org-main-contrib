@@ -53,10 +53,6 @@ import org.netbeans.editor.BaseDocument;
 import org.netbeans.lib.editor.util.swing.DocumentUtilities;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Sandip V. Chitale (Sandip.Chitale@Sun.Com)
- */
 public abstract class AbstractCamelCasePosition extends BaseAction {
 
     private Action originalAction;

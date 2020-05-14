@@ -50,10 +50,6 @@ package org.netbeans.modules.python.source.ui;
 //import org.netbeans.modules.python.source.ui.FmtOptions.CategorySupport;
 //import org.netbeans.modules.options.editor.spi.PreferencesCustomizer;
 
-/**
- *
- * @author  phrebejk
- */
 public class FmtTabsIndents extends javax.swing.JPanel {
    
     /** Creates new form FmtTabsIndents */

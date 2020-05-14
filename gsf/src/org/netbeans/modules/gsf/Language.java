@@ -77,7 +77,6 @@ import org.openide.filesystems.FileObject;
  *    info.  Similarly for JavaScript I have multiple language versions - 1.0 through 1.6
  *    in the case of Rhino (corresponding to different JavaScript/EcmaScript versions).
  *
- * @author <a href="mailto:tor.norbye@sun.com">Tor Norbye</a>
  */
 public final class Language {
     private ColoringManager coloringManager;

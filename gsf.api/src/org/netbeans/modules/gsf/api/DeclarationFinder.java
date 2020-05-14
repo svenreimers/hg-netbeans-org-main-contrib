@@ -55,10 +55,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 import org.openide.filesystems.FileObject;
 
 
-/**
- *
- * @author Tor Norbye
- */
 public interface DeclarationFinder {
     /**
      * Find the declaration for the program element that is under the caretOffset

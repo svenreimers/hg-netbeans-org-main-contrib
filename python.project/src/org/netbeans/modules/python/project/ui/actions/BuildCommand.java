@@ -59,10 +59,6 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author Amit Saha <amitksaha@netbeans.org>
- */
 public class BuildCommand extends Command {
 
     public BuildCommand(PythonProject project) {

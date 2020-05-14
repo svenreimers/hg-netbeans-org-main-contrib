@@ -69,10 +69,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Parameters;
 import org.openide.util.WeakListeners;
 
-/**
- *
- * @author Tomas Zezula
- */
 public final class CompilePathImplementation implements ClassPathImplementation, PropertyChangeListener, Runnable {
 
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);

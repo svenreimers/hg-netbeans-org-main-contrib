@@ -18,10 +18,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author alley
- */
 public class CleanCommand extends Command {
     
 

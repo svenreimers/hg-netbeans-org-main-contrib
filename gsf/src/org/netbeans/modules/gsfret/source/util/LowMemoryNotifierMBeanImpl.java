@@ -54,7 +54,6 @@ import javax.management.StandardMBean;
  * possible. 
  *
  *
- * @author tom
  */
 public class LowMemoryNotifierMBeanImpl extends StandardMBean implements LowMemoryNotifierMBean {
 

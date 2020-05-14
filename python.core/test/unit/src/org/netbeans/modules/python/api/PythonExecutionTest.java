@@ -11,10 +11,6 @@ import java.util.concurrent.Future;
 import org.netbeans.junit.NbTestCase;
 import org.openide.util.io.ReaderInputStream;
 
-/**
- *
- * @author alley
- */
 public class PythonExecutionTest extends NbTestCase{
 
     public PythonExecutionTest(String name) {

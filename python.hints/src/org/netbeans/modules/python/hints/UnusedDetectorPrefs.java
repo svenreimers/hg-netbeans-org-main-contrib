@@ -53,7 +53,6 @@ import java.util.prefs.Preferences;
 /**
  * Preferences where users can configure the unused detector rules
  * 
- * @author Tor Norbye
  */
 public class UnusedDetectorPrefs extends javax.swing.JPanel implements ActionListener {
     private Preferences prefs;

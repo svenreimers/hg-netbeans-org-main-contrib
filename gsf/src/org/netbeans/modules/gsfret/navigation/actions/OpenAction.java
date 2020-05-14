@@ -63,7 +63,6 @@ import org.netbeans.napi.gsfret.source.UiUtils;
  * An action that opens editor and jumps to the element given in constructor.
  * Similar to editor's go to declaration action.
  *
- * @author tim, Dafe Simonek
  */
 public final class OpenAction extends AbstractAction {
     

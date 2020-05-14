@@ -112,8 +112,6 @@ import org.openide.util.Exceptions;
  *   at startup (When scanning the boot path).
  * @todo Can deletion be better?
  * 
- * @author Tomas Zezula
- * @author Tor Norbye
  */
 class LuceneIndex extends Index {
     

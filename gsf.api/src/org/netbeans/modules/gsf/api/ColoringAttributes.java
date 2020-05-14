@@ -48,10 +48,6 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
 
-/**
- *
- * @author Jan Lahoda
- */
 public enum ColoringAttributes {
     ABSTRACT,
     ANNOTATION_TYPE,

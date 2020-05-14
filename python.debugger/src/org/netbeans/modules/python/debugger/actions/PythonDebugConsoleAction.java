@@ -49,7 +49,6 @@ import org.openide.util.ImageUtilities;
 
 /**
  * Action which shows PythonDebugging Console component.
- * @author Jean-Yves Mengant
  */
 public class PythonDebugConsoleAction extends AbstractAction {
 

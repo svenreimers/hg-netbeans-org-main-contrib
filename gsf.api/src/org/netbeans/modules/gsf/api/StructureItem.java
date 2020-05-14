@@ -50,10 +50,6 @@ import javax.swing.ImageIcon;
 import org.netbeans.modules.gsf.api.annotations.CheckForNull;
 import org.netbeans.modules.gsf.api.annotations.NonNull;
 
-/**
- *
- * @author Tor Norbye
- */
 public interface StructureItem {
     @NonNull String getName();
     @NonNull String getSortText();

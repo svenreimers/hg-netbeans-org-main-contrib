@@ -55,10 +55,6 @@ import org.netbeans.lib.terminalemulator.StreamTerm;
 import org.netbeans.modules.python.qshell.richexecution.Program;
 import org.netbeans.modules.python.qshell.richexecution.PtyProcess;
 
-/**
- *
- * @author Maros Sandor
- */
 public class QShellTerminalPanel extends JComponent {
 
     private final ActiveTerm term;

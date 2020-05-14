@@ -7,10 +7,6 @@ package org.netbeans.modules.python.api;
 
 import org.netbeans.junit.NbTestCase;
 
-/**
- *
- * @author alley
- */
 public class PythonPlatformManagerTest extends NbTestCase {
 
     public PythonPlatformManagerTest(String name) {

@@ -46,11 +46,6 @@ package org.netbeans.modules.python.editor.refactoring.ui;
 import javax.swing.Icon;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Jan Becicka
- * @author Tor Norbye
- */
 public final class ElementGrip {
     private String toString;
     private FileObject fileObject;

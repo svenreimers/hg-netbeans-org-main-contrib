@@ -44,10 +44,6 @@
 
 package org.netbeans.modules.gsf.api;
 
-/**
- *
- * @author Tor Norbye
- */
 public enum ElementKind {
     CONSTRUCTOR, MODULE, PACKAGE, CLASS, METHOD, FIELD, VARIABLE,
     ATTRIBUTE, CONSTANT, KEYWORD, OTHER, PARAMETER, GLOBAL,

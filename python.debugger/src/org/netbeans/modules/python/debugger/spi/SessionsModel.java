@@ -52,10 +52,6 @@ import org.netbeans.spi.viewmodel.TableModel;
 import org.netbeans.spi.viewmodel.TableModelFilter;
 import org.netbeans.spi.viewmodel.UnknownTypeException;
 
-/**
- * 
- * @author jean-yves Mengant
- */
 public class SessionsModel
         implements TableModelFilter {
 

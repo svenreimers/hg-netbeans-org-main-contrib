@@ -74,8 +74,6 @@ import org.openide.util.Exceptions;
  * or declared types. It can be also used to obtain a list of
  * source files referencing given type (usages of given type).
  *
- * @author Petr Hrebejk, Tomas Zezula
- * @author Tor Norbye
  */
 public final class ClassIndex extends Index {
     

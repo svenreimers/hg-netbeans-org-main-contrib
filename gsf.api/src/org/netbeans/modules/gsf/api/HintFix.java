@@ -33,7 +33,6 @@ package org.netbeans.modules.gsf.api;
 /**
  * Wrapper around org.netbeans.spi.editor.hints.HintFix
  *
- * @author Tor Norbye
  */
 public interface HintFix {
     /**

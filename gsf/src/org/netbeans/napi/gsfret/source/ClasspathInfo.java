@@ -71,7 +71,6 @@ import org.openide.util.WeakListeners;
  *
  * Class which contains info about classpath
  *
- * @author Tomas Zezula, Petr Hrebejk
  */
 public final class ClasspathInfo {
     

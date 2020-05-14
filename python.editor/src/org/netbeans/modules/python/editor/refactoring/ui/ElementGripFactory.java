@@ -55,8 +55,6 @@ import org.openide.filesystems.FileObject;
  * Based on the Java refactoring one, but hacked for Python (plus I didn't fully understand
  * what this class was for so it probably needs some cleanup and some work)
  * 
- * @author Jan Becicka
- * @author Tor Norbye
  */
 public class ElementGripFactory {
     private static ElementGripFactory instance;

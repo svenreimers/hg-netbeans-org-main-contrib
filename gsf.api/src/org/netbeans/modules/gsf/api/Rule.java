@@ -53,7 +53,6 @@ import javax.swing.JComponent;
  * 
  * (Copied from java/hints)
  *
- * @author Petr Hrebejk
  */
 public interface Rule {
 
@@ -79,7 +78,6 @@ public interface Rule {
     /**
      * A rule which is configurable (enabled, properties, etc) by the user.
      *
-     * @author Tor Norbye
      */
     public interface UserConfigurableRule extends Rule {
         /** Gets unique ID of the rule
@@ -111,7 +109,6 @@ public interface Rule {
      * Represents a rule to be run on the source file, passing in some
      * compilation context to aid the rule. (Similar to TreeRule for java/hints).
      *
-     * @author Tor Norbye
      */
     public interface AstRule extends UserConfigurableRule {
 
@@ -128,7 +125,6 @@ public interface Rule {
      * (Copied from java/hints)
      * 
      *
-     * @author Petr Hrebejk, Jan Lahoda
      */
     public interface ErrorRule extends Rule {//XXX: should ErrorRule extend UserConfigurableRule?
 
@@ -140,7 +136,6 @@ public interface Rule {
     /**
      * Represents a rule to be run on text selection
      *
-     * @author Tor Norbye
      */
     public interface SelectionRule extends Rule {
     }

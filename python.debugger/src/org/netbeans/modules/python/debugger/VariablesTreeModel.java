@@ -57,7 +57,6 @@ import org.netbeans.spi.viewmodel.UnknownTypeException;
 
 /**
  * Local / Global Python variable View implementation 
- * @author jean-yves
  */
 public class VariablesTreeModel
         implements TreeModel,

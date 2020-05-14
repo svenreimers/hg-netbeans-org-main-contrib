@@ -18,10 +18,6 @@ import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author Allan Davis
- */
 public final class PythonPlatform implements Serializable, Comparable<PythonPlatform> {
 
     private final String id;

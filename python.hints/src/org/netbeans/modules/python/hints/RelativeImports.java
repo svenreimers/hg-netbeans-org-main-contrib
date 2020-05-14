@@ -75,7 +75,6 @@ import org.python.antlr.ast.ImportFrom;
  *  {@code from __future__ import absolute_import}
  *   is present, at least until Python 2.7
  *
- * @author Tor Norbye
  */
 public class RelativeImports extends PythonAstRule {
     @Override

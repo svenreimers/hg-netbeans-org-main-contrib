@@ -11,10 +11,6 @@ import org.netbeans.modules.python.project.ui.customizer.PythonProjectProperties
 import org.netbeans.api.project.Project;
 import org.netbeans.spi.project.support.ant.AntProjectHelper;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonProjectUtil {
     
     private PythonProjectUtil() {}

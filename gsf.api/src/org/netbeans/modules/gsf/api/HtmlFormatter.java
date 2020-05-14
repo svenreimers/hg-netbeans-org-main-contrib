@@ -54,7 +54,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * sections and so on). This places formatting logic within the IDE such that
  * it can be theme sensitive (and changed without replicating logic in the plugins).
  *
- * @author Tor Norbye
  */
 public abstract class HtmlFormatter {
     protected int textLength;

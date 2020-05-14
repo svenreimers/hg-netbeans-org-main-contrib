@@ -63,7 +63,6 @@ import org.openide.util.Utilities;
  * possible. 
  *
  * @todo Perhaps include icons from http://xdesign-tools.czech.sun.com/visualdesign/prehled/index.html
- * @author phrebejk
  */
 public final class Icons {
     private static final String ICON_BASE = "org/netbeans/modules/gsfret/source/resources/icons/";

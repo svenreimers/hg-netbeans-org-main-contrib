@@ -56,10 +56,6 @@ import org.netbeans.napi.gsfret.source.support.SelectionAwareSourceTaskFactory;
 import org.netbeans.spi.editor.hints.ErrorDescription;
 import org.netbeans.spi.editor.hints.HintsController;
 
-/**
- *
- * @author Tor Norbye
- */
 public class SelectionHintsTask extends ScanningCancellableTask<CompilationInfo> {
     
     public SelectionHintsTask() {

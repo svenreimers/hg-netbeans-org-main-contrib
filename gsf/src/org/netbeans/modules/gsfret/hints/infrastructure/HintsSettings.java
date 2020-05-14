@@ -49,11 +49,6 @@ import org.netbeans.modules.gsf.api.HintsProvider.HintsManager;
 import org.netbeans.modules.gsf.api.Rule.UserConfigurableRule;
 import org.openide.util.NbPreferences;
 
-/**
- *
- * @author Petr Hrebejk
- * @author Jan Lahoda
- */
 public class HintsSettings {
 
     // Only used for categories (disabled state in options dialog)

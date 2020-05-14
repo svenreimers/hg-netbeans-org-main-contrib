@@ -5,10 +5,6 @@
 
 package org.netbeans.modules.python.project.util;
 
-/**
- *
- * @author Tomas Zezula
- */
 public final class Pair<P,K> {
 
     public final P first;

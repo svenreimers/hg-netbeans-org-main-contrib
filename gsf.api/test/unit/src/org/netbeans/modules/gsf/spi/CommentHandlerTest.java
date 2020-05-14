@@ -53,10 +53,6 @@ import org.junit.Test;
 import org.netbeans.junit.NbTestCase;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author marekfukala
- */
 public class CommentHandlerTest extends NbTestCase {
 
     public CommentHandlerTest() {

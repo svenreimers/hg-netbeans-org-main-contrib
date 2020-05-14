@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.AbstractListModel;
 
-/**
- *
- * @author alley
- */
 public class PathListModel extends AbstractListModel{
     private List<String> model = new ArrayList<>();
 

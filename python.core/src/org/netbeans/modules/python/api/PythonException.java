@@ -5,10 +5,6 @@
 
 package org.netbeans.modules.python.api;
 
-/**
- *
- * @author alley
- */
 public class PythonException extends Exception {
 
     public PythonException(Throwable arg0) {

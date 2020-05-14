@@ -21,10 +21,6 @@ import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.TopComponent;
 
-/**
- *
- * @author Ralph Benjamin Ruijs
- */
 @ServiceProvider(service = ActionProvider.class)
 public class RunSingleCommand implements ActionProvider {
     private static final Logger LOG = Logger.getLogger(RunSingleCommand.class.getName());

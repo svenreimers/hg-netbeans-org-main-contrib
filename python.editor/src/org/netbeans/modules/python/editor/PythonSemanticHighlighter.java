@@ -57,7 +57,6 @@ import org.python.antlr.ast.Name;
 /**
  * Semantic highlighter for Python.
  *
- * @author Tor Norbye
  */
 public class PythonSemanticHighlighter extends SemanticAnalyzer<PythonParserResult> {
     private boolean cancelled;

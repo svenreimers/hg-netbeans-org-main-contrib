@@ -34,10 +34,6 @@ import org.netbeans.modules.python.project.PythonProject;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 
-/**
- * @author Radek Matous
- * @author Tomas Zezula
- */
 public class MoveCommand extends GlobalCommand {
     public MoveCommand(PythonProject project) {
         super(project);

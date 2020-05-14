@@ -11,10 +11,6 @@ import org.netbeans.api.project.Sources;
 import org.netbeans.spi.project.support.GenericSources;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
- */
 public class PythonSources implements Sources {
     private final PythonProject2 project;
     private SourceGroup[] roots;

@@ -81,7 +81,6 @@ import org.openide.util.Exceptions;
  * @todo Handle continuation lines with extra indentation
  * @todo Line up list initializations better?
  * 
- * @author Tor Norbye
  */
 public class PythonFormatter implements Formatter {
     private int indentSize;

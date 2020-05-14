@@ -81,7 +81,6 @@ import org.python.antlr.ast.alias;
  *    of thins to check from there.  Check the PyLint list as well.
  *
  *
- * @author Tor Norbye
  */
 public class Deprecations extends PythonAstRule {
 

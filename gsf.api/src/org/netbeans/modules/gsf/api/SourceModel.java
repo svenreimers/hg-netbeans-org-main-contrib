@@ -51,7 +51,6 @@ import org.openide.filesystems.FileObject;
 /**
  * A SouceModel provides access to parse results for a file
  *
- * @author Tor Norbye
  */
 public interface SourceModel {
     void runUserActionTask(@NonNull final CancellableTask<CompilationInfo> task, final boolean shared) throws IOException;

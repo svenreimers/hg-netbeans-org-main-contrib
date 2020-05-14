@@ -46,7 +46,6 @@ package org.netbeans.modules.python.debugger.utils;
 
 sample notification interface on processtermination
 
-@author Jean-Yves Mengant
 
  */
 public interface ExecTerminationListener {

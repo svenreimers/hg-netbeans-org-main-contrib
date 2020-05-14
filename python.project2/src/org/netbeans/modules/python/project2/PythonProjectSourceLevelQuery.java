@@ -12,10 +12,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.util.ChangeSupport;
 import org.openide.util.WeakListeners;
 
-/**
- *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
- */
 class PythonProjectSourceLevelQuery implements SourceLevelQueryImplementation {
 
     private final PythonProject2 project;

@@ -45,10 +45,6 @@ package org.netbeans.modules.python.qshell;
 import java.util.prefs.Preferences;
 import org.openide.util.NbPreferences;
 
-/**
- *
- * @author Maros Sandor
- */
 public class QShellConfig {
 
     private static String PROP_QSHELL_EXECUTABLE = "qshell.command";

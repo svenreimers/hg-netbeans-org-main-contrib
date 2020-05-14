@@ -48,7 +48,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * An IndexDocument lets you store a series of [key,value] pairs in the 
  * persistent store.
  * 
- * @author Tor Norbye
  */
 public interface IndexDocument {
     /**

@@ -44,10 +44,6 @@ package org.netbeans.modules.python.debugger;
 import org.openide.text.Annotation;
 import org.openide.text.Annotatable;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class DebuggerAnnotation
         extends Annotation {
 

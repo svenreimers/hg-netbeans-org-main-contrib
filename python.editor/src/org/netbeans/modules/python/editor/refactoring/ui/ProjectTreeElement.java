@@ -52,10 +52,6 @@ import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.refactoring.spi.ui.*;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Jan Becicka
- */
 public class ProjectTreeElement implements TreeElement {
     private String name;
     private Icon icon;

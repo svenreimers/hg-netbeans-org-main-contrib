@@ -50,10 +50,6 @@ import javax.swing.JPanel;
 
 import org.netbeans.spi.debugger.ui.Controller;
 
-/**
- *
- * @author Jean-Yves Mengant
- */
 public class PythonBreakpointCustomizer extends JPanel implements Customizer, Controller {
 
   private PythonBreakpoint b;

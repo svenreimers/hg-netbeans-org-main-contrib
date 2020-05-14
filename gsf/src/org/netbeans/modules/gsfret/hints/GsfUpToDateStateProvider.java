@@ -53,7 +53,6 @@ import org.netbeans.spi.editor.errorstripe.UpToDateStatusProvider;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 public class GsfUpToDateStateProvider extends UpToDateStatusProvider {
     

@@ -51,7 +51,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  *
  * Provides a listener to monitor the activity of the parser.
  *
- * @author Jonathan Gibbons
  */
 public interface ParseListener
 {

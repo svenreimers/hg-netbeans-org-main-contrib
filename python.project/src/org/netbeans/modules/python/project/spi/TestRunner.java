@@ -51,7 +51,6 @@ import org.openide.filesystems.FileObject;
  *<p/>
  * <i>A work in progress, bound to change</i>.
  * 
- * @author Erno Mononen
  */
 public interface TestRunner {
     

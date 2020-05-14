@@ -14,10 +14,6 @@ import org.netbeans.spi.project.support.ant.PropertyEvaluator;
 import org.netbeans.spi.queries.FileEncodingQueryImplementation;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Tomas Zezla
- */
 public class PythonProjectFileEncodingQuery extends FileEncodingQueryImplementation implements PropertyChangeListener {
     
     private final PropertyEvaluator eval;

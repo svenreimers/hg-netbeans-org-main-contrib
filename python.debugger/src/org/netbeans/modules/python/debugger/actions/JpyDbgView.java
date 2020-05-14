@@ -65,9 +65,6 @@ import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
-/**
- * @author jean-yves Mengant
- */
 public class JpyDbgView extends TopComponent
         implements PluginEventListener {
 

@@ -69,7 +69,6 @@ import org.python.antlr.ast.Module;
 /**
  * Detect Unresolved variables
  *
- * @author Tor Norbye
  */
 public class UnresolvedDetector extends PythonAstRule {
     public UnresolvedDetector() {

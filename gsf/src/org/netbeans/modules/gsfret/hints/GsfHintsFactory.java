@@ -60,7 +60,6 @@ import org.openide.filesystems.FileObject;
  *
  * This class is based on JavaHintsFactory in Retouche's org.netbeans.modules.java.hints
  *
- * @author Jan Lahoda
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.napi.gsfret.source.SourceTaskFactory.class)
 public class GsfHintsFactory extends EditorAwareSourceTaskFactory {

@@ -49,10 +49,6 @@ import org.netbeans.modules.python.source.PythonIndexer;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author Ralph Ruijs
- */
 public final class QuerySupportFactory {
 
     

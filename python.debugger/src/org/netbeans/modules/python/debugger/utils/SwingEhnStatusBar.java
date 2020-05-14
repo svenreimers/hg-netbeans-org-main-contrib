@@ -49,7 +49,6 @@ import javax.swing.*;
 
 Define a Swing status bar behavior
 
-@Author Jean-Yves Mengant
 
 
  */

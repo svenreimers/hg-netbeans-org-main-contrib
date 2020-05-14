@@ -64,7 +64,6 @@ import org.openide.text.PositionRef;
  *
  * Class that collects changes built during a modification task run.
  *
- * @author Dusan Balek
  */
 public final class ModificationResult {
 

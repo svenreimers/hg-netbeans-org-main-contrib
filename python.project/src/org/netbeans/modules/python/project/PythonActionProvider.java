@@ -28,11 +28,6 @@ import org.openide.LifecycleManager;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 
-/**
- *
- * @author alley
- * @author Tomas Zezula
- */
 public class PythonActionProvider implements ActionProvider {
 
     PythonProject project;

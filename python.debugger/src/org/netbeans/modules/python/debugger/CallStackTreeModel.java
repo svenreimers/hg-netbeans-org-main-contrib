@@ -60,7 +60,6 @@ import org.netbeans.spi.viewmodel.UnknownTypeException;
  *
  * Python Call Stack debugger tree model
  *
- * @author jean-yves Mengant
  */
 public class CallStackTreeModel
         implements TreeModel,

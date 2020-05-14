@@ -68,7 +68,6 @@ import org.python.antlr.ast.FunctionDef;
  * @todo Handle modules?
  * @todo Handle parameter tags (for epydoc etc)
  *
- * @author Tor Norbye
  */
 public class CreateDocString extends PythonAstRule {
     @Override

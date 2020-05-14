@@ -64,10 +64,6 @@ import org.netbeans.spi.queries.FileEncodingQueryImplementation;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author Vincent van der Leun
- */
 public class PythonFileEncodingQuery extends FileEncodingQueryImplementation {
     
     private final ThreadLocal<Boolean> callingFEQ = new ThreadLocal<Boolean>() {

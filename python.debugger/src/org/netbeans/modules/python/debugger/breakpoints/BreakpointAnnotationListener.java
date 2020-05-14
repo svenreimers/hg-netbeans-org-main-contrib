@@ -58,7 +58,6 @@ import org.openide.util.Lookup;
  * Listens on {@org.netbeans.api.debugger.DebuggerManager} on
  * {@link org.netbeans.api.debugger.DebuggerManager#PROP_BREAKPOINTS} 
  * property and annotates JPDA Debugger line breakpoints in NetBeans editor.
- * @author jean-yves Mengant
  */
 
 @org.openide.util.lookup.ServiceProvider(service=org.openide.text.AnnotationProvider.class)

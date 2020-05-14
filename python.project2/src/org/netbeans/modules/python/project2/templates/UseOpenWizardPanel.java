@@ -51,7 +51,6 @@ import org.openide.util.NbBundle.Messages;
 
 /**
  * Panel just asking for basic info.
- * @author mkleint
  */
 public class UseOpenWizardPanel implements WizardDescriptor.Panel {
     

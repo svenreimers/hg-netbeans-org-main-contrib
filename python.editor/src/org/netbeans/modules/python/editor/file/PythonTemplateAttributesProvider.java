@@ -19,10 +19,6 @@ import org.openide.loaders.DataObject;
 import org.openide.modules.SpecificationVersion;
 import org.openide.util.lookup.ServiceProvider;
 
-/**
- *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
- */
 @ServiceProvider(service = CreateFromTemplateAttributesProvider.class)
 public class PythonTemplateAttributesProvider implements CreateFromTemplateAttributesProvider {
 

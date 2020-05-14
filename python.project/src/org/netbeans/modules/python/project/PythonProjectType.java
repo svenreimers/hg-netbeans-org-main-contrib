@@ -10,10 +10,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.spi.project.support.ant.AntBasedProjectType;
 import org.netbeans.spi.project.support.ant.AntProjectHelper;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonProjectType implements AntBasedProjectType {
 
     public static final String TYPE = PythonProjectType.class.getPackage().getName();

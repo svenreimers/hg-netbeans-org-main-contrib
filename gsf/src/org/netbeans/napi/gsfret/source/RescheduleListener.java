@@ -55,7 +55,6 @@ import org.openide.filesystems.FileObject;
  * to fire the {@link #reschedule} event if it requires reevaluation of task created
  * for a given {@link FileObject}.
  *
- * @author Jan Lahoda
  */
 public interface RescheduleListener {
 

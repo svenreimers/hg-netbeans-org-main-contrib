@@ -51,10 +51,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
-/**
- *
- * @author Tor Norbye
- */
 public class DefaultParserFile implements ParserFile {
     private FileObject fileObject;
     private String relative;

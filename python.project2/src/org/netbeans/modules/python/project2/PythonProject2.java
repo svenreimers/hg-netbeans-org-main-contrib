@@ -54,10 +54,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-/**
- *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
- */
 public class PythonProject2 implements Project {
 
     /**

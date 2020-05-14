@@ -85,7 +85,6 @@ import org.openide.util.Lookup;
  * possible. 
  * <p>
  *
- * @author  phrebejk
  */
 public class ClassMemberPanelUI extends javax.swing.JPanel
         implements ExplorerManager.Provider, FiltersManager.FilterChangeListener {

@@ -56,10 +56,6 @@ import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
 
-/**
- *
- * @author Jan Becicka
- */
 public class SourceGroupTreeElement implements TreeElement {
     private WeakReference<SourceGroup> sg;
     private FileObject dir;

@@ -70,7 +70,6 @@ import org.openide.util.NbBundle;
 
 /**
  * Source roots view
- * @author Tomas Zezula
  */
 public final class SourceNodeFactory implements NodeFactory {
     public SourceNodeFactory() {

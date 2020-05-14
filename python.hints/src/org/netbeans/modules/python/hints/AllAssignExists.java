@@ -61,10 +61,6 @@ import org.openide.util.NbBundle;
 import org.python.antlr.ast.Module;
 import org.python.antlr.ast.Str;
 
-/**
- *
- * @author Tor Norbye
- */
 public class AllAssignExists extends PythonAstRule {
     @Override
     public Set<Class> getKinds() {

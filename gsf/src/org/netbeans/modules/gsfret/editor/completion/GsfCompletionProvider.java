@@ -100,13 +100,11 @@ import org.openide.util.WeakListeners;
 
 /**
  * Code completion provider - delegates to language plugin for actual population of result set.
- * Based on JavaCompletionProvider by Dusan Balek.
  * 
  * @todo I may be able to rip out the code I had in here to work around the
  *   automatic completion vs "No Suggestions" issue; see 
  *    http://hg.netbeans.org/main?cmd=changeset;node=6740db8e6988
  *
- * @author Tor Norbye
  */
 public class GsfCompletionProvider implements CompletionProvider {
     

@@ -36,11 +36,6 @@ import org.openide.util.actions.SystemAction;
 import org.openide.util.lookup.Lookups;
 import org.openide.xml.XMLUtil;
 
-/**
- *
- * @author alley
- * @author Tomas Zezula
- */
 class PythonLogicalView implements LogicalViewProvider {
 
     private PythonProject project;

@@ -11,10 +11,6 @@ import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexer;
 import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexerFactory;
 import org.netbeans.modules.parsing.spi.indexing.Indexable;
 
-/**
- *
- * @author Ralph Benjamin Ruijs
- */
 public class PythonIndexerFactory extends EmbeddingIndexerFactory {    
 
     @Override

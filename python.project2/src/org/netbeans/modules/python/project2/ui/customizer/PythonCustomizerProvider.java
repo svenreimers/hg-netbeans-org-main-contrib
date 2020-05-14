@@ -21,10 +21,6 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.Lookups;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonCustomizerProvider implements CustomizerProvider {
 
     private static final String CUSTOMIZER_FOLDER_PATH = "Projects/org-netbeans-modules-python-project2//Customizer"; //NO18N

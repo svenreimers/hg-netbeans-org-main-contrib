@@ -61,8 +61,6 @@ import org.openide.util.WeakListeners;
 
 /**
  * Source class path implementation
- * @author Tor Norbye
- * @author Tomas Zezula
  */
 final class SourcePathImplementation implements ClassPathImplementation, PropertyChangeListener {
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);

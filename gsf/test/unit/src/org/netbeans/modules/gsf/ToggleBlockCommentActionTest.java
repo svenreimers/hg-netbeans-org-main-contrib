@@ -49,10 +49,6 @@ import org.junit.Test;
 import org.netbeans.modules.gsf.spi.CommentHandler;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author marekfukala
- */
 public class ToggleBlockCommentActionTest extends GsfTestBase {
 
     private CommentHandler handler = new TestCommentHandler();

@@ -51,10 +51,6 @@ import org.netbeans.napi.gsfret.source.ClasspathInfo;
 import org.netbeans.napi.gsfret.source.Source;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Tor Norbye
- */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.modules.gsf.api.SourceModelFactory.class)
 public class SourceAdapterFactory extends SourceModelFactory {
     

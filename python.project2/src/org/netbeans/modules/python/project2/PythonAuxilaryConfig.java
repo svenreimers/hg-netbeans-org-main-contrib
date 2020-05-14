@@ -84,7 +84,6 @@ import org.xml.sax.SAXException;
 /**
  * implementation of AuxiliaryConfiguration that relies on FileObject's attributes
  * for the non shared elements and on ${basedir}/nb-configuration file for share ones.
- * @author mkleint
  */
 public class PythonAuxilaryConfig implements AuxiliaryConfiguration {
     public static final String BROKEN_NBCONFIG = "BROKENNBCONFIG"; //NOI18N

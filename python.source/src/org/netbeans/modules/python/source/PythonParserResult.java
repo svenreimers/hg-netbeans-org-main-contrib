@@ -45,7 +45,6 @@ import org.python.antlr.PythonTree;
  * A ParserResult for Python. The AST Jython's AST.
  *
  * @todo Cache AstPath for caret position here!
- * @author Tor Norbye
  */
 public class PythonParserResult extends ParserResult {
     private PythonTree root;

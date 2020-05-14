@@ -94,7 +94,6 @@ import org.netbeans.spi.lexer.TokenFactory;
  *   </li>
  * </ul>
  *
- * @author Tor Norbye
  */
 public final class PythonLexer implements Lexer<PythonTokenId> {
     public static final String COMMENT_CAT = "comment";

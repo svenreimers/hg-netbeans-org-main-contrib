@@ -92,7 +92,6 @@ import org.openide.text.Line;
 
 /**
  * Main Python container Panel class
- * @author jean-yves Mengant
  */
 public class PythonDebugContainer implements PythonContainer {
 

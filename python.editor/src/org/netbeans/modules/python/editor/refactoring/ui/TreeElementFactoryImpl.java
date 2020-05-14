@@ -51,10 +51,6 @@ import org.netbeans.modules.refactoring.api.RefactoringElement;
 import org.netbeans.modules.refactoring.spi.ui.*;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Jan Becicka
- */
 public class TreeElementFactoryImpl implements TreeElementFactoryImplementation {
     public Map<Object, TreeElement> map = new WeakHashMap<>();
     public static TreeElementFactoryImpl instance;

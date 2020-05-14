@@ -49,10 +49,6 @@ import org.netbeans.modules.parsing.spi.indexing.support.QuerySupport;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author Petr Pisl
- */
 public class QuerySupportFactory {
     
     

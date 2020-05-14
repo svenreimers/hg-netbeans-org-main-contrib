@@ -70,7 +70,6 @@ import javax.swing.event.ChangeEvent;
  * <p>
  * Handles creation and manipulation with boolean state filters. 
  *
- * @author Dafe Simomek
  */
 public final class FiltersManager {
     

@@ -52,7 +52,6 @@ import org.openide.util.NbBundle;
 /**
  * Implementation of breakpoint for Python.
  *
- * @author   Jean-Yves Mengant
  */
 public class PythonLineBreakpointType extends BreakpointType {
 

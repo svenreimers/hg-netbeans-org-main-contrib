@@ -53,7 +53,6 @@ import org.netbeans.spi.viewmodel.UnknownTypeException;
  * Provides actions for nodes representing {@link PythonBreakpoint} in the
  * Breapoint view.
  *
- * @authorJean-Yves Mengant
  */
 public final class PythonBreakpointNodeActions implements NodeActionsProviderFilter {
 

@@ -10,10 +10,6 @@ import javax.swing.AbstractListModel;
 import org.netbeans.modules.python.api.PythonPlatform;
 import org.netbeans.modules.python.api.PythonPlatformManager;
 
-/**
- *
- * @author alley
- */
 public class PythonPlatformListModel extends AbstractListModel {
     private PythonPlatformManager manager = PythonPlatformManager.getInstance();
     private List<PythonPlatform> model = manager.getPlatforms();

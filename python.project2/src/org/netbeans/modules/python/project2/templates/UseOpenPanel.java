@@ -42,10 +42,6 @@
 
 package org.netbeans.modules.python.project2.templates;
 
-/**
- *
- * @author  mkleint
- */
 public class UseOpenPanel extends javax.swing.JPanel {
     
     /** Creates new form UseOpenPanel */

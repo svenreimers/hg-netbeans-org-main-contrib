@@ -63,7 +63,6 @@ import org.python.antlr.base.expr;
  * output variable) and similarly, which variables are used inside the method
  * before getting assigned (which would make it an input variable).
  * 
- * @author Tor Norbye
  */
 class InputOutputFinder extends Visitor {
     //private enum When { BEFORE, DURING, AFTER };

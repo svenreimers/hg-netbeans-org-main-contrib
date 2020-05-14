@@ -54,10 +54,6 @@ import org.netbeans.modules.python.debugger.DebuggerPythonLogger;
 import org.openide.util.Task;
 import org.openide.util.TaskListener;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class TargetExecutor
         implements Runnable {
 

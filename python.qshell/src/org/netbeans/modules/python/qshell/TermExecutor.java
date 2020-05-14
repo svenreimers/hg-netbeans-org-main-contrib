@@ -58,10 +58,6 @@ import org.netbeans.modules.python.qshell.richexecution.PtyException;
 import org.netbeans.modules.python.qshell.richexecution.PtyExecutor;
 import org.netbeans.modules.python.qshell.richexecution.PtyProcess;
 
-/**
- * Execute a program connected to a Term.
- * @author ivan
- */
 public class TermExecutor extends PtyExecutor {
     private final static OS os = OS.get();
     private Boolean lineDiscipline = null;

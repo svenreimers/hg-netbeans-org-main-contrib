@@ -54,10 +54,6 @@ import org.openide.filesystems.FileObject;
 import org.netbeans.spi.viewmodel.ModelEvent;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class BreakpointModel
         implements NodeModel {
 

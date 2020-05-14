@@ -44,7 +44,6 @@ package org.netbeans.modules.python.editor.codegen;
 /**
  * Panel for entering a property name
  * 
- * @author Tor Norbye
  */
 public class PropertyCodeGenPanel extends javax.swing.JPanel {
 

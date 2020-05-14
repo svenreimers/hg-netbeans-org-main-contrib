@@ -16,10 +16,6 @@ import org.netbeans.spi.project.DeleteOperationImplementation;
 import org.netbeans.spi.project.MoveOperationImplementation;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PythonProjectOperations implements DeleteOperationImplementation, CopyOperationImplementation,
         MoveOperationImplementation {
 

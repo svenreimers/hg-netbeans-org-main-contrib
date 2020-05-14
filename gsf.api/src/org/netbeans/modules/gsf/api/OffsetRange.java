@@ -53,7 +53,6 @@ package org.netbeans.modules.gsf.api;
  *
  * @todo This class should be final
  * 
- * @author Tor Norbye
  */
 public final class OffsetRange implements Comparable<OffsetRange> {
     public static final OffsetRange NONE = new OffsetRange(0, 0);

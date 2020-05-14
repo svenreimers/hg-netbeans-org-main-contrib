@@ -52,10 +52,6 @@ import org.python.antlr.ast.ClassDef;
 import org.python.antlr.ast.FunctionDef;
 import org.python.antlr.ast.Name;
 
-/**
- *
- * @author Tor Norbye
- */
 public class PythonInstantRename implements InstantRenamer {
     
     @Override

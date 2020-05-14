@@ -73,11 +73,6 @@ import org.python.antlr.ast.Import;
 import org.python.antlr.ast.ImportFrom;
 import org.python.antlr.ast.alias;
 
-/**
- *
- * @author alley
- * @author Tor Norbye
- */
 public class PythonIndex {
 //    public static final Set<SearchScope> ALL_SCOPE = EnumSet.allOf(SearchScope.class);
 //    public static final Set<SearchScope> SOURCE_SCOPE = EnumSet.of(SearchScope.SOURCE);

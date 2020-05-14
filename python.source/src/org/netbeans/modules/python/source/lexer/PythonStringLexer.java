@@ -57,7 +57,6 @@ import org.netbeans.spi.lexer.TokenFactory;
  * @todo Track whether strings are raw or not, and don't do escape sequence
  *  highlighting in raw strings
  *
- * @author Tor Norbye
  */
 public class PythonStringLexer implements Lexer<PythonStringTokenId> {
     private static final int EOF = LexerInput.EOF;

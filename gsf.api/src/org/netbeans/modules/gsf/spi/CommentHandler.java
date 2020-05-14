@@ -48,10 +48,6 @@ import org.netbeans.lib.editor.util.CharSequenceUtilities;
 import org.netbeans.lib.editor.util.swing.DocumentUtilities;
 import org.netbeans.modules.gsf.api.annotations.NonNull;
 
-/**
- *
- * @author marekfukala
- */
 public interface CommentHandler {
 
     /*

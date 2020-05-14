@@ -70,7 +70,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * @todo Pass in completion mode such that I can do different stuff for smart-completion
  * @todo The result should indicate whether it has been filtered!
  *
- * @author Tor Norbye
  */
 public interface CodeCompletionHandler {
     /**

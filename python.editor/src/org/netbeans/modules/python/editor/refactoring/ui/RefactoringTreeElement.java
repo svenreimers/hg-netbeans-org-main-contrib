@@ -48,10 +48,6 @@ import org.netbeans.modules.python.editor.refactoring.PythonRefUtils;
 import org.netbeans.modules.refactoring.api.RefactoringElement;
 import org.netbeans.modules.refactoring.spi.ui.*;
 
-/**
- *
- * @author Jan Becicka
- */
 public class RefactoringTreeElement implements TreeElement {
     RefactoringElement element;
     ElementGrip thisFeature;

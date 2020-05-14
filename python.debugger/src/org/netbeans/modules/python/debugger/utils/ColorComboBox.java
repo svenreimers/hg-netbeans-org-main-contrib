@@ -65,10 +65,6 @@ import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/**
- *
- * @author Administrator
- */
 public class ColorComboBox extends JComboBox {
 
   public static final String PROP_COLOR = "color";

@@ -21,10 +21,6 @@ import org.openide.util.ChangeSupport;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
-/**
- *
- * @author Ralph Benjamin Ruijs <ralphbenjamin@netbeans.org>
- */
 @ServiceProvider(service = SourceLevelQueryImplementation.class)
 public class PythonShebangSourceLevelQuery implements SourceLevelQueryImplementation {
 

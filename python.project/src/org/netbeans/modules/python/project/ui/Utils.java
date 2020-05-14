@@ -66,10 +66,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class Utils {
     
     public static String browseLocationAction(final Component parent, String path, String title) {

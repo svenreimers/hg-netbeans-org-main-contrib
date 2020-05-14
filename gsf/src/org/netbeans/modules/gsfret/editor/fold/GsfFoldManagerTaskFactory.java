@@ -58,7 +58,6 @@ import org.openide.filesystems.FileObject;
  * possible. 
  *
  *
- * @author Jan Lahoda
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.napi.gsfret.source.SourceTaskFactory.class)
 public class GsfFoldManagerTaskFactory extends EditorAwareSourceTaskFactory {

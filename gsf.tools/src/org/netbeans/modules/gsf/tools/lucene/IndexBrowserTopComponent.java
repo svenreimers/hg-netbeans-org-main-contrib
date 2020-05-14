@@ -53,7 +53,6 @@ import org.openide.windows.WindowManager;
  * @todo Set column model to get proportional widths (auto fit?)
  * @todo Instead of showing the segment+docid, show the require-value in the match list
  * 
- * @author Tor Norbye
  */
 final class IndexBrowserTopComponent extends TopComponent {
     

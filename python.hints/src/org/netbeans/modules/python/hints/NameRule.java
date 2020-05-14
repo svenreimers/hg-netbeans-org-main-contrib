@@ -69,7 +69,6 @@ import static org.netbeans.modules.python.source.NameStyle.*;
  * @todo Implement variable name checking!
  * 
  * 
- * @author Tor Norbye
  */
 public class NameRule extends PythonAstRule {
     private static final String CLASS_STYLE_NAME = "classStyle"; // NOI18N

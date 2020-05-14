@@ -78,8 +78,6 @@ import org.python.core.PyException;
 /**
  * Parser for Python. Wraps Jython.
  * 
- * @author Frank Wierzbicki
- * @author Tor Norbye
  */
 public class PythonParser extends Parser {
     /** For unit tests such that they can make sure we didn't have a parser abort */

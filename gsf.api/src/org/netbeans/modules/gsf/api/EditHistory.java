@@ -123,7 +123,6 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
  * <a href="../../../../../incremental-parsing.html">incremental updating</a>
  * document.</p>
  *
- * @author Tor Norbye
  */
 public final class EditHistory implements DocumentListener, TokenHierarchyListener {
     private static final Object ADDED = new Object();

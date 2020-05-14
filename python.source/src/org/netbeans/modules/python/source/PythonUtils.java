@@ -49,10 +49,6 @@ import org.python.antlr.PythonTree;
 import org.python.antlr.ast.Attribute;
 import org.python.antlr.ast.Name;
 
-/**
- *
- * @author Tor Norbye
- */
 public class PythonUtils {
     public static boolean canContainPython(FileObject f) {
         String mimeType = f.getMIMEType();

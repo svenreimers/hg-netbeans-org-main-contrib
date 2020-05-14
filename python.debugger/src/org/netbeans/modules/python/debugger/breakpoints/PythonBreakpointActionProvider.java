@@ -64,10 +64,6 @@ import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.util.WeakListeners;
 
-/**
- *
- * @author jean-yves Mengant
- */
 public class PythonBreakpointActionProvider
         extends ActionsProviderSupport
         implements PropertyChangeListener {

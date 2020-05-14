@@ -42,7 +42,6 @@ import org.w3c.dom.NodeList;
  * Represents a helper for manipulation source roots.
  * Based on SourceRoot class (common.java.api)
  * which was copied to all non java projecs.
- * @author Tomas Zezula
  */
 public final class SourceRoots {
     

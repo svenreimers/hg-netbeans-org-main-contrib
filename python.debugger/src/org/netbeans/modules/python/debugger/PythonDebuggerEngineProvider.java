@@ -46,7 +46,6 @@ import org.netbeans.api.debugger.DebuggerEngine;
 
 /**
  * Netbeans Python Debugger EngineProvider
- * @author jean-yves
  */
 public class PythonDebuggerEngineProvider
         extends DebuggerEngineProvider {

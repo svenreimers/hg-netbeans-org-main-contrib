@@ -44,7 +44,6 @@ package org.netbeans.modules.python.debugger.backend;
 /**
  * commuenication event between Debugger Front End and Pluggin editors
  *
- * @author jean-yves Mengant
  */
 public class PluginEvent {
 

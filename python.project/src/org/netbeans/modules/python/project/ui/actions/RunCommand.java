@@ -16,10 +16,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author alley
- */
 public class RunCommand extends Command {
     protected final boolean isTest;
 

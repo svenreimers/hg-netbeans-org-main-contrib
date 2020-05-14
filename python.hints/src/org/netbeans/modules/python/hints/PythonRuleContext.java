@@ -36,7 +36,6 @@ import org.python.antlr.PythonTree;
 /**
  * Information about the current context a rule is being asked to evaluate.
  * 
- * @author Tor Norbye
  */
 public class PythonRuleContext extends org.netbeans.modules.csl.api.RuleContext {
     public AstPath path;

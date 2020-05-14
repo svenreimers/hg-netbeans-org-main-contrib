@@ -26,10 +26,6 @@ import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.NbBundle;
 
-/**
- *
- * @author Tomas Zezula
- */
 public class PanelConfigureSourcesVisual extends javax.swing.JPanel {
     
     private final FolderModel sourcesModel;

@@ -44,7 +44,6 @@ package org.netbeans.modules.python.debugger.spi;
 /**
  * Best effort for collecting Python Debug info for netbeans 
  * debugger
- * @author jean-yves Mengant
  */
 public class PythonEvent 
 {

@@ -49,10 +49,6 @@ import org.netbeans.napi.gsfret.source.Source.Priority;
 import org.netbeans.napi.gsfret.source.support.SelectionAwareSourceTaskFactory;
 import org.openide.filesystems.FileObject;
 
-/**
- *
- * @author Tor Norbye
- */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.napi.gsfret.source.SourceTaskFactory.class)
 public class SelectionHintsTaskFactory extends SelectionAwareSourceTaskFactory {
     

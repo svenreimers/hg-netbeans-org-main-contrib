@@ -49,10 +49,6 @@ package org.netbeans.modules.python.source.ui;
 //import org.netbeans.modules.python.editor.options.FmtOptions.CategorySupport;
 //import org.netbeans.modules.options.editor.spi.PreferencesCustomizer;
 
-/**
- *
- * @author  phrebejk
- */
 public class FmtBlankLines extends javax.swing.JPanel {
     
     /** Creates new form FmtBlankLines */

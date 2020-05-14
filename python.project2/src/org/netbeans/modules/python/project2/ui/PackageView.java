@@ -84,7 +84,6 @@ import org.openide.util.WeakListeners;
  * <b>This is copied from the corresponding Java action in java.projects</b>
  * </p>
  *
- * @author Jesse Glick
  */
 @NbBundle.Messages({"# {0} - Filename", "PackageView.find_packages_progress=Finding packages in {0}"})
 public class PackageView {

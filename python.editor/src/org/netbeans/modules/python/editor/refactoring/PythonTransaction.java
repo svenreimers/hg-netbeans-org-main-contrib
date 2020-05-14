@@ -49,10 +49,6 @@ import java.util.Collection;
 import org.netbeans.modules.refactoring.spi.BackupFacility;
 import org.netbeans.modules.refactoring.spi.Transaction;
 */
-/**
- *
- * @author Jan Becicka
- */
 /* Probably remove completely ;-)
 public class PythonTransaction implements Transaction {
     ArrayList<BackupFacility.Handle> ids = new ArrayList<BackupFacility.Handle>();

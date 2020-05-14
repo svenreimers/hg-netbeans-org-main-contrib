@@ -59,7 +59,6 @@ import org.openide.util.Utilities;
  * a better display of the complex python data structure this class is planned to replace 
  * the PythonVariableTable class previously implemented
  *
- * @author jean-yves Mengant
  */
 public class PythonVariableTreeTable
         extends JPanel {

@@ -26,11 +26,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author Allan Davis
- * @author Jean-Yves
- */
 public final class PythonExecution {
     // execution commands
     private String command;
@@ -145,7 +140,6 @@ public final class PythonExecution {
         ExternalProcessBuilder processBuilder =
                     new ExternalProcessBuilder(command);
             processBuilder = processBuilder.workingDirectory(new File(workingDirectory));
-            // @@@Jean-Yves check for empty arguments as well as null
             if ( (commandArgs != null) && ( commandArgs.trim().length() > 0 )  )
                processBuilder = processBuilder.addArgument(commandArgs);
 
@@ -168,7 +162,6 @@ public final class PythonExecution {
             if(script != null)
                 processBuilder = processBuilder.addArgument(script);
             if(scriptArgs != null) {
-                // @@@jean-Yves populate arguments one by one in order to get
                 // a natural python tuple on python side
                 String args[] = org.openide.util.Utilities.parseParameters(scriptArgs) ;
                 for (String arg : args) {
