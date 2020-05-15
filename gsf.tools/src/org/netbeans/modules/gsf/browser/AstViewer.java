@@ -83,7 +83,7 @@ import org.openide.windows.WindowManager;
 
 
 /**
- * This class is based on ASTBrowserTopComponent in the Schliemann prototype by Jan Jancura
+ * This class is based on ASTBrowserTopComponent in the Schliemann prototype 
  *
  */
 public class AstViewer extends TopComponent {

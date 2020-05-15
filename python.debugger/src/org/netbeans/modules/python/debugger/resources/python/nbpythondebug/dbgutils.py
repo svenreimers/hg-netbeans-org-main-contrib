@@ -50,7 +50,7 @@ import threading
 
 __version__='$Revision: 1.1 $'
 __date__='$Date: 2006/05/01 10:17:14 $'
-__author__= 'Jean-Yves Mengant'
+__author__= ''
 
 # $Source: /cvsroot/jpydbg/jpydebugforge/src/python/jpydbg/dbgutils.py,v $
 

@@ -50,7 +50,7 @@ import org.netbeans.api.extexecution.print.LineConvertors;
 import org.netbeans.api.extexecution.print.LineConvertors.FileLocator;
 
 /**
- * Python LineConvertorFactory - based on the Ruby one by Erno Mononen
+ * Python LineConvertorFactory - based on the Ruby one 
  *
  */
 public final class PythonLineConvertorFactory implements LineConvertorFactory {
@@ -67,7 +67,7 @@ public final class PythonLineConvertorFactory implements LineConvertorFactory {
     //private static final Pattern RUBY_COMPILER_WIN_MY = Pattern.compile(".*?" + FILE_WIN + SEP + LINE + ROL); // NOI18N
 
     // Typical line from Python:
-    // "/Users/tor/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py", line 7,
+    // "/Users/user/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py", line 7,
     // Also check test failure output
 
     /* Keeping old one. Get rid of this with more specific recongizers? */

@@ -51,7 +51,7 @@ import org.netbeans.modules.gsf.api.annotations.NonNull;
 import org.openide.filesystems.FileObject;
 
 /**
- * Based on org.netbeans.modules.gsfpath.api.source by Tomas Zezula
+ * Based on org.netbeans.modules.gsfpath.api.source 
  *
  */
 public interface ElementHandle {

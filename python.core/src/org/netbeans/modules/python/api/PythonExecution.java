@@ -143,7 +143,6 @@ public final class PythonExecution {
         ExternalProcessBuilder processBuilder =
                     new ExternalProcessBuilder(command);
             processBuilder = processBuilder.workingDirectory(new File(workingDirectory));
-            // @@@Jean-Yves check for empty arguments as well as null
             if ( (commandArgs != null) && ( commandArgs.trim().length() > 0 )  )
                processBuilder = processBuilder.addArgument(commandArgs);
 
@@ -166,7 +165,6 @@ public final class PythonExecution {
             if(script != null)
                 processBuilder = processBuilder.addArgument(script);
             if(scriptArgs != null) {
-                // @@@jean-Yves populate arguments one by one in order to get
                 // a natural python tuple on python side
                 String args[] = org.openide.util.Utilities.parseParameters(scriptArgs) ;
                 for (String arg : args) {

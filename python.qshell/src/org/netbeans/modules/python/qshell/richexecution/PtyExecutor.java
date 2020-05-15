@@ -91,11 +91,6 @@ public class PtyExecutor {
         System.out.printf("findBin(): my resource is \"%s\"\n", url);
         String urlString = url.toString();
 
-        // We usually get something like this:
-        // jar:file:/home/ivan/work/pty/share/Pty/dist/Pty.jar!/pty/TermProgram.class
-        //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        // Sometimes instead of "jar:" we get "nbjcl:" ... these occur for
-        // example if Pty.jar is loaded via a NB library wrapper.
         boolean isJar = false;
         boolean isNbjcl = false;
 
@@ -129,9 +124,6 @@ public class PtyExecutor {
             urlString = jarLocation;
         }
 
-        // Now urlString has something like these in it:
-        // file:/home/ivan/work/pty/share/Pty/dist/Pty.jar
-        // file:/home/ivan/work/pty/share/TermSuite/build/cluster/modules/ext/Pty.jar
         if (urlString.startsWith("file:")) {
             // strip the "file:"
             urlString = urlString.substring(5);

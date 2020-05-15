@@ -401,7 +401,6 @@ public class PythonPlatformManager implements Serializable {
             if(value == 0){
                 Properties prop = new Properties();
                 prop.load(new ReaderInputStream(pye.getOutput()));
-                // @@@Jean-Yves fix : assume that cmd is the python command
                 // if python_info.py is failing to locate command
                 // (this may be the case in jython 2.2.1 )
                 String command = prop.getProperty("python.command") ;
@@ -419,7 +418,6 @@ public class PythonPlatformManager implements Serializable {
                 platform = new PythonPlatform(id);
                 platform.setInterpreterCommand(command);
                 platform.setInterpreterConsoleComand(command);
-                // @@@Jean-Yves end of fix
                 platform.setName(name);
                 platform.setSourceLevel(prop.getProperty("platform.sourcelevel")); // NOI18N
                 String pathString = prop.getProperty("python.path"); // NOI18N
@@ -555,7 +553,6 @@ public class PythonPlatformManager implements Serializable {
 
     private ArrayList<String> discoverJythonClasspath(String command){
         ArrayList<String> temp = new ArrayList<>();
-        //@@@jean-yves in some case bin is not there(jython 2.2.1 installer)
         // => looking for parent path of command  seemed less dangerous
         // + scan for jar in jython home instead of specifiying "jython.jar"
         // since the jar name may change
@@ -567,7 +564,6 @@ public class PythonPlatformManager implements Serializable {
 
         // chase for jython.jar or jython-complete.jar in parent path
         scanJars( temp , parent) ;
-        //@@@jean-yves end of improvements
         path = path + File.separator + "javalib";
         File libDir = new File(path);
         scanJars( temp , libDir) ;

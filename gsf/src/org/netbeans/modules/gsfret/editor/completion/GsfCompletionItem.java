@@ -76,7 +76,7 @@ import org.openide.util.NbBundle;
 /**
  * Code completion items originating from the language plugin.
  *
- * Based on JavaCompletionItem by Dusan Balek.
+ * Based on JavaCompletionItem
  * 
  */
 public abstract class GsfCompletionItem implements CompletionItem {

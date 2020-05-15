@@ -57,7 +57,7 @@ import org.openide.util.lookup.Lookups;
  * initialize language support and construct an editor kit for the given
  * mime type.
  *
- * Based on MimeLookupInitializer in the Schliemann prototype by Jan Jancura.
+ * Based on MimeLookupInitializer in the Schliemann prototype
  *
  */
 @org.openide.util.lookup.ServiceProvider(service=org.netbeans.spi.editor.mimelookup.MimeLookupInitializer.class)

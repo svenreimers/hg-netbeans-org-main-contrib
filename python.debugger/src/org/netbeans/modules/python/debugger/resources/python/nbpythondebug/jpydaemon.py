@@ -44,7 +44,7 @@
 """ this daemon may be used by 'external' python sollicitors interfaces """
 __version__='$Revision: 1.4 $'
 __date__='$Date: 2006/11/25 15:23:48 $'
-__author__ = "Jean-Yves Mengant"
+__author__ = ""
 
 
 

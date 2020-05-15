@@ -87,7 +87,7 @@ import org.openide.util.TaskListener;
  * @todo Exclude tasks that are not Rule#showInTaskList==true
  * 
  * Much of this class is based on the similar JavaTaskProvider in
- * java/source by Stanislav Aubrecht and Jan Lahoda
+ * java/source
  * 
  */
 public class GsfTaskProvider extends PushTaskScanner  {

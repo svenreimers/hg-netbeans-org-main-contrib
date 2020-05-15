@@ -48,7 +48,7 @@ import org.openide.windows.TopComponent;
 
 
 /**
- * This class is based on ASTBrowserTopComponentAction in the Schliemann prototype by Jan Jancura
+ * This class is based on ASTBrowserTopComponentAction in the Schliemann prototype
  * 
  */
 public class AstViewerAction extends AbstractAction {

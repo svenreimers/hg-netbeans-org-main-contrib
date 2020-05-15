@@ -70,7 +70,7 @@ import org.netbeans.modules.python.editor.refactoring.PythonElementCtx;
 import org.openide.util.Exceptions;
 
 /**
- * Based on the WhereUsedPanel in Java refactoring by Jan Becicka.
+ * Based on the WhereUsedPanel in Java refactoring
  */
 public class WhereUsedPanel extends JPanel implements CustomRefactoringPanel {
     private final transient PythonElementCtx element;

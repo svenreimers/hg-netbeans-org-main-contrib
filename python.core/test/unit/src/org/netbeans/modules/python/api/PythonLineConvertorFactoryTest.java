@@ -78,8 +78,8 @@ public class PythonLineConvertorFactoryTest {
             }
             
         };
-        String line = "  File \"/Users/tor/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py\", line 23";
-        line = "  File \"/Users/tor/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py\", line 29, in <module>";
+        String line = "  File \"/Users/user/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py\", line 23";
+        line = "  File \"/Users/user/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py\", line 29, in <module>";
         List<LineConvertor> standardConvertors = PythonLineConvertorFactory.getStandardConvertors(locator);
         for (LineConvertor c : standardConvertors) {
             List<ConvertedLine> lines = c.convert(line);
@@ -92,7 +92,7 @@ public class PythonLineConvertorFactoryTest {
             c.convert(line);
         }
         assertNotNull(fileNameRequest[0]);
-        assertEquals("/Users/tor/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py", fileNameRequest[0]);
+        assertEquals("/Users/user/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py", fileNameRequest[0]);
         // TODO - I need a way to check the line number too - but the APIs in the recognizers don't expose this
     }
 
@@ -108,7 +108,7 @@ public class PythonLineConvertorFactoryTest {
             }
 
         };
-        String line = "  File \"/Users/tor/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py\", line 23";
+        String line = "  File \"/Users/user/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py\", line 23";
         List<LineConvertor> standardConvertors = PythonLineConvertorFactory.getStandardConvertors(locator);
         for (LineConvertor c : standardConvertors) {
             List<ConvertedLine> lines = c.convert(line);
@@ -121,7 +121,7 @@ public class PythonLineConvertorFactoryTest {
             c.convert(line);
         }
         assertNotNull(fileNameRequest[0]);
-        assertEquals("/Users/tor/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py", fileNameRequest[0]);
+        assertEquals("/Users/user/NetBeansProjects/NewPythonProject33/src/NewPythonProject33.py", fileNameRequest[0]);
         // TODO - I need a way to check the line number too - but the APIs in the recognizers don't expose this
     }
 

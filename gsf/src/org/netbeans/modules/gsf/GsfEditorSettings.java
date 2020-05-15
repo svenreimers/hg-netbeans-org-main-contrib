@@ -59,7 +59,6 @@ import org.netbeans.modules.editor.settings.storage.spi.TypedValue;
  * Maybe that is all there already in NetBeans but I could not find it.
  * This is called from the ModuleInstall class and it's key for the editor to work.
  *
- * vstejskal:
  * - all the settings defined in afterLoad can be suppied through an
  *   XML file registered in module's layer in Editors/&lt;mime-type&gt;/Preferences/Defaults.
  *   The format of the file is described in http://www.netbeans.org/dtds/EditorPreferences-1_0.dtd

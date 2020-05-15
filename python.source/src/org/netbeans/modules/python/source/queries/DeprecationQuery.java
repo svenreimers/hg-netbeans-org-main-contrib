@@ -69,26 +69,6 @@ public final class DeprecationQuery {
             DEPRECATED.put(module, "Obsolete module, removed in Python 2.6");
         }
 
-        /*
-        al.rst:    The :mod:`al` module has been deprecated for removal in Python 3.0.
-        al.rst:   The :mod:`AL` module has been deprecated for removal in Python 3.0.
-        bsddb.rst:    The :mod:`bsddb` module has been deprecated for removal in Python 3.0.
-        cd.rst:    The :mod:`cd` module has been deprecated for removal in Python 3.0.
-        dbhash.rst:    The :mod:`dbhash` module has been deprecated for removal in Python 3.0.
-        fl.rst:    The :mod:`fl` module has been deprecated for removal in Python 3.0.
-        fl.rst:    The :mod:`FL` module has been deprecated for removal in Python 3.0.
-        fl.rst:    The :mod:`flp` module has been deprecated for removal in Python 3.0.
-        fm.rst:   The :mod:`fm` module has been deprecated for removal in Python 3.0.
-        gl.rst:    The :mod:`gl` module has been deprecated for removal in Python 3.0.
-        gl.rst:    The :mod:`DEVICE` module has been deprecated for removal in Python 3.0.
-        gl.rst:    The :mod:`GL` module has been deprecated for removal in Python 3.0.
-        imgfile.rst:   The :mod:`imgfile` module has been deprecated for removal in Python 3.0.
-        jpeg.rst:   The :mod:`jpeg` module has been deprecated for removal in Python 3.0.
-        statvfs.rst:   The :mod:`statvfs` module has been deprecated for removal in Python 3.0.
-        sunaudio.rst:   The :mod:`sunaudiodev` module has been deprecated for removal in Python 3.0.
-        sunaudio.rst:   The :mod:`SUNAUDIODEV` module has been deprecated for removal in Python 3.0.
-        tarfile.rst:      The :class:`TarFileCompat` class has been deprecated for removal in Python 3.0.
-         */
 
         DEPRECATED.put("posixfile",
                 "Locking is better done by fcntl.lockf().");

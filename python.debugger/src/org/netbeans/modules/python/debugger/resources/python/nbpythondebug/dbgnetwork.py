@@ -45,7 +45,7 @@ import dbgutils
 import __builtin__
 import sys
 
-__author__="jean-Yves Mengant"
+__author__=""
 __date__ ="$Jan 13, 2009 10:03:05 AM$"
 
 class NetworkDebuggingSession :

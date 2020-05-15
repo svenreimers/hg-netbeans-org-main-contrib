@@ -276,7 +276,6 @@ final class PackageViewChildren extends Children.Keys<String> implements FileCha
     private void computeKeys() {
         // XXX this is not going to perform too well for a huge source root...
         // However we have to go through the whole hierarchy in order to find
-        // all packages (Hrebejk)
         names2nodes = Collections.synchronizedMap(new TreeMap<String,Object>());
         findNonExcludedPackages( root );
     }

@@ -87,7 +87,7 @@ public class ModuleInstaller extends ModuleInstall {
                     // Kick off preindexing
                     String projectPath = System.getProperty("gsf.preindexing.projectpath");
                     if (projectPath == null) {
-                        projectPath = "/Users/tor/NetBeansProjects/RailsApplication1";
+                        projectPath = "/Users/user/NetBeansProjects/RailsApplication1";
                     }
                     File f = new File(projectPath);
                     assert f.exists() : f.getPath() + " cannot be opened for preindexing";

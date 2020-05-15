@@ -100,7 +100,7 @@ import org.openide.util.WeakListeners;
 
 /**
  * Code completion provider - delegates to language plugin for actual population of result set.
- * Based on JavaCompletionProvider by Dusan Balek.
+ * Based on JavaCompletionProvider
  * 
  * @todo I may be able to rip out the code I had in here to work around the
  *   automatic completion vs "No Suggestions" issue; see 
